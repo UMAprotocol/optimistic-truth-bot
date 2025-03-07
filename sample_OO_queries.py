@@ -58,4 +58,28 @@ queries = [
         resolution_conditions="""res_data: p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Capitals, p2 to Red Wings, p3 to unknown/50-50.""",
         updates=[""],
     ),
+    QueryData(
+        query_id="0x2446dca70cd3f743ebc4659ab7492ea0ca03a57aa120719231c9f9872532828e",
+        unix_timestamp=1741232790,
+        ancillary_data="""q: title: Missouri vs. Oklahoma, description: In the upcoming CBB game, scheduled for March 5 at 8:00PM ET: 
+        If the Missouri win, the market will resolve to “Missouri”. 
+        If the Oklahoma win, the market will resolve to “Oklahoma”. 
+        If the game is postponed, this market will remain open until the game has been completed. 
+        If the game is canceled entirely, with no make-up game, this market will resolve 50-50.""",
+        resolution_conditions="""res_data: p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Oklahoma, p2 to Missouri, p3 to unknown/50-50.""",
+        updates=[""],
+    ),
+    QueryData(
+        query_id="0xae9b8d121ab1389990c70b11fbfcf2e8d0ae4b855ac211fafbbae11dea41e740",
+        unix_timestamp=1741198705,
+        ancillary_data="""q: title: Will the highest temperature in London be 63°F or higher on March 7?, 
+        description: This market will resolve to the temperature range that contains the highest temperature recorded at the London City Airport Station in degrees Fahrenheit on March 7, 2025. 
+        The resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day by the Forecast for the London City Airport Station once information is finalized, available here: https://www.wunderground.com/history/daily/gb/london/EGLC. 
+        This market can not resolve to "Yes" until all data for this date has been finalized. 
+        The resolution source for this market measures temperatures to whole degrees Fahrenheit (eg, 21°F). 
+        Thus, this is the level of precision that will be used when resolving the market. 
+        Any revisions to temperatures recorded after data is finalized for this market’s timeframe will not be considered for this market's resolution.""",
+        resolution_conditions="""res_data: p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown. This request MUST only resolve to p1 or p2.""",
+        updates=[""],
+    ),
 ]
