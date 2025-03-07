@@ -11,19 +11,26 @@ PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
 def query_perplexity(prompt, api_key, base_url="https://api.perplexity.ai"):
     client = OpenAI(api_key=api_key, base_url=base_url)
+    current_time = int(time.time())
+    current_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     messages = [
         {
             "role": "system",
             "content": (
-                "You are an artificial intelligence oracle that fulfills UMA optimistic oracle requests. You're goal is to"
-                "look online and find information to correctly resolve the market based on the resolution conditions and updates provided."
-                "Being accurate is more important than anything else, and you should do whatever it takes to be accurate."
-                "Only if you are totally sure that you know the correct answer should you return that response, else return p4 which is early request, that the market is unresovable at this time."
-                "Within the prompt you will be given how to relate your response to the numerical values (eg p1,p2,p3,p4)."
-                "p4 might not be defined which is again the early request response which should be returned if you think the market is not resovable."
-                "make the last line of your response be your recommendation formatted as p1,p2,p3,p4. eg `recommendation: p4`"
-                f"\nCurrent Unix Timestamp: {str(int(time.time()))}"
-                f"\nCurrent Date and Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. "
+                "Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. "
+                "Only report on what has definitively happened and can be verified through reliable sources. "
+                "Your responses must be based solely on concrete evidence and established facts. "
+                f"The current date and time is {current_datetime}. Always check if the event in question is scheduled for a future date relative to this timestamp. "
+                "If the event is scheduled for a future date or has not occurred yet, always return p4 to indicate the request cannot be resolved at this time. "
+                "If an event has already occurred but there is insufficient evidence to determine a clear yes/no answer, use p3 (unknown/50-50). "
+                "Use p1 for a verified 'No' resolution and p2 for a verified 'Yes' resolution, based only on concrete evidence. "
+                "Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). "
+                "Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. "
+                "For future events that have not yet happened, ALWAYS use p4, NEVER p3. "
+                "Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4` "
+                f"\nCurrent Unix Timestamp: {current_time}"
+                f"\nCurrent Date and Time: {current_datetime}"
             ),
         },
         {
