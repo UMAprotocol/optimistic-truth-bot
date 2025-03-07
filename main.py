@@ -47,26 +47,28 @@ def process_and_query(query_data, api_key):
     prompt = f"\n\nancillary_data:\n{query_data.ancillary_data}\n\nresolution_conditions:\n{query_data.resolution_conditions}\n\nupdates:\n{query_data.updates}"
     return query_perplexity(prompt, api_key)
 
-def query_first_sample(api_key):
+def query_all_samples(api_key):
     from sample_OO_queries import queries
-    first_query = queries[0]
-    return process_and_query(first_query, api_key)
+    return [process_and_query(query, api_key) for query in queries]
 
 if __name__ == "__main__":
-    response = query_first_sample(PERPLEXITY_API_KEY)
-    print("\nPerplexity API Response:")
-    print("-" * 80)
-    print(f"Model: {response.model}")
-    print(f"Created: {datetime.fromtimestamp(response.created)}")
-    print("\nResponse Content:")
-    print("-" * 80)
-    print(response.choices[0].message.content)
-    print("\nUsage Statistics:")
-    print("-" * 80)
-    print(f"Completion tokens: {response.usage.completion_tokens}")
-    print(f"Prompt tokens: {response.usage.prompt_tokens}")
-    print(f"Total tokens: {response.usage.total_tokens}")
-    print("\nCitations:")
-    print("-" * 80)
-    for citation in response.citations:
-        print(citation)
+    responses = query_all_samples(PERPLEXITY_API_KEY)
+    for i, response in enumerate(responses):
+        print(f"\n{'='*80}")
+        print(f"Query {i+1} Response:")
+        print(f"{'='*80}")
+        print(f"Model: {response.model}")
+        print(f"Created: {datetime.fromtimestamp(response.created)}")
+        print("\nResponse Content:")
+        print("-" * 80)
+        print(response.choices[0].message.content)
+        print("\nUsage Statistics:")
+        print("-" * 80)
+        print(f"Completion tokens: {response.usage.completion_tokens}")
+        print(f"Prompt tokens: {response.usage.prompt_tokens}")
+        print(f"Total tokens: {response.usage.total_tokens}")
+        print("\nCitations:")
+        print("-" * 80)
+        for citation in response.citations:
+            print(citation)
+        print(f"\n{'='*80}\n")
