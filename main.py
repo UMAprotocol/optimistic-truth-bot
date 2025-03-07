@@ -24,8 +24,6 @@ def query_perplexity(prompt, api_key, base_url="https://api.perplexity.ai"):
                 "IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. "
                 "Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. "
                 "If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. "
-                # "If an event has already occurred but there is insufficient evidence to determine a clear yes/no answer, use p3 (unknown/50-50). "
-                # "Use p1 for a verified 'No' resolution and p2 for a verified 'Yes' resolution, based only on concrete evidence. "
                 "Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). "
                 "Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. "
                 "For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. "
@@ -47,7 +45,7 @@ def query_perplexity(prompt, api_key, base_url="https://api.perplexity.ai"):
         print(f"Content:\n{msg['content']}\n")
         print("-" * 80)
     response = client.chat.completions.create(
-        model="sonar-pro",
+        model="sonar-reasoning-pro",
         messages=messages,
     )
     return response
