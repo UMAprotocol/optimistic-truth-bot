@@ -45,7 +45,7 @@ def query_perplexity(prompt, api_key, base_url="https://api.perplexity.ai"):
         print(f"Content:\n{msg['content']}\n")
         print("-" * 80)
     response = client.chat.completions.create(
-        model="sonar-reasoning-pro",
+        model="sonar-deep-research",
         messages=messages,
     )
     return response
