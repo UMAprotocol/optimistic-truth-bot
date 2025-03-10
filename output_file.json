@@ -1,0 +1,1253 @@
+[
+  {
+    "query_id": "0xd40b981b1f7cab77091c821f1fe90455ca238c4d50c72545aa1db3d4b0f6172b",
+    "unix_timestamp": 1741579251,
+    "ancillary_data": "q: title: 76ers vs. Mavericks, description: In the upcoming NBA game, scheduled for March 16 at 1:00PM ET:\nIf the Philadelphia 76ers win, the market will resolve to \"76ers\".\nIf the Dallas Mavericks win, the market will resolve to \"Mavericks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Mavericks, p2 to 76ers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x47c59da2e9f1f47671e6339de5159a43e1d1d706d9c1fba96721570b7eeec5dc",
+    "unix_timestamp": 1741579261,
+    "ancillary_data": "q: title: Suns vs. Lakers, description: In the upcoming NBA game, scheduled for March 16 at 3:30PM ET:\nIf the Phoenix Suns win, the market will resolve to \"Suns\".\nIf the Los Angeles Lakers win, the market will resolve to \"Lakers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Lakers, p2 to Suns, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xb98bc9d6eaac53419d7118e3707c451127f56ada08c639cd80dbe69b0967c74f",
+    "unix_timestamp": 1741586405,
+    "ancillary_data": "q: title: Delaware vs. Towson, description: In the upcoming CBB game, scheduled for March 10 at 6:00PM ET:\nIf the Delaware win, the market will resolve to \"Delaware\".\nIf the Towson win, the market will resolve to \"Towson\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Towson, p2 to Delaware, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xa573c904661e2c29a4ccc7d18a7bc8eeebe4046b238bf6ce056cb31ee4a62bcf",
+    "unix_timestamp": 1741586453,
+    "ancillary_data": "q: title: Charleston vs. UNC Wilmington, description: In the upcoming CBB game, scheduled for March 10 at 8:30PM ET:\nIf the Charleston win, the market will resolve to \"Charleston\".\nIf the UNC Wilmington win, the market will resolve to \"UNC Wilmington\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to UNC Wilmington, p2 to Charleston, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x879c0ddbd5ecf9e9d83b525cc14324c9fb48542ead44abeb2fc566275635d4dd",
+    "unix_timestamp": 1741579241,
+    "ancillary_data": "q: title: Magic vs. Cavaliers, description: In the upcoming NBA game, scheduled for March 16 at 1:00PM ET:\nIf the Orlando Magic win, the market will resolve to \"Magic\".\nIf the Cleveland Cavaliers win, the market will resolve to \"Cavaliers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Cavaliers, p2 to Magic, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x22c60422787bec0d4a31926ff9531aed2ea8150227d9a504700932fdefd0508c",
+    "unix_timestamp": 1741586425,
+    "ancillary_data": "q: title: Arkansas State vs. Troy, description: In the upcoming CBB game, scheduled for March 10 at 7:00PM ET:\nIf the Arkansas State win, the market will resolve to \"Arkansas State\".\nIf the Troy win, the market will resolve to \"Troy\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Troy, p2 to Arkansas State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x83ccdc9101b470d5bf5369e59cb0c0e5f4f141431dbce91f9a03705bb221afeb",
+    "unix_timestamp": 1741579283,
+    "ancillary_data": "q: title: Hawks vs. Nets, description: In the upcoming NBA game, scheduled for March 16 at 6:00PM ET:\nIf the Atlanta Hawks win, the market will resolve to \"Hawks\".\nIf the Brooklyn Nets win, the market will resolve to \"Nets\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Nets, p2 to Hawks, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xaa4561a812751a3d1245754c45436975994240b212ca6fd3d5ba63cd5b9ae701",
+    "unix_timestamp": 1741586443,
+    "ancillary_data": "q: title: Incarnate Word vs. Nicholls State, description: In the upcoming CBB game, scheduled for March 10 at 8:30PM ET:\nIf the Incarnate Word win, the market will resolve to \"Incarnate Word\".\nIf the Nicholls State win, the market will resolve to \"Nicholls State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Nicholls State, p2 to Incarnate Word, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x7f03f68ff4863b67a80a2e367a553f5c5e8fdc68f434c552610d0c9ddf6fe671",
+    "unix_timestamp": 1741586439,
+    "ancillary_data": "q: title: Maple Leafs vs. Utah, description: In the upcoming NHL game, scheduled for March 10 at 10:00PM ET:\nIf the Toronto Maple Leafs win, the market will resolve to \"Maple Leafs\".\nIf the Utah win, the market will resolve to \"Utah\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Utah, p2 to Maple Leafs, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xaa7d21b618167f210fe2845a04b7b032cd67feffb27f2ad0552a764d4a94ef59",
+    "unix_timestamp": 1741586433,
+    "ancillary_data": "q: title: Wofford vs. Furman, description: In the upcoming CBB game, scheduled for March 10 at 7:00PM ET:\nIf the Wofford win, the market will resolve to \"Wofford\".\nIf the Furman win, the market will resolve to \"Furman\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Furman, p2 to Wofford, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xa38eb2525a2664aed8149d14e8dcfaa4715c9bd2771a54f35412fe91d0e98d95",
+    "unix_timestamp": 1741586429,
+    "ancillary_data": "q: title: Blackhawks vs. Avalanche, description: In the upcoming NHL game, scheduled for March 10 at 9:00PM ET:\nIf the Chicago Blackhawks win, the market will resolve to \"Blackhawks\".\nIf the Colorado Avalanche win, the market will resolve to \"Avalanche\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Avalanche, p2 to Blackhawks, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xefbf14fdb724544d4b445f6590ff68c9dcc574582b57ea9f57f7a21085405a8d",
+    "unix_timestamp": 1741586449,
+    "ancillary_data": "q: title: Blue Jackets vs. Devils, description: In the upcoming NHL game, scheduled for March 11 at 7:00PM ET:\nIf the Columbus Blue Jackets win, the market will resolve to \"Blue Jackets\".\nIf the New Jersey Devils win, the market will resolve to \"Devils\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Devils, p2 to Blue Jackets, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x3e29cd19252a5b82f0d62879e4e6f19fc30c7cc68550ee63fdef52ef8b9bcdd8",
+    "unix_timestamp": 1741579317,
+    "ancillary_data": "q: title: Thunder vs. Bucks, description: In the upcoming NBA game, scheduled for March 16 at 9:00PM ET:\nIf the Oklahoma City Thunder win, the market will resolve to \"Thunder\".\nIf the Milwaukee Bucks win, the market will resolve to \"Bucks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Bucks, p2 to Thunder, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x859e421e690a579cf386a4dd43b34b7bab5524b0d00bd642135dee5c6a91e066",
+    "unix_timestamp": 1741579305,
+    "ancillary_data": "q: title: Jazz vs. Timberwolves, description: In the upcoming NBA game, scheduled for March 16 at 7:00PM ET:\nIf the Utah Jazz win, the market will resolve to \"Jazz\".\nIf the Minnesota Timberwolves win, the market will resolve to \"Timberwolves\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Timberwolves, p2 to Jazz, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xd0db1c6370a4ecd3c870db353a2f044f09778dd9d6f56bf7fef11499efe742f0",
+    "unix_timestamp": 1741586417,
+    "ancillary_data": "q: title: Red Wings vs. Senators, description: In the upcoming NHL game, scheduled for March 10 at 7:30PM ET:\nIf the Detroit Red Wings win, the market will resolve to \"Red Wings\".\nIf the Ottawa Senators win, the market will resolve to \"Senators\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Senators, p2 to Red Wings, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x7957191ae4983af0d0db11194a50ad2cfcf48896f677cecb0452cc5f2b83a5b1",
+    "unix_timestamp": 1741586407,
+    "ancillary_data": "q: title: Oilers vs. Sabres, description: In the upcoming NHL game, scheduled for March 10 at 7:00PM ET:\nIf the Edmonton Oilers win, the market will resolve to \"Oilers\".\nIf the Buffalo Sabres win, the market will resolve to \"Sabres\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Sabres, p2 to Oilers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe0b585201bb92658ff80e6f311e89029a1033043a36e3d4ca63dd05b8bbd72bb",
+    "unix_timestamp": 1741579271,
+    "ancillary_data": "q: title: Raptors vs. Trail Blazers, description: In the upcoming NBA game, scheduled for March 16 at 6:00PM ET:\nIf the Toronto Raptors win, the market will resolve to \"Raptors\".\nIf the Portland Trail Blazers win, the market will resolve to \"Trail Blazers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Trail Blazers, p2 to Raptors, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x40de3747165909a634cf5655fad7218b97ec10219177cac9bd95921a18abc8fa",
+    "unix_timestamp": 1741586457,
+    "ancillary_data": "q: title: Senators vs. Flyers, description: In the upcoming NHL game, scheduled for March 11 at 7:00PM ET:\nIf the Ottawa Senators win, the market will resolve to \"Senators\".\nIf the Philadelphia Flyers win, the market will resolve to \"Flyers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Flyers, p2 to Senators, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe71ecdc449c477432eac7cbf2aeb98777356fe7bf6f72a11ca727b698158a161",
+    "unix_timestamp": 1741586415,
+    "ancillary_data": "q: title: Texas A&M-CC vs. Northwestern State, description: In the upcoming CBB game, scheduled for March 10 at 6:00PM ET:\nIf the Texas A&M-CC win, the market will resolve to \"Texas A&M-CC\".\nIf the Northwestern State win, the market will resolve to \"Northwestern State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Northwestern State, p2 to Texas A&M-CC, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x8b3a456694af380d8245bcf40767ef23033b51e8d7fb792a12c2fcc6523666f2",
+    "unix_timestamp": 1741579295,
+    "ancillary_data": "q: title: Hornets vs. Clippers, description: In the upcoming NBA game, scheduled for March 16 at 7:00PM ET:\nIf the Charlotte Hornets win, the market will resolve to \"Hornets\".\nIf the LA Clippers win, the market will resolve to \"Clippers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Clippers, p2 to Hornets, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x8f7d53f952569d4cc70c79dfacfd7156f67181bf054da605067880ee41b2fa9a",
+    "unix_timestamp": 1741586467,
+    "ancillary_data": "q: title: Golden Knights vs. Penguins, description: In the upcoming NHL game, scheduled for March 11 at 7:00PM ET:\nIf the Vegas Golden Knights win, the market will resolve to \"Golden Knights\".\nIf the Pittsburgh Penguins win, the market will resolve to \"Penguins\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Penguins, p2 to Golden Knights, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x0934f64ebefb640c62fd7dbe07ccc1f2d9d637e212a75a6dea452b4c4c87dfad",
+    "unix_timestamp": 1741586461,
+    "ancillary_data": "q: title: Pepperdine vs. St. Mary's, description: In the upcoming CBB game, scheduled for March 10 at 9:00PM ET:\nIf the Pepperdine win, the market will resolve to \"Pepperdine\".\nIf the St. Mary's win, the market will resolve to \"St. Mary's\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to St. Mary's, p2 to Pepperdine, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xda8fbae4c59626ec7f66bf2ba587cfbdec2f9044aaf24ffdf7eeeee058d3f612",
+    "unix_timestamp": 1741586485,
+    "ancillary_data": "q: title: Lightning vs. Hurricanes, description: In the upcoming NHL game, scheduled for March 11 at 7:30PM ET:\nIf the Tampa Bay Lightning win, the market will resolve to \"Lightning\".\nIf the Carolina Hurricanes win, the market will resolve to \"Hurricanes\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Hurricanes, p2 to Lightning, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x1060e2a216790b6425b55ed748e0e916066e9a5a8dc7b64240a638d79d93cf1b",
+    "unix_timestamp": 1741586469,
+    "ancillary_data": "q: title: San Francisco vs. Gonzaga, description: In the upcoming CBB game, scheduled for March 10 at 11:30PM ET:\nIf the San Francisco win, the market will resolve to \"San Francisco\".\nIf the Gonzaga win, the market will resolve to \"Gonzaga\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Gonzaga, p2 to San Francisco, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xbc2cabceb51b13b951723795158c11edabdbcc77f2bb839a75e65cfe0a8f2b4b",
+    "unix_timestamp": 1741586477,
+    "ancillary_data": "q: title: Cincinnati vs. Oklahoma State, description: In the upcoming CBB game, scheduled for March 11 at 12:30PM ET:\nIf the Cincinnati win, the market will resolve to \"Cincinnati\".\nIf the Oklahoma State win, the market will resolve to \"Oklahoma State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Oklahoma State, p2 to Cincinnati, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x62e17b468d1cbe6a5c1d4d7203b91185fd338710f7d17f16361cc860339d1465",
+    "unix_timestamp": 1741586475,
+    "ancillary_data": "q: title: Panthers vs. Bruins, description: In the upcoming NHL game, scheduled for March 11 at 7:00PM ET:\nIf the Florida Panthers win, the market will resolve to \"Panthers\".\nIf the Boston Bruins win, the market will resolve to \"Bruins\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Bruins, p2 to Panthers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x60f3062d8cc0dd55611484a07a6db20066f44b23ac379fbd34a228a7b02f5f26",
+    "unix_timestamp": 1741586497,
+    "ancillary_data": "q: title: Pittsburgh vs. Notre Dame, description: In the upcoming CBB game, scheduled for March 11 at 2:00PM ET:\nIf the Pittsburgh win, the market will resolve to \"Pittsburgh\".\nIf the Notre Dame win, the market will resolve to \"Notre Dame\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Notre Dame, p2 to Pittsburgh, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xa87cc98838db65c4545ec833f3ee570cabcf626e90c8bbbd185239e2dc0d0ecb",
+    "unix_timestamp": 1741586507,
+    "ancillary_data": "q: title: Colorado vs. TCU, description: In the upcoming CBB game, scheduled for March 11 at 3:00PM ET:\nIf the Colorado win, the market will resolve to \"Colorado\".\nIf the TCU win, the market will resolve to \"TCU\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to TCU, p2 to Colorado, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x4bc9d88c33fb66019223d106f7c47e3c3b33136eeb92cb86e0e54ff8e8aac0d1",
+    "unix_timestamp": 1741586495,
+    "ancillary_data": "q: title: Rangers vs. Jets, description: In the upcoming NHL game, scheduled for March 11 at 8:00PM ET:\nIf the New York Rangers win, the market will resolve to \"Rangers\".\nIf the Winnipeg Jets win, the market will resolve to \"Jets\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Jets, p2 to Rangers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x36aa0d2ca164036c315107e582701f9dd9da6b4b92c0677f3d6a3feca23a8ed8",
+    "unix_timestamp": 1741586519,
+    "ancillary_data": "q: title: Canadiens vs. Canucks, description: In the upcoming NHL game, scheduled for March 11 at 10:00PM ET:\nIf the Montreal Canadiens win, the market will resolve to \"Canadiens\".\nIf the Vancouver Canucks win, the market will resolve to \"Canucks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Canucks, p2 to Canadiens, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xf7418601ea6532d54aa72798059eced5dbdcb939fc8270c0162a93f858979d52",
+    "unix_timestamp": 1741586507,
+    "ancillary_data": "q: title: Avalanche vs. Wild, description: In the upcoming NHL game, scheduled for March 11 at 8:00PM ET:\nIf the Colorado Avalanche win, the market will resolve to \"Avalanche\".\nIf the Minnesota Wild win, the market will resolve to \"Wild\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Wild, p2 to Avalanche, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xa363f1677300cb1db534fc7675c6c7dcbba45c4057ea829f1bf891b534e40438",
+    "unix_timestamp": 1741586547,
+    "ancillary_data": "q: title: Sam Houston State vs. UTEP, description: In the upcoming CBB game, scheduled for March 11 at 6:30PM ET:\nIf the Sam Houston State win, the market will resolve to \"Sam Houston State\".\nIf the UTEP win, the market will resolve to \"UTEP\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to UTEP, p2 to Sam Houston State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xc546bc5d8b010f7a7992b24b7234bc052889c4e75dc21e74b60f34a9354fdd92",
+    "unix_timestamp": 1741586537,
+    "ancillary_data": "q: title: Siena vs. Rider, description: In the upcoming CBB game, scheduled for March 11 at 6:00PM ET:\nIf the Siena win, the market will resolve to \"Siena\".\nIf the Rider win, the market will resolve to \"Rider\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Rider, p2 to Siena, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x656691665203a33c0db0cb04a10498957685237e5f8dd5967c8826bb3f8100ce",
+    "unix_timestamp": 1741586527,
+    "ancillary_data": "q: title: Utah Tech vs. Southern Utah, description: In the upcoming CBB game, scheduled for March 11 at 4:30PM ET:\nIf the Utah Tech win, the market will resolve to \"Utah Tech\".\nIf the Southern Utah win, the market will resolve to \"Southern Utah\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Southern Utah, p2 to Utah Tech, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x15c1e3c61bcd62a2f069ab0cb0c1e266af307ca224c5e501684054745dbd1ccd",
+    "unix_timestamp": 1741586551,
+    "ancillary_data": "q: title: Predators vs. Sharks, description: In the upcoming NHL game, scheduled for March 11 at 10:30PM ET:\nIf the Nashville Predators win, the market will resolve to \"Predators\".\nIf the San Jose Sharks win, the market will resolve to \"Sharks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Sharks, p2 to Predators, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20",
+    "unix_timestamp": 1741586539,
+    "ancillary_data": "q: title: Islanders vs. Kings, description: In the upcoming NHL game, scheduled for March 11 at 10:30PM ET:\nIf the New York Islanders win, the market will resolve to \"Islanders\".\nIf the Los Angeles Kings win, the market will resolve to \"Kings\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kings, p2 to Islanders, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x5fef47aed7a708df58f0050d8d845ebd3bde33c17291bc14e4b2b1a888057490",
+    "unix_timestamp": 1741586487,
+    "ancillary_data": "q: title: Alabama A&M vs. Grambling State, description: In the upcoming CBB game, scheduled for March 11 at 2:00PM ET:\nIf the Alabama A&M win, the market will resolve to \"Alabama A&M\".\nIf the Grambling State win, the market will resolve to \"Grambling State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Grambling State, p2 to Alabama A&M, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x9345936a050e5985529b9bed7a8cc39c1ec2a40de1f636a504259d745a231e05",
+    "unix_timestamp": 1741586529,
+    "ancillary_data": "q: title: Capitals vs. Ducks, description: In the upcoming NHL game, scheduled for March 11 at 10:00PM ET:\nIf the Washington Capitals win, the market will resolve to \"Capitals\".\nIf the Anaheim Ducks win, the market will resolve to \"Ducks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Ducks, p2 to Capitals, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x3fb13a6e50b88690bd4118ccfb0b7a2c114086c2ab0ff5b7876c2c94c019abed",
+    "unix_timestamp": 1741586559,
+    "ancillary_data": "q: title: St. Francis (PA) vs. Central Connecticut, description: In the upcoming CBB game, scheduled for March 11 at 7:00PM ET:\nIf the St. Francis (PA) win, the market will resolve to \"St. Francis (PA)\".\nIf the Central Connecticut win, the market will resolve to \"Central Connecticut\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Central Connecticut, p2 to St. Francis (PA), p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x417826a02b5deb27e5a6ab8adbe3e5b18f9a7b40818d4373f1bc553efd1a48a2",
+    "unix_timestamp": 1741586517,
+    "ancillary_data": "q: title: California vs. Virginia Tech, description: In the upcoming CBB game, scheduled for March 11 at 4:30PM ET:\nIf the California win, the market will resolve to \"California\".\nIf the Virginia Tech win, the market will resolve to \"Virginia Tech\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Virginia Tech, p2 to California, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xb2a415832f32d96c87460e3864eb36a17fe07bac3d79f56423f64c508ed1b68e",
+    "unix_timestamp": 1741586567,
+    "ancillary_data": "q: title: Arizona State vs. Kansas State, description: In the upcoming CBB game, scheduled for March 11 at 7:00PM ET:\nIf the Arizona State win, the market will resolve to \"Arizona State\".\nIf the Kansas State win, the market will resolve to \"Kansas State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kansas State, p2 to Arizona State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x306ce7fb29a0a56862d5e0def7b418f63442ef94a6c18f8cd902b022e9ff2dd6",
+    "unix_timestamp": 1741586561,
+    "ancillary_data": "q: title: Sabres vs. Red Wings, description: In the upcoming NHL game, scheduled for March 12 at 7:30PM ET:\nIf the Buffalo Sabres win, the market will resolve to \"Sabres\".\nIf the Detroit Red Wings win, the market will resolve to \"Red Wings\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Red Wings, p2 to Sabres, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x7cf0f174811a8f419a18e35d5796f1addb5d6e2a71f4dfd3748d4fb4ff2aed05",
+    "unix_timestamp": 1741586587,
+    "ancillary_data": "q: title: Maine vs. Vermont, description: In the upcoming CBB game, scheduled for March 11 at 7:00PM ET:\nIf the Maine win, the market will resolve to \"Maine\".\nIf the Vermont win, the market will resolve to \"Vermont\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Vermont, p2 to Maine, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x1c16f58db41bf0c5e934d13a53b9b010670a170fdf08dbc4ee413c659b6a8962",
+    "unix_timestamp": 1741586577,
+    "ancillary_data": "q: title: Syracuse vs. Florida State, description: In the upcoming CBB game, scheduled for March 11 at 7:00PM ET:\nIf the Syracuse win, the market will resolve to \"Syracuse\".\nIf the Florida State win, the market will resolve to \"Florida State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Florida State, p2 to Syracuse, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xc3d68d9afc77cb8e8ea575d8cf356439049e3e325bced0049f5e012f22bb8081",
+    "unix_timestamp": 1741586597,
+    "ancillary_data": "q: title: Bruins vs. Senators, description: In the upcoming NHL game, scheduled for March 13 at 7:00PM ET:\nIf the Boston Bruins win, the market will resolve to \"Bruins\".\nIf the Ottawa Senators win, the market will resolve to \"Senators\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Senators, p2 to Bruins, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xf504d300bbe51ea08a1d38bc18524698536afca1f703e7b73295c8a48c686813",
+    "unix_timestamp": 1741586597,
+    "ancillary_data": "q: title: Fairfield vs. Sacred Heart, description: In the upcoming CBB game, scheduled for March 11 at 8:30PM ET:\nIf the Fairfield win, the market will resolve to \"Fairfield\".\nIf the Sacred Heart win, the market will resolve to \"Sacred Heart\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Sacred Heart, p2 to Fairfield, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xdb4377dbb80d3303a40c21100e2f1f5f0bcf5cc089fcd7e3b759eb82a721a9a2",
+    "unix_timestamp": 1741586569,
+    "ancillary_data": "q: title: Canucks vs. Flames, description: In the upcoming NHL game, scheduled for March 12 at 9:00PM ET:\nIf the Vancouver Canucks win, the market will resolve to \"Canucks\".\nIf the Calgary Flames win, the market will resolve to \"Flames\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Flames, p2 to Canucks, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x287ed13a46da7d168b62d629e39226ff443c7499148f5e70932c191477a7422c",
+    "unix_timestamp": 1741586587,
+    "ancillary_data": "q: title: Canadiens vs. Kraken, description: In the upcoming NHL game, scheduled for March 12 at 10:30PM ET:\nIf the Montreal Canadiens win, the market will resolve to \"Canadiens\".\nIf the Seattle Kraken win, the market will resolve to \"Kraken\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kraken, p2 to Canadiens, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x3d6df7ea3724c12fc79e392ee03808767d3cdf75059b5290d72e62eddcb9b02a",
+    "unix_timestamp": 1741586577,
+    "ancillary_data": "q: title: Ducks vs. Utah, description: In the upcoming NHL game, scheduled for March 12 at 10:00PM ET:\nIf the Anaheim Ducks win, the market will resolve to \"Ducks\".\nIf the Utah win, the market will resolve to \"Utah\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Utah, p2 to Ducks, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x59e3d177ac3e9b21968d465f5b45bad81ae6beebc1da887acaa604950b5be1dd",
+    "unix_timestamp": 1741586607,
+    "ancillary_data": "q: title: Prairie View A&M vs. Florida A&M, description: In the upcoming CBB game, scheduled for March 11 at 8:30PM ET:\nIf the Prairie View A&M win, the market will resolve to \"Prairie View A&M\".\nIf the Florida A&M win, the market will resolve to \"Florida A&M\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Florida A&M, p2 to Prairie View A&M, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xd22d3f072e0ca1da912f0c33c5e612e9501c05194ae0d5aee96987f0d7be7cc2",
+    "unix_timestamp": 1741586631,
+    "ancillary_data": "q: title: Albany vs. Bryant, description: In the upcoming CBB game, scheduled for March 11 at 9:00PM ET:\nIf the Albany win, the market will resolve to \"Albany\".\nIf the Bryant win, the market will resolve to \"Bryant\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Bryant, p2 to Albany, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xf8afa3215b4a0a133dc39754a9bee73381e6c131f8df48b7a6220f536710033e",
+    "unix_timestamp": 1741586607,
+    "ancillary_data": "q: title: Golden Knights vs. Blue Jackets, description: In the upcoming NHL game, scheduled for March 13 at 7:00PM ET:\nIf the Vegas Golden Knights win, the market will resolve to \"Golden Knights\".\nIf the Columbus Blue Jackets win, the market will resolve to \"Blue Jackets\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Blue Jackets, p2 to Golden Knights, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xefc7588f3ba13323de15638989c6e43fc85704381337bcefc60c38935853b4b4",
+    "unix_timestamp": 1741586631,
+    "ancillary_data": "q: title: Lightning vs. Flyers, description: In the upcoming NHL game, scheduled for March 13 at 7:00PM ET:\nIf the Tampa Bay Lightning win, the market will resolve to \"Lightning\".\nIf the Philadelphia Flyers win, the market will resolve to \"Flyers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Flyers, p2 to Lightning, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x16b5368121da918c7467ad089ecaa157403051833f8180120334d9e6560a2c3d",
+    "unix_timestamp": 1741586619,
+    "ancillary_data": "q: title: Panthers vs. Maple Leafs, description: In the upcoming NHL game, scheduled for March 13 at 7:00PM ET:\nIf the Florida Panthers win, the market will resolve to \"Panthers\".\nIf the Toronto Maple Leafs win, the market will resolve to \"Maple Leafs\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Maple Leafs, p2 to Panthers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x0c528f1e8694129ae386c2f23c7a35f9c6b7048c0bc51b06559385d22521900e",
+    "unix_timestamp": 1741586641,
+    "ancillary_data": "q: title: UCF vs. Utah, description: In the upcoming CBB game, scheduled for March 11 at 9:30PM ET:\nIf the UCF win, the market will resolve to \"UCF\".\nIf the Utah win, the market will resolve to \"Utah\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Utah, p2 to UCF, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x83c0c8e56223f851cc65de91c91ce9240780f992b261879cdda72dc5fdfab591",
+    "unix_timestamp": 1741586665,
+    "ancillary_data": "q: title: Virginia vs. Georgia Tech, description: In the upcoming CBB game, scheduled for March 12 at 12:00PM ET:\nIf the Virginia win, the market will resolve to \"Virginia\".\nIf the Georgia Tech win, the market will resolve to \"Georgia Tech\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Georgia Tech, p2 to Virginia, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe5a2b2d322723ed1b108cd766f53b86700cad285ff9d5daf0b490cf7e906f9e5",
+    "unix_timestamp": 1741586655,
+    "ancillary_data": "q: title: Oilers vs. Devils, description: In the upcoming NHL game, scheduled for March 13 at 7:30PM ET:\nIf the Edmonton Oilers win, the market will resolve to \"Oilers\".\nIf the New Jersey Devils win, the market will resolve to \"Devils\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Devils, p2 to Oilers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x62f48e69627e43cb3f423d9d848e31236f27e2a27c72c9e01a055a9152b3371e",
+    "unix_timestamp": 1741586655,
+    "ancillary_data": "q: title: Richmond vs. Davidson, description: In the upcoming CBB game, scheduled for March 12 at 11:30AM ET:\nIf the Richmond win, the market will resolve to \"Richmond\".\nIf the Davidson win, the market will resolve to \"Davidson\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Davidson, p2 to Richmond, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x7098352649cb3c83e2d5636c35a5ff627f4c74ce1acae31b9ea9b3a478c00b21",
+    "unix_timestamp": 1741586619,
+    "ancillary_data": "q: title: Florida International vs. Western Kentucky, description: In the upcoming CBB game, scheduled for March 11 at 9:00PM ET:\nIf the Florida International win, the market will resolve to \"Florida International\".\nIf the Western Kentucky win, the market will resolve to \"Western Kentucky\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Western Kentucky, p2 to Florida International, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xce51feb1d9a919b58c25a10d8d7cf9ff95b934ee1faf487a491996e9574f41ae",
+    "unix_timestamp": 1741586641,
+    "ancillary_data": "q: title: Blues vs. Penguins, description: In the upcoming NHL game, scheduled for March 13 at 7:00PM ET:\nIf the St. Louis Blues win, the market will resolve to \"Blues\".\nIf the Pittsburgh Penguins win, the market will resolve to \"Penguins\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Penguins, p2 to Blues, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x35ad0aba4cf1b4f133d1c23ada41cc06c6a835188836ead27d55f04cac9fc843",
+    "unix_timestamp": 1741586667,
+    "ancillary_data": "q: title: Rangers vs. Wild, description: In the upcoming NHL game, scheduled for March 13 at 8:00PM ET:\nIf the New York Rangers win, the market will resolve to \"Rangers\".\nIf the Minnesota Wild win, the market will resolve to \"Wild\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Wild, p2 to Rangers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xfaf5e4dbfb1e0da88baf3d8b5e7ce83a9aadbb809f582d554aa44c14408d44e7",
+    "unix_timestamp": 1741586675,
+    "ancillary_data": "q: title: South Carolina vs. Arkansas, description: In the upcoming CBB game, scheduled for March 12 at 1:00PM ET:\nIf the South Carolina win, the market will resolve to \"South Carolina\".\nIf the Arkansas win, the market will resolve to \"Arkansas\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Arkansas, p2 to South Carolina, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe488f0b30dbecdb0fd2caca0ed87a816fda8535a565251fe82042d84ea35a90d",
+    "unix_timestamp": 1741586679,
+    "ancillary_data": "q: title: Blackhawks vs. Sharks, description: In the upcoming NHL game, scheduled for March 13 at 10:30PM ET:\nIf the Chicago Blackhawks win, the market will resolve to \"Blackhawks\".\nIf the San Jose Sharks win, the market will resolve to \"Sharks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Sharks, p2 to Blackhawks, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x210e20876f83cd324635b30e3f1c570d63ebc21afcee792b9e32d96e333da68f",
+    "unix_timestamp": 1741586695,
+    "ancillary_data": "q: title: Wyoming vs. San Jos\u00e9 State, description: In the upcoming CBB game, scheduled for March 12 at 2:00PM ET:\nIf the Wyoming win, the market will resolve to \"Wyoming\".\nIf the San Jos\u00e9 State win, the market will resolve to \"San Jos\u00e9 State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to San Jos\u00e9 State, p2 to Wyoming, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x26f43f189045abf27622b98af4a2c798be643a8c1ed42d986f6a4eed90285162",
+    "unix_timestamp": 1741586689,
+    "ancillary_data": "q: title: Capitals vs. Kings, description: In the upcoming NHL game, scheduled for March 13 at 10:30PM ET:\nIf the Washington Capitals win, the market will resolve to \"Capitals\".\nIf the Los Angeles Kings win, the market will resolve to \"Kings\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kings, p2 to Capitals, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x8ce2604d9994290e6da45e9f285ef438b509dc04fd1aa8d61ca2fa327bcbb97d",
+    "unix_timestamp": 1741586683,
+    "ancillary_data": "q: title: Charlotte vs. Rice, description: In the upcoming CBB game, scheduled for March 12 at 1:00PM ET:\nIf the Charlotte win, the market will resolve to \"Charlotte\".\nIf the Rice win, the market will resolve to \"Rice\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Rice, p2 to Charlotte, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe836f7428bc832d5c7c21e1c65abfbdd367b5fbf1d3cd120143493819d712083",
+    "unix_timestamp": 1741586705,
+    "ancillary_data": "q: title: Fordham vs. Rhode Island, description: In the upcoming CBB game, scheduled for March 12 at 2:00PM ET:\nIf the Fordham win, the market will resolve to \"Fordham\".\nIf the Rhode Island win, the market will resolve to \"Rhode Island\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Rhode Island, p2 to Fordham, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xff3d758b3d8b56bf6846e6bc08dab876abc1b114afc167956e5f7446b0185388",
+    "unix_timestamp": 1741586721,
+    "ancillary_data": "q: title: Stars vs. Jets, description: In the upcoming NHL game, scheduled for March 14 at 8:00PM ET:\nIf the Dallas Stars win, the market will resolve to \"Stars\".\nIf the Winnipeg Jets win, the market will resolve to \"Jets\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Jets, p2 to Stars, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xae03f9e612e6ba9c9050f3d0403f6d7a465e4a9e3caea44da01251f6c14e6d1d",
+    "unix_timestamp": 1741586713,
+    "ancillary_data": "q: title: Texas vs. Vanderbilt, description: In the upcoming CBB game, scheduled for March 12 at 3:30PM ET:\nIf the Texas win, the market will resolve to \"Texas\".\nIf the Vanderbilt win, the market will resolve to \"Vanderbilt\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Vanderbilt, p2 to Texas, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x9633290010027029c3e193aef740b0ef5d1f3c9a2ae402719264b7ae5f538c02",
+    "unix_timestamp": 1741586743,
+    "ancillary_data": "q: title: Predators vs. Ducks, description: In the upcoming NHL game, scheduled for March 14 at 10:00PM ET:\nIf the Nashville Predators win, the market will resolve to \"Predators\".\nIf the Anaheim Ducks win, the market will resolve to \"Ducks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Ducks, p2 to Predators, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x4c6c78807e0e979ed06cfcff6eeb5acfcde1c34869d2efcd524f834f53541e04",
+    "unix_timestamp": 1741586709,
+    "ancillary_data": "q: title: Oilers vs. Islanders, description: In the upcoming NHL game, scheduled for March 14 at 7:30PM ET:\nIf the Edmonton Oilers win, the market will resolve to \"Oilers\".\nIf the New York Islanders win, the market will resolve to \"Islanders\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Islanders, p2 to Oilers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x44536ddaf62d0efa77a5e0fc41c2247b52f7bf6fd7ae6cc909ed82300cb475d5",
+    "unix_timestamp": 1741586699,
+    "ancillary_data": "q: title: Red Wings vs. Hurricanes, description: In the upcoming NHL game, scheduled for March 14 at 7:00PM ET:\nIf the Detroit Red Wings win, the market will resolve to \"Red Wings\".\nIf the Carolina Hurricanes win, the market will resolve to \"Hurricanes\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Hurricanes, p2 to Red Wings, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x025eb1bef9aa6a79a2d2e3a77ba937e8198cbd1debb6a0da38925898e9fb29ba",
+    "unix_timestamp": 1741586735,
+    "ancillary_data": "q: title: Butler vs. Providence, description: In the upcoming CBB game, scheduled for March 12 at 4:00PM ET:\nIf the Butler win, the market will resolve to \"Butler\".\nIf the Providence win, the market will resolve to \"Providence\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Providence, p2 to Butler, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x8cbada914f000ef9f3f18226ad65a46a6629008c3b3c1127afb8019854475fde",
+    "unix_timestamp": 1741586733,
+    "ancillary_data": "q: title: Avalanche vs. Flames, description: In the upcoming NHL game, scheduled for March 14 at 9:00PM ET:\nIf the Colorado Avalanche win, the market will resolve to \"Avalanche\".\nIf the Calgary Flames win, the market will resolve to \"Flames\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Flames, p2 to Avalanche, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe9384a0544f2bea9fa710464d1cccdd4f30d87a51bd707bfae12dcb7ae457399",
+    "unix_timestamp": 1741586723,
+    "ancillary_data": "q: title: Northwestern vs. Minnesota, description: In the upcoming CBB game, scheduled for March 12 at 3:30PM ET:\nIf the Northwestern win, the market will resolve to \"Northwestern\".\nIf the Minnesota win, the market will resolve to \"Minnesota\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Minnesota, p2 to Northwestern, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x0da42393688b1e2834925e5cc54df2929e7d2c824e633e7e00c8ccdc87ced15c",
+    "unix_timestamp": 1741586755,
+    "ancillary_data": "q: title: Utah vs. Kraken, description: In the upcoming NHL game, scheduled for March 14 at 10:00PM ET:\nIf the Utah win, the market will resolve to \"Utah\".\nIf the Seattle Kraken win, the market will resolve to \"Kraken\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kraken, p2 to Utah, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x6c8569c08c30b0b7349e1de79710c5c6b7e52500596ac038c3fabde3e4cc0279",
+    "unix_timestamp": 1741586763,
+    "ancillary_data": "q: title: Iowa vs. Ohio State, description: In the upcoming CBB game, scheduled for March 12 at 6:00PM ET:\nIf the Iowa win, the market will resolve to \"Iowa\".\nIf the Ohio State win, the market will resolve to \"Ohio State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Ohio State, p2 to Iowa, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x3560339fcfeca454cc36bec546290ac92e9dd34f1696514760e18729d952d325",
+    "unix_timestamp": 1741586765,
+    "ancillary_data": "q: title: Golden Knights vs. Sabres, description: In the upcoming NHL game, scheduled for March 15 at 12:30PM ET:\nIf the Vegas Golden Knights win, the market will resolve to \"Golden Knights\".\nIf the Buffalo Sabres win, the market will resolve to \"Sabres\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Sabres, p2 to Golden Knights, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x0f9b882e6e468a03e6ae5dd48e81575996c2f551be7344d66cab89a81d4269e7",
+    "unix_timestamp": 1741586743,
+    "ancillary_data": "q: title: Fresno State vs. Nevada, description: In the upcoming CBB game, scheduled for March 12 at 4:30PM ET:\nIf the Fresno State win, the market will resolve to \"Fresno State\".\nIf the Nevada win, the market will resolve to \"Nevada\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Nevada, p2 to Fresno State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x8ddd1b4a33bc9a6e91de1f15f38356f5dc3918430148a654f845e6fa98465a27",
+    "unix_timestamp": 1741586755,
+    "ancillary_data": "q: title: La Salle vs. Massachusetts, description: In the upcoming CBB game, scheduled for March 12 at 4:30PM ET:\nIf the La Salle win, the market will resolve to \"La Salle\".\nIf the Massachusetts win, the market will resolve to \"Massachusetts\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Massachusetts, p2 to La Salle, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xd570b45b33ebc7cd525627e172badd8489eac77e5d8fadd953b53f36afa4f3f4",
+    "unix_timestamp": 1741586773,
+    "ancillary_data": "q: title: Devils vs. Penguins, description: In the upcoming NHL game, scheduled for March 15 at 3:00PM ET:\nIf the New Jersey Devils win, the market will resolve to \"Devils\".\nIf the Pittsburgh Penguins win, the market will resolve to \"Penguins\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Penguins, p2 to Devils, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x212e202be715d6bb94cbaa0f9f8620122dba69d5d627b1809f6c5f0e7317d149",
+    "unix_timestamp": 1741586771,
+    "ancillary_data": "q: title: MD Eastern Shore vs. Norfolk State, description: In the upcoming CBB game, scheduled for March 12 at 6:00PM ET:\nIf the MD Eastern Shore win, the market will resolve to \"MD Eastern Shore\".\nIf the Norfolk State win, the market will resolve to \"Norfolk State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Norfolk State, p2 to MD Eastern Shore, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x5cdb5b03ab0654972183e2960f165f03b6d38ef95dfc80230a64e7cf4741efc0",
+    "unix_timestamp": 1741586783,
+    "ancillary_data": "q: title: Capitals vs. Sharks, description: In the upcoming NHL game, scheduled for March 15 at 5:00PM ET:\nIf the Washington Capitals win, the market will resolve to \"Capitals\".\nIf the San Jose Sharks win, the market will resolve to \"Sharks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Sharks, p2 to Capitals, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xf14e9f10beabfe6ff5e486f958d48ca13e97e86dea213bfe4fa69135570dc5fd",
+    "unix_timestamp": 1741586781,
+    "ancillary_data": "q: title: DePaul vs. Georgetown, description: In the upcoming CBB game, scheduled for March 12 at 6:30PM ET:\nIf the DePaul win, the market will resolve to \"DePaul\".\nIf the Georgetown win, the market will resolve to \"Georgetown\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Georgetown, p2 to DePaul, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xa5722f275d7af595794c794cb4c17275b6d353902e5d3504c4f31dcc32f15ac6",
+    "unix_timestamp": 1741586791,
+    "ancillary_data": "q: title: Air Force vs. UNLV, description: In the upcoming CBB game, scheduled for March 12 at 7:00PM ET:\nIf the Air Force win, the market will resolve to \"Air Force\".\nIf the UNLV win, the market will resolve to \"UNLV\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to UNLV, p2 to Air Force, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xbded0c7196dce87ad75c80716f0559d21d5aeb3e334d79bda1de132fca74d47a",
+    "unix_timestamp": 1741586805,
+    "ancillary_data": "q: title: Lightning vs. Bruins, description: In the upcoming NHL game, scheduled for March 15 at 7:00PM ET:\nIf the Tampa Bay Lightning win, the market will resolve to \"Lightning\".\nIf the Boston Bruins win, the market will resolve to \"Bruins\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Bruins, p2 to Lightning, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xd9d48807e31e1ea4a259c33ce0e569428f442ece90633689cee0298b7906ea49",
+    "unix_timestamp": 1741586799,
+    "ancillary_data": "q: title: LSU vs. Mississippi State, description: In the upcoming CBB game, scheduled for March 12 at 7:00PM ET:\nIf the LSU win, the market will resolve to \"LSU\".\nIf the Mississippi State win, the market will resolve to \"Mississippi State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Mississippi State, p2 to LSU, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xfbabea45fc3a3310fdb965e016c9bb92dc6e17d578d312e0b95034cdcd564f97",
+    "unix_timestamp": 1741586795,
+    "ancillary_data": "q: title: Rangers vs. Blue Jackets, description: In the upcoming NHL game, scheduled for March 15 at 7:00PM ET:\nIf the New York Rangers win, the market will resolve to \"Rangers\".\nIf the Columbus Blue Jackets win, the market will resolve to \"Blue Jackets\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Blue Jackets, p2 to Rangers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x63d57a7fd23b49f29f21214f86fcd54f890c2f7a54429c86bad94b8fbe47117d",
+    "unix_timestamp": 1741586815,
+    "ancillary_data": "q: title: USC vs. Rutgers, description: In the upcoming CBB game, scheduled for March 12 at 8:30PM ET:\nIf the USC win, the market will resolve to \"USC\".\nIf the Rutgers win, the market will resolve to \"Rutgers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Rutgers, p2 to USC, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xd09fa1a0d12269122c89aa68737f09f27eff36456008743e1c0380b2591c6e50",
+    "unix_timestamp": 1741586835,
+    "ancillary_data": "q: title: Senators vs. Maple Leafs, description: In the upcoming NHL game, scheduled for March 15 at 7:00PM ET:\nIf the Ottawa Senators win, the market will resolve to \"Senators\".\nIf the Toronto Maple Leafs win, the market will resolve to \"Maple Leafs\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Maple Leafs, p2 to Senators, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x13268d2d08f390f05da4f103d3be4116a9d0f0812eeb0684637c4a8537597b01",
+    "unix_timestamp": 1741586825,
+    "ancillary_data": "q: title: Seton Hall vs. Villanova, description: In the upcoming CBB game, scheduled for March 12 at 9:00PM ET:\nIf the Seton Hall win, the market will resolve to \"Seton Hall\".\nIf the Villanova win, the market will resolve to \"Villanova\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Villanova, p2 to Seton Hall, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xf115ee2e324864742a65f583ca4f567e05b5eea789929c8d74baafb037bd07bd",
+    "unix_timestamp": 1741586825,
+    "ancillary_data": "q: title: Panthers vs. Canadiens, description: In the upcoming NHL game, scheduled for March 15 at 7:00PM ET:\nIf the Florida Panthers win, the market will resolve to \"Panthers\".\nIf the Montreal Canadiens win, the market will resolve to \"Canadiens\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Canadiens, p2 to Panthers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x70374848895922a746fce700208bfe1caf971d1cb918d3799f0e375881741127",
+    "unix_timestamp": 1741586845,
+    "ancillary_data": "q: title: Oklahoma vs. Georgia, description: In the upcoming CBB game, scheduled for March 12 at 9:30PM ET:\nIf the Oklahoma win, the market will resolve to \"Oklahoma\".\nIf the Georgia win, the market will resolve to \"Georgia\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Georgia, p2 to Oklahoma, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x6ca575292fdbc095e5535f1fc3066f7186ff0438af9b0baf94f0f240185f3a34",
+    "unix_timestamp": 1741586807,
+    "ancillary_data": "q: title: Coppin State vs. SC State, description: In the upcoming CBB game, scheduled for March 12 at 8:00PM ET:\nIf the Coppin State win, the market will resolve to \"Coppin State\".\nIf the SC State win, the market will resolve to \"SC State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to SC State, p2 to Coppin State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x51ddd0613c396a77aeec6e08f6a82e340db95cf33ab655c2163be8933823929a",
+    "unix_timestamp": 1741586835,
+    "ancillary_data": "q: title: CSU Bakersfield vs. UC Santa Barbara, description: In the upcoming CBB game, scheduled for March 12 at 9:00PM ET:\nIf the CSU Bakersfield win, the market will resolve to \"CSU Bakersfield\".\nIf the UC Santa Barbara win, the market will resolve to \"UC Santa Barbara\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to UC Santa Barbara, p2 to CSU Bakersfield, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xf35169f5cb070bce5584e7ba8fd78ae1cc00017b0849c77a3ff1261361d70d15",
+    "unix_timestamp": 1741586815,
+    "ancillary_data": "q: title: Hurricanes vs. Flyers, description: In the upcoming NHL game, scheduled for March 15 at 7:00PM ET:\nIf the Carolina Hurricanes win, the market will resolve to \"Hurricanes\".\nIf the Philadelphia Flyers win, the market will resolve to \"Flyers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Flyers, p2 to Hurricanes, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x92c03653c2bf84c6db4157b0db427835408abc8e19f84eb26f43e0ace586abfe",
+    "unix_timestamp": 1741586845,
+    "ancillary_data": "q: title: Predators vs. Kings, description: In the upcoming NHL game, scheduled for March 15 at 8:00PM ET:\nIf the Nashville Predators win, the market will resolve to \"Predators\".\nIf the Los Angeles Kings win, the market will resolve to \"Kings\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kings, p2 to Predators, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xd5fc250c6b5bd4a418e56d5fea08d01c6b3e0063505fd1e75786eb70e7210833",
+    "unix_timestamp": 1741586857,
+    "ancillary_data": "q: title: Blues vs. Wild, description: In the upcoming NHL game, scheduled for March 15 at 8:00PM ET:\nIf the St. Louis Blues win, the market will resolve to \"Blues\".\nIf the Minnesota Wild win, the market will resolve to \"Wild\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Wild, p2 to Blues, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x147b3e443814ed97ba3eadd80f990b7fd21844731c0683f0efad74644efe393d",
+    "unix_timestamp": 1741586857,
+    "ancillary_data": "q: title: UT Arlington vs. Grand Canyon, description: In the upcoming CBB game, scheduled for March 12 at 11:30PM ET:\nIf the UT Arlington win, the market will resolve to \"UT Arlington\".\nIf the Grand Canyon win, the market will resolve to \"Grand Canyon\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Grand Canyon, p2 to UT Arlington, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x8ad5832cde0d191fc76f10cef3c349a923ae9bfad93d0f22a1cbcfa0657ec736",
+    "unix_timestamp": 1741586867,
+    "ancillary_data": "q: title: Cal Poly vs. UC Davis, description: In the upcoming CBB game, scheduled for March 12 at 11:30PM ET:\nIf the Cal Poly win, the market will resolve to \"Cal Poly\".\nIf the UC Davis win, the market will resolve to \"UC Davis\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to UC Davis, p2 to Cal Poly, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe35f07c1b7b414f19369b7d4981e71c8321da8863768afa724435ed3f7d27a4f",
+    "unix_timestamp": 1741586867,
+    "ancillary_data": "q: title: Blackhawks vs. Canucks, description: In the upcoming NHL game, scheduled for March 15 at 10:00PM ET:\nIf the Chicago Blackhawks win, the market will resolve to \"Blackhawks\".\nIf the Vancouver Canucks win, the market will resolve to \"Canucks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Canucks, p2 to Blackhawks, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x8e35a3948f274e5c196715c6ad2372dede768d79117cd2687e566b0a84d84c52",
+    "unix_timestamp": 1741586875,
+    "ancillary_data": "q: title: Bowling Green vs. Akron, description: In the upcoming CBB game, scheduled for March 13 at 11:00AM ET:\nIf the Bowling Green win, the market will resolve to \"Bowling Green\".\nIf the Akron win, the market will resolve to \"Akron\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Akron, p2 to Bowling Green, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xf58d785cbe2bb67b60c6c7db6e374da0e396b1dd990a8341a8e63db7ddaa16d7",
+    "unix_timestamp": 1741586877,
+    "ancillary_data": "q: title: Golden Knights vs. Red Wings, description: In the upcoming NHL game, scheduled for March 16 at 1:00PM ET:\nIf the Vegas Golden Knights win, the market will resolve to \"Golden Knights\".\nIf the Detroit Red Wings win, the market will resolve to \"Red Wings\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Red Wings, p2 to Golden Knights, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x7d1751632ba6082cbdf00347edf14e8f9e4b3b4c53cf89d90cf36f7c10d5d3ec",
+    "unix_timestamp": 1741586885,
+    "ancillary_data": "q: title: Duquesne vs. St. Bonaventure, description: In the upcoming CBB game, scheduled for March 13 at 11:30AM ET:\nIf the Duquesne win, the market will resolve to \"Duquesne\".\nIf the St. Bonaventure win, the market will resolve to \"St. Bonaventure\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to St. Bonaventure, p2 to Duquesne, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x409bb3e97e1abcc7103b96ac13376983fe7056b3b56c738a916190f3ff5129b6",
+    "unix_timestamp": 1741586885,
+    "ancillary_data": "q: title: Stars vs. Avalanche, description: In the upcoming NHL game, scheduled for March 16 at 3:30PM ET:\nIf the Dallas Stars win, the market will resolve to \"Stars\".\nIf the Colorado Avalanche win, the market will resolve to \"Avalanche\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Avalanche, p2 to Stars, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x66caf4e869947464d24a5cb51de37a1a6a46f0cd7f815ff1898719ce62e285d8",
+    "unix_timestamp": 1741586907,
+    "ancillary_data": "q: title: Oilers vs. Rangers, description: In the upcoming NHL game, scheduled for March 16 at 7:00PM ET:\nIf the Edmonton Oilers win, the market will resolve to \"Oilers\".\nIf the New York Rangers win, the market will resolve to \"Rangers\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Rangers, p2 to Oilers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x96fdfc47e9b5c6074d1dea7b8c98c8bc90f7454f07c98eb3f6d1781ed137b036",
+    "unix_timestamp": 1741586909,
+    "ancillary_data": "q: title: South Florida vs. Wichita State, description: In the upcoming CBB game, scheduled for March 13 at 12:30PM ET:\nIf the South Florida win, the market will resolve to \"South Florida\".\nIf the Wichita State win, the market will resolve to \"Wichita State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Wichita State, p2 to South Florida, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xcb8dc70c5db0043d24e6689e750330708fbfb39abe82f06cc258d6286767263d",
+    "unix_timestamp": 1741586935,
+    "ancillary_data": "q: title: Jets vs. Kraken, description: In the upcoming NHL game, scheduled for March 16 at 9:00PM ET:\nIf the Winnipeg Jets win, the market will resolve to \"Jets\".\nIf the Seattle Kraken win, the market will resolve to \"Kraken\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kraken, p2 to Jets, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x50593dca70e5c2b7bd12e4861a820a141921877707562ed77ae2e086f5c3e057",
+    "unix_timestamp": 1741586949,
+    "ancillary_data": "q: title: Eastern Michigan vs. Miami (OH), description: In the upcoming CBB game, scheduled for March 13 at 4:00PM ET:\nIf the Eastern Michigan win, the market will resolve to \"Eastern Michigan\".\nIf the Miami (OH) win, the market will resolve to \"Miami (OH)\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Miami (OH), p2 to Eastern Michigan, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xbb6e7bea2c100c66898edf9f0fb40a649c8cdba6077fb38782828482678857a5",
+    "unix_timestamp": 1741586917,
+    "ancillary_data": "q: title: Panthers vs. Islanders, description: In the upcoming NHL game, scheduled for March 16 at 7:30PM ET:\nIf the Florida Panthers win, the market will resolve to \"Panthers\".\nIf the New York Islanders win, the market will resolve to \"Islanders\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Islanders, p2 to Panthers, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe96bf64d334217a8561a8dcdcac38f7a85e41e8142134786d44f211c5b0e2b01",
+    "unix_timestamp": 1741586933,
+    "ancillary_data": "q: title: Alabama State vs. Texas Southern, description: In the upcoming CBB game, scheduled for March 13 at 2:00PM ET:\nIf the Alabama State win, the market will resolve to \"Alabama State\".\nIf the Texas Southern win, the market will resolve to \"Texas Southern\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Texas Southern, p2 to Alabama State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x03830b3cf1fd6231239e63bf8c2d347aacdd7cef6d6c36651134b97fbfa90680",
+    "unix_timestamp": 1741586921,
+    "ancillary_data": "q: title: Ohio vs. Toledo, description: In the upcoming CBB game, scheduled for March 13 at 1:30PM ET:\nIf the Ohio win, the market will resolve to \"Ohio\".\nIf the Toledo win, the market will resolve to \"Toledo\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Toledo, p2 to Ohio, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x69f4419bc07004bc6eca92f6414f90247de7a35d972d29c8c5c26f7fbfbc70ea",
+    "unix_timestamp": 1741586941,
+    "ancillary_data": "q: title: Marquette vs. Xavier, description: In the upcoming CBB game, scheduled for March 13 at 2:30PM ET:\nIf the Marquette win, the market will resolve to \"Marquette\".\nIf the Xavier win, the market will resolve to \"Xavier\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Xavier, p2 to Marquette, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe2a736521d327b414fc2635f1471161c9fbdc362001781d8e3d26ad23cd15c52",
+    "unix_timestamp": 1741586969,
+    "ancillary_data": "q: title: Manhattan vs. Iona, description: In the upcoming CBB game, scheduled for March 13 at 6:00PM ET:\nIf the Manhattan win, the market will resolve to \"Manhattan\".\nIf the Iona win, the market will resolve to \"Iona\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Iona, p2 to Manhattan, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xc0affd0e8e18df795d507b7700f69e5962b90d6ce2f4fa5fc1fae141521a259e",
+    "unix_timestamp": 1741586897,
+    "ancillary_data": "q: title: Ducks vs. Blues, description: In the upcoming NHL game, scheduled for March 16 at 6:00PM ET:\nIf the Anaheim Ducks win, the market will resolve to \"Ducks\".\nIf the St. Louis Blues win, the market will resolve to \"Blues\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Blues, p2 to Ducks, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xcfea4e752157bbe4d21a55c983847e6af9ada2d713921136e324c6defff5bd65",
+    "unix_timestamp": 1741586897,
+    "ancillary_data": "q: title: Indiana vs. Oregon, description: In the upcoming CBB game, scheduled for March 13 at 12:00PM ET:\nIf the Indiana win, the market will resolve to \"Indiana\".\nIf the Oregon win, the market will resolve to \"Oregon\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Oregon, p2 to Indiana, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x3b4871faf3e3bac88763d0abf197b04206ca82fe7615c925f00ef2424190cb1b",
+    "unix_timestamp": 1741586993,
+    "ancillary_data": "q: title: Western Michigan vs. Kent State, description: In the upcoming CBB game, scheduled for March 13 at 6:30PM ET:\nIf the Western Michigan win, the market will resolve to \"Western Michigan\".\nIf the Kent State win, the market will resolve to \"Kent State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kent State, p2 to Western Michigan, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x76ed7f6be2cdb656dbd053c3b6deaf45139f9e92640397d1fcc3a6b61c8a12a2",
+    "unix_timestamp": 1741586959,
+    "ancillary_data": "q: title: Boise State vs. San Diego State, description: In the upcoming CBB game, scheduled for March 13 at 5:30PM ET:\nIf the Boise State win, the market will resolve to \"Boise State\".\nIf the San Diego State win, the market will resolve to \"San Diego State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to San Diego State, p2 to Boise State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xd92f8ac528d26a9f3a7f4c3cc392298a3a9dc7ef02d06253604454d7ff11e447",
+    "unix_timestamp": 1741586927,
+    "ancillary_data": "q: title: Utah vs. Canucks, description: In the upcoming NHL game, scheduled for March 16 at 8:00PM ET:\nIf the Utah win, the market will resolve to \"Utah\".\nIf the Vancouver Canucks win, the market will resolve to \"Canucks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Canucks, p2 to Utah, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x8a7601bab2399e0b22a2814d77b5fea4579784fc70bfc0f51f8866d8c129f240",
+    "unix_timestamp": 1741586981,
+    "ancillary_data": "q: title: Morgan State vs. Howard, description: In the upcoming CBB game, scheduled for March 13 at 6:00PM ET:\nIf the Morgan State win, the market will resolve to \"Morgan State\".\nIf the Howard win, the market will resolve to \"Howard\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Howard, p2 to Morgan State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xa8617e40ebf8b65a07bfaa37dc6c268650c681364a4f44bd7d61f0ac0443f2cb",
+    "unix_timestamp": 1741587001,
+    "ancillary_data": "q: title: New Mexico State vs. Kennesaw State, description: In the upcoming CBB game, scheduled for March 13 at 6:30PM ET:\nIf the New Mexico State win, the market will resolve to \"New Mexico State\".\nIf the Kennesaw State win, the market will resolve to \"Kennesaw State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Kennesaw State, p2 to New Mexico State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x1be1569debb55c535e02e1f44693a81521351b1696d1e6ffcac0ccfc286df2fc",
+    "unix_timestamp": 1741587011,
+    "ancillary_data": "q: title: Tulsa vs. Temple, description: In the upcoming CBB game, scheduled for March 13 at 7:00PM ET:\nIf the Tulsa win, the market will resolve to \"Tulsa\".\nIf the Temple win, the market will resolve to \"Temple\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Temple, p2 to Tulsa, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x311d3656ad378710abfb864cd161fde17e06473e28d1b85528b8ae0fdf5831f6",
+    "unix_timestamp": 1741587019,
+    "ancillary_data": "q: title: North Carolina Central vs. Delaware State, description: In the upcoming CBB game, scheduled for March 13 at 8:00PM ET:\nIf the North Carolina Central win, the market will resolve to \"North Carolina Central\".\nIf the Delaware State win, the market will resolve to \"Delaware State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Delaware State, p2 to North Carolina Central, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x61fa9175a2e31fce1573e9f921a035529f5fa1416b3872c95f14f230599be646",
+    "unix_timestamp": 1741587029,
+    "ancillary_data": "q: title: Mt. St. Mary's vs. Marist, description: In the upcoming CBB game, scheduled for March 13 at 8:30PM ET:\nIf the Mt. St. Mary's win, the market will resolve to \"Mt. St. Mary's\".\nIf the Marist win, the market will resolve to \"Marist\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Marist, p2 to Mt. St. Mary's, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x0075b61fa2c75944597e855d624f50b0507d561135d97e70dfe3cbd448ffa114",
+    "unix_timestamp": 1741587055,
+    "ancillary_data": "q: title: UTSA vs. East Carolina, description: In the upcoming CBB game, scheduled for March 13 at 9:00PM ET:\nIf the UTSA win, the market will resolve to \"UTSA\".\nIf the East Carolina win, the market will resolve to \"East Carolina\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to East Carolina, p2 to UTSA, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xb9a8890f58721c4b7e1507d31fa8ac24f8d485fab7412db5630265f477d28517",
+    "unix_timestamp": 1741587039,
+    "ancillary_data": "q: title: Alcorn State vs. Bethune-Cookman, description: In the upcoming CBB game, scheduled for March 13 at 8:30PM ET:\nIf the Alcorn State win, the market will resolve to \"Alcorn State\".\nIf the Bethune-Cookman win, the market will resolve to \"Bethune-Cookman\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Bethune-Cookman, p2 to Alcorn State, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x2a44eaa09dcf6a38411f8a5dc2c264de702560423f7c2380198d5f2a87cf456c",
+    "unix_timestamp": 1741620967,
+    "ancillary_data": "q: title: Marvin Vettori vs. Roman Dolidze, description: This is a market on whether Marvin Vettori or Roman Dolidze will win their bout at UFC Fight Night: Vettori vs. Dolidze 2, scheduled for March 15, 2025.\n\nIf Marvin Vettori is declared the winner of this bout, this market will resolve to \"Vettori.\"\nIf Roman Dolidze is declared the winner of this bout, this market will resolve to \"Dolidze.\"\nIf this fight is declared a draw, or if for any reason the match is not scored, postponed after April 15, 2025, 11:59 PM ET, or canceled, this market will resolve 50-50.\nThe Resolution source will be ESPN; however, a consensus of credible reporting may be used.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Dolidze, p2 to Vettori, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000
+  },
+  {
+    "query_id": "0x57e01c18277e163f8a3dfe799141e8226347b17b5bae77d6a7d9b2d8a2ee7150",
+    "unix_timestamp": 1741620977,
+    "ancillary_data": "q: title: Chidi Njokuani vs. Elizeu Zaleski dos Santos, description: This is a market on whether Chidi Njokuani or Elizeu Zaleski dos Santos will win their bout at UFC Fight Night: Vettori vs. Dolidze 2, scheduled for March 15, 2025.\n\nIf Chidi Njokuani is declared the winner of this bout, this market will resolve to \"Njokuani.\"\nIf Elizeu Zaleski dos Santos is declared the winner of this bout, this market will resolve to \"Zaleski dos Santos.\"\nIf this fight is declared a draw, or if for any reason the match is not scored, postponed after April 15, 2025, 11:59 PM ET, or canceled, this market will resolve 50-50.\nThe Resolution source will be ESPN; however, a consensus of credible reporting may be used.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Zaleski , p2 to Njokuani, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000
+  },
+  {
+    "query_id": "0xa6263185a746e7c08c75d859727393c8e61518d14c5ebb58978e51018f2c07b6",
+    "unix_timestamp": 1741621065,
+    "ancillary_data": "q: title: Da'Mon Blackshear vs. Cody Gibson, description: This is a market on whether Da'Mon Blackshear or Cody Gibson will win their bout at UFC Fight Night: Vettori vs. Dolidze 2, scheduled for March 15, 2025.\n\nIf Da'Mon Blackshear is declared the winner of this bout, this market will resolve to \"Blackshear.\"\nIf Cody Gibson is declared the winner of this bout, this market will resolve to \"Gibson.\"\nIf this fight is declared a draw, or if for any reason the match is not scored, postponed after April 15, 2025, 11:59 PM ET, or canceled, this market will resolve 50-50.\nThe Resolution source will be ESPN; however, a consensus of credible reporting may be used.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Gibson, p2 to Blackshear, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000
+  },
+  {
+    "query_id": "0x1ed86a9ab28cd30706a694bdd3821a3bcdc1eafac119f0d3e19e748cdfa1f362",
+    "unix_timestamp": 1741587081,
+    "ancillary_data": "q: title: Princeton vs. Yale, description: In the upcoming CBB game, scheduled for March 15 at 11:00AM ET:\nIf the Princeton win, the market will resolve to \"Princeton\".\nIf the Yale win, the market will resolve to \"Yale\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Yale, p2 to Princeton, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xf0462be48903d0367c2acca87c733039b70b824807c752301a04bdae67ca3d22",
+    "unix_timestamp": 1741587047,
+    "ancillary_data": "q: title: Louisiana Tech vs. Middle Tennessee, description: In the upcoming CBB game, scheduled for March 13 at 9:00PM ET:\nIf the Louisiana Tech win, the market will resolve to \"Louisiana Tech\".\nIf the Middle Tennessee win, the market will resolve to \"Middle Tennessee\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Middle Tennessee, p2 to Louisiana Tech, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0x27455e2178085da411f6dc1c912ef51d30511021045a2c4f64fbfb64525c7eb7",
+    "unix_timestamp": 1741587065,
+    "ancillary_data": "q: title: Seattle vs. Abilene Christian, description: In the upcoming CBB game, scheduled for March 13 at 9:00PM ET:\nIf the Seattle win, the market will resolve to \"Seattle\".\nIf the Abilene Christian win, the market will resolve to \"Abilene Christian\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Abilene Christian, p2 to Seattle, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xe271b566f7df7b3f8ed36a835b622392a821ac283d93efb51a272975f50fea9b",
+    "unix_timestamp": 1741621565,
+    "ancillary_data": "q: title: Will Trey Hendrickson be traded before May?, description: This market will resolve to \"Yes\" if Trey Hendrickson is traded to another team by April 30, 2025, 11:59 PM ET. Otherwise, this market will resolve to \"No\".\n\nIf Hendrickson is cut, retires, or is not on an NFL roster as of the resolution date this market will resolve to \"No\".\n\nThe resolution source for this market will be official information from the Cincinnati Bengals, however a consensus of credible reporting may also be used.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000
+  },
+  {
+    "query_id": "0x8162d6cd40ff76ed6181ae787bfe4898d78e1a9c50651fa97fe711cdcefa981d",
+    "unix_timestamp": 1741621017,
+    "ancillary_data": "q: title: Choi vs. Kevin Vallejos, description: This is a market on whether Seung Woo Choi or Kevin Vallejos will win their bout at UFC Fight Night: Vettori vs. Dolidze 2, scheduled for March 15, 2025.\n\nIf Seung Woo Choi is declared the winner of this bout, this market will resolve to \"Choi.\"\nIf Kevin Vallejos is declared the winner of this bout, this market will resolve to \"Vallejos.\"\nIf this fight is declared a draw, or if for any reason the match is not scored, postponed after April 15, 2025, 11:59 PM ET, or canceled, this market will resolve 50-50.\nThe Resolution source will be ESPN; however, a consensus of credible reporting may be used.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Vallejos, p2 to Choi, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000
+  },
+  {
+    "query_id": "0x84542afbc1b806ddedf478d8b312bc80abe5452a86f678ebdf560d809c2620de",
+    "unix_timestamp": 1741587089,
+    "ancillary_data": "q: title: Dartmouth vs. Cornell, description: In the upcoming CBB game, scheduled for March 15 at 2:00PM ET:\nIf the Dartmouth win, the market will resolve to \"Dartmouth\".\nIf the Cornell win, the market will resolve to \"Cornell\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Cornell, p2 to Dartmouth, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  },
+  {
+    "query_id": "0xfdbc61cc1a36327011cc0f3ee6edc4cee7ab3237ab6ac833c68e90f45d7f04d0",
+    "unix_timestamp": 1741621081,
+    "ancillary_data": "q: title: Su Young You vs. AJ Cunningham, description: This is a market on whether Su Young You or AJ Cunningham will win their bout at UFC Fight Night: Vettori vs. Dolidze 2, scheduled for March 15, 2025.\n\nIf Su Young You is declared the winner of this bout, this market will resolve to \"You.\"\nIf AJ Cunningham is declared the winner of this bout, this market will resolve to \"Cunningham.\"\nIf this fight is declared a draw, or if for any reason the match is not scored, postponed after April 15, 2025, 11:59 PM ET, or canceled, this market will resolve 50-50.\nThe Resolution source will be ESPN; however, a consensus of credible reporting may be used.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Cunningham, p2 to You, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000
+  },
+  {
+    "query_id": "0x94c762897d07693ab13f5413952b402282cd57cd713f8fa0afd82b5549af4dcc",
+    "unix_timestamp": 1741621569,
+    "ancillary_data": "q: title: Will Jaxson Dart get drafted in the First Round?, description: This market refers to the 2025 NFL Draft scheduled for April 24, 2025 in Green Bay, Wisconsin.\n\nIf Jaxson Dart, is drafted in the first round this market will resolve to \"Yes\". Otherwise, this market will resolve to \"No\".\n\nThe resolution source will be the official live broadcast 2025 NFL Draft, however a consensus of credible reporting may also be used.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000
+  },
+  {
+    "query_id": "0x831a63a6c398890e363154efb2adb6ac62b681abebc08509ea4ad28f22f195fe",
+    "unix_timestamp": 1741621029,
+    "ancillary_data": "q: title: Alexander Hernandez vs. Kurt Holobaugh, description: This is a market on whether Alexander Hernandez or Kurt Holobaugh will win their bout at UFC Fight Night: Vettori vs. Dolidze 2, scheduled for March 15, 2025.\n\nIf Alexander Hernandez is declared the winner of this bout, this market will resolve to \"Hernandez.\"\nIf Kurt Holobaugh is declared the winner of this bout, this market will resolve to \"Holobaugh.\"\nIf this fight is declared a draw, or if for any reason the match is not scored, postponed after April 15, 2025, 11:59 PM ET, or canceled, this market will resolve 50-50.\nThe Resolution source will be ESPN; however, a consensus of credible reporting may be used.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Holobaugh, p2 to Hernandez, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000
+  },
+  {
+    "query_id": "0x76bd1dbbe5c34d9c7db954bc736027f83d1889358c76af94251079aa661e5b9a",
+    "unix_timestamp": 1741587073,
+    "ancillary_data": "q: title: Tarleton vs. California Baptist, description: In the upcoming CBB game, scheduled for March 13 at 11:30PM ET:\nIf the Tarleton win, the market will resolve to \"Tarleton\".\nIf the California Baptist win, the market will resolve to \"California Baptist\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to California Baptist, p2 to Tarleton, p3 to unknown/50-50.",
+    "updates": [],
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000
+  }
+]

@@ -1,18 +1,9 @@
 from web3 import Web3
 from dotenv import load_dotenv
 import os
-import json
 import sys
 
-# Contract addresses
-OptimisticOracleV2 = "0xeE3Afe347D5C74317041E2618C49534dAf887c24"
-UmaCtfAdapter = "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74"
-yesOrNoIdentifier = "0x5945535f4f525f4e4f5f51554552590000000000000000000000000000000000"
-
-
-def load_abi(filename):
-    with open(f"./abi/{filename}") as f:
-        return json.load(f)
+from common import load_abi, OptimisticOracleV2, UmaCtfAdapter, yesOrNoIdentifier
 
 
 def main(question_id):
@@ -75,7 +66,7 @@ def main(question_id):
     print(f"Reward:                        {request_data[8]}")
     print(f"Final Fee:                     {request_data[9]}")
     print("----------------------------------------")
-    
+
     # Check if market has settled
     if not request_data[3]:  # settled flag
         print("\nMarket Status: Not settled yet")
@@ -83,15 +74,18 @@ def main(question_id):
         print("\nMarket Status: Settled")
         # Get resolved price and decode from 1e18 scaling
         resolved_price = request_data[6] / 1e18
-        
+
         # Interpret resolution based on standard values
         if resolved_price == 0:
             print("Resolution: NO (p1)")
         elif resolved_price == 1:
-            print("Resolution: YES (p2)") 
+            print("Resolution: YES (p2)")
         elif resolved_price == 0.5:
             print("Resolution: UNKNOWN/CANNOT BE DETERMINED (p3)")
-        elif resolved_price == -57896044618658097711785492504343953926634992332820282019728.792003956564819968:
+        elif (
+            resolved_price
+            == -57896044618658097711785492504343953926634992332820282019728.792003956564819968
+        ):
             print("Resolution: WAITING FOR MORE INFO (p4)")
         else:
             print(f"Resolution: Non-standard value: {resolved_price}")
