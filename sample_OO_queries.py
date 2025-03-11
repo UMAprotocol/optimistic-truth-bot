@@ -58,4 +58,11 @@ queries = [
         resolution_conditions="""res_data: p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Capitals, p2 to Red Wings, p3 to unknown/50-50.""",
         updates=[""],
     ),
+    QueryData(
+        query_id="0xd40b981b1f7cab77091c821f1fe90455ca238c4d50c72545aa1db3d4b0f6172b",
+        unix_timestamp=1741579251,
+        ancillary_data="""q: title: 76ers vs. Mavericks, description: In the upcoming NBA game, scheduled for March 16 at 1:00PM ET:\nIf the Philadelphia 76ers win, the market will resolve to \"76ers\".\nIf the Dallas Mavericks win, the market will resolve to \"Mavericks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.""",
+        resolution_conditions="""res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Mavericks, p2 to 76ers, p3 to unknown/50-50.""",
+        updates=[""],
+    ),
 ]

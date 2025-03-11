@@ -53,6 +53,7 @@ def query_perplexity(prompt, api_key, base_url="https://api.perplexity.ai"):
     response = client.chat.completions.create(
         model="sonar-deep-research",
         messages=messages,
+        temperature=0.0,
     )
     return response
 
