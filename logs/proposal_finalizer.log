@@ -1,0 +1,22 @@
+2025-03-12 13:18:27,933 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-12 13:18:27,933 - proposal_finalizer - INFO - Proposals directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 13:18:28,624 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-12 13:18:28,641 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-12 13:18:28,641 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-12 13:18:28,641 - proposal_finalizer - INFO - Starting to process output files
+2025-03-12 13:18:28,641 - proposal_finalizer - INFO - Querying resolution for question ID: 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20
+2025-03-12 13:18:29,459 - proposal_finalizer - INFO - Market 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20 resolved: NO (p1)
+2025-03-12 13:18:29,472 - proposal_finalizer - INFO - Updated output_48a549bc.json with resolution: NO (p1)
+2025-03-12 13:18:29,472 - proposal_finalizer - INFO - Processing complete. Processed: 1, Updated: 1, Errors: 0, Skipped: 0
+2025-03-12 13:18:29,472 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-12 13:28:40,570 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-12 13:28:40,571 - proposal_finalizer - INFO - Proposals directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 13:28:41,239 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-12 13:28:41,251 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-12 13:28:41,251 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-12 13:28:41,251 - proposal_finalizer - INFO - Starting to process output files
+2025-03-12 13:28:41,252 - proposal_finalizer - INFO - Querying resolution for question ID: 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20
+2025-03-12 13:28:42,045 - proposal_finalizer - INFO - Market 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20 resolved with price: 0.0
+2025-03-12 13:28:42,090 - proposal_finalizer - INFO - Updated output_48a549bc.json with resolved price: 0.0
+2025-03-12 13:28:42,090 - proposal_finalizer - INFO - Processing complete. Processed: 1, Updated: 1, Errors: 0, Skipped: 0
+2025-03-12 13:28:42,090 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
