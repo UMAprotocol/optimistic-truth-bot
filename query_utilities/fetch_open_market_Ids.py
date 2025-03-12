@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+"""
+Script to fetch all open markets from a specified block number and save them to an output file.
+
+This utility retrieves all UMA Optimistic Oracle market questions that were initialized
+since the specified block number and saves their data to a JSON file.
+
+Usage:
+    python query_utilities/fetch_open_market_Ids.py <FROM_BLOCK> <OUTPUT_FILE>
+
+Example:
+    python query_utilities/fetch_open_market_Ids.py 68853567 output_file.json
+"""
+
 import sys
 from web3 import Web3
 from dotenv import load_dotenv
@@ -5,6 +19,8 @@ import os
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import load_abi, UmaCtfAdapter
 
 
@@ -173,7 +189,9 @@ def main(from_block, output_file):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: python fetch_open_market_Ids.py <from_block> [output_file.json]")
+        print(
+            "Usage: python query_utilities/fetch_open_market_Ids.py <FROM_BLOCK> <OUTPUT_FILE>"
+        )
         sys.exit(1)
 
     try:

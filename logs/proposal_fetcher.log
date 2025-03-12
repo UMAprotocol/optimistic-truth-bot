@@ -1,0 +1,392 @@
+2025-03-12 12:57:08,221 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-12 12:57:08,766 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-12 12:57:08,908 - proposal_fetcher - INFO - Starting from block 68945138 (current: 68956809)
+2025-03-12 12:57:09,043 - proposal_fetcher - INFO - Checking blocks 68945138 to 68956809...
+2025-03-12 12:57:09,194 - proposal_fetcher - INFO - ProposePrice Event: fc941e99fbca3b8cc46ae1af12044138b73ba89b2f828baaed1edcef2e30f848 - Block: 68945138
+2025-03-12 12:57:09,195 - proposal_fetcher - INFO - QuestionID: 0x15c1e3c61bcd62a2f069ab0cb0c1e266af307ca224c5e501684054745dbd1ccd
+2025-03-12 12:57:09,997 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_15c1e3c6.json
+2025-03-12 12:57:09,997 - proposal_fetcher - INFO - ProposePrice Event: dbf8e1beb86d9241975e0f3896e6839304dbadfeb69c6a862876475e954f055a - Block: 68945516
+2025-03-12 12:57:09,997 - proposal_fetcher - INFO - QuestionID: 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20
+2025-03-12 12:57:10,789 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_48a549bc.json
+2025-03-12 12:57:10,789 - proposal_fetcher - INFO - ProposePrice Event: a0146a90cc8441a9c0788dbe20a10442354f6126feeee0e256cc93dd423d1bf5 - Block: 68945801
+2025-03-12 12:57:10,790 - proposal_fetcher - INFO - QuestionID: 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 12:57:11,188 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 12:57:11,188 - proposal_fetcher - INFO - Skipping market for 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 12:57:11,188 - proposal_fetcher - INFO - ProposePrice Event: a472a5cce4001ad7e46aa2ef65be0206ef46cef51fb36378a31c283c37cdbdc1 - Block: 68945823
+2025-03-12 12:57:11,188 - proposal_fetcher - INFO - QuestionID: 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 12:57:11,582 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 12:57:11,582 - proposal_fetcher - INFO - Skipping market for 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 12:57:11,583 - proposal_fetcher - INFO - ProposePrice Event: bd0aa19b0e6bccbcf24eb80bd86b9324ae26a919b94d735b693b49b5cad78c9d - Block: 68945831
+2025-03-12 12:57:11,583 - proposal_fetcher - INFO - QuestionID: 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 12:57:11,981 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 12:57:11,981 - proposal_fetcher - INFO - Skipping market for 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 12:57:11,981 - proposal_fetcher - INFO - ProposePrice Event: e1a423f086f647ac0b5389a1acfbaa8d7c751953fa444ac7848cd43acd4b50f9 - Block: 68945840
+2025-03-12 12:57:11,982 - proposal_fetcher - INFO - QuestionID: 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 12:57:12,378 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 12:57:12,378 - proposal_fetcher - INFO - Skipping market for 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 12:57:12,378 - proposal_fetcher - INFO - ProposePrice Event: e996fae1787458feaa493162d2c120bbf7f7ebdf6f045bdc0fdf9fc4a92386a6 - Block: 68945852
+2025-03-12 12:57:12,378 - proposal_fetcher - INFO - QuestionID: 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 12:57:12,792 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 12:57:12,792 - proposal_fetcher - INFO - Skipping market for 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 12:57:12,792 - proposal_fetcher - INFO - ProposePrice Event: 8a6bded77f8fe034718cd24f137bd0f480bedc88b9e19c297895d77219dfcb0c - Block: 68946760
+2025-03-12 12:57:12,793 - proposal_fetcher - INFO - QuestionID: 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 12:57:13,187 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 12:57:13,187 - proposal_fetcher - INFO - Skipping market for 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 12:57:13,187 - proposal_fetcher - INFO - ProposePrice Event: eea9711ffae286ce918476972fff9cb0f8d57d6cb6d10881a40c1b735205b4a9 - Block: 68947089
+2025-03-12 12:57:13,187 - proposal_fetcher - INFO - QuestionID: 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 12:57:13,581 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 12:57:13,582 - proposal_fetcher - INFO - Skipping market for 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 12:57:13,582 - proposal_fetcher - INFO - ProposePrice Event: 6b5e1f6287ce2e468bcc23e070b057a1b87ff27a2df165715dad6118d70aff77 - Block: 68954261
+2025-03-12 12:57:13,582 - proposal_fetcher - INFO - QuestionID: 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 12:57:13,977 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 12:57:13,977 - proposal_fetcher - INFO - Skipping market for 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 12:57:13,977 - proposal_fetcher - INFO - ProposePrice Event: edc2d1fd127a200f5ba09f369edcf6aabadb656383fb1306538c3e4870956a69 - Block: 68955599
+2025-03-12 12:57:13,978 - proposal_fetcher - INFO - QuestionID: 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 12:57:14,381 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 12:57:14,381 - proposal_fetcher - INFO - Skipping market for 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 12:57:14,381 - proposal_fetcher - INFO - ProposePrice Event: 205aaec8a248ba383465de703c1ddbf2bab8e3f016b7f30c8bcf3f01f50e6c44 - Block: 68955638
+2025-03-12 12:57:14,381 - proposal_fetcher - INFO - QuestionID: 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 12:57:14,790 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 12:57:14,791 - proposal_fetcher - INFO - Skipping market for 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 12:57:14,792 - proposal_fetcher - INFO - ProposePrice Event: fdf8ab086b98e14c7efcd69d1f720e66d9f6e227398c9f35a63a8a9f89d12f5a - Block: 68955642
+2025-03-12 12:57:14,792 - proposal_fetcher - INFO - QuestionID: 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 12:57:15,188 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 12:57:15,188 - proposal_fetcher - INFO - Skipping market for 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 12:57:15,188 - proposal_fetcher - INFO - ProposePrice Event: 9803bd8af64fcde37604cef99ebb3806408d75518a136139c8ed444b16d45b9a - Block: 68955650
+2025-03-12 12:57:15,188 - proposal_fetcher - INFO - QuestionID: 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 12:57:15,587 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 12:57:15,587 - proposal_fetcher - INFO - Skipping market for 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 12:57:45,726 - proposal_fetcher - INFO - Checking blocks 68956810 to 68956827...
+2025-03-12 12:57:45,878 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 12:58:16,016 - proposal_fetcher - INFO - Checking blocks 68956828 to 68956841...
+2025-03-12 12:58:16,150 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 12:58:46,330 - proposal_fetcher - INFO - Checking blocks 68956842 to 68956855...
+2025-03-12 12:58:46,460 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 12:59:16,610 - proposal_fetcher - INFO - Checking blocks 68956856 to 68956869...
+2025-03-12 12:59:16,750 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 12:59:46,931 - proposal_fetcher - INFO - Checking blocks 68956870 to 68956882...
+2025-03-12 12:59:47,069 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:00:17,220 - proposal_fetcher - INFO - Checking blocks 68956883 to 68956896...
+2025-03-12 13:00:17,369 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:00:47,546 - proposal_fetcher - INFO - Checking blocks 68956897 to 68956911...
+2025-03-12 13:00:47,698 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:01:17,838 - proposal_fetcher - INFO - Checking blocks 68956912 to 68956926...
+2025-03-12 13:01:17,983 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:01:48,152 - proposal_fetcher - INFO - Checking blocks 68956927 to 68956940...
+2025-03-12 13:01:48,295 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:02:03,464 - proposal_fetcher - INFO - Event listener stopped by user.
+2025-03-12 13:02:26,312 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-12 13:02:26,854 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-12 13:02:27,011 - proposal_fetcher - INFO - Starting from block 68945138 (current: 68956958)
+2025-03-12 13:02:27,150 - proposal_fetcher - INFO - Checking blocks 68945138 to 68956958...
+2025-03-12 13:02:27,309 - proposal_fetcher - INFO - ProposePrice Event: fc941e99fbca3b8cc46ae1af12044138b73ba89b2f828baaed1edcef2e30f848 - Block: 68945138
+2025-03-12 13:02:27,310 - proposal_fetcher - INFO - QuestionID: 0x15c1e3c61bcd62a2f069ab0cb0c1e266af307ca224c5e501684054745dbd1ccd
+2025-03-12 13:02:28,152 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_15c1e3c6.json
+2025-03-12 13:02:28,152 - proposal_fetcher - INFO - ProposePrice Event: dbf8e1beb86d9241975e0f3896e6839304dbadfeb69c6a862876475e954f055a - Block: 68945516
+2025-03-12 13:02:28,152 - proposal_fetcher - INFO - QuestionID: 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20
+2025-03-12 13:02:28,974 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_48a549bc.json
+2025-03-12 13:02:28,975 - proposal_fetcher - INFO - ProposePrice Event: a0146a90cc8441a9c0788dbe20a10442354f6126feeee0e256cc93dd423d1bf5 - Block: 68945801
+2025-03-12 13:02:28,975 - proposal_fetcher - INFO - QuestionID: 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:02:29,395 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:02:29,396 - proposal_fetcher - INFO - Skipping market for 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:02:29,396 - proposal_fetcher - INFO - ProposePrice Event: a472a5cce4001ad7e46aa2ef65be0206ef46cef51fb36378a31c283c37cdbdc1 - Block: 68945823
+2025-03-12 13:02:29,396 - proposal_fetcher - INFO - QuestionID: 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:02:29,813 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:02:29,813 - proposal_fetcher - INFO - Skipping market for 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:02:29,813 - proposal_fetcher - INFO - ProposePrice Event: bd0aa19b0e6bccbcf24eb80bd86b9324ae26a919b94d735b693b49b5cad78c9d - Block: 68945831
+2025-03-12 13:02:29,814 - proposal_fetcher - INFO - QuestionID: 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:02:30,233 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:02:30,234 - proposal_fetcher - INFO - Skipping market for 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:02:30,234 - proposal_fetcher - INFO - ProposePrice Event: e1a423f086f647ac0b5389a1acfbaa8d7c751953fa444ac7848cd43acd4b50f9 - Block: 68945840
+2025-03-12 13:02:30,234 - proposal_fetcher - INFO - QuestionID: 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:02:30,655 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:02:30,656 - proposal_fetcher - INFO - Skipping market for 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:02:30,656 - proposal_fetcher - INFO - ProposePrice Event: e996fae1787458feaa493162d2c120bbf7f7ebdf6f045bdc0fdf9fc4a92386a6 - Block: 68945852
+2025-03-12 13:02:30,656 - proposal_fetcher - INFO - QuestionID: 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:02:31,103 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:02:31,104 - proposal_fetcher - INFO - Skipping market for 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:02:31,104 - proposal_fetcher - INFO - ProposePrice Event: 8a6bded77f8fe034718cd24f137bd0f480bedc88b9e19c297895d77219dfcb0c - Block: 68946760
+2025-03-12 13:02:31,105 - proposal_fetcher - INFO - QuestionID: 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:02:31,542 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:02:31,542 - proposal_fetcher - INFO - Skipping market for 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:02:31,543 - proposal_fetcher - INFO - ProposePrice Event: eea9711ffae286ce918476972fff9cb0f8d57d6cb6d10881a40c1b735205b4a9 - Block: 68947089
+2025-03-12 13:02:31,543 - proposal_fetcher - INFO - QuestionID: 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:02:31,968 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:02:31,968 - proposal_fetcher - INFO - Skipping market for 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:02:31,969 - proposal_fetcher - INFO - ProposePrice Event: 6b5e1f6287ce2e468bcc23e070b057a1b87ff27a2df165715dad6118d70aff77 - Block: 68954261
+2025-03-12 13:02:31,969 - proposal_fetcher - INFO - QuestionID: 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:02:32,402 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:02:32,402 - proposal_fetcher - INFO - Skipping market for 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:02:32,402 - proposal_fetcher - INFO - ProposePrice Event: edc2d1fd127a200f5ba09f369edcf6aabadb656383fb1306538c3e4870956a69 - Block: 68955599
+2025-03-12 13:02:32,403 - proposal_fetcher - INFO - QuestionID: 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:02:32,541 - proposal_fetcher - INFO - Event listener stopped by user.
+2025-03-12 13:02:41,713 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-12 13:02:42,241 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-12 13:02:42,391 - proposal_fetcher - INFO - Starting from block 68945516 (current: 68956965)
+2025-03-12 13:02:42,529 - proposal_fetcher - INFO - Checking blocks 68945516 to 68956965...
+2025-03-12 13:02:42,687 - proposal_fetcher - INFO - ProposePrice Event: dbf8e1beb86d9241975e0f3896e6839304dbadfeb69c6a862876475e954f055a - Block: 68945516
+2025-03-12 13:02:42,688 - proposal_fetcher - INFO - QuestionID: 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20
+2025-03-12 13:02:43,520 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_48a549bc.json
+2025-03-12 13:02:43,520 - proposal_fetcher - INFO - ProposePrice Event: a0146a90cc8441a9c0788dbe20a10442354f6126feeee0e256cc93dd423d1bf5 - Block: 68945801
+2025-03-12 13:02:43,520 - proposal_fetcher - INFO - QuestionID: 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:02:43,937 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:02:43,937 - proposal_fetcher - INFO - Skipping market for 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:02:43,937 - proposal_fetcher - INFO - ProposePrice Event: a472a5cce4001ad7e46aa2ef65be0206ef46cef51fb36378a31c283c37cdbdc1 - Block: 68945823
+2025-03-12 13:02:43,937 - proposal_fetcher - INFO - QuestionID: 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:02:44,362 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:02:44,362 - proposal_fetcher - INFO - Skipping market for 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:02:44,362 - proposal_fetcher - INFO - ProposePrice Event: bd0aa19b0e6bccbcf24eb80bd86b9324ae26a919b94d735b693b49b5cad78c9d - Block: 68945831
+2025-03-12 13:02:44,363 - proposal_fetcher - INFO - QuestionID: 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:02:44,781 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:02:44,782 - proposal_fetcher - INFO - Skipping market for 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:02:44,782 - proposal_fetcher - INFO - ProposePrice Event: e1a423f086f647ac0b5389a1acfbaa8d7c751953fa444ac7848cd43acd4b50f9 - Block: 68945840
+2025-03-12 13:02:44,782 - proposal_fetcher - INFO - QuestionID: 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:02:45,208 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:02:45,209 - proposal_fetcher - INFO - Skipping market for 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:02:45,209 - proposal_fetcher - INFO - ProposePrice Event: e996fae1787458feaa493162d2c120bbf7f7ebdf6f045bdc0fdf9fc4a92386a6 - Block: 68945852
+2025-03-12 13:02:45,209 - proposal_fetcher - INFO - QuestionID: 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:02:45,625 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:02:45,626 - proposal_fetcher - INFO - Skipping market for 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:02:45,626 - proposal_fetcher - INFO - ProposePrice Event: 8a6bded77f8fe034718cd24f137bd0f480bedc88b9e19c297895d77219dfcb0c - Block: 68946760
+2025-03-12 13:02:45,626 - proposal_fetcher - INFO - QuestionID: 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:02:46,054 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:02:46,054 - proposal_fetcher - INFO - Skipping market for 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:02:46,054 - proposal_fetcher - INFO - ProposePrice Event: eea9711ffae286ce918476972fff9cb0f8d57d6cb6d10881a40c1b735205b4a9 - Block: 68947089
+2025-03-12 13:02:46,055 - proposal_fetcher - INFO - QuestionID: 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:02:46,466 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:02:46,466 - proposal_fetcher - INFO - Skipping market for 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:02:46,466 - proposal_fetcher - INFO - ProposePrice Event: 6b5e1f6287ce2e468bcc23e070b057a1b87ff27a2df165715dad6118d70aff77 - Block: 68954261
+2025-03-12 13:02:46,467 - proposal_fetcher - INFO - QuestionID: 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:02:46,874 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:02:46,875 - proposal_fetcher - INFO - Skipping market for 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:02:46,875 - proposal_fetcher - INFO - ProposePrice Event: edc2d1fd127a200f5ba09f369edcf6aabadb656383fb1306538c3e4870956a69 - Block: 68955599
+2025-03-12 13:02:46,875 - proposal_fetcher - INFO - QuestionID: 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:02:47,288 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:02:47,288 - proposal_fetcher - INFO - Skipping market for 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:02:47,288 - proposal_fetcher - INFO - ProposePrice Event: 205aaec8a248ba383465de703c1ddbf2bab8e3f016b7f30c8bcf3f01f50e6c44 - Block: 68955638
+2025-03-12 13:02:47,289 - proposal_fetcher - INFO - QuestionID: 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:02:47,703 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:02:47,704 - proposal_fetcher - INFO - Skipping market for 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:02:47,704 - proposal_fetcher - INFO - ProposePrice Event: fdf8ab086b98e14c7efcd69d1f720e66d9f6e227398c9f35a63a8a9f89d12f5a - Block: 68955642
+2025-03-12 13:02:47,704 - proposal_fetcher - INFO - QuestionID: 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:02:48,132 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:02:48,132 - proposal_fetcher - INFO - Skipping market for 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:02:48,132 - proposal_fetcher - INFO - ProposePrice Event: 9803bd8af64fcde37604cef99ebb3806408d75518a136139c8ed444b16d45b9a - Block: 68955650
+2025-03-12 13:02:48,132 - proposal_fetcher - INFO - QuestionID: 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:02:48,548 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:02:48,548 - proposal_fetcher - INFO - Skipping market for 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:02:52,746 - proposal_fetcher - INFO - Event listener stopped by user.
+2025-03-12 13:07:45,541 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-12 13:07:46,085 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-12 13:07:46,229 - proposal_fetcher - INFO - Starting from block 68945516 (current: 68957108)
+2025-03-12 13:07:46,365 - proposal_fetcher - INFO - Checking blocks 68945516 to 68957108...
+2025-03-12 13:07:46,523 - proposal_fetcher - INFO - ProposePrice Event: dbf8e1beb86d9241975e0f3896e6839304dbadfeb69c6a862876475e954f055a - Block: 68945516
+2025-03-12 13:07:46,525 - proposal_fetcher - INFO - QuestionID: 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20
+2025-03-12 13:07:47,338 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_48a549bc.json
+2025-03-12 13:07:47,338 - proposal_fetcher - INFO - ProposePrice Event: a0146a90cc8441a9c0788dbe20a10442354f6126feeee0e256cc93dd423d1bf5 - Block: 68945801
+2025-03-12 13:07:47,338 - proposal_fetcher - INFO - QuestionID: 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:07:47,739 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:07:47,740 - proposal_fetcher - INFO - Skipping market for 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:07:47,740 - proposal_fetcher - INFO - ProposePrice Event: a472a5cce4001ad7e46aa2ef65be0206ef46cef51fb36378a31c283c37cdbdc1 - Block: 68945823
+2025-03-12 13:07:47,740 - proposal_fetcher - INFO - QuestionID: 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:07:48,143 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:07:48,143 - proposal_fetcher - INFO - Skipping market for 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:07:48,143 - proposal_fetcher - INFO - ProposePrice Event: bd0aa19b0e6bccbcf24eb80bd86b9324ae26a919b94d735b693b49b5cad78c9d - Block: 68945831
+2025-03-12 13:07:48,144 - proposal_fetcher - INFO - QuestionID: 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:07:48,537 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:07:48,537 - proposal_fetcher - INFO - Skipping market for 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:07:48,537 - proposal_fetcher - INFO - ProposePrice Event: e1a423f086f647ac0b5389a1acfbaa8d7c751953fa444ac7848cd43acd4b50f9 - Block: 68945840
+2025-03-12 13:07:48,537 - proposal_fetcher - INFO - QuestionID: 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:07:48,926 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:07:48,926 - proposal_fetcher - INFO - Skipping market for 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:07:48,926 - proposal_fetcher - INFO - ProposePrice Event: e996fae1787458feaa493162d2c120bbf7f7ebdf6f045bdc0fdf9fc4a92386a6 - Block: 68945852
+2025-03-12 13:07:48,927 - proposal_fetcher - INFO - QuestionID: 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:07:49,327 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:07:49,327 - proposal_fetcher - INFO - Skipping market for 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:07:49,327 - proposal_fetcher - INFO - ProposePrice Event: 8a6bded77f8fe034718cd24f137bd0f480bedc88b9e19c297895d77219dfcb0c - Block: 68946760
+2025-03-12 13:07:49,327 - proposal_fetcher - INFO - QuestionID: 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:07:49,738 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:07:49,738 - proposal_fetcher - INFO - Skipping market for 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:07:49,738 - proposal_fetcher - INFO - ProposePrice Event: eea9711ffae286ce918476972fff9cb0f8d57d6cb6d10881a40c1b735205b4a9 - Block: 68947089
+2025-03-12 13:07:49,738 - proposal_fetcher - INFO - QuestionID: 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:07:50,136 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:07:50,136 - proposal_fetcher - INFO - Skipping market for 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:07:50,136 - proposal_fetcher - INFO - ProposePrice Event: 6b5e1f6287ce2e468bcc23e070b057a1b87ff27a2df165715dad6118d70aff77 - Block: 68954261
+2025-03-12 13:07:50,136 - proposal_fetcher - INFO - QuestionID: 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:07:50,531 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:07:50,531 - proposal_fetcher - INFO - Skipping market for 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:07:50,531 - proposal_fetcher - INFO - ProposePrice Event: edc2d1fd127a200f5ba09f369edcf6aabadb656383fb1306538c3e4870956a69 - Block: 68955599
+2025-03-12 13:07:50,532 - proposal_fetcher - INFO - QuestionID: 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:07:50,928 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:07:50,928 - proposal_fetcher - INFO - Skipping market for 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:07:50,928 - proposal_fetcher - INFO - ProposePrice Event: 205aaec8a248ba383465de703c1ddbf2bab8e3f016b7f30c8bcf3f01f50e6c44 - Block: 68955638
+2025-03-12 13:07:50,928 - proposal_fetcher - INFO - QuestionID: 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:07:51,326 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:07:51,326 - proposal_fetcher - INFO - Skipping market for 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:07:51,326 - proposal_fetcher - INFO - ProposePrice Event: fdf8ab086b98e14c7efcd69d1f720e66d9f6e227398c9f35a63a8a9f89d12f5a - Block: 68955642
+2025-03-12 13:07:51,326 - proposal_fetcher - INFO - QuestionID: 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:07:51,718 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:07:51,718 - proposal_fetcher - INFO - Skipping market for 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:07:51,718 - proposal_fetcher - INFO - ProposePrice Event: 9803bd8af64fcde37604cef99ebb3806408d75518a136139c8ed444b16d45b9a - Block: 68955650
+2025-03-12 13:07:51,718 - proposal_fetcher - INFO - QuestionID: 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:07:52,112 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:07:52,112 - proposal_fetcher - INFO - Skipping market for 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:08:22,250 - proposal_fetcher - INFO - Checking blocks 68957109 to 68957125...
+2025-03-12 13:08:22,389 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:08:52,565 - proposal_fetcher - INFO - Checking blocks 68957126 to 68957139...
+2025-03-12 13:08:52,703 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:09:22,846 - proposal_fetcher - INFO - Checking blocks 68957140 to 68957153...
+2025-03-12 13:09:22,980 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:09:53,136 - proposal_fetcher - INFO - Checking blocks 68957154 to 68957167...
+2025-03-12 13:09:53,275 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:10:23,423 - proposal_fetcher - INFO - Checking blocks 68957168 to 68957182...
+2025-03-12 13:10:23,568 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:10:53,722 - proposal_fetcher - INFO - Checking blocks 68957183 to 68957197...
+2025-03-12 13:10:53,862 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:11:24,020 - proposal_fetcher - INFO - Checking blocks 68957198 to 68957211...
+2025-03-12 13:11:24,156 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:11:54,299 - proposal_fetcher - INFO - Checking blocks 68957212 to 68957225...
+2025-03-12 13:11:54,452 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:12:24,617 - proposal_fetcher - INFO - Checking blocks 68957226 to 68957239...
+2025-03-12 13:12:24,761 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:12:54,921 - proposal_fetcher - INFO - Checking blocks 68957240 to 68957253...
+2025-03-12 13:12:55,073 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:13:25,229 - proposal_fetcher - INFO - Checking blocks 68957254 to 68957267...
+2025-03-12 13:13:25,376 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:13:53,322 - proposal_fetcher - INFO - Event listener stopped by user.
+2025-03-12 13:13:58,823 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-12 13:13:59,353 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-12 13:13:59,504 - proposal_fetcher - INFO - Starting from block 68945516 (current: 68957284)
+2025-03-12 13:13:59,641 - proposal_fetcher - INFO - Checking blocks 68945516 to 68957284...
+2025-03-12 13:13:59,810 - proposal_fetcher - INFO - ProposePrice Event: dbf8e1beb86d9241975e0f3896e6839304dbadfeb69c6a862876475e954f055a - Block: 68945516
+2025-03-12 13:13:59,812 - proposal_fetcher - INFO - QuestionID: 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20
+2025-03-12 13:14:00,639 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_48a549bc.json
+2025-03-12 13:14:00,640 - proposal_fetcher - INFO - ProposePrice Event: a0146a90cc8441a9c0788dbe20a10442354f6126feeee0e256cc93dd423d1bf5 - Block: 68945801
+2025-03-12 13:14:00,640 - proposal_fetcher - INFO - QuestionID: 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:14:01,047 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:14:01,047 - proposal_fetcher - INFO - Skipping market for 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:14:01,047 - proposal_fetcher - INFO - ProposePrice Event: a472a5cce4001ad7e46aa2ef65be0206ef46cef51fb36378a31c283c37cdbdc1 - Block: 68945823
+2025-03-12 13:14:01,048 - proposal_fetcher - INFO - QuestionID: 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:14:01,450 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:14:01,451 - proposal_fetcher - INFO - Skipping market for 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:14:01,451 - proposal_fetcher - INFO - ProposePrice Event: bd0aa19b0e6bccbcf24eb80bd86b9324ae26a919b94d735b693b49b5cad78c9d - Block: 68945831
+2025-03-12 13:14:01,452 - proposal_fetcher - INFO - QuestionID: 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:14:01,857 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:14:01,858 - proposal_fetcher - INFO - Skipping market for 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:14:01,858 - proposal_fetcher - INFO - ProposePrice Event: e1a423f086f647ac0b5389a1acfbaa8d7c751953fa444ac7848cd43acd4b50f9 - Block: 68945840
+2025-03-12 13:14:01,858 - proposal_fetcher - INFO - QuestionID: 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:14:02,281 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:14:02,281 - proposal_fetcher - INFO - Skipping market for 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:14:02,281 - proposal_fetcher - INFO - ProposePrice Event: e996fae1787458feaa493162d2c120bbf7f7ebdf6f045bdc0fdf9fc4a92386a6 - Block: 68945852
+2025-03-12 13:14:02,281 - proposal_fetcher - INFO - QuestionID: 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:14:02,686 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:14:02,686 - proposal_fetcher - INFO - Skipping market for 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:14:02,686 - proposal_fetcher - INFO - ProposePrice Event: 8a6bded77f8fe034718cd24f137bd0f480bedc88b9e19c297895d77219dfcb0c - Block: 68946760
+2025-03-12 13:14:02,686 - proposal_fetcher - INFO - QuestionID: 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:14:03,101 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:14:03,101 - proposal_fetcher - INFO - Skipping market for 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:14:03,101 - proposal_fetcher - INFO - ProposePrice Event: eea9711ffae286ce918476972fff9cb0f8d57d6cb6d10881a40c1b735205b4a9 - Block: 68947089
+2025-03-12 13:14:03,101 - proposal_fetcher - INFO - QuestionID: 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:14:03,497 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:14:03,497 - proposal_fetcher - INFO - Skipping market for 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:14:03,497 - proposal_fetcher - INFO - ProposePrice Event: 6b5e1f6287ce2e468bcc23e070b057a1b87ff27a2df165715dad6118d70aff77 - Block: 68954261
+2025-03-12 13:14:03,497 - proposal_fetcher - INFO - QuestionID: 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:14:03,899 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:14:03,899 - proposal_fetcher - INFO - Skipping market for 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:14:03,899 - proposal_fetcher - INFO - ProposePrice Event: edc2d1fd127a200f5ba09f369edcf6aabadb656383fb1306538c3e4870956a69 - Block: 68955599
+2025-03-12 13:14:03,899 - proposal_fetcher - INFO - QuestionID: 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:14:04,300 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:14:04,301 - proposal_fetcher - INFO - Skipping market for 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:14:04,301 - proposal_fetcher - INFO - ProposePrice Event: 205aaec8a248ba383465de703c1ddbf2bab8e3f016b7f30c8bcf3f01f50e6c44 - Block: 68955638
+2025-03-12 13:14:04,301 - proposal_fetcher - INFO - QuestionID: 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:14:04,701 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:14:04,701 - proposal_fetcher - INFO - Skipping market for 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:14:04,701 - proposal_fetcher - INFO - ProposePrice Event: fdf8ab086b98e14c7efcd69d1f720e66d9f6e227398c9f35a63a8a9f89d12f5a - Block: 68955642
+2025-03-12 13:14:04,702 - proposal_fetcher - INFO - QuestionID: 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:14:05,106 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:14:05,106 - proposal_fetcher - INFO - Skipping market for 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:14:05,106 - proposal_fetcher - INFO - ProposePrice Event: 9803bd8af64fcde37604cef99ebb3806408d75518a136139c8ed444b16d45b9a - Block: 68955650
+2025-03-12 13:14:05,106 - proposal_fetcher - INFO - QuestionID: 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:14:05,516 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:14:05,516 - proposal_fetcher - INFO - Skipping market for 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:14:35,667 - proposal_fetcher - INFO - Checking blocks 68957285 to 68957301...
+2025-03-12 13:14:35,809 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:15:06,141 - proposal_fetcher - INFO - Checking blocks 68957302 to 68957315...
+2025-03-12 13:15:06,285 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:15:36,434 - proposal_fetcher - INFO - Checking blocks 68957316 to 68957329...
+2025-03-12 13:15:36,575 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:16:07,075 - proposal_fetcher - INFO - Checking blocks 68957330 to 68957343...
+2025-03-12 13:16:07,222 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:16:37,373 - proposal_fetcher - INFO - Checking blocks 68957344 to 68957358...
+2025-03-12 13:16:37,519 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:17:08,811 - proposal_fetcher - INFO - Checking blocks 68957359 to 68957373...
+2025-03-12 13:17:08,953 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:17:09,995 - proposal_fetcher - INFO - Event listener stopped by user.
+2025-03-12 13:25:18,646 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-12 13:25:19,210 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-12 13:25:19,356 - proposal_fetcher - INFO - Starting from block 68945516 (current: 68957603)
+2025-03-12 13:25:19,492 - proposal_fetcher - INFO - Checking blocks 68945516 to 68957604...
+2025-03-12 13:25:19,650 - proposal_fetcher - INFO - ProposePrice Event: dbf8e1beb86d9241975e0f3896e6839304dbadfeb69c6a862876475e954f055a - Block: 68945516
+2025-03-12 13:25:19,652 - proposal_fetcher - INFO - QuestionID: 0x48a549bc916869c821b89ea759a53bc8fa3cf64e25ac521297b434f4ff6acf20
+2025-03-12 13:25:20,480 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_48a549bc.json
+2025-03-12 13:25:20,480 - proposal_fetcher - INFO - ProposePrice Event: a0146a90cc8441a9c0788dbe20a10442354f6126feeee0e256cc93dd423d1bf5 - Block: 68945801
+2025-03-12 13:25:20,480 - proposal_fetcher - INFO - QuestionID: 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:25:20,892 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:25:20,892 - proposal_fetcher - INFO - Skipping market for 0xd2a77cf7710613acc7279939021c3a0d8feac8bf38e9a14a3cc39a5e17a167b1
+2025-03-12 13:25:20,893 - proposal_fetcher - INFO - ProposePrice Event: a472a5cce4001ad7e46aa2ef65be0206ef46cef51fb36378a31c283c37cdbdc1 - Block: 68945823
+2025-03-12 13:25:20,893 - proposal_fetcher - INFO - QuestionID: 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:25:21,309 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:25:21,309 - proposal_fetcher - INFO - Skipping market for 0x50416561d4a030a3528224d6c9db94e726cb131f31c44cd464dac6dc1fd6afc6
+2025-03-12 13:25:21,309 - proposal_fetcher - INFO - ProposePrice Event: bd0aa19b0e6bccbcf24eb80bd86b9324ae26a919b94d735b693b49b5cad78c9d - Block: 68945831
+2025-03-12 13:25:21,310 - proposal_fetcher - INFO - QuestionID: 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:25:21,718 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:25:21,718 - proposal_fetcher - INFO - Skipping market for 0x04813a41a286244dfb89666b0981e3b36c856ccf71438a6b32f056cd26fe0633
+2025-03-12 13:25:21,718 - proposal_fetcher - INFO - ProposePrice Event: e1a423f086f647ac0b5389a1acfbaa8d7c751953fa444ac7848cd43acd4b50f9 - Block: 68945840
+2025-03-12 13:25:21,718 - proposal_fetcher - INFO - QuestionID: 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:25:22,127 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:25:22,127 - proposal_fetcher - INFO - Skipping market for 0xe30ee3dd4260097fea08230410a18eb1ba0d3047265fa48756038286b126aff2
+2025-03-12 13:25:22,127 - proposal_fetcher - INFO - ProposePrice Event: e996fae1787458feaa493162d2c120bbf7f7ebdf6f045bdc0fdf9fc4a92386a6 - Block: 68945852
+2025-03-12 13:25:22,127 - proposal_fetcher - INFO - QuestionID: 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:25:22,538 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:25:22,538 - proposal_fetcher - INFO - Skipping market for 0x7087279a610f4ba7ab2b146f0f7fa9080f2d097f69bef7e87334e688a66dbc8f
+2025-03-12 13:25:22,538 - proposal_fetcher - INFO - ProposePrice Event: 8a6bded77f8fe034718cd24f137bd0f480bedc88b9e19c297895d77219dfcb0c - Block: 68946760
+2025-03-12 13:25:22,539 - proposal_fetcher - INFO - QuestionID: 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:25:22,965 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:25:22,965 - proposal_fetcher - INFO - Skipping market for 0xc7114d1f6aea288422124eb9249f8e2a4e54aeeeb691999e130b2e057c316ad4
+2025-03-12 13:25:22,965 - proposal_fetcher - INFO - ProposePrice Event: eea9711ffae286ce918476972fff9cb0f8d57d6cb6d10881a40c1b735205b4a9 - Block: 68947089
+2025-03-12 13:25:22,966 - proposal_fetcher - INFO - QuestionID: 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:25:23,379 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:25:23,379 - proposal_fetcher - INFO - Skipping market for 0x20d0695e64997c280e2680c96bca39406353237b03b4486c6b1240415032763b
+2025-03-12 13:25:23,379 - proposal_fetcher - INFO - ProposePrice Event: 6b5e1f6287ce2e468bcc23e070b057a1b87ff27a2df165715dad6118d70aff77 - Block: 68954261
+2025-03-12 13:25:23,379 - proposal_fetcher - INFO - QuestionID: 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:25:23,799 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:25:23,799 - proposal_fetcher - INFO - Skipping market for 0x9a449d346edd516348495acf887064644a722f8a880d45611fdf07679fe5e9b7
+2025-03-12 13:25:23,799 - proposal_fetcher - INFO - ProposePrice Event: edc2d1fd127a200f5ba09f369edcf6aabadb656383fb1306538c3e4870956a69 - Block: 68955599
+2025-03-12 13:25:23,799 - proposal_fetcher - INFO - QuestionID: 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:25:24,215 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:25:24,215 - proposal_fetcher - INFO - Skipping market for 0xad650d9276dcce59a59a45617881fd06dbcfdcd478108a0a4be5d4d607ee0c54
+2025-03-12 13:25:24,215 - proposal_fetcher - INFO - ProposePrice Event: 205aaec8a248ba383465de703c1ddbf2bab8e3f016b7f30c8bcf3f01f50e6c44 - Block: 68955638
+2025-03-12 13:25:24,216 - proposal_fetcher - INFO - QuestionID: 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:25:24,626 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:25:24,626 - proposal_fetcher - INFO - Skipping market for 0x5493270e0fef35d982ec58c006e6b6e2043787f98dafbe6fa38fcef94f44b112
+2025-03-12 13:25:24,626 - proposal_fetcher - INFO - ProposePrice Event: fdf8ab086b98e14c7efcd69d1f720e66d9f6e227398c9f35a63a8a9f89d12f5a - Block: 68955642
+2025-03-12 13:25:24,627 - proposal_fetcher - INFO - QuestionID: 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:25:25,034 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:25:25,034 - proposal_fetcher - INFO - Skipping market for 0xbf3c3b2770437a00f4a9ed639d1fda3d4ceea112c09a6ad242bbb0061e6bc525
+2025-03-12 13:25:25,034 - proposal_fetcher - INFO - ProposePrice Event: 9803bd8af64fcde37604cef99ebb3806408d75518a136139c8ed444b16d45b9a - Block: 68955650
+2025-03-12 13:25:25,034 - proposal_fetcher - INFO - QuestionID: 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:25:25,438 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:25:25,438 - proposal_fetcher - INFO - Skipping market for 0x8c122996248216b2fc1b274652581f5f387f4d6ccdbb41964bb624c96eb16506
+2025-03-12 13:25:55,607 - proposal_fetcher - INFO - Checking blocks 68957605 to 68957620...
+2025-03-12 13:25:55,747 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:26:25,898 - proposal_fetcher - INFO - Checking blocks 68957621 to 68957635...
+2025-03-12 13:26:26,037 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:26:56,195 - proposal_fetcher - INFO - Checking blocks 68957636 to 68957649...
+2025-03-12 13:26:56,334 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:27:26,486 - proposal_fetcher - INFO - Checking blocks 68957650 to 68957663...
+2025-03-12 13:27:26,627 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:27:56,784 - proposal_fetcher - INFO - Checking blocks 68957664 to 68957678...
+2025-03-12 13:27:56,949 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:28:27,091 - proposal_fetcher - INFO - Checking blocks 68957679 to 68957692...
+2025-03-12 13:28:27,227 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-12 13:28:36,341 - proposal_fetcher - INFO - Event listener stopped by user.

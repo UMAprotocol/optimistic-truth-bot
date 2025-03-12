@@ -1,8 +1,19 @@
+#!/usr/bin/env python3
+"""
+Script to fetch market resolution data for a specific UMA Optimistic Oracle market ID. This utility connects to the Polygon blockchain and retrieves detailed information
+about a market resolution, including question data, resolution status, and price.
+
+Example:
+    python query_utilities/fetch_market_resolution.py 0x0FC5D2B61B29D54D487ACBC27E9694CEF303A9891433925E282742B1DBA4F399
+"""
+
 from web3 import Web3
 from dotenv import load_dotenv
 import os
 import sys
 
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import load_abi, OptimisticOracleV2, UmaCtfAdapter, yesOrNoIdentifier
 
 

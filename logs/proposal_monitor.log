@@ -1,0 +1,48 @@
+2025-03-12 12:57:03,976 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-12 12:57:03,976 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory
+2025-03-12 12:57:03,976 - proposal_monitor - INFO - Watching directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 12:57:10,008 - proposal_monitor - INFO - New proposal detected: questionId_15c1e3c6.json
+2025-03-12 12:57:11,010 - proposal_monitor - INFO - Processing proposal: questionId_15c1e3c6.json
+2025-03-12 12:57:11,011 - proposal_monitor - INFO - Querying Perplexity API for questionId_15c1e3c6.json
+2025-03-12 12:59:00,354 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 12:59:00,359 - proposal_monitor - INFO - API response received in 109.35 seconds
+2025-03-12 12:59:00,360 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_15c1e3c6.json with recommendation: p2
+2025-03-12 12:59:00,360 - proposal_monitor - INFO - New proposal detected: questionId_48a549bc.json
+2025-03-12 12:59:01,365 - proposal_monitor - INFO - Processing proposal: questionId_48a549bc.json
+2025-03-12 12:59:01,365 - proposal_monitor - INFO - Querying Perplexity API for questionId_48a549bc.json
+2025-03-12 13:02:03,953 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
+2025-03-12 13:03:00,499 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 13:03:00,502 - proposal_monitor - INFO - API response received in 239.14 seconds
+2025-03-12 13:03:00,508 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_48a549bc.json with recommendation: p1
+2025-03-12 13:03:00,511 - proposal_monitor - INFO - Proposal monitor stopped
+2025-03-12 13:07:42,133 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-12 13:07:42,133 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory
+2025-03-12 13:07:42,134 - proposal_monitor - INFO - Watching directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 13:07:47,349 - proposal_monitor - INFO - New proposal detected: questionId_48a549bc.json
+2025-03-12 13:07:48,354 - proposal_monitor - INFO - Processing proposal: questionId_48a549bc.json
+2025-03-12 13:07:48,355 - proposal_monitor - INFO - Querying Perplexity API: questionId_48a549bc.json
+2025-03-12 13:09:06,187 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 13:09:06,234 - proposal_monitor - INFO - API response received in 77.88 seconds
+2025-03-12 13:09:06,235 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_48a549bc.json with recommendation: p1
+2025-03-12 13:13:52,638 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
+2025-03-12 13:13:52,641 - proposal_monitor - INFO - Proposal monitor stopped
+2025-03-12 13:13:55,851 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-12 13:13:55,851 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory
+2025-03-12 13:13:55,852 - proposal_monitor - INFO - Watching directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 13:14:00,650 - proposal_monitor - INFO - New proposal detected: questionId_48a549bc.json
+2025-03-12 13:14:01,655 - proposal_monitor - INFO - Processing proposal: questionId_48a549bc.json
+2025-03-12 13:15:11,623 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 13:15:11,737 - proposal_monitor - INFO - API response received in 70.08 seconds
+2025-03-12 13:15:11,739 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_48a549bc.json with recommendation: p1
+2025-03-12 13:17:09,448 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
+2025-03-12 13:17:09,449 - proposal_monitor - INFO - Proposal monitor stopped
+2025-03-12 13:25:15,031 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-12 13:25:15,031 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory
+2025-03-12 13:25:15,032 - proposal_monitor - INFO - Watching directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 13:25:20,490 - proposal_monitor - INFO - New proposal detected: questionId_48a549bc.json
+2025-03-12 13:25:21,493 - proposal_monitor - INFO - Processing proposal: questionId_48a549bc.json
+2025-03-12 13:26:36,263 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 13:26:36,279 - proposal_monitor - INFO - API response received in 74.78 seconds
+2025-03-12 13:26:36,280 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_48a549bc.json with recommendation: p1
+2025-03-12 13:28:18,470 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
+2025-03-12 13:28:18,470 - proposal_monitor - INFO - Proposal monitor stopped
