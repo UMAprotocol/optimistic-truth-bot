@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Large Language Oracle Results Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <header class="bg-primary text-white p-3 mb-4">
+            <h1>Large Language Oracle Results Analyzer</h1>
+        </header>
+
+        <!-- Main tabs at the top -->
+        <ul class="nav nav-tabs mb-4" id="mainTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="realtime-tab" data-bs-toggle="tab" data-bs-target="#realtime" type="button" role="tab" aria-controls="realtime" aria-selected="true">Real Time</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="delayed-tab" data-bs-toggle="tab" data-bs-target="#delayed" type="button" role="tab" aria-controls="delayed" aria-selected="false">Delayed Run</button>
+            </li>
+        </ul>
+
+        <!-- Tab content -->
+        <div class="tab-content" id="mainTabContent">
+            <!-- Real Time Tab -->
+            <div class="tab-pane fade show active" id="realtime" role="tabpanel" aria-labelledby="realtime-tab">
+                <div class="alert alert-info mb-4">
+                    <strong>Real Time Data:</strong> These results come from running the script in real time, mimicking a proposer submitting answers as soon as they propose.
+                </div>
+
+                <!-- Real Time Analytics Dashboard -->
+                <div class="analytics-dashboard mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="m-0">Real Time Analytics</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="stats-card mb-3">
+                                        <h4>Overall Accuracy</h4>
+                                        <div class="d-flex align-items-center">
+                                            <div class="stats-circle" id="realtimeAccuracyCircle">
+                                                <span id="realtimeAccuracyPercent">-</span>
+                                            </div>
+                                            <div class="stats-details ms-3">
+                                                <div class="stats-item mb-2">
+                                                    <span class="stats-label">Correct:</span>
+                                                    <span class="stats-value" id="realtimeCorrectCount">-</span>
+                                                </div>
+                                                <div class="stats-item mb-2">
+                                                    <span class="stats-label">Incorrect:</span>
+                                                    <span class="stats-value" id="realtimeIncorrectCount">-</span>
+                                                </div>
+                                                <div class="stats-item">
+                                                    <span class="stats-label">Total:</span>
+                                                    <span class="stats-value" id="realtimeTotalCount">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stats-card mb-3">
+                                        <h4>Specialized Accuracy</h4>
+                                        <div class="stats-item mb-2">
+                                            <span class="stats-label">P1/P2/P3 Only:</span>
+                                            <div class="progress">
+                                                <div class="progress-bar" id="realtimeP123Accuracy" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="stats-item">
+                                            <span class="stats-label">P1/P2 Only:</span>
+                                            <div class="progress">
+                                                <div class="progress-bar" id="realtimeP12Accuracy" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 stats-item">
+                                            <span class="stats-label">Can't Find Data (P4):</span>
+                                            <span class="stats-value" id="realtimeNoDataCount">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stats-card">
+                                        <h4>Distribution</h4>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <h5 class="text-center mb-2">Recommendations</h5>
+                                                <div id="realtimeRecommendationChart" style="height: 120px;"></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <h5 class="text-center mb-2">Resolutions</h5>
+                                                <div id="realtimeResolutionChart" style="height: 120px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real Time Filter Controls -->
+                <div class="filter-controls mb-3">
+                    <div class="btn-group" role="group" aria-label="Real Time Filter Controls">
+                        <button type="button" class="btn btn-outline-primary filter-btn active" id="realtimeFilterAll">All</button>
+                        <button type="button" class="btn btn-outline-success filter-btn" id="realtimeFilterCorrect">Correct</button>
+                        <button type="button" class="btn btn-outline-danger filter-btn" id="realtimeFilterIncorrect">Incorrect</button>
+                    </div>
+                </div>
+
+                <!-- Real Time Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Real Time Data</h3>
+                        <div class="d-flex gap-2">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="realtimeSearch" placeholder="Search...">
+                                <button class="btn btn-outline-secondary" type="button" id="realtimeSearchBtn">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="realtimeTable">
+                                <thead>
+                                    <tr>
+                                        <th>Question</th>
+                                        <th>Title</th>
+                                        <th>Recommended</th>
+                                        <th>Resolved</th>
+                                        <th>Correct</th>
+                                        <th>Proposal Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="realtimeTableBody">
+                                    <!-- Real Time data will be loaded here -->
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delayed Run Tab -->
+            <div class="tab-pane fade" id="delayed" role="tabpanel" aria-labelledby="delayed-tab">
+                <div class="alert alert-info mb-4">
+                    <strong>Delayed Run Data:</strong> These results come from running the script with a minimum 2-hour lag, allowing markets to settle before the model makes a recommendation.
+                </div>
+
+                <!-- Delayed Run Analytics Dashboard -->
+                <div class="analytics-dashboard mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="m-0">Delayed Run Analytics</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="stats-card mb-3">
+                                        <h4>Overall Accuracy</h4>
+                                        <div class="d-flex align-items-center">
+                                            <div class="stats-circle" id="delayedAccuracyCircle">
+                                                <span id="delayedAccuracyPercent">-</span>
+                                            </div>
+                                            <div class="stats-details ms-3">
+                                                <div class="stats-item mb-2">
+                                                    <span class="stats-label">Correct:</span>
+                                                    <span class="stats-value" id="delayedCorrectCount">-</span>
+                                                </div>
+                                                <div class="stats-item mb-2">
+                                                    <span class="stats-label">Incorrect:</span>
+                                                    <span class="stats-value" id="delayedIncorrectCount">-</span>
+                                                </div>
+                                                <div class="stats-item">
+                                                    <span class="stats-label">Total:</span>
+                                                    <span class="stats-value" id="delayedTotalCount">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stats-card mb-3">
+                                        <h4>Specialized Accuracy</h4>
+                                        <div class="stats-item mb-2">
+                                            <span class="stats-label">P1/P2/P3 Only:</span>
+                                            <div class="progress">
+                                                <div class="progress-bar" id="delayedP123Accuracy" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="stats-item">
+                                            <span class="stats-label">P1/P2 Only:</span>
+                                            <div class="progress">
+                                                <div class="progress-bar" id="delayedP12Accuracy" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 stats-item">
+                                            <span class="stats-label">Can't Find Data (P4):</span>
+                                            <span class="stats-value" id="delayedNoDataCount">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stats-card">
+                                        <h4>Distribution</h4>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <h5 class="text-center mb-2">Recommendations</h5>
+                                                <div id="delayedRecommendationChart" style="height: 120px;"></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <h5 class="text-center mb-2">Resolutions</h5>
+                                                <div id="delayedResolutionChart" style="height: 120px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delayed Run Filter Controls -->
+                <div class="filter-controls mb-3">
+                    <div class="btn-group" role="group" aria-label="Delayed Run Filter Controls">
+                        <button type="button" class="btn btn-outline-primary filter-btn active" id="delayedFilterAll">All</button>
+                        <button type="button" class="btn btn-outline-success filter-btn" id="delayedFilterCorrect">Correct</button>
+                        <button type="button" class="btn btn-outline-danger filter-btn" id="delayedFilterIncorrect">Incorrect</button>
+                    </div>
+                </div>
+
+                <!-- Delayed Run Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Delayed Run Data</h3>
+                        <div class="d-flex gap-2">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="delayedSearch" placeholder="Search...">
+                                <button class="btn btn-outline-secondary" type="button" id="delayedSearchBtn">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="delayedTable">
+                                <thead>
+                                    <tr>
+                                        <th>Question</th>
+                                        <th>Title</th>
+                                        <th>Recommended</th>
+                                        <th>Resolved</th>
+                                        <th>Correct</th>
+                                        <th>Proposal Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="delayedTableBody">
+                                    <!-- Delayed Run data will be loaded here -->
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detailsModalBody">
+                    <!-- Details content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
