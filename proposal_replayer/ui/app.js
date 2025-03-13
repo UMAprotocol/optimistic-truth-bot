@@ -61,15 +61,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add event listener for modal open/close
         modalElement.addEventListener('show.bs.modal', () => {
             // Remove table styling when modal opens
-            document.querySelectorAll('.table-striped').forEach(table => {
-                table.classList.remove('table-striped', 'table-hover');
+            document.querySelectorAll('.table-hover').forEach(table => {
+                table.classList.remove('table-hover');
             });
         });
         
         modalElement.addEventListener('hidden.bs.modal', () => {
             // Restore table styling when modal closes
             document.querySelectorAll('.table').forEach(table => {
-                table.classList.add('table-striped', 'table-hover');
+                table.classList.add('table-hover');
             });
         });
     }
@@ -283,8 +283,13 @@ function initializeCharts() {
 
 // Calculate analytics from the data
 function calculateAnalytics(dataArray) {
+    // Filter out entries with no resolved price outcome
+    const resolvedData = dataArray.filter(item => {
+        return item.resolved_price_outcome && item.resolved_price_outcome !== 'N/A' && item.resolved_price_outcome !== 'None';
+    });
+    
     const analytics = {
-        total: dataArray.length,
+        total: resolvedData.length,
         correct: 0,
         incorrect: 0,
         noData: 0,
@@ -296,9 +301,9 @@ function calculateAnalytics(dataArray) {
         resolutions: {}
     };
     
-    dataArray.forEach(item => {
+    resolvedData.forEach(item => {
         const recommendation = item.recommendation || 'None';
-        const resolvedOutcome = item.resolved_price_outcome || 'None';
+        const resolvedOutcome = item.resolved_price_outcome;
         
         // Count in recommendations
         analytics.recommendations[recommendation] = (analytics.recommendations[recommendation] || 0) + 1;
@@ -346,6 +351,14 @@ function calculateAnalytics(dataArray) {
 function updateAnalyticsDisplay(type, analytics) {
     try {
         const prefix = type === 'realtime' ? 'realtime' : 'delayed';
+        const dataArray = type === 'realtime' ? outputsData : rerunsData;
+        
+        // Count unresolved entries
+        const unresolvedCount = dataArray.filter(item => 
+            !item.resolved_price_outcome || 
+            item.resolved_price_outcome === 'N/A' || 
+            item.resolved_price_outcome === 'None'
+        ).length;
         
         // Update counts with null checks
         const correctCountEl = document.getElementById(`${prefix}CorrectCount`);
@@ -357,6 +370,12 @@ function updateAnalyticsDisplay(type, analytics) {
         if (incorrectCountEl) incorrectCountEl.textContent = analytics.incorrect;
         if (totalCountEl) totalCountEl.textContent = analytics.total;
         if (noDataCountEl) noDataCountEl.textContent = analytics.noData;
+        
+        // Update the note about unresolved entries
+        const noteEl = document.querySelector(`#${type} .text-muted.small.mt-2`);
+        if (noteEl) {
+            noteEl.innerHTML = `<strong>Note:</strong> ${unresolvedCount} unresolved entries are excluded from analytics calculations.<br>`;
+        }
         
         // Calculate percentages
         const accuracy = analytics.total > 0 ? (analytics.correct / analytics.total) * 100 : 0;
