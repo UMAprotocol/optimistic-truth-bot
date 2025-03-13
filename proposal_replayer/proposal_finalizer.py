@@ -24,6 +24,7 @@ from common import (
     yesOrNoIdentifier,
     setup_logging,
     spinner_animation,
+    price_to_outcome,
 )
 
 # Setup logging
@@ -68,20 +69,18 @@ except Exception as e:
 
 def interpret_resolved_price(resolved_price):
     """Interpret the resolved price value based on standard resolution values."""
-    if resolved_price == 0:
-        return 0, "NO (p1)"
-    elif resolved_price == 1:
-        return 1, "YES (p2)"
-    elif resolved_price == 0.5:
-        return 0.5, "UNKNOWN/CANNOT BE DETERMINED (p3)"
-    elif (
-        resolved_price
-        == -57896044618658097711785492504343953926634992332820282019728.792003956564819968
-    ):
-        return (
-            -57896044618658097711785492504343953926634992332820282019728.792003956564819968,
-            "WAITING FOR MORE INFO (p4)",
-        )
+    # Use our new price_to_outcome function
+    outcome = price_to_outcome(resolved_price)
+
+    # Map the outcome to a more descriptive message
+    if outcome == "p1":
+        return resolved_price, "NO (p1)"
+    elif outcome == "p2":
+        return resolved_price, "YES (p2)"
+    elif outcome == "p3":
+        return resolved_price, "UNKNOWN/CANNOT BE DETERMINED (p3)"
+    elif outcome == "p4":
+        return resolved_price, "WAITING FOR MORE INFO (p4)"
     else:
         return resolved_price, f"Non-standard value: {resolved_price}"
 
@@ -126,7 +125,7 @@ def get_market_resolution(question_id):
         resolution_tx = None
         try:
             # Get past events for settlement of this question
-            settlement_filter = oov2_contract.events.RequestSettled.create_filter(
+            settlement_filter = oov2_contract.events.Settle.create_filter(
                 fromBlock=question_data[2],  # requestBlockNumber
                 toBlock="latest",
                 argument_filters={
@@ -198,6 +197,7 @@ def update_output_file(output_path, resolved_price, resolution_tx):
 
         # Update the resolved price and resolution tx
         data["resolved_price"] = resolved_price
+        data["resolved_price_outcome"] = price_to_outcome(resolved_price)
         data["resolution_tx"] = resolution_tx
 
         # Restructure raw_proposal_data to proposal_metadata

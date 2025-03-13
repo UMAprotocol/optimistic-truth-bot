@@ -15,7 +15,13 @@ print(
 )
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import setup_logging, load_abi, OptimisticOracleV2, UmaCtfAdapter
+from common import (
+    setup_logging,
+    load_abi,
+    OptimisticOracleV2,
+    UmaCtfAdapter,
+    price_to_outcome,
+)
 
 logger = setup_logging("proposal_fetcher", "logs/proposal_fetcher.log")
 POLL_INTERVAL_SECONDS = 30
@@ -214,7 +220,11 @@ def listen_for_propose_price_events(start_block=None):
                     "ancillary_data_hex": data_hex,
                     "resolution_conditions": resolution,
                     "proposed_price": event["args"].get("proposedPrice", 0),
+                    "proposed_price_outcome": price_to_outcome(
+                        event["args"].get("proposedPrice", 0)
+                    ),
                     "resolved_price": None,
+                    "resolved_price_outcome": None,
                     "unix_timestamp": event["args"].get("timestamp", 0),
                     "creator": event["args"].get("requester", ""),
                     "proposal_bond": 0,

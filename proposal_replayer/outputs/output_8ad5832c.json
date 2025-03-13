@@ -1,0 +1,45 @@
+{
+  "query_id": "0x8ad5832cde0d191fc76f10cef3c349a923ae9bfad93d0f22a1cbcfa0657ec736",
+  "question_id_short": "8ad5832c",
+  "transaction_hash": "0x77f41b5992687b7014de24ec00e4e39308e2c6448b38a150208ef99954c6ebc8",
+  "user_prompt": "\n\nancillary_data:\nq: title: Cal Poly vs. UC Davis, description: In the upcoming CBB game, scheduled for March 12 at 11:30PM ET:\nIf the Cal Poly win, the market will resolve to \"Cal Poly\".\nIf the UC Davis win, the market will resolve to \"UC Davis\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to UC Davis, p2 to Cal Poly, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4` \nCurrent Unix Timestamp: 1741844478\nCurrent Date and Time: 2025-03-13 06:41:18",
+  "response": "<think>\nOkay, let's start by understanding the user's query. They want to resolve a prediction market for the Cal Poly vs. UC Davis basketball game scheduled for March 12, 2025, at 11:30 PM ET. The current date and time provided are March 13, 2025, 06:39:22, which is the next day after the game was supposed to happen. Wait, but the game was scheduled for March 12, so according to the timestamp given, the current time is already past that. But wait, the Unix timestamp 1741844362 converts to March 13, 2025, 06:39:22 UTC. The game was on March 12 at 11:30 PM ET, which is March 13 at 03:30 UTC. So the game should have already occurred by the current time. But the user is asking to resolve the market based on whether the game happened and who won.\n\nLooking at the search results, several sources mention the game. For example, result [4] from KOB.com states that the game is part of the Big West Tournament on March 12. Results [7], [8], [9], [10], and [11] also discuss the upcoming game. However, some of these are predictions or previews. \n\nBut wait, the current time is after the game's scheduled time. So the game should have results. However, in the provided search results, there's no direct mention of the game's outcome. The latest information is from March 11 or 12, previewing the game. The ESPN live score [11] doesn't have the final score filled in, and the box score data is unavailable. Similarly, result [7] from Fox Sports also doesn't show the final score, just pre-game odds and stats. \n\nThe user's personalization instructs that if the event hasn't occurred yet, resolve to p4. But according to the timestamp, the event's scheduled time has passed. However, without any search results confirming the outcome, it's unclear if the game was played, postponed, or canceled. \n\nSince there's no conclusive evidence in the provided search results about the game's result, and given that the current time is after the scheduled game time, but no sources report the outcome, it's possible the game was either not played or the results aren't available yet. According to the resolution conditions, if the game is canceled, it resolves to p3 (50-50), but if it was postponed, the market remains open. However, the user's instructions say to resolve based on verified facts. Since there's no data confirming the outcome, and the market can't be resolved without that, the correct response would be p4, indicating insufficient information to resolve at this time. However, the personalization says if the event is in the past, check for results. But the sources provided don't have the results. Therefore, the answer should be p4 because the outcome isn't verifiable from the given data.\n</think>\n\nrecommendation: p4",
+  "recommendation": "p4",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": null,
+  "resolution_tx": null,
+  "timestamp": 1741844478.1417642,
+  "processed_file": "questionId_8ad5832c.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741844478,
+    "created_datetime": "2025-03-13T06:41:18",
+    "completion_tokens": 631,
+    "prompt_tokens": 583,
+    "total_tokens": 1214,
+    "api_response_time_seconds": 115.79647588729858
+  },
+  "citations": [
+    "https://ucdavisaggies.com/news/2025/1/16/mens-basketball-stellar-defense-leads-uc-davis-past-cal-poly.aspx",
+    "https://www.campusreel.org/compare-colleges/california-polytechnic-state-university-san-luis-obispo-or-university-of-california-davis",
+    "https://mustangnews.net/cal-poly-mens-basketball-drops-sixth-straight-extends-big-west-losing-streak-against-uc-davis/",
+    "https://www.kob.com/sports-stories/ap-college-sports/uc-davis-plays-cal-poly-in-big-west-tournament/",
+    "https://www.espn.com/mens-college-basketball/game/_/gameId/401714322/uc-davis-cal-poly",
+    "https://talk.collegeconfidential.com/t/help-cal-poly-slo-business-vs-uc-davis-managerial-economics/2097415",
+    "https://www.foxsports.com/college-basketball/conference-tournament-cal-poly-mustangs-vs-uc-davis-aggies-mar-12-2025-game-boxscore-257919",
+    "https://www.dimers.com/news/cal-poly-vs-uc-davis-prediction-college-basketball-ac-3-12-25",
+    "https://gopoly.com/story.aspx?filename=mens-basketball-mustangs-face-uc-davis-wednesday-in-big-west-championship-opening-round&file_date=3%2F10%2F2025",
+    "https://ats.io/college-basketball/cal-poly-mustangs-vs-uc-davis-aggies-pick-3-12-2025/307792/",
+    "https://www.espn.com/mens-college-basketball/game/_/gameId/401743944/cal-poly-uc-davis"
+  ],
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586867,
+    "block_number": 68986468,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a2043616c20506f6c792076732e2055432044617669732c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d617263682031322061742031313a3330504d2045543a0a4966207468652043616c20506f6c792077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c43616c20506f6c79e2809d2e0a4966207468652055432044617669732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c5543204461766973e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f2055432044617669732c20703220746f2043616c20506f6c792c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  }
+}
