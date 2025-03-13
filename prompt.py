@@ -23,6 +23,8 @@ def get_system_prompt():
         "Only report on what has definitively happened and can be verified through reliable sources. "
         "Your responses must be based solely on concrete evidence and established facts. "
         "IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. "
+        "IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. "
+        "IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). "
         "Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. "
         "If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. "
         "Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). "

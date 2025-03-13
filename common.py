@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 """
 Common utility functions and constants used across the UMA Large Language Oracle project.
-
-This module provides:
-- Blockchain contract addresses
-- ABI loading utilities
-- Perplexity API query functions
-- Text processing utilities
-- Logging setup
-- UI utilities (spinner animation)
 """
 
 import json
@@ -74,6 +66,43 @@ def extract_recommendation(response_text):
     if match:
         return match.group(1)
     return None
+
+
+def price_to_outcome(price):
+    """
+    Convert a numerical price to its string representation (p1, p2, p3, p4).
+
+    Args:
+        price: Numerical price value (can be int, float, str, or scientific notation)
+
+    Returns:
+        String representing the outcome category (p1, p2, p3, or p4)
+    """
+    # Convert string to float if needed
+    if isinstance(price, str):
+        try:
+            price = float(price)
+        except ValueError:
+            return f"Invalid price: {price}"
+
+    # Check if price is None
+    if price is None:
+        return "Unresolved"
+
+    # Normalized values (accounting for 1e18 scaling)
+    if price == 0:
+        return "p1"  # NO
+    elif price == 1 or price == int(1e18) or price == 1e18:
+        return "p2"  # YES
+    elif price == 0.5 or price == int(5e17) or price == 5e17:
+        return "p3"  # UNKNOWN/CANNOT BE DETERMINED
+    elif (
+        price
+        == -57896044618658097711785492504343953926634992332820282019728.792003956564819968
+    ):
+        return "p4"  # WAITING FOR MORE INFO
+    else:
+        return f"Non-standard: {price}"
 
 
 def setup_logging(module_name, log_file):

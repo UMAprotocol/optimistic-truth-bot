@@ -20,3 +20,157 @@
 2025-03-12 13:28:42,090 - proposal_finalizer - INFO - Updated output_48a549bc.json with resolved price: 0.0
 2025-03-12 13:28:42,090 - proposal_finalizer - INFO - Processing complete. Processed: 1, Updated: 1, Errors: 0, Skipped: 0
 2025-03-12 13:28:42,090 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-13 10:44:35,116 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-13 10:44:35,116 - proposal_finalizer - INFO - Proposals directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-13 10:44:35,781 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-13 10:44:35,794 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-13 10:44:35,794 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-13 10:44:35,794 - proposal_finalizer - INFO - Starting to process output files
+2025-03-13 10:44:35,795 - proposal_finalizer - INFO - Querying resolution for question ID: 0xfaf5e4dbfb1e0da88baf3d8b5e7ce83a9aadbb809f582d554aa44c14408d44e7
+2025-03-13 10:44:36,590 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:36,590 - proposal_finalizer - INFO - Market 0xfaf5e4dbfb1e0da88baf3d8b5e7ce83a9aadbb809f582d554aa44c14408d44e7 resolved with price: 0.0
+2025-03-13 10:44:36,622 - proposal_finalizer - INFO - Updated output_faf5e4db.json with resolved price: 0.0
+2025-03-13 10:44:36,623 - proposal_finalizer - INFO - Querying resolution for question ID: 0xae03f9e612e6ba9c9050f3d0403f6d7a465e4a9e3caea44da01251f6c14e6d1d
+2025-03-13 10:44:37,397 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:37,397 - proposal_finalizer - INFO - Market 0xae03f9e612e6ba9c9050f3d0403f6d7a465e4a9e3caea44da01251f6c14e6d1d resolved with price: 1.0
+2025-03-13 10:44:37,455 - proposal_finalizer - INFO - Updated output_ae03f9e6.json with resolved price: 1.0
+2025-03-13 10:44:37,455 - proposal_finalizer - INFO - Querying resolution for question ID: 0x51ddd0613c396a77aeec6e08f6a82e340db95cf33ab655c2163be8933823929a
+2025-03-13 10:44:38,232 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:38,232 - proposal_finalizer - INFO - Market 0x51ddd0613c396a77aeec6e08f6a82e340db95cf33ab655c2163be8933823929a resolved with price: 0.0
+2025-03-13 10:44:38,291 - proposal_finalizer - INFO - Updated output_51ddd061.json with resolved price: 0.0
+2025-03-13 10:44:38,291 - proposal_finalizer - INFO - Querying resolution for question ID: 0x6af203383ab712a05ad459148d9268798c964bc93b2f04c2c28781613ef27883
+2025-03-13 10:44:39,173 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:39,173 - proposal_finalizer - INFO - Market 0x6af203383ab712a05ad459148d9268798c964bc93b2f04c2c28781613ef27883 resolved with price: 0.0
+2025-03-13 10:44:39,217 - proposal_finalizer - INFO - Updated output_6af20338.json with resolved price: 0.0
+2025-03-13 10:44:39,218 - proposal_finalizer - INFO - Querying resolution for question ID: 0xa0f4fc218a50b6df11599f4dcad991dc58f2be7562e59c558fb82b1bf1e73988
+2025-03-13 10:44:40,032 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:40,033 - proposal_finalizer - INFO - Market 0xa0f4fc218a50b6df11599f4dcad991dc58f2be7562e59c558fb82b1bf1e73988 resolved with price: 0.0
+2025-03-13 10:44:40,049 - proposal_finalizer - INFO - Updated output_a0f4fc21.json with resolved price: 0.0
+2025-03-13 10:44:40,049 - proposal_finalizer - INFO - Querying resolution for question ID: 0x1e4d05a7a45d4fe322019c5520a7bc6799ed9c4aa2f31b322eeceb00251fcf01
+2025-03-13 10:44:40,826 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:40,826 - proposal_finalizer - INFO - Market 0x1e4d05a7a45d4fe322019c5520a7bc6799ed9c4aa2f31b322eeceb00251fcf01 resolved with price: 1.0
+2025-03-13 10:44:40,880 - proposal_finalizer - INFO - Updated output_1e4d05a7.json with resolved price: 1.0
+2025-03-13 10:44:40,880 - proposal_finalizer - INFO - Querying resolution for question ID: 0x210e20876f83cd324635b30e3f1c570d63ebc21afcee792b9e32d96e333da68f
+2025-03-13 10:44:41,650 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:41,650 - proposal_finalizer - INFO - Market 0x210e20876f83cd324635b30e3f1c570d63ebc21afcee792b9e32d96e333da68f resolved with price: 0.0
+2025-03-13 10:44:41,701 - proposal_finalizer - INFO - Updated output_210e2087.json with resolved price: 0.0
+2025-03-13 10:44:41,701 - proposal_finalizer - INFO - Querying resolution for question ID: 0xe9384a0544f2bea9fa710464d1cccdd4f30d87a51bd707bfae12dcb7ae457399
+2025-03-13 10:44:42,469 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:42,469 - proposal_finalizer - INFO - Market 0xe9384a0544f2bea9fa710464d1cccdd4f30d87a51bd707bfae12dcb7ae457399 resolved with price: 1.0
+2025-03-13 10:44:42,532 - proposal_finalizer - INFO - Updated output_e9384a05.json with resolved price: 1.0
+2025-03-13 10:44:42,533 - proposal_finalizer - INFO - Querying resolution for question ID: 0xd9d48807e31e1ea4a259c33ce0e569428f442ece90633689cee0298b7906ea49
+2025-03-13 10:44:43,310 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:43,310 - proposal_finalizer - INFO - Market 0xd9d48807e31e1ea4a259c33ce0e569428f442ece90633689cee0298b7906ea49 resolved with price: 0.0
+2025-03-13 10:44:43,361 - proposal_finalizer - INFO - Updated output_d9d48807.json with resolved price: 0.0
+2025-03-13 10:44:43,361 - proposal_finalizer - INFO - Querying resolution for question ID: 0x0e5fb292a6e713146d7df2f4f510115a492a8007c34c8dbade0c9e800b7d5017
+2025-03-13 10:44:44,138 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:44,139 - proposal_finalizer - INFO - Market 0x0e5fb292a6e713146d7df2f4f510115a492a8007c34c8dbade0c9e800b7d5017 resolved with price: 0.0
+2025-03-13 10:44:44,194 - proposal_finalizer - INFO - Updated output_0e5fb292.json with resolved price: 0.0
+2025-03-13 10:44:44,195 - proposal_finalizer - INFO - Querying resolution for question ID: 0xa5722f275d7af595794c794cb4c17275b6d353902e5d3504c4f31dcc32f15ac6
+2025-03-13 10:44:44,970 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:44,971 - proposal_finalizer - INFO - Market 0xa5722f275d7af595794c794cb4c17275b6d353902e5d3504c4f31dcc32f15ac6 resolved with price: 0.0
+2025-03-13 10:44:45,030 - proposal_finalizer - INFO - Updated output_a5722f27.json with resolved price: 0.0
+2025-03-13 10:44:45,031 - proposal_finalizer - INFO - Querying resolution for question ID: 0x84db968945ab51903a4cf15e1372cbe1f2f45bc62a7098cf8d58df13d1d0d274
+2025-03-13 10:44:45,817 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:45,817 - proposal_finalizer - INFO - Market 0x84db968945ab51903a4cf15e1372cbe1f2f45bc62a7098cf8d58df13d1d0d274 resolved with price: 0.0
+2025-03-13 10:44:45,862 - proposal_finalizer - INFO - Updated output_84db9689.json with resolved price: 0.0
+2025-03-13 10:44:45,862 - proposal_finalizer - INFO - Querying resolution for question ID: 0xf409f21caf3e94f6dd557e9012b4e89a75c7f7da8a83bbd15c0d068c4b2f4831
+2025-03-13 10:44:46,632 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:46,632 - proposal_finalizer - INFO - Market 0xf409f21caf3e94f6dd557e9012b4e89a75c7f7da8a83bbd15c0d068c4b2f4831 resolved with price: 1.0
+2025-03-13 10:44:46,687 - proposal_finalizer - INFO - Updated output_f409f21c.json with resolved price: 1.0
+2025-03-13 10:44:46,687 - proposal_finalizer - INFO - Querying resolution for question ID: 0x3a4eb4fc005801ee3a4055d056e08edfd35a757db1f2beb7860d0445bd499167
+2025-03-13 10:44:47,468 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:47,468 - proposal_finalizer - INFO - Market 0x3a4eb4fc005801ee3a4055d056e08edfd35a757db1f2beb7860d0445bd499167 resolved with price: 0.0
+2025-03-13 10:44:47,524 - proposal_finalizer - INFO - Updated output_3a4eb4fc.json with resolved price: 0.0
+2025-03-13 10:44:47,525 - proposal_finalizer - INFO - Querying resolution for question ID: 0x83c0c8e56223f851cc65de91c91ce9240780f992b261879cdda72dc5fdfab591
+2025-03-13 10:44:48,293 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:48,293 - proposal_finalizer - INFO - Market 0x83c0c8e56223f851cc65de91c91ce9240780f992b261879cdda72dc5fdfab591 resolved with price: 0.0
+2025-03-13 10:44:48,362 - proposal_finalizer - INFO - Updated output_83c0c8e5.json with resolved price: 0.0
+2025-03-13 10:44:48,362 - proposal_finalizer - INFO - Querying resolution for question ID: 0xfbed9cd781de2d87b58716ecd243d9b056ab8a6e1bc3aa316db02f12c3789d41
+2025-03-13 10:44:49,154 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:49,154 - proposal_finalizer - INFO - Market 0xfbed9cd781de2d87b58716ecd243d9b056ab8a6e1bc3aa316db02f12c3789d41 resolved with price: 1.0
+2025-03-13 10:44:49,189 - proposal_finalizer - INFO - Updated output_fbed9cd7.json with resolved price: 1.0
+2025-03-13 10:44:49,189 - proposal_finalizer - INFO - Querying resolution for question ID: 0x392269cdc0430113d513fcec16e1e958220645b422f5474088fbde3731f09b80
+2025-03-13 10:44:49,956 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:49,956 - proposal_finalizer - INFO - Market 0x392269cdc0430113d513fcec16e1e958220645b422f5474088fbde3731f09b80 resolved with price: 0.0
+2025-03-13 10:44:50,016 - proposal_finalizer - INFO - Updated output_392269cd.json with resolved price: 0.0
+2025-03-13 10:44:50,016 - proposal_finalizer - INFO - Querying resolution for question ID: 0xfaa01feb4d105b2e7d9ad777f1247d16b6936954dd5e5d177fffae0dae6fc6ef
+2025-03-13 10:44:50,787 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:50,787 - proposal_finalizer - INFO - Market 0xfaa01feb4d105b2e7d9ad777f1247d16b6936954dd5e5d177fffae0dae6fc6ef resolved with price: 0.0
+2025-03-13 10:44:50,843 - proposal_finalizer - INFO - Updated output_faa01feb.json with resolved price: 0.0
+2025-03-13 10:44:50,843 - proposal_finalizer - INFO - Querying resolution for question ID: 0xb3ecd08ed53511b95b765b3cda5f940853817839f319e65b05322e4f8216b0f7
+2025-03-13 10:44:51,614 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:51,614 - proposal_finalizer - INFO - Market 0xb3ecd08ed53511b95b765b3cda5f940853817839f319e65b05322e4f8216b0f7 resolved with price: 1.0
+2025-03-13 10:44:51,669 - proposal_finalizer - INFO - Updated output_b3ecd08e.json with resolved price: 1.0
+2025-03-13 10:44:51,669 - proposal_finalizer - INFO - Querying resolution for question ID: 0xe836f7428bc832d5c7c21e1c65abfbdd367b5fbf1d3cd120143493819d712083
+2025-03-13 10:44:52,443 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:52,443 - proposal_finalizer - INFO - Market 0xe836f7428bc832d5c7c21e1c65abfbdd367b5fbf1d3cd120143493819d712083 resolved with price: 1.0
+2025-03-13 10:44:52,503 - proposal_finalizer - INFO - Updated output_e836f742.json with resolved price: 1.0
+2025-03-13 10:44:52,504 - proposal_finalizer - INFO - Querying resolution for question ID: 0xe5239f660e6cb62ea67326dd2bfe3f1f4145465c8c2668562089dddad4148f18
+2025-03-13 10:44:53,274 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:53,274 - proposal_finalizer - INFO - Market 0xe5239f660e6cb62ea67326dd2bfe3f1f4145465c8c2668562089dddad4148f18 resolved with price: 1.0
+2025-03-13 10:44:53,331 - proposal_finalizer - INFO - Updated output_e5239f66.json with resolved price: 1.0
+2025-03-13 10:44:53,332 - proposal_finalizer - INFO - Querying resolution for question ID: 0x63d57a7fd23b49f29f21214f86fcd54f890c2f7a54429c86bad94b8fbe47117d
+2025-03-13 10:44:54,107 - proposal_finalizer - WARNING - Error querying settlement events: ("The event 'RequestSettled' was not found in this contract's abi. ", 'Are you sure you provided the correct contract abi?'), using fallback
+2025-03-13 10:44:54,108 - proposal_finalizer - INFO - Market 0x63d57a7fd23b49f29f21214f86fcd54f890c2f7a54429c86bad94b8fbe47117d resolved with price: 1.0
+2025-03-13 10:44:54,155 - proposal_finalizer - INFO - Updated output_63d57a7f.json with resolved price: 1.0
+2025-03-13 10:44:54,156 - proposal_finalizer - INFO - Querying resolution for question ID: 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3
+2025-03-13 10:48:21,395 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-13 10:48:21,395 - proposal_finalizer - INFO - Proposals directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-13 10:48:22,028 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-13 10:48:22,040 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-13 10:48:22,041 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-13 10:48:22,041 - proposal_finalizer - INFO - Starting to process output files
+2025-03-13 10:48:22,042 - proposal_finalizer - INFO - Querying resolution for question ID: 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3
+2025-03-13 10:48:22,809 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:22,809 - proposal_finalizer - INFO - Market 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3 resolved with price: 1.0
+2025-03-13 10:48:22,876 - proposal_finalizer - INFO - Updated output_7645a6f6.json with resolved price: 1.0
+2025-03-13 10:48:22,876 - proposal_finalizer - INFO - Querying resolution for question ID: 0x3feab300277bbecf585f346e404877448c03cd97b51fb5190cea93abedcd93f7
+2025-03-13 10:48:23,634 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:23,634 - proposal_finalizer - INFO - Market 0x3feab300277bbecf585f346e404877448c03cd97b51fb5190cea93abedcd93f7 resolved with price: 0.0
+2025-03-13 10:48:23,702 - proposal_finalizer - INFO - Updated output_3feab300.json with resolved price: 0.0
+2025-03-13 10:48:23,702 - proposal_finalizer - INFO - Querying resolution for question ID: 0x6b371c413b41d5e2593a37bbeb28a21ebae4001ab09eb40d81e5ab73c2c28b58
+2025-03-13 10:48:24,454 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:24,454 - proposal_finalizer - INFO - Market 0x6b371c413b41d5e2593a37bbeb28a21ebae4001ab09eb40d81e5ab73c2c28b58 resolved with price: 0.0
+2025-03-13 10:48:24,522 - proposal_finalizer - INFO - Updated output_6b371c41.json with resolved price: 0.0
+2025-03-13 10:48:24,522 - proposal_finalizer - INFO - Querying resolution for question ID: 0xb148d367bce0c9902b9c413034c2ccf23384c35d5abe4f71fb96728c438958a2
+2025-03-13 10:48:25,279 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:25,279 - proposal_finalizer - INFO - Market 0xb148d367bce0c9902b9c413034c2ccf23384c35d5abe4f71fb96728c438958a2 resolved with price: 1.0
+2025-03-13 10:48:25,354 - proposal_finalizer - INFO - Updated output_b148d367.json with resolved price: 1.0
+2025-03-13 10:48:25,354 - proposal_finalizer - INFO - Querying resolution for question ID: 0xf297417b61983defd932cec8714586cf392cd2ceebd91d12c9954bbeb3dd36a5
+2025-03-13 10:48:26,106 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:26,106 - proposal_finalizer - INFO - Market 0xf297417b61983defd932cec8714586cf392cd2ceebd91d12c9954bbeb3dd36a5 resolved with price: 1.0
+2025-03-13 10:48:26,194 - proposal_finalizer - INFO - Updated output_f297417b.json with resolved price: 1.0
+2025-03-13 10:48:26,194 - proposal_finalizer - INFO - Querying resolution for question ID: 0xdb4377dbb80d3303a40c21100e2f1f5f0bcf5cc089fcd7e3b759eb82a721a9a2
+2025-03-13 10:48:27,008 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:27,008 - proposal_finalizer - INFO - Market 0xdb4377dbb80d3303a40c21100e2f1f5f0bcf5cc089fcd7e3b759eb82a721a9a2 resolved with price: 1.0
+2025-03-13 10:48:27,029 - proposal_finalizer - INFO - Updated output_db4377db.json with resolved price: 1.0
+2025-03-13 10:48:27,029 - proposal_finalizer - INFO - Querying resolution for question ID: 0x261ec7982aa9b8b1cbf5e1dbfc5bf89d6a7c81c7c86a456bf2023daa5e0186a7
+2025-03-13 10:48:27,779 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:27,779 - proposal_finalizer - INFO - Market 0x261ec7982aa9b8b1cbf5e1dbfc5bf89d6a7c81c7c86a456bf2023daa5e0186a7 resolved with price: 0.0
+2025-03-13 10:48:27,859 - proposal_finalizer - INFO - Updated output_261ec798.json with resolved price: 0.0
+2025-03-13 10:48:27,859 - proposal_finalizer - INFO - Querying resolution for question ID: 0x287ed13a46da7d168b62d629e39226ff443c7499148f5e70932c191477a7422c
+2025-03-13 10:48:28,611 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:28,611 - proposal_finalizer - INFO - Market 0x287ed13a46da7d168b62d629e39226ff443c7499148f5e70932c191477a7422c resolved with price: 0.0
+2025-03-13 10:48:28,698 - proposal_finalizer - INFO - Updated output_287ed13a.json with resolved price: 0.0
+2025-03-13 10:48:28,698 - proposal_finalizer - INFO - Querying resolution for question ID: 0xf14e9f10beabfe6ff5e486f958d48ca13e97e86dea213bfe4fa69135570dc5fd
+2025-03-13 10:48:29,448 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:29,448 - proposal_finalizer - INFO - Market 0xf14e9f10beabfe6ff5e486f958d48ca13e97e86dea213bfe4fa69135570dc5fd resolved with price: 1.0
+2025-03-13 10:48:29,529 - proposal_finalizer - INFO - Updated output_f14e9f10.json with resolved price: 1.0
+2025-03-13 10:48:29,529 - proposal_finalizer - INFO - Querying resolution for question ID: 0x143fc3cceac69d665e8c72689b25edb6460ea06374203cd0615db656697d0ccb
+2025-03-13 10:48:30,289 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:30,289 - proposal_finalizer - INFO - Market 0x143fc3cceac69d665e8c72689b25edb6460ea06374203cd0615db656697d0ccb resolved with price: 0.0
+2025-03-13 10:48:30,366 - proposal_finalizer - INFO - Updated output_143fc3cc.json with resolved price: 0.0
+2025-03-13 10:48:30,366 - proposal_finalizer - INFO - Querying resolution for question ID: 0x6c8569c08c30b0b7349e1de79710c5c6b7e52500596ac038c3fabde3e4cc0279
+2025-03-13 10:48:31,123 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:31,123 - proposal_finalizer - INFO - Market 0x6c8569c08c30b0b7349e1de79710c5c6b7e52500596ac038c3fabde3e4cc0279 resolved with price: 1.0
+2025-03-13 10:48:31,196 - proposal_finalizer - INFO - Updated output_6c8569c0.json with resolved price: 1.0
+2025-03-13 10:48:31,196 - proposal_finalizer - INFO - Querying resolution for question ID: 0x0e1e444eb58fd7b38f47129cff3e2f981a6154c7d8c8f873307aebf89a25340b
+2025-03-13 10:48:31,948 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:31,948 - proposal_finalizer - INFO - Market 0x0e1e444eb58fd7b38f47129cff3e2f981a6154c7d8c8f873307aebf89a25340b resolved with price: 0.0
+2025-03-13 10:48:32,030 - proposal_finalizer - INFO - Updated output_0e1e444e.json with resolved price: 0.0
+2025-03-13 10:48:32,030 - proposal_finalizer - INFO - Querying resolution for question ID: 0x8ad5832cde0d191fc76f10cef3c349a923ae9bfad93d0f22a1cbcfa0657ec736
+2025-03-13 10:48:32,786 - proposal_finalizer - WARNING - Error querying settlement events: ContractEvent.create_filter() got an unexpected keyword argument 'fromBlock', using fallback
+2025-03-13 10:48:32,786 - proposal_finalizer - INFO - Market 0x8ad5832cde0d191fc76f10cef3c349a923ae9bfad93d0f22a1cbcfa0657ec736 resolved with price: 1.0
+2025-03-13 10:48:32,863 - proposal_finalizer - INFO - Updated output_8ad5832c.json with resolved price: 1.0
+2025-03-13 10:48:32,863 - proposal_finalizer - INFO - Querying resolution for question ID: 0xca772a12faf2f401d37b6e9e1b7f5f1c9925ee8b2a651971498ae756a35f1ccc

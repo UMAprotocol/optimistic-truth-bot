@@ -46,3 +46,408 @@
 2025-03-12 13:26:36,280 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_48a549bc.json with recommendation: p1
 2025-03-12 13:28:18,470 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
 2025-03-12 13:28:18,470 - proposal_monitor - INFO - Proposal monitor stopped
+2025-03-12 18:34:20,815 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-12 18:34:20,815 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory
+2025-03-12 18:34:20,815 - proposal_monitor - INFO - Found unprocessed file: questionId_48a549bc.json
+2025-03-12 18:34:20,815 - proposal_monitor - INFO - Processing proposal: questionId_48a549bc.json
+2025-03-12 18:36:32,045 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 18:36:32,162 - proposal_monitor - INFO - API response received in 131.35 seconds
+2025-03-12 18:36:32,165 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_48a549bc.json with recommendation: {'p1': 0}
+2025-03-12 18:36:32,168 - proposal_monitor - INFO - Watching directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 18:36:52,829 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
+2025-03-12 18:36:52,830 - proposal_monitor - INFO - Proposal monitor stopped
+2025-03-12 18:36:57,733 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-12 18:36:57,733 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory
+2025-03-12 18:36:57,733 - proposal_monitor - INFO - Found unprocessed file: questionId_48a549bc.json
+2025-03-12 18:36:57,733 - proposal_monitor - INFO - Processing proposal: questionId_48a549bc.json
+2025-03-12 18:38:14,331 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 18:38:14,340 - proposal_monitor - INFO - API response received in 76.61 seconds
+2025-03-12 18:38:14,343 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_48a549bc.json with recommendation: 0
+2025-03-12 18:38:14,351 - proposal_monitor - INFO - Watching directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 18:38:52,444 - proposal_monitor - INFO - New proposal detected: questionId_b148d367.json
+2025-03-12 18:38:53,448 - proposal_monitor - INFO - Processing proposal: questionId_b148d367.json
+2025-03-12 18:40:05,199 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 18:40:05,252 - proposal_monitor - INFO - API response received in 71.80 seconds
+2025-03-12 18:40:05,253 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_b148d367.json with recommendation: 1000000000000000000
+2025-03-12 18:40:05,253 - proposal_monitor - INFO - New proposal detected: questionId_f297417b.json
+2025-03-12 18:40:06,258 - proposal_monitor - INFO - Processing proposal: questionId_f297417b.json
+2025-03-12 18:41:26,753 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 18:41:26,776 - proposal_monitor - INFO - API response received in 80.52 seconds
+2025-03-12 18:41:26,777 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_f297417b.json with recommendation: -5.78960446186581e+58
+2025-03-12 18:41:26,777 - proposal_monitor - INFO - New proposal detected: questionId_05c5a914.json
+2025-03-12 18:41:27,779 - proposal_monitor - INFO - Processing proposal: questionId_05c5a914.json
+2025-03-12 18:43:52,365 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 18:43:52,410 - proposal_monitor - INFO - API response received in 144.63 seconds
+2025-03-12 18:43:52,410 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_05c5a914.json with recommendation: 0
+2025-03-12 18:43:52,410 - proposal_monitor - INFO - New proposal detected: questionId_62f48e69.json
+2025-03-12 18:43:53,411 - proposal_monitor - INFO - Processing proposal: questionId_62f48e69.json
+2025-03-12 18:46:34,234 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 18:46:34,311 - proposal_monitor - INFO - API response received in 160.90 seconds
+2025-03-12 18:46:34,312 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_62f48e69.json with recommendation: -5.78960446186581e+58
+2025-03-12 19:08:12,778 - proposal_monitor - INFO - New proposal detected: questionId_83c0c8e5.json
+2025-03-12 19:08:13,785 - proposal_monitor - INFO - Processing proposal: questionId_83c0c8e5.json
+2025-03-12 19:10:06,014 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:10:06,073 - proposal_monitor - INFO - API response received in 112.29 seconds
+2025-03-12 19:10:06,075 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_83c0c8e5.json with recommendation: 5e+17
+2025-03-12 19:10:49,553 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
+2025-03-12 19:10:49,555 - proposal_monitor - INFO - Proposal monitor stopped
+2025-03-12 19:16:16,521 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-12 19:16:16,521 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory
+2025-03-12 19:16:16,522 - proposal_monitor - INFO - Watching directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-12 19:16:21,514 - proposal_monitor - INFO - New proposal detected: questionId_48a549bc.json
+2025-03-12 19:16:22,519 - proposal_monitor - INFO - Processing proposal: questionId_48a549bc.json
+2025-03-12 19:17:53,342 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:17:53,386 - proposal_monitor - INFO - API response received in 90.87 seconds
+2025-03-12 19:17:53,387 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_48a549bc.json with recommendation: p1
+2025-03-12 19:17:53,387 - proposal_monitor - INFO - New proposal detected: questionId_b148d367.json
+2025-03-12 19:17:54,391 - proposal_monitor - INFO - Processing proposal: questionId_b148d367.json
+2025-03-12 19:19:04,184 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:19:04,218 - proposal_monitor - INFO - API response received in 69.83 seconds
+2025-03-12 19:19:04,219 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_b148d367.json with recommendation: p2
+2025-03-12 19:19:04,219 - proposal_monitor - INFO - New proposal detected: questionId_f297417b.json
+2025-03-12 19:19:05,221 - proposal_monitor - INFO - Processing proposal: questionId_f297417b.json
+2025-03-12 19:20:17,338 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:20:17,399 - proposal_monitor - INFO - API response received in 72.18 seconds
+2025-03-12 19:20:17,399 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_f297417b.json with recommendation: p2
+2025-03-12 19:20:17,400 - proposal_monitor - INFO - New proposal detected: questionId_05c5a914.json
+2025-03-12 19:20:18,404 - proposal_monitor - INFO - Processing proposal: questionId_05c5a914.json
+2025-03-12 19:22:28,581 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:22:28,603 - proposal_monitor - INFO - API response received in 130.20 seconds
+2025-03-12 19:22:28,604 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_05c5a914.json with recommendation: p1
+2025-03-12 19:22:28,604 - proposal_monitor - INFO - New proposal detected: questionId_62f48e69.json
+2025-03-12 19:22:29,610 - proposal_monitor - INFO - Processing proposal: questionId_62f48e69.json
+2025-03-12 19:24:05,278 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:24:05,285 - proposal_monitor - INFO - API response received in 95.67 seconds
+2025-03-12 19:24:05,286 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_62f48e69.json with recommendation: p4
+2025-03-12 19:24:05,286 - proposal_monitor - INFO - New proposal detected: questionId_83c0c8e5.json
+2025-03-12 19:24:06,291 - proposal_monitor - INFO - Processing proposal: questionId_83c0c8e5.json
+2025-03-12 19:25:58,228 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:25:58,284 - proposal_monitor - INFO - API response received in 111.99 seconds
+2025-03-12 19:25:58,285 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_83c0c8e5.json with recommendation: p1
+2025-03-12 19:36:50,917 - proposal_monitor - INFO - New proposal detected: questionId_4254a633.json
+2025-03-12 19:36:51,925 - proposal_monitor - INFO - Processing proposal: questionId_4254a633.json
+2025-03-12 19:39:08,528 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:39:08,618 - proposal_monitor - INFO - API response received in 136.69 seconds
+2025-03-12 19:39:08,619 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_4254a633.json with recommendation: p4
+2025-03-12 19:51:30,201 - proposal_monitor - INFO - New proposal detected: questionId_3ea22719.json
+2025-03-12 19:51:31,209 - proposal_monitor - INFO - Processing proposal: questionId_3ea22719.json
+2025-03-12 19:53:27,378 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:53:27,459 - proposal_monitor - INFO - API response received in 116.25 seconds
+2025-03-12 19:53:27,460 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_3ea22719.json with recommendation: p2
+2025-03-12 19:53:27,460 - proposal_monitor - INFO - New proposal detected: questionId_fbed9cd7.json
+2025-03-12 19:53:28,467 - proposal_monitor - INFO - Processing proposal: questionId_fbed9cd7.json
+2025-03-12 19:55:18,071 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 19:55:18,145 - proposal_monitor - INFO - API response received in 109.68 seconds
+2025-03-12 19:55:18,146 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_fbed9cd7.json with recommendation: p2
+2025-03-12 20:19:18,307 - proposal_monitor - INFO - New proposal detected: questionId_8ce2604d.json
+2025-03-12 20:19:19,314 - proposal_monitor - INFO - Processing proposal: questionId_8ce2604d.json
+2025-03-12 20:22:08,199 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 20:22:08,205 - proposal_monitor - INFO - API response received in 168.89 seconds
+2025-03-12 20:22:08,206 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_8ce2604d.json with recommendation: p4
+2025-03-12 20:23:21,447 - proposal_monitor - INFO - New proposal detected: questionId_faf5e4db.json
+2025-03-12 20:23:22,448 - proposal_monitor - INFO - Processing proposal: questionId_faf5e4db.json
+2025-03-12 20:25:41,649 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 20:25:41,687 - proposal_monitor - INFO - API response received in 139.24 seconds
+2025-03-12 20:25:41,688 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_faf5e4db.json with recommendation: p2
+2025-03-12 20:37:31,329 - proposal_monitor - INFO - New proposal detected: questionId_9422ce21.json
+2025-03-12 20:37:32,338 - proposal_monitor - INFO - Processing proposal: questionId_9422ce21.json
+2025-03-12 20:38:55,597 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 20:38:55,673 - proposal_monitor - INFO - API response received in 83.33 seconds
+2025-03-12 20:38:55,674 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_9422ce21.json with recommendation: p4
+2025-03-12 20:53:13,341 - proposal_monitor - INFO - New proposal detected: questionId_210e2087.json
+2025-03-12 20:53:14,346 - proposal_monitor - INFO - Processing proposal: questionId_210e2087.json
+2025-03-12 20:56:32,632 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 20:56:32,719 - proposal_monitor - INFO - API response received in 198.37 seconds
+2025-03-12 20:56:32,721 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_210e2087.json with recommendation: p4
+2025-03-12 21:01:19,086 - proposal_monitor - INFO - New proposal detected: questionId_40ed7da1.json
+2025-03-12 21:01:20,094 - proposal_monitor - INFO - Processing proposal: questionId_40ed7da1.json
+2025-03-12 21:02:52,435 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 21:02:52,484 - proposal_monitor - INFO - API response received in 92.39 seconds
+2025-03-12 21:02:52,484 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_40ed7da1.json with recommendation: p1
+2025-03-12 21:02:52,485 - proposal_monitor - INFO - New proposal detected: questionId_143fc3cc.json
+2025-03-12 21:02:53,488 - proposal_monitor - INFO - Processing proposal: questionId_143fc3cc.json
+2025-03-12 21:04:19,889 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 21:04:19,958 - proposal_monitor - INFO - API response received in 86.47 seconds
+2025-03-12 21:04:19,959 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_143fc3cc.json with recommendation: p1
+2025-03-12 21:10:26,127 - proposal_monitor - INFO - New proposal detected: questionId_e836f742.json
+2025-03-12 21:10:27,129 - proposal_monitor - INFO - Processing proposal: questionId_e836f742.json
+2025-03-12 21:12:39,998 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 21:12:40,043 - proposal_monitor - INFO - API response received in 132.91 seconds
+2025-03-12 21:12:40,044 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_e836f742.json with recommendation: p4
+2025-03-12 22:28:46,373 - proposal_monitor - INFO - New proposal detected: questionId_53e26dfd.json
+2025-03-12 22:28:47,381 - proposal_monitor - INFO - Processing proposal: questionId_53e26dfd.json
+2025-03-12 22:32:29,517 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 22:32:29,528 - proposal_monitor - INFO - API response received in 222.15 seconds
+2025-03-12 22:32:29,529 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_53e26dfd.json with recommendation: p1
+2025-03-12 22:32:29,529 - proposal_monitor - INFO - New proposal detected: questionId_e9384a05.json
+2025-03-12 22:32:30,536 - proposal_monitor - INFO - Processing proposal: questionId_e9384a05.json
+2025-03-12 22:34:26,767 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 22:34:26,806 - proposal_monitor - INFO - API response received in 116.27 seconds
+2025-03-12 22:34:26,807 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_e9384a05.json with recommendation: p3
+2025-03-12 22:49:00,096 - proposal_monitor - INFO - New proposal detected: questionId_e5abe062.json
+2025-03-12 22:49:01,098 - proposal_monitor - INFO - Processing proposal: questionId_e5abe062.json
+2025-03-12 22:50:53,196 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 22:50:53,315 - proposal_monitor - INFO - API response received in 112.22 seconds
+2025-03-12 22:50:53,318 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_e5abe062.json with recommendation: p1
+2025-03-12 22:51:03,301 - proposal_monitor - INFO - New proposal detected: questionId_09964a60.json
+2025-03-12 22:51:04,310 - proposal_monitor - INFO - Processing proposal: questionId_09964a60.json
+2025-03-12 22:52:22,537 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 22:52:22,542 - proposal_monitor - INFO - API response received in 78.23 seconds
+2025-03-12 22:52:22,544 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_09964a60.json with recommendation: p4
+2025-03-12 22:52:22,545 - proposal_monitor - INFO - New proposal detected: questionId_06f0204d.json
+2025-03-12 22:52:23,554 - proposal_monitor - INFO - Processing proposal: questionId_06f0204d.json
+2025-03-12 22:53:38,169 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 22:53:38,206 - proposal_monitor - INFO - API response received in 74.65 seconds
+2025-03-12 22:53:38,207 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_06f0204d.json with recommendation: p1
+2025-03-12 22:58:12,373 - proposal_monitor - INFO - New proposal detected: questionId_613b77ce.json
+2025-03-12 22:58:13,382 - proposal_monitor - INFO - Processing proposal: questionId_613b77ce.json
+2025-03-12 23:01:14,976 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:01:15,012 - proposal_monitor - INFO - API response received in 181.63 seconds
+2025-03-12 23:01:15,014 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_613b77ce.json with recommendation: p2
+2025-03-12 23:01:15,014 - proposal_monitor - INFO - New proposal detected: questionId_025eb1be.json
+2025-03-12 23:01:16,023 - proposal_monitor - INFO - Processing proposal: questionId_025eb1be.json
+2025-03-12 23:02:57,140 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:02:57,153 - proposal_monitor - INFO - API response received in 101.13 seconds
+2025-03-12 23:02:57,154 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_025eb1be.json with recommendation: p4
+2025-03-12 23:02:57,155 - proposal_monitor - INFO - New proposal detected: questionId_7645a6f6.json
+2025-03-12 23:02:58,159 - proposal_monitor - INFO - Processing proposal: questionId_7645a6f6.json
+2025-03-12 23:05:49,309 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:05:49,363 - proposal_monitor - INFO - API response received in 171.20 seconds
+2025-03-12 23:05:49,364 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_7645a6f6.json with recommendation: p1
+2025-03-12 23:07:20,676 - proposal_monitor - INFO - New proposal detected: questionId_f409f21c.json
+2025-03-12 23:07:21,678 - proposal_monitor - INFO - Processing proposal: questionId_f409f21c.json
+2025-03-12 23:11:47,405 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:11:47,481 - proposal_monitor - INFO - API response received in 265.80 seconds
+2025-03-12 23:11:47,482 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_f409f21c.json with recommendation: p1
+2025-03-12 23:12:54,895 - proposal_monitor - INFO - New proposal detected: questionId_860fddb3.json
+2025-03-12 23:12:55,899 - proposal_monitor - INFO - Processing proposal: questionId_860fddb3.json
+2025-03-12 23:15:03,402 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:15:03,457 - proposal_monitor - INFO - API response received in 127.56 seconds
+2025-03-12 23:15:03,458 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_860fddb3.json with recommendation: p3
+2025-03-12 23:15:03,458 - proposal_monitor - INFO - New proposal detected: questionId_163ab2a4.json
+2025-03-12 23:15:04,465 - proposal_monitor - INFO - Processing proposal: questionId_163ab2a4.json
+2025-03-12 23:17:22,402 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:17:22,507 - proposal_monitor - INFO - API response received in 138.04 seconds
+2025-03-12 23:17:22,508 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_163ab2a4.json with recommendation: p2
+2025-03-12 23:17:22,508 - proposal_monitor - INFO - New proposal detected: questionId_6af20338.json
+2025-03-12 23:17:23,515 - proposal_monitor - INFO - Processing proposal: questionId_6af20338.json
+2025-03-12 23:19:27,935 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:19:27,946 - proposal_monitor - INFO - API response received in 124.43 seconds
+2025-03-12 23:19:27,947 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_6af20338.json with recommendation: p2
+2025-03-12 23:19:27,947 - proposal_monitor - INFO - New proposal detected: questionId_3a4eb4fc.json
+2025-03-12 23:19:28,950 - proposal_monitor - INFO - Processing proposal: questionId_3a4eb4fc.json
+2025-03-12 23:22:15,956 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:22:15,999 - proposal_monitor - INFO - API response received in 167.05 seconds
+2025-03-12 23:22:16,001 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_3a4eb4fc.json with recommendation: p2
+2025-03-12 23:22:16,001 - proposal_monitor - INFO - New proposal detected: questionId_b2c8ec17.json
+2025-03-12 23:22:17,009 - proposal_monitor - INFO - Processing proposal: questionId_b2c8ec17.json
+2025-03-12 23:23:09,611 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:23:09,666 - proposal_monitor - INFO - API response received in 52.66 seconds
+2025-03-12 23:23:09,668 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_b2c8ec17.json with recommendation: p1
+2025-03-12 23:23:09,668 - proposal_monitor - INFO - New proposal detected: questionId_0e5fb292.json
+2025-03-12 23:23:10,676 - proposal_monitor - INFO - Processing proposal: questionId_0e5fb292.json
+2025-03-12 23:25:29,301 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:25:29,355 - proposal_monitor - INFO - API response received in 138.68 seconds
+2025-03-12 23:25:29,356 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_0e5fb292.json with recommendation: p1
+2025-03-12 23:25:29,356 - proposal_monitor - INFO - New proposal detected: questionId_faa01feb.json
+2025-03-12 23:25:30,365 - proposal_monitor - INFO - Processing proposal: questionId_faa01feb.json
+2025-03-12 23:27:57,188 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:27:57,215 - proposal_monitor - INFO - API response received in 146.85 seconds
+2025-03-12 23:27:57,216 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_faa01feb.json with recommendation: p1
+2025-03-12 23:27:57,216 - proposal_monitor - INFO - New proposal detected: questionId_3feab300.json
+2025-03-12 23:27:58,224 - proposal_monitor - INFO - Processing proposal: questionId_3feab300.json
+2025-03-12 23:29:28,222 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:29:28,325 - proposal_monitor - INFO - API response received in 90.10 seconds
+2025-03-12 23:29:28,326 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_3feab300.json with recommendation: p1
+2025-03-12 23:29:28,326 - proposal_monitor - INFO - New proposal detected: questionId_cc83e6b9.json
+2025-03-12 23:29:29,336 - proposal_monitor - INFO - Processing proposal: questionId_cc83e6b9.json
+2025-03-12 23:30:17,250 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:30:17,303 - proposal_monitor - INFO - API response received in 47.97 seconds
+2025-03-12 23:30:17,304 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_cc83e6b9.json with recommendation: p2
+2025-03-12 23:30:17,304 - proposal_monitor - INFO - New proposal detected: questionId_0e1e444e.json
+2025-03-12 23:30:18,310 - proposal_monitor - INFO - Processing proposal: questionId_0e1e444e.json
+2025-03-12 23:33:51,376 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:33:51,404 - proposal_monitor - INFO - API response received in 213.09 seconds
+2025-03-12 23:33:51,405 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_0e1e444e.json with recommendation: p1
+2025-03-12 23:33:51,405 - proposal_monitor - INFO - New proposal detected: questionId_261ec798.json
+2025-03-12 23:33:52,409 - proposal_monitor - INFO - Processing proposal: questionId_261ec798.json
+2025-03-12 23:35:57,725 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:35:57,781 - proposal_monitor - INFO - API response received in 125.37 seconds
+2025-03-12 23:35:57,782 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_261ec798.json with recommendation: p1
+2025-03-12 23:35:57,782 - proposal_monitor - INFO - New proposal detected: questionId_a5731034.json
+2025-03-12 23:35:58,791 - proposal_monitor - INFO - Processing proposal: questionId_a5731034.json
+2025-03-12 23:38:50,678 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:38:50,736 - proposal_monitor - INFO - API response received in 171.94 seconds
+2025-03-12 23:38:50,737 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_a5731034.json with recommendation: p1
+2025-03-12 23:38:50,737 - proposal_monitor - INFO - New proposal detected: questionId_cc2ecf9e.json
+2025-03-12 23:38:51,745 - proposal_monitor - INFO - Processing proposal: questionId_cc2ecf9e.json
+2025-03-12 23:41:17,651 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:41:17,679 - proposal_monitor - INFO - API response received in 145.93 seconds
+2025-03-12 23:41:17,680 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_cc2ecf9e.json with recommendation: p1
+2025-03-12 23:41:17,680 - proposal_monitor - INFO - New proposal detected: questionId_ae03f9e6.json
+2025-03-12 23:41:18,687 - proposal_monitor - INFO - Processing proposal: questionId_ae03f9e6.json
+2025-03-12 23:42:32,316 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:42:32,373 - proposal_monitor - INFO - API response received in 73.69 seconds
+2025-03-12 23:42:32,374 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_ae03f9e6.json with recommendation: p2
+2025-03-12 23:42:32,374 - proposal_monitor - INFO - New proposal detected: questionId_84db9689.json
+2025-03-12 23:42:33,376 - proposal_monitor - INFO - Processing proposal: questionId_84db9689.json
+2025-03-12 23:44:40,906 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:44:40,965 - proposal_monitor - INFO - API response received in 127.59 seconds
+2025-03-12 23:44:40,966 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_84db9689.json with recommendation: p2
+2025-03-12 23:44:40,966 - proposal_monitor - INFO - New proposal detected: questionId_0f9b882e.json
+2025-03-12 23:44:41,975 - proposal_monitor - INFO - Processing proposal: questionId_0f9b882e.json
+2025-03-12 23:46:23,559 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:46:23,636 - proposal_monitor - INFO - API response received in 101.66 seconds
+2025-03-12 23:46:23,637 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_0f9b882e.json with recommendation: p3
+2025-03-12 23:46:23,637 - proposal_monitor - INFO - New proposal detected: questionId_b3ecd08e.json
+2025-03-12 23:46:24,639 - proposal_monitor - INFO - Processing proposal: questionId_b3ecd08e.json
+2025-03-12 23:47:36,523 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:47:36,536 - proposal_monitor - INFO - API response received in 71.90 seconds
+2025-03-12 23:47:36,538 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_b3ecd08e.json with recommendation: p3
+2025-03-12 23:49:39,287 - proposal_monitor - INFO - New proposal detected: questionId_8ddd1b4a.json
+2025-03-12 23:49:40,297 - proposal_monitor - INFO - Processing proposal: questionId_8ddd1b4a.json
+2025-03-12 23:51:52,522 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-12 23:51:52,553 - proposal_monitor - INFO - API response received in 132.26 seconds
+2025-03-12 23:51:52,554 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_8ddd1b4a.json with recommendation: p4
+2025-03-13 01:01:53,277 - proposal_monitor - INFO - New proposal detected: questionId_212e202b.json
+2025-03-13 01:01:54,285 - proposal_monitor - INFO - Processing proposal: questionId_212e202b.json
+2025-03-13 01:03:41,823 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 01:03:41,833 - proposal_monitor - INFO - API response received in 107.55 seconds
+2025-03-13 01:03:41,835 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_212e202b.json with recommendation: p3
+2025-03-13 01:03:41,835 - proposal_monitor - INFO - New proposal detected: questionId_6c8569c0.json
+2025-03-13 01:03:42,840 - proposal_monitor - INFO - Processing proposal: questionId_6c8569c0.json
+2025-03-13 01:06:21,519 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 01:06:21,647 - proposal_monitor - INFO - API response received in 158.81 seconds
+2025-03-13 01:06:21,648 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_6c8569c0.json with recommendation: p4
+2025-03-13 01:38:49,387 - proposal_monitor - INFO - New proposal detected: questionId_f14e9f10.json
+2025-03-13 01:38:50,389 - proposal_monitor - INFO - Processing proposal: questionId_f14e9f10.json
+2025-03-13 01:40:29,871 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 01:40:29,902 - proposal_monitor - INFO - API response received in 99.51 seconds
+2025-03-13 01:40:29,903 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_f14e9f10.json with recommendation: p4
+2025-03-13 01:56:01,916 - proposal_monitor - INFO - New proposal detected: questionId_a5722f27.json
+2025-03-13 01:56:02,926 - proposal_monitor - INFO - Processing proposal: questionId_a5722f27.json
+2025-03-13 01:58:03,068 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 01:58:03,165 - proposal_monitor - INFO - API response received in 120.24 seconds
+2025-03-13 01:58:03,165 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_a5722f27.json with recommendation: p4
+2025-03-13 02:10:11,553 - proposal_monitor - INFO - New proposal detected: questionId_d9d48807.json
+2025-03-13 02:10:12,558 - proposal_monitor - INFO - Processing proposal: questionId_d9d48807.json
+2025-03-13 02:12:17,995 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 02:12:18,040 - proposal_monitor - INFO - API response received in 125.48 seconds
+2025-03-13 02:12:18,041 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_d9d48807.json with recommendation: p3
+2025-03-13 02:54:40,033 - proposal_monitor - INFO - New proposal detected: questionId_6b371c41.json
+2025-03-13 02:54:41,036 - proposal_monitor - INFO - Processing proposal: questionId_6b371c41.json
+2025-03-13 02:55:49,493 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 02:55:49,505 - proposal_monitor - INFO - API response received in 68.47 seconds
+2025-03-13 02:55:49,506 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_6b371c41.json with recommendation: p1
+2025-03-13 02:59:13,566 - proposal_monitor - INFO - New proposal detected: questionId_a0f4fc21.json
+2025-03-13 02:59:14,575 - proposal_monitor - INFO - Processing proposal: questionId_a0f4fc21.json
+2025-03-13 03:01:49,324 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:01:49,341 - proposal_monitor - INFO - API response received in 154.76 seconds
+2025-03-13 03:01:49,342 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_a0f4fc21.json with recommendation: p4
+2025-03-13 03:01:49,342 - proposal_monitor - INFO - New proposal detected: questionId_bcfb2b5a.json
+2025-03-13 03:01:50,349 - proposal_monitor - INFO - Processing proposal: questionId_bcfb2b5a.json
+2025-03-13 03:02:56,479 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:02:56,572 - proposal_monitor - INFO - API response received in 66.22 seconds
+2025-03-13 03:02:56,573 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_bcfb2b5a.json with recommendation: p3
+2025-03-13 03:02:56,573 - proposal_monitor - INFO - New proposal detected: questionId_aa8072a4.json
+2025-03-13 03:02:57,580 - proposal_monitor - INFO - Processing proposal: questionId_aa8072a4.json
+2025-03-13 03:03:43,633 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:03:43,637 - proposal_monitor - INFO - API response received in 46.06 seconds
+2025-03-13 03:03:43,637 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_aa8072a4.json with recommendation: p2
+2025-03-13 03:17:58,548 - proposal_monitor - INFO - New proposal detected: questionId_450cfd93.json
+2025-03-13 03:17:59,556 - proposal_monitor - INFO - Processing proposal: questionId_450cfd93.json
+2025-03-13 03:19:42,181 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:19:42,211 - proposal_monitor - INFO - API response received in 102.65 seconds
+2025-03-13 03:19:42,212 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_450cfd93.json with recommendation: p4
+2025-03-13 03:23:32,692 - proposal_monitor - INFO - New proposal detected: questionId_33afebf0.json
+2025-03-13 03:23:33,702 - proposal_monitor - INFO - Processing proposal: questionId_33afebf0.json
+2025-03-13 03:25:00,253 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:25:00,326 - proposal_monitor - INFO - API response received in 86.62 seconds
+2025-03-13 03:25:00,327 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_33afebf0.json with recommendation: p3
+2025-03-13 03:25:00,327 - proposal_monitor - INFO - New proposal detected: questionId_392269cd.json
+2025-03-13 03:25:01,337 - proposal_monitor - INFO - Processing proposal: questionId_392269cd.json
+2025-03-13 03:26:20,748 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:26:20,773 - proposal_monitor - INFO - API response received in 79.44 seconds
+2025-03-13 03:26:20,774 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_392269cd.json with recommendation: p1
+2025-03-13 03:26:20,775 - proposal_monitor - INFO - New proposal detected: questionId_e5239f66.json
+2025-03-13 03:26:21,782 - proposal_monitor - INFO - Processing proposal: questionId_e5239f66.json
+2025-03-13 03:28:20,486 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:28:20,530 - proposal_monitor - INFO - API response received in 118.75 seconds
+2025-03-13 03:28:20,531 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_e5239f66.json with recommendation: p3
+2025-03-13 03:28:20,531 - proposal_monitor - INFO - New proposal detected: questionId_306ce7fb.json
+2025-03-13 03:28:21,539 - proposal_monitor - INFO - Processing proposal: questionId_306ce7fb.json
+2025-03-13 03:30:54,738 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:30:54,786 - proposal_monitor - INFO - API response received in 153.25 seconds
+2025-03-13 03:30:54,787 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_306ce7fb.json with recommendation: p2
+2025-03-13 03:39:15,185 - proposal_monitor - INFO - New proposal detected: questionId_6ca57529.json
+2025-03-13 03:39:16,190 - proposal_monitor - INFO - Processing proposal: questionId_6ca57529.json
+2025-03-13 03:39:45,919 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 03:39:45,924 - proposal_monitor - INFO - API response received in 29.73 seconds
+2025-03-13 03:39:45,925 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_6ca57529.json with recommendation: p4
+2025-03-13 04:15:07,115 - proposal_monitor - INFO - New proposal detected: questionId_51ddd061.json
+2025-03-13 04:15:08,118 - proposal_monitor - INFO - Processing proposal: questionId_51ddd061.json
+2025-03-13 04:16:30,653 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 04:16:30,673 - proposal_monitor - INFO - API response received in 82.55 seconds
+2025-03-13 04:16:30,674 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_51ddd061.json with recommendation: p1
+2025-03-13 04:16:39,197 - proposal_monitor - INFO - New proposal detected: questionId_63d57a7f.json
+2025-03-13 04:16:40,207 - proposal_monitor - INFO - Processing proposal: questionId_63d57a7f.json
+2025-03-13 04:18:17,006 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 04:18:17,020 - proposal_monitor - INFO - API response received in 96.81 seconds
+2025-03-13 04:18:17,021 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_63d57a7f.json with recommendation: p1
+2025-03-13 04:23:44,554 - proposal_monitor - INFO - New proposal detected: questionId_13268d2d.json
+2025-03-13 04:23:45,561 - proposal_monitor - INFO - Processing proposal: questionId_13268d2d.json
+2025-03-13 04:27:48,457 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 04:27:48,551 - proposal_monitor - INFO - API response received in 242.99 seconds
+2025-03-13 04:27:48,553 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_13268d2d.json with recommendation: p4
+2025-03-13 05:01:09,084 - proposal_monitor - INFO - New proposal detected: questionId_70374848.json
+2025-03-13 05:01:10,094 - proposal_monitor - INFO - Processing proposal: questionId_70374848.json
+2025-03-13 05:03:55,783 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 05:03:55,786 - proposal_monitor - INFO - API response received in 165.69 seconds
+2025-03-13 05:03:55,787 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_70374848.json with recommendation: p4
+2025-03-13 05:03:55,787 - proposal_monitor - INFO - New proposal detected: questionId_db4377db.json
+2025-03-13 05:03:56,797 - proposal_monitor - INFO - Processing proposal: questionId_db4377db.json
+2025-03-13 05:05:50,781 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 05:05:50,816 - proposal_monitor - INFO - API response received in 114.02 seconds
+2025-03-13 05:05:50,817 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_db4377db.json with recommendation: p4
+2025-03-13 05:25:57,291 - proposal_monitor - INFO - New proposal detected: questionId_c77dcbd0.json
+2025-03-13 05:25:58,293 - proposal_monitor - INFO - Processing proposal: questionId_c77dcbd0.json
+2025-03-13 05:27:07,222 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 05:27:07,265 - proposal_monitor - INFO - API response received in 68.97 seconds
+2025-03-13 05:27:07,266 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_c77dcbd0.json with recommendation: p4
+2025-03-13 05:52:44,887 - proposal_monitor - INFO - New proposal detected: questionId_3d6df7ea.json
+2025-03-13 05:52:45,891 - proposal_monitor - INFO - Processing proposal: questionId_3d6df7ea.json
+2025-03-13 05:53:52,135 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 05:53:52,211 - proposal_monitor - INFO - API response received in 66.32 seconds
+2025-03-13 05:53:52,212 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_3d6df7ea.json with recommendation: p2
+2025-03-13 05:55:47,486 - proposal_monitor - INFO - New proposal detected: questionId_feb4a219.json
+2025-03-13 05:55:48,495 - proposal_monitor - INFO - Processing proposal: questionId_feb4a219.json
+2025-03-13 05:58:46,068 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 05:58:46,114 - proposal_monitor - INFO - API response received in 177.62 seconds
+2025-03-13 05:58:46,115 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_feb4a219.json with recommendation: p2
+2025-03-13 06:09:26,234 - proposal_monitor - INFO - New proposal detected: questionId_ca772a12.json
+2025-03-13 06:09:27,244 - proposal_monitor - INFO - Processing proposal: questionId_ca772a12.json
+2025-03-13 06:10:53,993 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 06:10:53,997 - proposal_monitor - INFO - API response received in 86.75 seconds
+2025-03-13 06:10:53,998 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_ca772a12.json with recommendation: p1
+2025-03-13 06:12:59,038 - proposal_monitor - INFO - New proposal detected: questionId_287ed13a.json
+2025-03-13 06:13:00,044 - proposal_monitor - INFO - Processing proposal: questionId_287ed13a.json
+2025-03-13 06:14:57,809 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 06:14:57,860 - proposal_monitor - INFO - API response received in 117.82 seconds
+2025-03-13 06:14:57,861 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_287ed13a.json with recommendation: p1
+2025-03-13 06:39:21,338 - proposal_monitor - INFO - New proposal detected: questionId_8ad5832c.json
+2025-03-13 06:39:22,344 - proposal_monitor - INFO - Processing proposal: questionId_8ad5832c.json
+2025-03-13 06:41:18,108 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 06:41:18,141 - proposal_monitor - INFO - API response received in 115.80 seconds
+2025-03-13 06:41:18,142 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_8ad5832c.json with recommendation: p4
+2025-03-13 06:41:23,387 - proposal_monitor - INFO - New proposal detected: questionId_147b3e44.json
+2025-03-13 06:41:24,397 - proposal_monitor - INFO - Processing proposal: questionId_147b3e44.json
+2025-03-13 06:41:50,579 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 06:41:50,593 - proposal_monitor - INFO - API response received in 26.20 seconds
+2025-03-13 06:41:50,594 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_147b3e44.json with recommendation: p1
+2025-03-13 07:05:38,831 - proposal_monitor - INFO - New proposal detected: questionId_1e4d05a7.json
+2025-03-13 07:05:39,838 - proposal_monitor - INFO - Processing proposal: questionId_1e4d05a7.json
+2025-03-13 07:06:58,428 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-13 07:06:58,433 - proposal_monitor - INFO - API response received in 78.60 seconds
+2025-03-13 07:06:58,435 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_1e4d05a7.json with recommendation: p2
+2025-03-13 10:43:23,927 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
+2025-03-13 10:43:23,928 - proposal_monitor - INFO - Proposal monitor stopped
