@@ -1,0 +1,51 @@
+{
+  "query_id": "0x210e20876f83cd324635b30e3f1c570d63ebc21afcee792b9e32d96e333da68f",
+  "question_id_short": "210e2087",
+  "transaction_hash": "0xa0539d2a3945b88b5f424e807819941d269c3ea5e911937738e5897d2793fe8e",
+  "user_prompt": "\n\nancillary_data:\nq: title: Wyoming vs. San Jos\u00c3\u00a9 State, description: In the upcoming CBB game, scheduled for March 12 at 2:00PM ET:\nIf the Wyoming win, the market will resolve to \"Wyoming\".\nIf the San Jos\u00c3\u00a9 State win, the market will resolve to \"San Jos\u00c3\u00a9 State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to San Jos\u00c3\u00a9 State, p2 to Wyoming, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4` \nCurrent Unix Timestamp: 1741870903\nCurrent Date and Time: 2025-03-13 14:01:43",
+  "response": "<think>\nOkay, let's break this down. The user is asking about resolving a prediction market based on the outcome of a college basketball game between Wyoming and San Jos\u00e9 State scheduled for March 12, 2025, at 2:00 PM ET. The resolution depends on who wins, if the game is postponed, or if it's canceled. \n\nFirst, I need to check the current date and time, which is provided as March 13, 2025, around 1:59 PM UTC. The game was supposed to happen on March 12, so from the current timestamp, the game has already taken place.\n\nLooking at the search results, there are multiple sources [1][9][10][13][14][15][16][17] that report San Jos\u00e9 State's victory over Wyoming with a score of 66-61 in the Mountain West Tournament on March 12. These sources are from reputable sports websites and the official athletics pages of both universities, which adds credibility. \n\nThe key points from the search results confirm the game occurred as scheduled, and San Jos\u00e9 State won. There's no mention of the game being postponed or canceled. All reports indicate the game was completed, with detailed stats and player performances provided. \n\nSince the event has already happened and the outcome is verified by multiple sources, the market should resolve in favor of San Jos\u00e9 State. Therefore, the correct resolution is p1. There's no indication of a cancellation or postponement, so p3 or p4 don't apply here. The user's personalization instructions emphasize relying on verified facts, and all evidence points to a completed game with a clear winner.\n</think>\n\nrecommendation: p1",
+  "recommendation": "p1",
+  "proposed_price": 0,
+  "resolved_price": 0,
+  "timestamp": 1741870903.29267,
+  "processed_file": "questionId_210e2087.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741870903,
+    "created_datetime": "2025-03-13T14:01:43",
+    "completion_tokens": 342,
+    "prompt_tokens": 592,
+    "total_tokens": 934,
+    "api_response_time_seconds": 122.26292777061462
+  },
+  "citations": [
+    "https://sjsuspartans.com/news/2025/03/12/spartans-advance-with-66-61-win-over-wyoming",
+    "https://gobulldogs.com/news/2025/3/8/mens-basketball-bulldogs-end-conference-play-with-defeat-at-san-jose-state",
+    "https://www.cwc.edu/2025/02/13/central-wyoming-college-board-of-trustees-signs-special-resolution/",
+    "https://www.surprisestadium.com/stadium-info/stadium-a-z",
+    "https://www.worldradiohistory.com/Archive-All-Audio/Mix-Magazine/90s/93/Mix-1993-07.pdf",
+    "https://gowyo.com/news/2025/1/18/mens-basketball-cowboys-can-t-find-rhythm-in-79-63-loss-to-colorado-state.aspx",
+    "https://sjsuspartans.com/news/2025/02/25/uduje-scores-27-in-spartans-loss-to-unlv",
+    "https://wyomingbusiness.org/communities/financing/business-ready-community/managed-data-center-cost-reduction-funding/",
+    "https://www.cbssports.com/college-basketball/gametracker/recap/NCAAB_20250312_WYO@SJST/",
+    "https://abcnews.go.com/Sports/wireStory/yaps-19-lead-san-jose-state-past-wyoming-119731800",
+    "https://raw.githubusercontent.com/vinid/data/master/dbpedia_sample_abstract_20k_unprep.txt",
+    "https://www.cbssports.com/college-basketball/gametracker/recap/NCAAB_20250125_WYO@SJST/",
+    "https://7220sports.com/cowboys-fall-66-61-to-san-jose-state-at-mountain-west-tournament/",
+    "https://wtop.com/ncaa-basketball/2025/03/san-jose-state-plays-in-mwc-tournament-against-the-wyoming/",
+    "https://www.espn.com/mens-college-basketball/game/_/gameId/401744071/wyoming-san-jose-st",
+    "https://gowyo.com/news/2025/3/12/mens-basketball-wyoming-cowboys-fall-to-san-jose-state-at-mountain-west-tournament.aspx",
+    "https://sjsuspartans.com/news/2025/03/12/highlights-san-jose-state-beats-wyoming-in-mountain-west-tournament"
+  ],
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586695,
+    "block_number": 68970161,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a2057796f6d696e672076732e2053616e204a6f73c3a92053746174652c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d6172636820313220617420323a3030504d2045543a0a4966207468652057796f6d696e672077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c57796f6d696e67e2809d2e0a4966207468652053616e204a6f73c3a92053746174652077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c53616e204a6f73c3a9205374617465e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f2053616e204a6f73c3a92053746174652c20703220746f2057796f6d696e672c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  },
+  "resolved_price_outcome": "p1"
+}

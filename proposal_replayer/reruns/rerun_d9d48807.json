@@ -1,0 +1,50 @@
+{
+  "query_id": "0xd9d48807e31e1ea4a259c33ce0e569428f442ece90633689cee0298b7906ea49",
+  "question_id_short": "d9d48807",
+  "transaction_hash": "0x7ce4b76d1d52854b340f07b47933e4129c2d747106450eff3027bc80cfa44c36",
+  "user_prompt": "\n\nancillary_data:\nq: title: LSU vs. Mississippi State, description: In the upcoming CBB game, scheduled for March 12 at 7:00PM ET:\nIf the LSU win, the market will resolve to \"LSU\".\nIf the Mississippi State win, the market will resolve to \"Mississippi State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Mississippi State, p2 to LSU, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4` \nCurrent Unix Timestamp: 1741871079\nCurrent Date and Time: 2025-03-13 14:04:39",
+  "response": "<think>\nOkay, let me start by understanding the user's query. They want to resolve a betting market based on the outcome of the LSU vs. Mississippi State college basketball game scheduled for March 12, 2025, at 7:00 PM ET. The resolution depends on who wins, if the game is postponed, or if it's canceled. \n\nFirst, I need to check if the game was played as scheduled. The current date is March 13, 2025, so the game should have happened yesterday. Let me look through the search results provided. \n\nSearch results 6, 9, 10, 11, 13, 14, 15, and 16 all mention the game between LSU and Mississippi State on March 12, 2025. Specifically, result 6 from hailstate.com is dated March 13, 2025, and details Mississippi State's 91-62 victory over LSU in the SEC Tournament first round. Similarly, result 15 from ESPN confirms the same score and outcome. All these sources consistently report that Mississippi State won the game decisively. \n\nNext, I need to ensure the game wasn't postponed or canceled. The detailed game summaries in the search results indicate the game took place as planned on March 12. There's no mention of any delays or cancellations. In fact, result 13 from lsusports.net explicitly states that LSU lost the game in the SEC Tournament opening round, which took place on that date. \n\nThe user's resolution conditions state that if Mississippi State wins, the market resolves to p1. Since multiple credible sources confirm Mississippi State's victory, the correct resolution is p1. There's no indication of the game being postponed or canceled, so p3 and p4 don't apply here. All the evidence points to the game being completed with a clear winner.\n</think>\n\nrecommendation: p1",
+  "recommendation": "p1",
+  "proposed_price": 0,
+  "resolved_price": 0,
+  "timestamp": 1741871079.633062,
+  "processed_file": "questionId_d9d48807.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741871079,
+    "created_datetime": "2025-03-13T14:04:39",
+    "completion_tokens": 387,
+    "prompt_tokens": 581,
+    "total_tokens": 968,
+    "api_response_time_seconds": 176.33871507644653
+  },
+  "citations": [
+    "https://lsusports.net/news/2023/04/02/ncaa-womens-basketball-national-title-game-recap/",
+    "https://www.mongolbank.mn/en/p/1102",
+    "https://www.actionnetwork.com/nfl/nfl-betting-rules-canceled-postponed-games-what-happens-my-bet",
+    "https://www.redsoxfoundation.org/50-50-raffle/",
+    "https://ww2.amstat.org/meetings/jsm/2007/pdfs/jsm2007abstractbook.pdf",
+    "https://hailstate.com/news/2025/3/12/mens-basketball-postgame-notes-state-vs-lsu",
+    "https://www.cbb.gov.bh/media-center/cbb-issues-resolution-no-23-of-2019-for-the-issuance-of-regulations-in-respect-of-short-selling-and-giving-securities-on-loan/",
+    "https://get.bookmaker.help/hc/en-us/articles/360031911972-Suspended-postponed-football-games",
+    "https://www.vicksburgpost.com/2025/03/12/bulldogs-blast-lsu-in-first-round-of-sec-tournament/",
+    "https://www.cbssports.com/college-basketball/gametracker/recap/NCAAB_20250312_LSU@MISSST/",
+    "https://www.cbssports.com/college-basketball/gametracker/boxscore/NCAAB_20250312_LSU@MISSST/",
+    "https://ww2.amstat.org/meetings/jsm/2015/pdfs/JSM2015_ProgramBook.pdf",
+    "https://lsusports.net/news/2025/03/12/mens-basketball-falls-to-mississippi-state-in-sec-tournament-opening-round-91-62/",
+    "https://crescentcitysports.com/mississippi-state-blows-out-lsu-91-62-at-sec-tournament/",
+    "https://www.espn.com/mens-college-basketball/recap/_/gameId/401744157",
+    "https://hailstate.com/news/2025/3/12/mens-basketball-the-final-horn-state-91-lsu-62-coleman"
+  ],
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586799,
+    "block_number": 68979028,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a204c53552076732e204d697373697373697070692053746174652c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d6172636820313220617420373a3030504d2045543a0a496620746865204c53552077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4c5355e2809d2e0a496620746865204d697373697373697070692053746174652077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4d69737369737369707069205374617465e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204d697373697373697070692053746174652c20703220746f204c53552c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  },
+  "resolved_price_outcome": "p1"
+}
