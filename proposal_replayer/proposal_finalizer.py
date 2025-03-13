@@ -31,8 +31,10 @@ load_dotenv()
 # Directory paths
 CURRENT_DIR = Path(__file__).parent
 OUTPUTS_DIR = CURRENT_DIR / "outputs"
+RERUNS_DIR = CURRENT_DIR / "reruns"
 
 logger.info(f"Outputs directory: {OUTPUTS_DIR}")
+logger.info(f"Reruns directory: {RERUNS_DIR}")
 
 # Set up Web3 connection
 POLYGON_RPC_URL = os.getenv("POLYGON_RPC_URL")
@@ -138,38 +140,38 @@ def update_output_file(output_path, resolved_price):
         return False
 
 
-def process_outputs():
-    """Process all output files and update unresolved ones."""
-    logger.info("Starting to process output files")
+def process_files(directory, file_type):
+    """Process all JSON files in the specified directory and update unresolved ones."""
+    logger.info(f"Starting to process {file_type} files in {directory}")
 
-    if not OUTPUTS_DIR.exists():
-        logger.error(f"Outputs directory not found: {OUTPUTS_DIR}")
-        return
+    if not directory.exists():
+        logger.error(f"Directory not found: {directory}")
+        return 0, 0, 0, 0
 
     processed_count = 0
     updated_count = 0
     error_count = 0
     skipped_count = 0
 
-    for output_file in OUTPUTS_DIR.glob("*.json"):
+    for file_path in directory.glob("*.json"):
         processed_count += 1
 
         try:
-            with open(output_file, "r") as f:
+            with open(file_path, "r") as f:
                 data = json.load(f)
 
             # Skip if already resolved
             if data.get("resolved_price") is not None:
-                logger.debug(f"Skipping already resolved file: {output_file.name}")
+                logger.debug(f"Skipping already resolved file: {file_path.name}")
                 skipped_count += 1
                 continue
 
-            # Query blockchain for resolution using the output data
+            # Query blockchain for resolution using the data
             resolved_price = get_market_resolution(data)
 
             if resolved_price is not None:
                 # Update the file with resolution data
-                if update_output_file(output_file, resolved_price):
+                if update_output_file(file_path, resolved_price):
                     updated_count += 1
                 else:
                     error_count += 1
@@ -178,12 +180,24 @@ def process_outputs():
                 skipped_count += 1
 
         except Exception as e:
-            logger.error(f"Error processing {output_file.name}: {str(e)}")
+            logger.error(f"Error processing {file_path.name}: {str(e)}")
             error_count += 1
 
     logger.info(
-        f"Processing complete. Processed: {processed_count}, Updated: {updated_count}, Errors: {error_count}, Skipped: {skipped_count}"
+        f"{file_type} processing complete. Processed: {processed_count}, Updated: {updated_count}, Errors: {error_count}, Skipped: {skipped_count}"
     )
+
+    return processed_count, updated_count, error_count, skipped_count
+
+
+def process_outputs():
+    """Process all output files and update unresolved ones."""
+    return process_files(OUTPUTS_DIR, "output")
+
+
+def process_reruns():
+    """Process all rerun files and update unresolved ones."""
+    return process_files(RERUNS_DIR, "rerun")
 
 
 def main():
@@ -192,7 +206,20 @@ def main():
     )
 
     # Process output files
-    process_outputs()
+    output_stats = process_outputs()
+
+    # Process rerun files
+    rerun_stats = process_reruns()
+
+    total_processed = output_stats[0] + rerun_stats[0]
+    total_updated = output_stats[1] + rerun_stats[1]
+    total_errors = output_stats[2] + rerun_stats[2]
+    total_skipped = output_stats[3] + rerun_stats[3]
+
+    logger.info(
+        f"Final summary - Total Processed: {total_processed}, Total Updated: {total_updated}, "
+        f"Total Errors: {total_errors}, Total Skipped: {total_skipped}"
+    )
 
     logger.info("✅ Proposal finalizer completed")
 

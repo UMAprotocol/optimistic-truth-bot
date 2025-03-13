@@ -1,0 +1,41 @@
+{
+  "query_id": "0x70374848895922a746fce700208bfe1caf971d1cb918d3799f0e375881741127",
+  "question_id_short": "70374848",
+  "transaction_hash": "0x43957c16a89dd94a5be0720c08a85a316eecab0514067db99385f7ce40170efd",
+  "user_prompt": "\n\nancillary_data:\nq: title: Oklahoma vs. Georgia, description: In the upcoming CBB game, scheduled for March 12 at 9:30PM ET:\nIf the Oklahoma win, the market will resolve to \"Oklahoma\".\nIf the Georgia win, the market will resolve to \"Georgia\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Georgia, p2 to Oklahoma, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4` \nCurrent Unix Timestamp: 1741864446\nCurrent Date and Time: 2025-03-13 12:14:06",
+  "response": "<think>\nOkay, I need to resolve this query about the Oklahoma vs. Georgia CBB game scheduled for March 12, 2025, at 9:30 PM ET. The user wants to know if the market should resolve to Oklahoma, Georgia, or if it's a 50-50 case due to cancellation. \n\nFirst, I check the current date and time. The user provided the current Unix timestamp as 1741864409, which translates to March 13, 2025, 12:13:29 PM UTC. The game was supposed to happen on March 12 at 9:30 PM ET. Since the current time is the next day, the game should have already occurred. \n\nNext, I look at the search results provided. The first result [1] is from the Oklahoma Sooners' official site, dated March 12, 2025. The headline states that Oklahoma beat Georgia 81-75 in the SEC Tournament. That's a primary source, so it's reliable. Another source [2] from SI.com confirms the same score and outcome, mentioning Georgia's loss ending their four-game streak. Source [4] is an AJC article reiterating Fears' 29 points leading Oklahoma to victory. Source [6] from SI.com again discusses Oklahoma's win over Georgia in the SEC Tournament. \n\nThere's also a reference to a previous game on January 11, 2025, where Georgia won 72-62 [7], but that's not the game in question here. The other search results about softball and unrelated topics can be disregarded as they don't pertain to the March 12 basketball game.\n\nAll relevant sources consistently report that Oklahoma won the March 12 game. There's no mention of the game being postponed or canceled. The current date is past the game's scheduled time, and multiple credible sources confirm the outcome. Therefore, the market should resolve to Oklahoma, which corresponds to p2.\n</think>\n\nrecommendation: p2",
+  "recommendation": "p2",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": null,
+  "timestamp": 1741864446.528821,
+  "processed_file": "questionId_70374848.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741864446,
+    "created_datetime": "2025-03-13T12:14:06",
+    "completion_tokens": 406,
+    "prompt_tokens": 576,
+    "total_tokens": 982,
+    "api_response_time_seconds": 36.5602970123291
+  },
+  "citations": [
+    "https://soonersports.com/news/2025/3/12/mens-basketball-fears-scores-29-ou-beats-georgia-to-advance-at-sec-tournament",
+    "https://www.si.com/college/georgia/basketball/georgia-vs-oklahoma-final-score-georgia-s-win-streak-comes-to-an-end-01jp6nhspr71",
+    "https://www.youtube.com/watch?v=yE63OXPxx8c",
+    "https://www.ajc.com/news/georgia-news/jeremiah-fears-scores-29-points-oklahoma-beats-georgia-81-75-in-the-sec-tournament-first-round/QJ4AAJBKK5HKXLXQVLKEVFXMGM/",
+    "https://analyticsdemystified.com/2009/",
+    "https://www.si.com/college/oklahoma/men-s-basketball/ou-basketball-oklahoma-jumps-with-sec-tournament-win-over-georgia-01jp6na2tb84",
+    "https://www.ncaa.com/game/6351918",
+    "https://www.worldradiohistory.com/Archive-BC/BC-1999/BC-1999-05-31.pdf"
+  ],
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586845,
+    "block_number": 68983738,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a204f6b6c61686f6d612076732e2047656f726769612c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d6172636820313220617420393a3330504d2045543a0a496620746865204f6b6c61686f6d612077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4f6b6c61686f6d61e2809d2e0a4966207468652047656f726769612077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c47656f72676961e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f2047656f726769612c20703220746f204f6b6c61686f6d612c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  }
+}

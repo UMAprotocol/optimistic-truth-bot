@@ -6,6 +6,7 @@ This directory contains scripts for monitoring and processing UMA Optimistic Ora
 
 - `proposal_fetcher.py`: Monitors the blockchain for new proposals to the Optimistic Oracle. When it detects a proposal, it fetches the associated on-chain information and saves it in the `proposals` directory.
 - `proposal_replayer.py`: Listens for new files added to the `proposals` directory. For each proposal file, it queries the Perplexity API to find the associated solution and saves the result to the `outputs` directory.
+- `ui/`: Web interface for visualizing proposal outputs and reruns.
 
 ## How to Run
 
@@ -33,4 +34,24 @@ This will:
 3. Save the results in the `outputs` directory
 4. Continue monitoring for new proposal files
 
-Note: Make sure your `.env` file contains the `PERPLEXITY_API_KEY` variable. 
+Note: Make sure your `.env` file contains the `PERPLEXITY_API_KEY` variable.
+
+### Visualization UI
+
+To view and explore the outputs and reruns:
+
+```bash
+# Navigate to the UI directory
+cd proposal_replayer/ui
+
+# Run the UI server
+python server.py
+```
+
+This will start a local web server and open your browser to the visualization interface. The UI allows you to:
+
+- Browse all outputs and reruns
+- Search and filter results
+- View detailed information for each proposal
+
+For more details, see the [UI README](ui/README.md). 

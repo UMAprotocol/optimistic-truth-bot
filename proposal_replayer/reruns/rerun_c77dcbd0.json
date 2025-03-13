@@ -1,0 +1,46 @@
+{
+  "query_id": "0xc77dcbd02b830432af4cf694941f31da4a9204aa1387c4d9fa38c2c3634bb78c",
+  "question_id_short": "c77dcbd0",
+  "transaction_hash": "0x704df633ddd3b31f1acdbbd85cf77c09c3cfc96ab460b136f27070cf7d8bcbc6",
+  "user_prompt": "\n\nancillary_data:\nq: title: Timberwolves vs. Nuggets, description: In the upcoming NBA game, scheduled for March 12 at 10:00PM ET:\nIf the Minnesota Timberwolves win, the market will resolve to \"Timberwolves\".\nIf the Denver Nuggets win, the market will resolve to \"Nuggets\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Nuggets, p2 to Timberwolves, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4` \nCurrent Unix Timestamp: 1741865704\nCurrent Date and Time: 2025-03-13 12:35:04",
+  "response": "<think>\nOkay, let's tackle this query step by step. The user is asking about resolving an UMA optimistic oracle request for a market on the outcome of the March 12, 2025 NBA game between the Minnesota Timberwolves and Denver Nuggets. The resolution conditions are p1 for Nuggets, p2 for Timberwolves, and p3 if the game is canceled. The user provided search results from various sources, including game recaps, box scores, and video highlights. \n\nFirst, I need to verify if the game occurred as scheduled. The current date is March 13, 2025, which is after the game date of March 12. Checking the search results, multiple sources [1][2][3][5][9][10][11][12][13] report that the game took place on March 12, 2025, at 10:00 PM ET. There's no mention of postponement or cancellation in any of the sources. \n\nNext, I need to confirm the outcome of the game. According to the box score in [1], the Timberwolves won 115-95. This result is corroborated by several articles [10][11][13] and the YouTube highlights [9]. Key players like Anthony Edwards and Julius Randle are noted as top performers for the Timberwolves, while Nikola Jokic led the Nuggets in scoring. The game was not close, with the Timberwolves leading wire-to-wire and extending their winning streak to six games. \n\nSince the game was played as scheduled and the Timberwolves won decisively, the market should resolve to \"Timberwolves,\" which corresponds to p2. There's no indication of any issues that would lead to a 50-50 resolution. All sources confirm the game's completion without cancellation or postponement. \n\nTherefore, the correct resolution is p2.\n</think>\n\nrecommendation: p2",
+  "recommendation": "p2",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": null,
+  "timestamp": 1741865704.1306088,
+  "processed_file": "questionId_c77dcbd0.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741865704,
+    "created_datetime": "2025-03-13T12:35:04",
+    "completion_tokens": 396,
+    "prompt_tokens": 590,
+    "total_tokens": 986,
+    "api_response_time_seconds": 68.6272828578949
+  },
+  "citations": [
+    "https://www.cbssports.com/nba/gametracker/boxscore/NBA_20250312_MIN@DEN/",
+    "https://www.cbssports.com/nba/gametracker/preview/NBA_20250312_MIN@DEN/",
+    "https://www.covers.com/nba/timberwolves-vs-nuggets-prediction-picks-wednesday-3-12-2025",
+    "http://web.conradreynolds.com/trib/2018-03-13.pdf",
+    "https://sports.betmgm.com/en/blog/nba/timberwolves-nuggets-prediction-odds-lines-picks-nba-mar-12-jaa/",
+    "https://ufdcimages.uflib.ufl.edu/AA/00/06/85/31/00138/11-03-2019.pdf",
+    "https://www.theringer.com/2024/05/13/nba/denver-nuggets-minnesota-timberwolves-anthony-edwards-nikola-jokic",
+    "http://web.conradreynolds.com/trib/2018-07-10.pdf",
+    "https://www.youtube.com/watch?v=y3WZcQBS3uw",
+    "https://www.si.com/nba/timberwolves/minnesota-timberwolves-news/timberwolves-blow-out-nuggets-in-denver-extend-winning-streak-to-six-games-01jp6sx235vj",
+    "https://www.denverstiffs.com/recap-denver-nuggets-cant-figure-out-minnesota-timberwolves-again-lose-115-95/",
+    "https://www.foxsports.com/nba/minnesota-timberwolves-vs-denver-nuggets-mar-12-2025-game-boxscore-43006?tab=boxscore",
+    "https://www.startribune.com/minnesota-timberwolves-denver-nuggets-anthony-edwards-nikola-jokic-chris-finch-donte-divincenzo/601234929"
+  ],
+  "proposal_metadata": {
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741496682,
+    "block_number": 68984420,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a2054696d626572776f6c7665732076732e204e7567676574732c206465736372697074696f6e3a20496e20746865207570636f6d696e67204e42412067616d652c207363686564756c656420666f72204d617263682031322061742031303a3030504d2045543a0a496620746865204d696e6e65736f74612054696d626572776f6c7665732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c54696d626572776f6c766573e2809d2e0a4966207468652044656e766572204e7567676574732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4e756767657473e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204e7567676574732c20703220746f2054696d626572776f6c7665732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a33313632613963313236323464643264343439316665613930666562376162626234383164376663"
+  }
+}
