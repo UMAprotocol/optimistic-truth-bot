@@ -150,7 +150,6 @@ def process_proposal_file(file_path):
             "recommendation": extract_recommendation(response_text),
             "proposed_price": price,
             "resolved_price": None,
-            "resolution_tx": None,
             "timestamp": time.time(),
             "processed_file": file_name,
             "response_metadata": {
