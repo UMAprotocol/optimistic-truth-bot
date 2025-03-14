@@ -10,6 +10,7 @@ import os
 import webbrowser
 import time
 import threading
+import json
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 PORT = 8000
 PARENT_DIR = Path(__file__).parent.parent
 UI_DIR = PARENT_DIR / "ui"
+RESULTS_DIR = PARENT_DIR / "results"
 
 # Global variables
 server = None
@@ -46,6 +48,58 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         # Custom log formatting
         logger.info(f"{self.address_string()} - {format % args}")
+
+    def do_GET(self):
+        # API endpoint for results directories
+        if self.path == "/api/results-directories":
+            try:
+                results = []
+                for dir_path in RESULTS_DIR.iterdir():
+                    if dir_path.is_dir():
+                        metadata_file = dir_path / "metadata.json"
+                        if metadata_file.exists():
+                            with open(metadata_file, "r") as f:
+                                metadata = json.load(f)
+
+                            result = {
+                                "directory": dir_path.name,
+                                "path": f"results/{dir_path.name}",
+                                "title": metadata.get("experiment", {}).get(
+                                    "title", dir_path.name
+                                ),
+                                "timestamp": metadata.get("experiment", {}).get(
+                                    "timestamp", ""
+                                ),
+                                "goal": metadata.get("experiment", {}).get("goal", ""),
+                                "metadata": metadata,
+                            }
+                            results.append(result)
+                        else:
+                            # If no metadata file exists, use directory name
+                            results.append(
+                                {
+                                    "directory": dir_path.name,
+                                    "path": f"results/{dir_path.name}",
+                                    "title": dir_path.name,
+                                    "timestamp": "",
+                                    "goal": "",
+                                }
+                            )
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(results).encode())
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                return
+
+        # If not API request, handle as normal file request
+        return super().do_GET()
 
 
 class FileChangeHandler(FileSystemEventHandler):
