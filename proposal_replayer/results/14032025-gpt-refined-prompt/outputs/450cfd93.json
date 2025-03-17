@@ -1,0 +1,60 @@
+{
+  "query_id": "0x450cfd93716b6b3d505b887d7615d1282cd196c9d1fcb4e1e5500c1a82d39c33",
+  "question_id_short": "450cfd93",
+  "transaction_hash": "0xfc222c8cdc0acc3d1d8426d6bd229f0e8e3b5c0827344adbae170530544220d3",
+  "user_prompt": "\n\nancillary_data:\nq: title: Mavericks vs. Spurs, description: In the upcoming NBA game, scheduled for March 12 at 8:00PM ET:\nIf the Dallas Mavericks win, the market will resolve to \"Mavericks\".\nIf the San Antonio Spurs win, the market will resolve to \"Spurs\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Spurs, p2 to Mavericks, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}",
+  "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Mavericks vs. Spurs game on March 12, 2025, at 8:00 PM ET. The current date given is March 14, 2025, so the game should have already happened. \n\nFirst, I need to check the search results to confirm the game's outcome. Looking at the sources:\n\n- Source [1] mentions the Spurs defeated the Mavericks 126-116 on March 12. The Spurs' record improved to 27-37, and the Mavericks fell to 33-34. This is a clear indication that the Spurs won.\n- Source [2] also reports the Spurs' victory with De'Aaron Fox scoring 32 points. It notes the Mavericks were injury-depleted.\n- Source [5] from ESPN's recap confirms the final score as Spurs 126, Mavericks 116.\n- Source [9] provides the official box score with the same result, Spurs 126-116.\n\nAll these sources consistently report the Spurs as the winner. There's no mention of the game being postponed or canceled. Since the game was played and completed, the resolution should be based on the actual outcome. Therefore, the market should resolve to \"Spurs,\" which corresponds to p1. The user's personalization rules state that if the event has occurred, we use the actual result. Since the Spurs won, the recommendation is p1.\n</think>\n\nThe NBA game between the Dallas Mavericks and San Antonio Spurs on March 12, 2025, at 8:00 PM ET concluded with the **San Antonio Spurs defeating the Dallas Mavericks 126-116**[1][2][5][9]. Key details from the game include:\n\n- **Spurs' performance**: De'Aaron Fox led with 32 points, 11 assists, and 9 rebounds, supported by Keldon Johnson (18 points) and Jeremy Sochan (18 points off the bench)[2][5].  \n- **Mavericks' challenges**: Dallas played with only nine active players due to injuries, including Kyrie Irving and Anthony Davis[2][10]. Brandon Williams (19 points) and Dante Exum (17 points) were top scorers[5][9].  \n- **Game progression**: The Spurs overcame an 11-point deficit in the second quarter, securing the win with a strong third-quarter performance[5][6].  \n\nThe game was not postponed or canceled, and the final result is verified across multiple sources, including official NBA box scores[9] and recaps[1][5].  \n\nrecommendation: p1",
+  "recommendation": "p1",
+  "proposed_price": 0,
+  "resolved_price": 0,
+  "timestamp": 1741976084.1595619,
+  "processed_file": "questionId_450cfd93.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741976084,
+    "created_datetime": "2025-03-14T19:14:44",
+    "completion_tokens": 549,
+    "prompt_tokens": 572,
+    "total_tokens": 1121,
+    "api_response_time_seconds": 128.17003631591797
+  },
+  "citations": [
+    "https://www.youtube.com/watch?v=eBpO8U61zlA",
+    "https://www.cbssports.com/nba/gametracker/boxscore/NBA_20250312_DAL@SA/",
+    "https://www.covers.com/nba/mavericks-vs-spurs-prediction-picks-wednesday-3-12-2025",
+    "https://ak-static-int.nba.com/wp-content/uploads/sites/3/2016/10/2016-17-Media-Guide-Grizzlies.pdf",
+    "https://www.espn.com/nba/recap/_/gameId/401705517",
+    "https://www.foxsports.com/nba/dallas-mavericks-vs-san-antonio-spurs-mar-12-2025-game-boxscore-43002",
+    "https://ats.io/nba/dallas-mavericks-vs-san-antonio-spurs-prediction-3-12-2025/307925/",
+    "https://huggingface.co/datasets/rasikabh/pile-pii/viewer/default/train",
+    "https://statsdmz.nba.com/pdfs/20250312/20250312_DALSAS.pdf",
+    "https://www.si.com/nba/mavericks/news/dallas-mavericks-starter-upgraded-on-injury-report-against-san-antonio-spurs-pj-washington-victor-wembanyama",
+    "https://scholarship.richmond.edu/cgi/viewcontent.cgi?article=1389&context=pilr",
+    "https://www.seattle.gov/dpd/BuildingConnections/SeattleArenaFEISAppendicesFG.pdf",
+    "https://evols.library.manoa.hawaii.edu/server/api/core/bitstreams/202612b2-970f-42f4-9ac7-62532df81da7/content",
+    "https://www.site.uottawa.ca/~diana/csi4107/tweet/train.txt",
+    "https://www.castanet.net/news/all/20231119/",
+    "https://sites.google.com/fccsc.k12.in.us/fcms-wildcat-way/entertainment",
+    "https://anyflip.com/epvyy/eblv/basic",
+    "https://dokumen.pub/the-power-of-sports-media-and-spectacle-in-american-culture-9781479869602.html",
+    "https://www.sportscareerconsulting.com/wp-content/uploads/2022/03/BusinessOfSEM-2020-21-STUDENT.pdf"
+  ],
+  "proposal_metadata": {
+    "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741496662,
+    "block_number": 68980890,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a204d6176657269636b732076732e2053707572732c206465736372697074696f6e3a20496e20746865207570636f6d696e67204e42412067616d652c207363686564756c656420666f72204d6172636820313220617420383a3030504d2045543a0a4966207468652044616c6c6173204d6176657269636b732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4d6176657269636b73e2809d2e0a4966207468652053616e20416e746f6e696f2053707572732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c5370757273e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f2053707572732c20703220746f204d6176657269636b732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a33313632613963313236323464643264343439316665613930666562376162626234383164376663"
+  },
+  "resolved_price_outcome": "p1",
+  "disputed": false,
+  "proposed_price_outcome": "p1",
+  "tags": [
+    "Sports",
+    "NBA",
+    "Games"
+  ]
+}

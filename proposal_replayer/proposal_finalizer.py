@@ -9,9 +9,11 @@ Usage: python proposal_replayer/proposal_finalizer.py
 import os
 import json
 import sys
+import glob
 from pathlib import Path
 from web3 import Web3
 from dotenv import load_dotenv
+from typing import Dict, Any, List, Optional
 
 # Add the parent directory to the path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -94,24 +96,43 @@ def get_market_resolution(output_data):
         if not request_data[3]:  # settled flag
             logger.info(f"Market {query_id} not settled yet")
             return None
+
         resolved_price = request_data[6]
+        disputer_address = request_data[1]  # Extract disputer address from the response
 
         logger.info(f"Market {query_id} resolved with price: {resolved_price}")
-        return resolved_price
+        logger.info(f"Disputer address for {query_id}: {disputer_address}")
+
+        return resolved_price, disputer_address
 
     except Exception as e:
         logger.error(f"Error querying resolution for {query_id}: {str(e)}")
         return None
 
 
-def update_output_file(output_path, resolved_price):
+def update_output_file(output_path, resolution_data):
     try:
+        resolved_price, disputer_address = resolution_data
         with open(output_path, "r") as f:
             data = json.load(f)
 
         # Update the resolved price
         data["resolved_price"] = resolved_price
         data["resolved_price_outcome"] = price_to_outcome(resolved_price)
+
+        # Add proposed_price_outcome using the proposed_price
+        if "proposed_price" in data:
+            data["proposed_price_outcome"] = price_to_outcome(data["proposed_price"])
+
+        # Add disputed flag - True if disputer address is not zero address
+        zero_address = "0x0000000000000000000000000000000000000000"
+        data["disputed"] = disputer_address != zero_address
+
+        if data["disputed"]:
+            data["disputer_address"] = disputer_address
+            logger.info(
+                f"Market {data.get('query_id')} was disputed by {disputer_address}"
+            )
 
         # Restructure raw_proposal_data to proposal_metadata
         if "raw_proposal_data" in data:
@@ -167,11 +188,11 @@ def process_files(directory, file_type):
                 continue
 
             # Query blockchain for resolution using the data
-            resolved_price = get_market_resolution(data)
+            resolution_data = get_market_resolution(data)
 
-            if resolved_price is not None:
+            if resolution_data is not None:
                 # Update the file with resolution data
-                if update_output_file(file_path, resolved_price):
+                if update_output_file(file_path, resolution_data):
                     updated_count += 1
                 else:
                     error_count += 1
@@ -190,14 +211,43 @@ def process_files(directory, file_type):
     return processed_count, updated_count, error_count, skipped_count
 
 
-def process_outputs():
-    """Process all output files and update unresolved ones."""
-    return process_files(OUTPUTS_DIR, "output")
+def process_all_results_directories():
+    """Process all experiment directories in the results folder."""
+    results_dir = Path(__file__).parent / "results"
 
+    if not results_dir.exists():
+        print(f"Results directory not found: {results_dir}")
+        return
 
-def process_reruns():
-    """Process all rerun files and update unresolved ones."""
-    return process_files(RERUNS_DIR, "rerun")
+    # Find all experiment directories in results folder
+    experiment_dirs = [
+        d for d in results_dir.iterdir() if d.is_dir() and not d.name.startswith(".")
+    ]
+
+    if not experiment_dirs:
+        print("No experiment directories found in results folder")
+        return
+
+    for exp_dir in experiment_dirs:
+        print(f"\n🔍 Processing experiment directory: {exp_dir.name}")
+
+        # Look for outputs directory in each experiment folder
+        outputs_dir = exp_dir / "outputs"
+        if not outputs_dir.exists() or not outputs_dir.is_dir():
+            print(f"  ⚠️ No outputs directory found in {exp_dir.name}, skipping...")
+            continue
+
+        # Process all JSON files in the outputs directory
+        file_count = len(list(outputs_dir.glob("*.json")))
+        if file_count == 0:
+            print(f"  ⚠️ No JSON files found in {exp_dir.name}/outputs, skipping...")
+            continue
+
+        print(f"  📊 Found {file_count} files in {exp_dir.name}/outputs")
+
+        # Process the files
+        processed_count = process_files(outputs_dir, "outputs")
+        print(f"  ✅ Processed {processed_count} files in {exp_dir.name}/outputs")
 
 
 def main():
@@ -205,21 +255,8 @@ def main():
         "🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄"
     )
 
-    # Process output files
-    output_stats = process_outputs()
-
-    # Process rerun files
-    rerun_stats = process_reruns()
-
-    total_processed = output_stats[0] + rerun_stats[0]
-    total_updated = output_stats[1] + rerun_stats[1]
-    total_errors = output_stats[2] + rerun_stats[2]
-    total_skipped = output_stats[3] + rerun_stats[3]
-
-    logger.info(
-        f"Final summary - Total Processed: {total_processed}, Total Updated: {total_updated}, "
-        f"Total Errors: {total_errors}, Total Skipped: {total_skipped}"
-    )
+    # Process all results directories
+    process_all_results_directories()
 
     logger.info("✅ Proposal finalizer completed")
 

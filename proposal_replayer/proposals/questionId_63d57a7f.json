@@ -14,6 +14,11 @@
     "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
     "proposal_bond": 100000000,
     "reward_amount": 2000000,
-    "updates": []
+    "updates": [],
+    "tags": [
+      "Sports",
+      "Games",
+      "CBB"
+    ]
   }
 ]

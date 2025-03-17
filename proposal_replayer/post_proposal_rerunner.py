@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 UMA Post Proposal Re-runner - Processes existing proposals older than 2 hours, queries Perplexity API for solutions.
-Usage: python proposal_replayer/post_proposal_rerunner.py
+Usage: python proposal_replayer/post_proposal_rerunner.py [--proposals_dir PATH] [--output_dir PATH]
 """
 
-import os, json, time, threading, sys
+import os, json, time, threading, sys, argparse
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -26,9 +26,22 @@ logger = setup_logging("post_proposal_rerunner", "logs/post_proposal_rerunner.lo
 load_dotenv()
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
-PROPOSALS_DIR = Path(__file__).parent / "proposals"
-RERUN_DIR = Path(__file__).parent / "reruns"
-RERUN_DIR.mkdir(exist_ok=True)
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="UMA Post Proposal Re-runner")
+    parser.add_argument(
+        "--proposals_dir",
+        type=str,
+        default=str(Path(__file__).parent / "proposals"),
+        help="Directory containing proposal files",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default=str(Path(__file__).parent / "reruns"),
+        help="Directory to save rerun outputs",
+    )
+    return parser.parse_args()
 
 
 def format_prompt_from_json(proposal_data):
@@ -60,13 +73,13 @@ def get_question_id_short(query_id):
 
 
 def get_output_filename(query_id):
-    return f"rerun_{get_question_id_short(query_id)}.json"
+    return f"{get_question_id_short(query_id)}.json"
 
 
-def is_already_processed(query_id):
+def is_already_processed(query_id, output_dir):
     if not query_id:
         return False
-    return (RERUN_DIR / get_output_filename(query_id)).exists()
+    return (Path(output_dir) / get_output_filename(query_id)).exists()
 
 
 def is_older_than_two_hours(unix_timestamp):
@@ -74,7 +87,7 @@ def is_older_than_two_hours(unix_timestamp):
     return (current_time - unix_timestamp) > (2 * 60 * 60)  # 2 hours in seconds
 
 
-def process_proposal_file(file_path):
+def process_proposal_file(file_path, output_dir):
     file_name = os.path.basename(file_path)
     logger.info(f"Processing proposal: {file_name}")
 
@@ -83,7 +96,7 @@ def process_proposal_file(file_path):
             proposal_data = json.load(f)
 
         query_id = get_query_id_from_proposal(proposal_data)
-        if query_id and is_already_processed(query_id):
+        if query_id and is_already_processed(query_id, output_dir):
             logger.info(f"Proposal {query_id} already processed, skipping")
             return True
 
@@ -180,7 +193,11 @@ def process_proposal_file(file_path):
             "proposal_metadata": proposal_metadata,
         }
 
-        output_file = RERUN_DIR / get_output_filename(query_id)
+        # Include tags if they exist in the proposal data
+        if "tags" in raw_data:
+            output_data["tags"] = raw_data.get("tags", [])
+
+        output_file = Path(output_dir) / get_output_filename(query_id)
         with open(output_file, "w") as f:
             json.dump(output_data, f, indent=2)
 
@@ -194,14 +211,15 @@ def process_proposal_file(file_path):
         return False
 
 
-def process_all_proposals():
-    logger.info("Processing all proposals older than 2 hours")
+def process_all_proposals(proposals_dir, output_dir):
+    logger.info(f"Processing all proposals older than 2 hours from {proposals_dir}")
+    Path(output_dir).mkdir(exist_ok=True)
     processed_count = 0
     skipped_count = 0
 
-    for file_path in PROPOSALS_DIR.glob("*.json"):
+    for file_path in Path(proposals_dir).glob("*.json"):
         try:
-            if process_proposal_file(file_path):
+            if process_proposal_file(file_path, output_dir):
                 processed_count += 1
             else:
                 skipped_count += 1
@@ -215,8 +233,9 @@ def process_all_proposals():
 
 
 def main():
+    args = parse_arguments()
     logger.info("Starting post proposal re-runner")
-    process_all_proposals()
+    process_all_proposals(args.proposals_dir, args.output_dir)
     logger.info("Post proposal re-runner finished")
 
 

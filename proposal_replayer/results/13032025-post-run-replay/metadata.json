@@ -1,6 +1,6 @@
 {
     "experiment": {
-      "timestamp": "10:00 13-03-2025",
+      "timestamp": "13-03-2025 10:00",
       "title": "Post-run replay",
       "goal": "Re-running the previous experiment (12032025-realtime-follower) with markets that resolved at least 2 hours before running the model to remove bias from fresh data",
       "previous_experiment": "12032025-realtime-follower",

@@ -1,0 +1,54 @@
+{
+  "query_id": "0xf14e9f10beabfe6ff5e486f958d48ca13e97e86dea213bfe4fa69135570dc5fd",
+  "question_id_short": "f14e9f10",
+  "transaction_hash": "0xa03644decf255037a97fcecf6422f71af93b07e4e2f9edbe8c8f75a0cb5a8ca7",
+  "user_prompt": "\n\nancillary_data:\nq: title: DePaul vs. Georgetown, description: In the upcoming CBB game, scheduled for March 12 at 6:30PM ET:\nIf the DePaul win, the market will resolve to \"DePaul\".\nIf the Georgetown win, the market will resolve to \"Georgetown\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Georgetown, p2 to DePaul, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}",
+  "response": "<think>\nOkay, let's tackle this query. The user wants to know how the market should resolve based on the outcome of the DePaul vs. Georgetown game scheduled for March 12, 2025, at 6:30 PM ET. The resolution conditions are: p1 for Georgetown, p2 for DePaul, p3 if canceled, and p4 if it's a future event. \n\nFirst, I need to check if the game happened as scheduled. The current date given is March 14, 2025, so the game date (March 12) is in the past. That means it's not a future event, so p4 is out. Now, looking at the search results, sources [5], [6], [8], and [9] mention the game on March 12. \n\nFrom source [5], the CBS Sports recap states that DePaul won 71-67. Similarly, source [6] from CBS News confirms the same score. Source [8], the official DePaul Blue Demons website, also reports a 71-67 victory for DePaul. These are reliable sources, including the team's own site, so the result seems solid. \n\nThere's also a mention in source [13] of the game's prediction, but the actual result is already covered in the other sources. The game wasn't postponed or canceled, as there are detailed stats and recaps. Therefore, the market should resolve to p2 (DePaul). \n\nI need to make sure there's no mention of postponement or cancellation around that date. Sources [3], [7], and [12] discuss COVID-related postponements, but those are from 2021 and 2021, not 2025. The 2025 game went ahead as planned. \n\nSo, the answer is clear: DePaul won, so the resolution is p2. The last line should be \"recommendation: p2\".\n</think>\n\nThe DePaul vs. Georgetown men's basketball game scheduled for March 12, 2025, at 6:30 PM ET was played as planned. **DePaul defeated Georgetown 71-67** in the Big East Tournament first round at Madison Square Garden. Key details from the game include:\n\n- **DePaul's NJ Benson** scored 18 points off the bench, including 13 in the second half, while shooting 7-of-8 from the field[5][6][8].  \n- **Georgetown's Micah Peavy** led all scorers with 26 points and seven rebounds[5][6].  \n- The Blue Demons advanced to face Creighton in the quarterfinals[5][8].  \n\nThe game was not postponed or canceled, as evidenced by multiple post-game recaps and statistical breakdowns[5][6][8][9]. Historical COVID-19 postponements referenced in sources[3][7][12] relate to earlier seasons (2021) and do not affect this 2025 matchup.\n\nrecommendation: p2",
+  "recommendation": "p2",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "timestamp": 1741979457.280881,
+  "processed_file": "questionId_f14e9f10.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741979457,
+    "created_datetime": "2025-03-14T20:10:57",
+    "completion_tokens": 620,
+    "prompt_tokens": 569,
+    "total_tokens": 1189,
+    "api_response_time_seconds": 130.67485904693604
+  },
+  "citations": [
+    "https://guhoyas.com/news/2025/3/8/mens-basketball-hoyas-fall-short-at-depaul-in-regular-season-finale.aspx",
+    "https://www.espn.com/mens-college-basketball/recap/_/gameId/401719190",
+    "https://depauliaonline.com/51980/sports/mens/basketball/depauls-game-against-georgetown-postponed-because-of-covid-19-protocols/",
+    "https://ww2.amstat.org/meetings/jsm/2015/pdfs/JSM2015_ProgramBook.pdf",
+    "https://www.cbssports.com/college-basketball/gametracker/recap/NCAAB_20250312_DEPAUL@GTOWN/",
+    "https://www.cbsnews.com/chicago/news/depaul-knocks-off-georgetown-big-east-tournament/",
+    "https://digitaledition.chicagotribune.com/tribune/article_popover.aspx?guid=91c2b9f0-3bd8-4e2b-8fd9-e71dde16a839",
+    "https://depaulbluedemons.com/news/2025/3/12/mens-basketball-holtmann-wins-first-big-east-tournament-game-blue-demons-advance",
+    "https://www.bleachernation.com/how-to-watch/2025/03/12/how-to-watch-georgetown-hoyas-vs-depaul-blue-demons-live-stream-or-on-tv-3/",
+    "https://www.dimers.com/bet-hub/cbb/schedule/2024_75_gtwn_dep",
+    "https://www.sportsgambler.com/betting-tips/basketball/georgetown-hoyas-vs-depaul-blue-demons-prediction-bet-builder-tips-odds-2025-03-08/",
+    "https://wjla.com/sports/college-basketball/covid-19-postpones-georgetown-depaul-game",
+    "https://www.foxsports.com/articles/college-basketball/georgetown-vs-depaul-prediction-odds-picks-big-east-tournament"
+  ],
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586781,
+    "block_number": 68978148,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a2044655061756c2076732e2047656f726765746f776e2c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d6172636820313220617420363a3330504d2045543a0a4966207468652044655061756c2077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c44655061756ce2809d2e0a4966207468652047656f726765746f776e2077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c47656f726765746f776ee2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f2047656f726765746f776e2c20703220746f2044655061756c2c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  },
+  "resolved_price_outcome": "p2",
+  "disputed": false,
+  "proposed_price_outcome": "p2",
+  "tags": [
+    "Sports",
+    "Games",
+    "CBB"
+  ]
+}

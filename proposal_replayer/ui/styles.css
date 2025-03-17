@@ -105,19 +105,10 @@ header .bi {
     white-space: normal;
     word-wrap: break-word;
     border-radius: 0;
+    padding: 12px 15px;
 }
 
-#resultsDirectoryTable td:first-child {
-    width: 15% !important;
-    min-width: 90px;
-    font-size: 0.9rem;
-}
-
-#resultsDirectoryTable td:nth-child(2) {
-    width: 85% !important;
-}
-
-/* Experiment row styling */
+/* Full-width experiment row styling */
 .experiment-row {
     transition: background-color 0.2s;
     cursor: pointer;
@@ -129,6 +120,31 @@ header .bi {
 
 .experiment-row.table-active {
     background-color: rgba(52, 152, 219, 0.15);
+}
+
+/* Experiment time and title styling */
+.experiment-date {
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-right: 10px;
+    padding-right: 10px;
+    border-right: 1px solid #dee2e6;
+    display: inline-block;
+}
+
+.experiment-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2c3e50;
+    display: inline-block;
+}
+
+.experiment-description {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 5px;
+    padding-left: 0;
 }
 
 /* Fix table padding */
@@ -215,12 +231,12 @@ header .bi {
 /* Optimize column widths */
 #resultsTable th:nth-child(1), 
 #resultsTable td:nth-child(1) { /* Time */
-    width: 180px;
+    width: 160px;
 }
 
 #resultsTable th:nth-child(2), 
 #resultsTable td:nth-child(2) { /* ID */
-    width: 130px;
+    width: 120px;
 }
 
 #resultsTable th:nth-child(3), 
@@ -230,23 +246,28 @@ header .bi {
     min-width: 250px;
 }
 
+/* Optimize column widths for results table */
 #resultsTable th:nth-child(4), 
-#resultsTable td:nth-child(4) { /* Recommendation */
-    width: 160px;
-}
-
-#resultsTable td.recommendation {
-    font-weight: normal !important;
+#resultsTable td:nth-child(4) { /* AI Rec */
+    width: 90px;
+    white-space: nowrap;
 }
 
 #resultsTable th:nth-child(5), 
-#resultsTable td:nth-child(5) { /* Resolution */
-    width: 120px;
+#resultsTable td:nth-child(5) { /* Res */
+    width: 80px;
 }
 
 #resultsTable th:nth-child(6), 
-#resultsTable td:nth-child(6) { /* Correct */
-    width: 100px;
+#resultsTable td:nth-child(6) { /* Disputed */
+    width: 110px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+#resultsTable th:nth-child(7), 
+#resultsTable td:nth-child(7) { /* Correct */
+    width: 90px;
     text-align: center;
 }
 
@@ -626,11 +647,73 @@ td.recommendation {
 
 /* Analytics note styling */
 #analyticsNote {
-    padding: 12px 15px;
-    margin-top: 20px;
-    border-left: 4px solid var(--primary-color);
+    display: none !important;
 }
 
-#analyticsNote i {
-    margin-right: 8px;
+/* Filter and search controls layout */
+#filterControls {
+    margin-bottom: 1.5rem;
+}
+
+/* Results section styling */
+.results-section {
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+}
+
+.main-heading {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Disputed status styles */
+td .text-warning {
+    color: #ffc107 !important;
+}
+
+.bi-exclamation-triangle-fill {
+    color: #ffc107;
+}
+
+/* Filter button styling */
+#filterDisputed.active, 
+#filterDisputed:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+#filterDisputed {
+    color: #ffc107;
+    border-color: #ffc107;
+}
+
+/* Remove the dash icon for non-disputed items */
+.bi-dash {
+    display: none;
+}
+
+/* Add styles for copy-to-clipboard functionality */
+.copy-to-clipboard {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.copy-to-clipboard:hover {
+    background-color: #e9ecef;
+}
+
+.copy-to-clipboard.copied {
+    background-color: #d4edda;
+}
+
+.copy-feedback {
+    margin-left: 8px;
+    font-size: 0.8rem;
+    color: #28a745;
+    font-style: italic;
 } 

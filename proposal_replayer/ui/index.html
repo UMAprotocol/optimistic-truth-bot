@@ -27,7 +27,7 @@
                             <table class="table table-hover mb-0" id="resultsDirectoryTable">
                                 <tbody id="resultsDirectoryTableBody">
                                     <tr>
-                                        <td colspan="3" class="text-center">
+                                        <td class="text-center">
                                             <div class="spinner-border text-primary" role="status">
                                                 <span class="visually-hidden">Loading...</span>
                                             </div>
@@ -96,56 +96,60 @@
                     </div>
                 </div>
                 
-                <div id="analyticsNote" class="alert alert-info mt-4" style="display: none;">
-                    <i class="bi bi-info-circle-fill"></i> Results
-                </div>
+                <h3 id="analyticsNote" class="mt-4 mb-3" style="display: none;">Results</h3>
             </div>
         </div>
         
-        <!-- Filter Controls -->
-        <div class="row mb-4" id="filterControls" style="display: none;">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search queries...">
-                    <button class="btn btn-primary" type="button" id="searchBtn">
-                        <i class="bi bi-search"></i> Search
-                    </button>
+        <!-- Results Section with Large Heading -->
+        <div class="results-section" style="display: none;">
+            <h2 class="main-heading">Results</h2>
+            
+            <div class="row align-items-center mb-4" id="filterControls" style="display: none;">
+                <div class="col-md-6">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary filter-btn active" id="filterAll">All</button>
+                        <button type="button" class="btn btn-outline-warning filter-btn" id="filterDisputed">Disputed</button>
+                        <button type="button" class="btn btn-outline-success filter-btn" id="filterCorrect">Correct</button>
+                        <button type="button" class="btn btn-outline-danger filter-btn" id="filterIncorrect">Incorrect</button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group ms-auto" style="max-width: 400px; float: right;">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search queries...">
+                        <button class="btn btn-primary" type="button" id="searchBtn">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-secondary filter-btn active" id="filterAll">All</button>
-                    <button type="button" class="btn btn-outline-success filter-btn" id="filterCorrect">Correct</button>
-                    <button type="button" class="btn btn-outline-danger filter-btn" id="filterIncorrect">Incorrect</button>
-                </div>
-            </div>
-        </div>
 
-        <!-- Results Table -->
-        <div class="card" id="resultsTableCard" style="display: none;">
-            <div class="card-header">
-                <h3 id="resultsTableTitle">Results</h3>
-                <p class="mb-0">Displaying <span id="displayingCount">0</span> of <span id="totalEntriesCount">0</span> entries</p>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover" id="resultsTable">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Recommendation</th>
-                                <th>Resolution</th>
-                                <th>Correct</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resultsTableBody">
-                            <tr>
-                                <td colspan="6" class="text-center">Select an experiment to view results</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Results Table -->
+            <div class="card" id="resultsTableCard" style="display: none;">
+                <div class="card-header">
+                    <h3 id="resultsTableTitle">Results</h3>
+                    <p class="mb-0">Displaying <span id="displayingCount">0</span> of <span id="totalEntriesCount">0</span> entries</p>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>AI Rec</th>
+                                    <th>Res</th>
+                                    <th>Disputed</th>
+                                    <th>Correct</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center">Select an experiment to view results</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

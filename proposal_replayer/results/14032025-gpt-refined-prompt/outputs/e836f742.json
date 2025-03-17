@@ -1,0 +1,54 @@
+{
+  "query_id": "0xe836f7428bc832d5c7c21e1c65abfbdd367b5fbf1d3cd120143493819d712083",
+  "question_id_short": "e836f742",
+  "transaction_hash": "0x34b9f4257ce73854c93604f34319463dc485e3757ef84b76d08c796a103c9111",
+  "user_prompt": "\n\nancillary_data:\nq: title: Fordham vs. Rhode Island, description: In the upcoming CBB game, scheduled for March 12 at 2:00PM ET:\nIf the Fordham win, the market will resolve to \"Fordham\".\nIf the Rhode Island win, the market will resolve to \"Rhode Island\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Rhode Island, p2 to Fordham, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}",
+  "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Fordham vs. Rhode Island game on March 12, 2025. The resolution depends on which team won. \n\nFirst, I need to check the search results to confirm the game's outcome. Looking at the sources, multiple articles mention the game. Source [1] states Fordham won 88-71 in the Atlantic 10 Conference Tournament. Source [6] and [10] also confirm this score, with Jackie Johnson III leading Fordham. Additionally, source [7] from Fordham's official site and [9] from A10Talk both report Fordham's victory. \n\nRhode Island's previous win on March 8 is noted in sources [4], [5], and [8], but the March 12 game is the one in question here. All relevant sources point to Fordham winning the March 12 matchup. There's no mention of the game being postponed or canceled. \n\nSince the game was played as scheduled and Fordham won, the market should resolve to Fordham, which corresponds to p2. The current date provided is March 14, 2025, which is after the game date, so there's no issue with it being a future event. All conditions are met for resolving to p2.\n</think>\n\nThe Fordham Rams defeated the Rhode Island Rams 88-71 in the Atlantic 10 Conference Tournament game played on March 12, 2025[1][6][10]. This outcome was confirmed by multiple sources including CBS Sports, ESPN, and Fordham University's athletics website[7][9]. The game occurred as scheduled with no indications of postponement or cancellation[1][6][12]. \n\nrecommendation: p2",
+  "recommendation": "p2",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "timestamp": 1741980196.7368739,
+  "processed_file": "questionId_e836f742.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741980196,
+    "created_datetime": "2025-03-14T20:23:16",
+    "completion_tokens": 367,
+    "prompt_tokens": 573,
+    "total_tokens": 940,
+    "api_response_time_seconds": 81.8830451965332
+  },
+  "citations": [
+    "https://www.cbssports.com/college-basketball/gametracker/recap/NCAAB_20250312_FORD@RI/",
+    "https://www.docsports.com/free-picks/ncaa-college-basketball/2025/fordham-rams-vs-rhode-island-rams-prediction-3-12-2025-college-basketball-picks-best-bets-odds.html",
+    "https://download.pli.edu/WebContent/chbs/184792/184792_TechLaw_Inst_2017_eCHB.pdf",
+    "https://gorhody.com/news/2025/3/8/mens-basketball-rhody-runs-away-from-fordham-on-senior-day-86-67.aspx",
+    "https://www.foxsports.com/college-basketball/fordham-rams-vs-rhode-island-rams-mar-08-2025-game-boxscore-251960?tab=boxscore",
+    "https://abcnews.go.com/Sports/wireStory/fordham-earns-88-71-victory-atlantic-10-conference-119732479",
+    "https://fordhamsports.com/news/2025/3/12/mens-basketball-mens-basketball-takes-down-rhode-island-at-atlantic-10-championship.aspx",
+    "https://whatsupnewp.com/2025/03/rhode-island-knocks-off-fordham-86-67/",
+    "https://www.a10talk.com/?p=74536",
+    "https://www.espn.com/mens-college-basketball/recap/_/gameId/401743807",
+    "https://fordhamsports.com/news/2025/3/13/mens-basketball-mens-basketball-comes-up-short-at-a-10-championship.aspx",
+    "https://fordhamsports.com/boxscore.aspx?id=18160",
+    "https://www.espn.com/mens-college-basketball/game/_/gameId/401743807/fordham-rhode-island"
+  ],
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586705,
+    "block_number": 68970627,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a20466f726468616d2076732e2052686f64652049736c616e642c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d6172636820313220617420323a3030504d2045543a0a49662074686520466f726468616d2077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c466f726468616de2809d2e0a4966207468652052686f64652049736c616e642077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c52686f64652049736c616e64e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f2052686f64652049736c616e642c20703220746f20466f726468616d2c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  },
+  "resolved_price_outcome": "p2",
+  "disputed": false,
+  "proposed_price_outcome": "p2",
+  "tags": [
+    "Sports",
+    "Games",
+    "CBB"
+  ]
+}

@@ -16,6 +16,11 @@
     "reward_amount": 5000000,
     "updates": [
       "(1741790223, b\"This market\\xe2\\x80\\x99s resolution will be based on the St. Patrick's Day Reception with the Taoiseach of Ireland scheduled to occur at 5 PM ET.\")"
+    ],
+    "tags": [
+      "Politics",
+      "Trump",
+      "Mentions"
     ]
   }
 ]

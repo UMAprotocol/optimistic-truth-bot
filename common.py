@@ -14,6 +14,40 @@ from prompt import create_messages
 import logging
 import os
 
+MARKET_CATEGORIES = [
+    "Breaking News",
+    "Trump Presidency",
+    "Economy",
+    "Ukraine",
+    "March Madness",
+    "Trade War",
+    "AI",
+    "Geopolitics",
+    "NFL",
+    "DOGE",
+    "Crypto Prices",
+    "Epstein",
+    "Gaza",
+    "South Korea",
+    "Declassification",
+    "Kanye",
+    "TikTok",
+    "Recurring",
+    "Cabinet",
+    "Bitcoin",
+    "German Election",
+    "Israel",
+    "Trump 100 Days",
+    "OpenAI",
+    "Weather",
+    "Elon Musk",
+    "Middle East",
+    "Fed Rates",
+    "Global Elections",
+    "Canada",
+    "Movies",
+]
+
 OptimisticOracleV2 = "0xeE3Afe347D5C74317041E2618C49534dAf887c24"
 NegRiskUmaCtfAdapter = "0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d"
 UmaCtfAdapter = "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74"

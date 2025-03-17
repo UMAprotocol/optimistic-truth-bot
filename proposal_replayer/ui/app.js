@@ -37,6 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFilter('all');
     });
 
+    document.getElementById('filterDisputed')?.addEventListener('click', () => {
+        applyFilter('disputed');
+    });
+
     document.getElementById('filterCorrect')?.addEventListener('click', () => {
         applyFilter('correct');
     });
@@ -49,15 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // Initialize charts for the selected experiment
 function initializeCharts() {
     try {
-        // Make sure charts are visible before initializing
-        document.getElementById('analyticsDashboard').style.display = 'block';
-        
         // Destroy existing charts if they exist
         if (recommendationChart) {
             recommendationChart.destroy();
+            recommendationChart = null;
         }
         if (resolutionChart) {
             resolutionChart.destroy();
+            resolutionChart = null;
         }
         
         // Set fixed height to prevent excessive resizing
@@ -99,7 +102,7 @@ function initializeCharts() {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -142,7 +145,7 @@ function initializeCharts() {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
                                 return `${label}: ${value} (${percentage}%)`;
                             }
                         }
@@ -260,8 +263,24 @@ function isRecommendationCorrect(entry) {
 
 // Update the analytics display with calculated metrics
 function updateAnalyticsDisplay(analytics) {
+    // If analytics is null or undefined, set default empty values
+    if (!analytics) {
+        analytics = {
+            correctCount: 0,
+            incorrectCount: 0,
+            totalCount: 0,
+            accuracyPercent: 0,
+            p123Accuracy: 0,
+            p12Accuracy: 0,
+            noDataCount: 0,
+            recommendationCounts: [0, 0, 0, 0],
+            resolutionCounts: [0, 0, 0]
+        };
+    }
+
     // Update titles
-    document.getElementById('analyticsTitle').textContent = `${currentExperiment.title} Analytics`;
+    document.getElementById('analyticsTitle').textContent = currentExperiment ? 
+        `${currentExperiment.title} Analytics` : 'Analytics';
     
     // Update accuracy circle
     const accuracyCircle = document.getElementById('accuracyCircle');
@@ -311,13 +330,17 @@ function updateAnalyticsDisplay(analytics) {
 
 // Update the distribution charts with the analytics data
 function updateDistributionCharts(analytics) {
+    // Default empty data if analytics is null
+    const recommendationData = analytics ? analytics.recommendationCounts : [0, 0, 0, 0];
+    const resolutionData = analytics ? analytics.resolutionCounts : [0, 0, 0];
+    
     if (recommendationChart) {
-        recommendationChart.data.datasets[0].data = analytics.recommendationCounts;
+        recommendationChart.data.datasets[0].data = recommendationData;
         recommendationChart.update();
     }
     
     if (resolutionChart) {
-        resolutionChart.data.datasets[0].data = analytics.resolutionCounts;
+        resolutionChart.data.datasets[0].data = resolutionData;
         resolutionChart.update();
     }
 }
@@ -421,40 +444,29 @@ function displayExperimentsTable() {
     if (experimentsData.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="3" class="text-center">No experiment directories found.</td>
+                <td class="text-center">No experiment directories found.</td>
             </tr>
         `;
         return;
     }
     
-    // Sort experiments by timestamp (newest first)
+    // Sort experiments by timestamp (oldest first - ascending order)
     const sortedExperiments = [...experimentsData].sort((a, b) => {
         // Try to compare timestamps
         const dateA = a.timestamp ? new Date(a.timestamp.replace(/(\d+)[\/\-](\d+)[\/\-](\d+)/, '$3-$2-$1')) : new Date(0);
         const dateB = b.timestamp ? new Date(b.timestamp.replace(/(\d+)[\/\-](\d+)[\/\-](\d+)/, '$3-$2-$1')) : new Date(0);
-        return dateB - dateA;
+        return dateA - dateB;
     });
     
-    // Add custom styling to make table columns the right size
-    const style = document.createElement('style');
-    style.innerHTML = `
-        #resultsDirectoryTable td:first-child {
-            width: 15%;
-            font-size: 0.9rem;
-        }
-        #resultsDirectoryTable td:nth-child(2) {
-            width: 85%;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Generate table rows with timestamp first, then title
+    // Generate table rows with full-width format
     tableBody.innerHTML = sortedExperiments.map(experiment => `
         <tr class="experiment-row" data-directory="${experiment.directory}">
-            <td>${formatDisplayDate(experiment.timestamp)}</td>
             <td>
-                <strong>${experiment.title || experiment.directory}</strong>
-                ${experiment.goal ? `<div class="small text-muted">${experiment.goal}</div>` : ''}
+                <div>
+                    <span class="experiment-date">${formatDisplayDate(experiment.timestamp)}</span>
+                    <span class="experiment-title">${experiment.title || experiment.directory}</span>
+                </div>
+                ${experiment.goal ? `<div class="experiment-description">${experiment.goal}</div>` : ''}
             </td>
         </tr>
     `).join('');
@@ -486,6 +498,9 @@ function displayExperimentsTable() {
 // Load data for a specific experiment
 async function loadExperimentData(directory) {
     try {
+        // Reset current data to prevent showing old data
+        currentData = [];
+        
         // Find the experiment in our data
         currentExperiment = experimentsData.find(exp => exp.directory === directory);
         if (!currentExperiment) {
@@ -495,10 +510,14 @@ async function loadExperimentData(directory) {
         // Display the experiment metadata
         displayExperimentMetadata();
         
-        // Show the analytics and results sections
-        document.getElementById('analyticsNote').style.display = 'block';
-        document.getElementById('filterControls').style.display = 'block';
+        // Initially show sections - we'll hide analytics if needed
+        document.getElementById('analyticsDashboard').style.display = 'block';
+        document.getElementById('filterControls').style.display = 'flex';
         document.getElementById('resultsTableCard').style.display = 'block';
+        document.querySelector('.results-section').style.display = 'block';
+        
+        // Reset analytics display with empty data
+        updateAnalyticsDisplay(null);
         
         // Set the results table title
         document.getElementById('resultsTableTitle').textContent = `${currentExperiment.title || directory} Results`;
@@ -523,7 +542,6 @@ async function loadExperimentData(directory) {
         `;
         
         // Try to load data from all JSON files in the outputs directory
-        currentData = [];
         let fileErrors = [];
         
         try {
@@ -581,6 +599,10 @@ async function loadExperimentData(directory) {
         } catch (error) {
             console.error('Error loading output files:', error);
             
+            // Hide analytics and filter when there's an error loading files
+            document.getElementById('analyticsDashboard').style.display = 'none';
+            document.getElementById('filterControls').style.display = 'none';
+            
             // Show error message
             document.getElementById('resultsTableBody').innerHTML = `
                 <tr>
@@ -604,6 +626,10 @@ async function loadExperimentData(directory) {
             const analytics = calculateAnalytics(currentData);
             updateAnalyticsDisplay(analytics);
         } else {
+            // Hide analytics and filter when there's no data
+            document.getElementById('analyticsDashboard').style.display = 'none';
+            document.getElementById('filterControls').style.display = 'none';
+            
             // Show error message if we couldn't load any data
             document.getElementById('resultsTableBody').innerHTML = `
                 <tr>
@@ -618,6 +644,11 @@ async function loadExperimentData(directory) {
         }
     } catch (error) {
         console.error('Error loading experiment data:', error);
+        
+        // Hide analytics and filter on error
+        document.getElementById('analyticsDashboard').style.display = 'none';
+        document.getElementById('filterControls').style.display = 'none';
+        
         document.getElementById('resultsTableBody').innerHTML = `
             <tr>
                 <td colspan="6" class="text-center text-danger">
@@ -842,7 +873,7 @@ function updateTableWithData(dataArray) {
     if (!dataArray || dataArray.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="6" class="text-center">No data available</td>
+                <td colspan="7" class="text-center">No data available</td>
             </tr>
         `;
         document.getElementById('displayingCount').textContent = '0';
@@ -863,6 +894,11 @@ function updateTableWithData(dataArray) {
         const canCalculateCorrectness = (item.resolved_price_outcome !== undefined && 
                                         item.resolved_price_outcome !== null);
         
+        // Check if disputed
+        const isDisputed = item.disputed === true;
+        const disputedClass = isDisputed ? 'text-warning' : 'text-muted';
+        const disputedIcon = isDisputed ? 'bi-exclamation-triangle-fill' : 'bi-dash';
+        
         // Extract title
         const title = extractTitle(item);
         
@@ -874,13 +910,19 @@ function updateTableWithData(dataArray) {
         
         const formattedDate = formatDate(item.timestamp || item.unix_timestamp);
         
+        // Store the actual data index as a data attribute
+        const originalDataIndex = dataArray === currentData ? index : currentData.indexOf(item);
+        
         return `
-            <tr class="result-row ${item.recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-index="${index}">
+            <tr class="result-row ${item.recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">
                 <td>${formattedDate}</td>
                 <td><code class="code-font">${queryId}</code></td>
                 <td>${title}</td>
                 <td class="recommendation">${recommendation}</td>
                 <td>${resolution}</td>
+                <td>
+                    <span class="${disputedClass}"><i class="bi ${disputedIcon}"></i> ${isDisputed ? 'Yes' : 'No'}</span>
+                </td>
                 <td>
                     ${canCalculateCorrectness ? 
                       `<span class="${correctnessClass}"><i class="bi ${correctnessIcon}"></i> ${isCorrect ? 'Yes' : 'No'}</span>` :
@@ -893,8 +935,9 @@ function updateTableWithData(dataArray) {
     // Add click event to rows
     document.querySelectorAll('.result-row').forEach(row => {
         row.addEventListener('click', () => {
-            const index = parseInt(row.getAttribute('data-index'));
-            showDetails(currentData[index], index);
+            // Use the data item ID to get the correct data item from currentData
+            const itemId = parseInt(row.getAttribute('data-item-id'));
+            showDetails(currentData[itemId], itemId);
             
             // Add selected class to the clicked row
             document.querySelectorAll('.result-row').forEach(r => r.classList.remove('table-active'));
@@ -917,10 +960,14 @@ function applyTableFilter(filter) {
     let filteredData = [...currentData];
     
     // Apply correctness filter if specified
-    if (filter === 'correct' || filter === 'incorrect') {
+    if (filter === 'correct' || filter === 'incorrect' || filter === 'disputed') {
         filteredData = filteredData.filter(item => {
-            const isCorrect = isRecommendationCorrect(item);
-            return filter === 'correct' ? isCorrect : !isCorrect;
+            if (filter === 'disputed') {
+                return item.disputed === true;
+            } else {
+                const isCorrect = isRecommendationCorrect(item);
+                return filter === 'correct' ? isCorrect : !isCorrect;
+            }
         });
     }
     
@@ -956,7 +1003,7 @@ function showDetails(data, index) {
     if (!modalTitle || !modalBody) return;
     
     // Get the title from the table row
-    const tableRow = document.querySelector(`.result-row[data-index="${index}"]`);
+    const tableRow = document.querySelector(`.result-row[data-item-id="${index}"]`);
     let title = 'Details';
     if (tableRow) {
         const titleCell = tableRow.querySelector('td:nth-child(3)');
@@ -968,17 +1015,25 @@ function showDetails(data, index) {
     // Set the modal title
     modalTitle.textContent = title;
     
+    // Check if disputed
+    const isDisputed = data.disputed === true;
+    
+    // Get proposed price if available
+    const proposedPrice = data.proposed_price_outcome || data.proposed_price || 'N/A';
+    
     // Generate the content
     let content = `
         <div class="alert ${isRecommendationCorrect(data) ? 'alert-success' : 'alert-danger'} mb-4">
             <strong>Recommendation:</strong> ${data.recommendation || 'N/A'} | 
+            <strong>Proposed:</strong> ${proposedPrice} | 
             <strong>Resolved:</strong> ${data.resolved_price_outcome || data.resolved_price || 'Unresolved'} | 
+            <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
             <strong>Correct:</strong> ${(data.resolved_price_outcome !== undefined || data.resolved_price !== undefined) ? 
                                        (isRecommendationCorrect(data) ? 'Yes' : 'No') : 'N/A'}
         </div>
     `;
     
-    // Add overview section
+    // Add overview section with clickable query ID for copying
     content += `
         <div class="detail-section">
             <h4 class="section-title">Overview</h4>
@@ -987,15 +1042,28 @@ function showDetails(data, index) {
                     <table class="table meta-table mb-0">
                         <tr>
                             <th>Query ID</th>
-                            <td><code class="code-font">${data.query_id || 'N/A'}</code></td>
+                            <td>
+                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${data.query_id || ''}" id="copyQueryId">
+                                    ${data.query_id || 'N/A'}
+                                </code>
+                                <span class="copy-feedback" id="copyFeedback" style="display:none;">Copied!</span>
+                            </td>
                         </tr>
                         <tr>
                             <th>Short ID</th>
-                            <td><code class="code-font">${data.question_id_short || 'N/A'}</code></td>
+                            <td>
+                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${data.question_id_short || ''}" id="copyShortId">
+                                    ${data.question_id_short || 'N/A'}
+                                </code>
+                            </td>
                         </tr>
                         <tr>
                             <th>Proposal Time</th>
                             <td>${formatDate(data.timestamp || data.unix_timestamp)}</td>
+                        </tr>
+                        <tr>
+                            <th>Disputed</th>
+                            <td>${isDisputed ? '<span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Yes</span>' : 'No'}</td>
                         </tr>
                         <tr>
                             <th>Proposal Transaction</th>
@@ -1204,6 +1272,32 @@ function showDetails(data, index) {
     
     // Set the modal content
     modalBody.innerHTML = content;
+    
+    // Add click event for copying to clipboard
+    document.querySelectorAll('.copy-to-clipboard').forEach(element => {
+        element.addEventListener('click', function() {
+            const textToCopy = this.getAttribute('data-copy');
+            if (!textToCopy) return;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Show feedback
+                const feedback = document.getElementById('copyFeedback');
+                if (feedback) {
+                    feedback.style.display = 'inline';
+                    setTimeout(() => {
+                        feedback.style.display = 'none';
+                    }, 2000);
+                }
+                
+                // Highlight the element that was copied
+                this.classList.add('copied');
+                setTimeout(() => {
+                    this.classList.remove('copied');
+                }, 1000);
+            });
+        });
+    });
     
     // Show the modal
     modal.show();
