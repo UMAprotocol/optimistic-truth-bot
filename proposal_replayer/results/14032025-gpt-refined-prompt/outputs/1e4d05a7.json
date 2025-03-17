@@ -1,0 +1,54 @@
+{
+  "query_id": "0x1e4d05a7a45d4fe322019c5520a7bc6799ed9c4aa2f31b322eeceb00251fcf01",
+  "question_id_short": "1e4d05a7",
+  "transaction_hash": "0xc12f24977c4990392af2a58199415acb9f94e45b8a87cb64cffa7cdfe801be86",
+  "user_prompt": "\n\nancillary_data:\nq: title: Will Trump invite the Philadelphia Eagles to the White House?, description: This market will resolve to \"Yes\" if Donald Trump invites the Philadelphia Eagles to the White House by March 31, 2025, 11:59 ET. Otherwise, this will resolve to \"No\".\n\nIf Trump announces he will not be inviting the Eagles this market will resolve to \"No\". \n\nThe resolution source will be a consensus of credible reporting.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}",
+  "response": "<think>\nOkay, let's tackle this query. The user wants to know if Trump will invite the Philadelphia Eagles to the White House by March 31, 2025. The resolution conditions are p1 for No, p2 for Yes, and p3 for uncertain. \n\nFirst, I need to check the search results to see if there's a clear answer. From the sources, especially [6], [7], [10], [11], and [12], it's clear that Trump did invite the Eagles. He announced the invitation on February 25, and the Eagles accepted by March 10. The White House confirmed the acceptance and even set a date for April 28. \n\nSome earlier sources like [1] and [2] mention initial confusion and rumors about declining, but later reports confirm the invitation was sent and accepted. The key here is the timeline: the invitation was extended before March 31, which is the cutoff. \n\nSince the invitation was officially sent and accepted, the answer should be p2 (Yes). The conflicting reports were resolved, and credible sources like Fox News, CBS, and the White House itself confirm the invitation. No ambiguity here. The market should resolve to Yes.\n</think>\n\nPresident Donald Trump extended an invitation to the Philadelphia Eagles to visit the White House following their Super Bowl LIX victory, fulfilling the requirement for this market. On February 25, 2025, Trump explicitly stated in a press conference: **\"They will be extended that invitation... We'll do that right away\"**[1][3][9]. The White House followed through, sending the official invitation the same day[7][10], and the Eagles organization confirmed acceptance by March 10[6][7][10][12]. \n\nKey timeline:\n- **Feb. 25**: Trump announces intent to invite[1][3][9]\n- **March 10**: Eagles confirm acceptance[6][7][10]\n- **April 28**: Scheduled White House visit[12][13]\n\nWhile early rumors suggested potential refusal[1][8], these were debunked by multiple credible sources including White House officials, ESPN, and CBS Sports[4][5][6][10]. The Eagles\u2019 acceptance aligns with Trump\u2019s public confirmation and subsequent logistical planning[11][12].\n\nrecommendation: p2",
+  "recommendation": "p2",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "timestamp": 1741981153.9110131,
+  "processed_file": "questionId_1e4d05a7.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741981153,
+    "created_datetime": "2025-03-14T20:39:13",
+    "completion_tokens": 473,
+    "prompt_tokens": 557,
+    "total_tokens": 1030,
+    "api_response_time_seconds": 53.570987939834595
+  },
+  "citations": [
+    "https://www.cityandstatepa.com/politics/2025/02/philadelphia-eagles-could-land-white-house-after-all/403294/",
+    "https://frontofficesports.com/eagles-invited-white-house-trump-not-declined-yet/",
+    "https://www.cbsnews.com/philadelphia/news/eagles-white-house-decision-2025/",
+    "https://thedispatch.com/article/trump-white-house-eagles-invitation/",
+    "https://www.cbssports.com/nfl/news/eagles-will-be-invited-to-white-house-after-super-bowl-win-president-trump-says-team-to-accept-per-report/",
+    "https://www.foxnews.com/sports/eagles-enthusiastically-accepted-president-trumps-white-house-invite-after-super-bowl-win-official-says",
+    "https://www.fox29.com/news/philadelphia-eagles-accept-invitation-visit-white-house",
+    "https://www.independent.co.uk/news/world/americas/us-politics/philadelphia-eagles-trump-white-house-invite-b2704675.html",
+    "https://bleacherreport.com/articles/25164244-donald-trump-confirms-eagles-will-be-invited-white-house-after-super-bowl-win",
+    "https://people.com/philadelphia-eagles-accept-invitation-white-house-2025-super-bowl-win-11685627",
+    "https://www.cbsnews.com/philadelphia/news/eagles-white-house-visit-trump/",
+    "https://san.com/cc/super-bowl-champs-philadelphia-eagles-accept-trumps-invite-to-white-house/",
+    "https://www.youtube.com/watch?v=EIy3YXkFJHI"
+  ],
+  "proposal_metadata": {
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000,
+    "reward_amount": 5000000,
+    "unix_timestamp": 1740514697,
+    "block_number": 68987215,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a2057696c6c205472756d7020696e7669746520746865205068696c6164656c70686961204561676c657320746f2074686520576869746520486f7573653f2c206465736372697074696f6e3a2054686973206d61726b65742077696c6c207265736f6c766520746f20e2809c596573e2809d20696620446f6e616c64205472756d7020696e766974657320746865205068696c6164656c70686961204561676c657320746f2074686520576869746520486f757365206279204d617263682033312c20323032352c2031313a35392045542e204f74686572776973652c20746869732077696c6c207265736f6c766520746f20e2809c4e6fe2809d2e0a0a4966205472756d7020616e6e6f756e6365732068652077696c6c206e6f7420626520696e766974696e6720746865204561676c65732074686973206d61726b65742077696c6c207265736f6c766520746f20224e6f222e200a0a546865207265736f6c7574696f6e20736f757263652077696c6c206265206120636f6e73656e737573206f66206372656469626c65207265706f7274696e672e0a207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204e6f2c20703220746f205965732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a39313433306361643264333937353736363439393731376661306436366137386438313465356335"
+  },
+  "resolved_price_outcome": "p2",
+  "disputed": false,
+  "proposed_price_outcome": "p2",
+  "tags": [
+    "Sports",
+    "Trump",
+    "NFL"
+  ]
+}

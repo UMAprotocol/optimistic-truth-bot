@@ -1,0 +1,58 @@
+{
+  "query_id": "0x09964a600275137e648114f513db7eafc66c943b6a00f0e3e501503f9ef2f0cb",
+  "question_id_short": "09964a60",
+  "transaction_hash": "0x0e6911c0fdcb8b0008f58efb4390393649ebd5512bd20c2ace08239b23856173",
+  "user_prompt": "\n\nancillary_data:\nq: title: Will Club Brugge or Aston Villa advance in the UCL Round of 16?, description: This market refers to the UEFA Champions League Round of 16 match between Club Brugge and Aston Villa.\n\nIf Club Brugge advances to the next round of the Champions League, this market will resolve to \"Club Brugge\".\nIf Aston Villa advances to the next round of the Champions League, this market will resolve to \"Aston Villa\".\nIf the match is canceled or postponed beyond December 31, 2025, at 11:59 PM ET, this market will resolve 50-50.\n\nThe resolution source for this market will be official information from the UEFA Champions League.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Aston Villa, p2 to Club Brugge, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}",
+  "response": "<think>\nOkay, let's tackle this query. The user wants to know whether Club Brugge or Aston Villa will advance in the UCL Round of 16. The resolution depends on the official outcome of their two-legged tie. \n\nFirst, I need to check the search results provided. Looking through the sources, especially the match reports from Sky Sports [1], ESPN [4], and others, it's clear that the second leg was played on March 12, 2025. Aston Villa won the first leg 3-1 away [3][5], and then they won the second leg 3-0 at home [1][6][13]. The aggregate score is 6-1 in favor of Aston Villa. \n\nThe key points here are the results of both legs. The first leg was 3-1 to Villa, and the second leg was 3-0, making the total 6-1. The red card to Club Brugge's player in the second leg [1][6] likely impacted the game, but the result is definitive. Multiple sources confirm Villa's advancement to the quarter-finals against PSG [1][6][13][14].\n\nSince the event has already occurred (the second leg was on March 12, 2025, and the current date given is March 14, 2025), there's no future aspect here. The official UEFA Champions League results from the sources confirm Aston Villa's progression. Therefore, the market should resolve to Aston Villa, which corresponds to p1 according to the resolution conditions provided.\n</think>\n\nAston Villa defeated Club Brugge in the UEFA Champions League Round of 16, advancing to the quarter-finals with a 6-1 aggregate victory. The second leg, played on March 12, 2025, saw Villa win 3-0 at home after a 3-1 away victory in the first leg[1][6][13]. Key contributions came from substitutes Marco Asensio (two goals) and Ian Maatsen, with Club Brugge reduced to 10 men early in the second leg after Kyriani Sabbe's red card[1][6][13].\n\nThe result was confirmed by multiple official sources, including UEFA's coverage and match reports from ESPN and Sky Sports[1][4][6][13]. Aston Villa's progression sets up a quarter-final clash with Paris Saint-Germain[1][6][13]. As the event has concluded and the outcome is definitively known through official channels, the resolution is clear.\n\nrecommendation: p1",
+  "recommendation": "p1",
+  "proposed_price": 0,
+  "resolved_price": 0,
+  "timestamp": 1741976610.626625,
+  "processed_file": "questionId_09964a60.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741976610,
+    "created_datetime": "2025-03-14T19:23:30",
+    "completion_tokens": 526,
+    "prompt_tokens": 615,
+    "total_tokens": 1141,
+    "api_response_time_seconds": 86.01896500587463
+  },
+  "citations": [
+    "https://www.skysports.com/football/aston-villa-vs-club-brugge/report/528698",
+    "https://www.uefa.com/uefachampionsleague/news/0297-1d4015134f4e-63240ea6f9a2-1000--aston-villa-vs-club-brugge-champions-league-preview-where-to/",
+    "https://www.channelstv.com/2025/03/04/aston-villa-beat-club-brugge-3-1-to-maintain-edge-in-champions-league-tie/",
+    "https://africa.espn.com/football/match/_/gameId/733146/club-brugge-aston-villa",
+    "https://www.brusselstimes.com/1454402/champions-league-club-brugge-face-aston-villa-in-next-round",
+    "https://www.beinsports.com/en-asia/football/uefa-champions-league/articles-video/aston-villa-3-0-club-brugge-6-1-agg-asensio-brace-helps-hosts-cruise-into-last-eight-2025-03-12",
+    "https://www.beinsports.com/en-us/soccer/uefa-champions-league/articles/aston-villa-3-0-club-brugge-6-1-agg-asensio-brace-helps-hosts-cruise-into-last-eight-2025-03-12",
+    "https://www.eurosport.com/football/champions-league/2024-2025/club-brugge-v-aston-villa-uefa-champions-league-live_sto10387302/story.shtml",
+    "https://www.uefa.com/uefachampionsleague/news/0297-1d3831ed3109-2ff94ed29a73-1000--uefa-champions-league-round-of-16-what-to-look-out-for-i/",
+    "https://www.youtube.com/watch?v=BES6-Tb3LrQ",
+    "https://www.foxsports.com/soccer/champions-league-aston-villa-vs-club-brugge-mar-12-2025-game-boxscore-622868",
+    "https://www.youtube.com/watch?v=8v3LukWHZ1M",
+    "https://www.espn.com/soccer/report/_/gameId/733146",
+    "https://en.wikipedia.org/wiki/2024%E2%80%9325_Aston_Villa_F.C._season",
+    "https://www.youtube.com/watch?v=zzAPwI1Aed8"
+  ],
+  "proposal_metadata": {
+    "creator": "0x91430CaD2d3975766499717fA0D66A78D814E5c5",
+    "proposal_bond": 500000000,
+    "reward_amount": 5000000,
+    "unix_timestamp": 1740167502,
+    "block_number": 68973417,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a2057696c6c20436c756220427275676765206f72204173746f6e2056696c6c6120616476616e636520696e207468652055434c20526f756e64206f662031363f2c206465736372697074696f6e3a2054686973206d61726b65742072656665727320746f207468652055454641204368616d70696f6e73204c656167756520526f756e64206f66203136206d61746368206265747765656e20436c75622042727567676520616e64204173746f6e2056696c6c612e0a0a496620436c75622042727567676520616476616e63657320746f20746865206e65787420726f756e64206f6620746865204368616d70696f6e73204c65616775652c2074686973206d61726b65742077696c6c207265736f6c766520746f2022436c756220427275676765222e0a4966204173746f6e2056696c6c6120616476616e63657320746f20746865206e65787420726f756e64206f6620746865204368616d70696f6e73204c65616775652c2074686973206d61726b65742077696c6c207265736f6c766520746f20224173746f6e2056696c6c61222e0a496620746865206d617463682069732063616e63656c6564206f7220706f7374706f6e6564206265796f6e6420446563656d6265722033312c20323032352c2061742031313a353920504d2045542c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e0a0a546865207265736f6c7574696f6e20736f7572636520666f722074686973206d61726b65742077696c6c206265206f6666696369616c20696e666f726d6174696f6e2066726f6d207468652055454641204368616d70696f6e73204c65616775652e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204173746f6e2056696c6c612c20703220746f20436c7562204272756767652c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a39313433306361643264333937353736363439393731376661306436366137386438313465356335"
+  },
+  "resolved_price_outcome": "p1",
+  "disputed": false,
+  "proposed_price_outcome": "p1",
+  "tags": [
+    "Sports",
+    "Champions League",
+    "psg",
+    "Soccer",
+    "UCL"
+  ]
+}

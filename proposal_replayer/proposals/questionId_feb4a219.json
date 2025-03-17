@@ -14,6 +14,11 @@
     "creator": "0x3162A9c12624DD2D4491fEA90FEb7AbBB481D7FC",
     "proposal_bond": 100000000,
     "reward_amount": 2000000,
-    "updates": []
+    "updates": [],
+    "tags": [
+      "Sports",
+      "NBA",
+      "Games"
+    ]
   }
 ]

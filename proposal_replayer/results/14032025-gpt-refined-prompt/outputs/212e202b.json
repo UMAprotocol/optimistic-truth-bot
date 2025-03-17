@@ -1,0 +1,49 @@
+{
+  "query_id": "0x212e202be715d6bb94cbaa0f9f8620122dba69d5d627b1809f6c5f0e7317d149",
+  "question_id_short": "212e202b",
+  "transaction_hash": "0xd8584b722b360f9e3f86acf5c58464d9df7cc510129de0184ae28ac43ab753eb",
+  "user_prompt": "\n\nancillary_data:\nq: title: MD Eastern Shore vs. Norfolk State, description: In the upcoming CBB game, scheduled for March 12 at 6:00PM ET:\nIf the MD Eastern Shore win, the market will resolve to \"MD Eastern Shore\".\nIf the Norfolk State win, the market will resolve to \"Norfolk State\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Norfolk State, p2 to MD Eastern Shore, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}",
+  "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the MD Eastern Shore vs. Norfolk State basketball game that was scheduled for March 12 at 6:00 PM ET. The resolution conditions are p1 for Norfolk State winning, p2 for MD Eastern Shore, and p3 if the game is canceled. \n\nFirst, I need to check the current date and time. The given current date is Friday, March 14, 2025, 6:36:48 PM UTC. The game was supposed to happen on March 12, which is two days before the current date. So the event has already occurred.\n\nLooking at the search results, all sources [1] through [8] report that Norfolk State won the game 77-70 against Maryland Eastern Shore. For example, source [1] states that Norfolk State advanced with a 77-70 victory, and this is corroborated by multiple other sources like [2], [4], [5], [6], [7], and [8]. Each of these articles clearly mentions the final score and Norfolk State's win. \n\nThere's no mention of the game being postponed or canceled. All sources discuss the game as having taken place on March 12, with detailed stats and player performances. Since the game was completed and Norfolk State won, the correct resolution should be p1. \n\nI also need to ensure that the event wasn't rescheduled or had any irregularities. The search results don't indicate any postponement or cancellation. The game was part of the MEAC Tournament quarterfinals, and Norfolk State moved on to the semifinals, which confirms the game was played as scheduled. \n\nTherefore, based on the evidence from all the provided sources, the market should resolve to p1 (Norfolk State).\n</think>\n\nThe MEAC Tournament quarterfinal game between Maryland Eastern Shore (UMES) and Norfolk State took place as scheduled on March 12, 2025, at 6:00 PM ET. **Norfolk State defeated UMES 77-70**, securing their advancement to the semifinals[1][2][4][5][6][8]. Key details from the game include:\n\n- **Jalen Myers** led Norfolk State with 22 points and six rebounds[1][2][4][8].\n- Norfolk State dominated early with an 18-0 first-half run, establishing a 38-26 halftime lead[1][5][7].\n- UMES mounted a late comeback attempt, narrowing the deficit to five points in the final minute, but Norfolk State sealed the win with free throws[1][5][7].\n\nThe game was completed without postponement or cancellation, and all sources confirm the final outcome. \n\nrecommendation: p1",
+  "recommendation": "p1",
+  "proposed_price": 0,
+  "resolved_price": 0,
+  "timestamp": 1741977417.2502022,
+  "processed_file": "questionId_212e202b.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741977417,
+    "created_datetime": "2025-03-14T19:36:57",
+    "completion_tokens": 568,
+    "prompt_tokens": 577,
+    "total_tokens": 1145,
+    "api_response_time_seconds": 63.85916185379028
+  },
+  "citations": [
+    "https://nsuspartans.com/news/2025/3/12/mens-basketball-spartans-open-meac-tournament-with-77-70-victory-over-umes.aspx",
+    "https://www.cbssports.com/college-basketball/gametracker/recap/NCAAB_20250312_UMES@NORFLK/",
+    "https://www.aiscore.com/basketball/match-norfolk-state-university-maryland-eastern-shore/527rjsw4g5pt4ke/h2h",
+    "https://www.cbssports.com/college-basketball/news/myers-scores-22-as-norfolk-state-defeats-maryland-eastern-shore-77-70-in-meac-tournament/",
+    "https://meacsports.com/news/2025/3/12/meac-basketball-tournament-norfolk-state-advances-to-meac-semifinals-with-commanding-win-over-umes.aspx",
+    "https://www.ksl.com/article/51274093/myers-scores-22-as-norfolk-state-defeats-maryland-eastern-shore-77-70-in-meac-tournament",
+    "https://umeshawksports.com/news/2025/3/12/mens-basketball-hawks-come-up-short-77-70-in-meac-opening-round-against-norfolk-state.aspx",
+    "https://wtop.com/ncaa-basketball/2025/03/myers-scores-22-as-norfolk-state-defeats-maryland-eastern-shore-77-70-in-meac-tournament/"
+  ],
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586771,
+    "block_number": 68977109,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a204d44204561737465726e2053686f72652076732e204e6f72666f6c6b2053746174652c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d6172636820313220617420363a3030504d2045543a0a496620746865204d44204561737465726e2053686f72652077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4d44204561737465726e2053686f7265e2809d2e0a496620746865204e6f72666f6c6b2053746174652077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4e6f72666f6c6b205374617465e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204e6f72666f6c6b2053746174652c20703220746f204d44204561737465726e2053686f72652c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  },
+  "resolved_price_outcome": "p1",
+  "disputed": false,
+  "proposed_price_outcome": "p1",
+  "tags": [
+    "Sports",
+    "Games",
+    "CBB"
+  ]
+}

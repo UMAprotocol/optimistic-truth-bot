@@ -167,6 +167,10 @@ def process_proposal_file(file_path):
             "proposal_metadata": proposal_metadata,
         }
 
+        # Include tags if they exist in the proposal data
+        if "tags" in raw_data:
+            output_data["tags"] = raw_data.get("tags", [])
+
         output_file = OUTPUTS_DIR / get_output_filename(query_id)
         with open(output_file, "w") as f:
             json.dump(output_data, f, indent=2)

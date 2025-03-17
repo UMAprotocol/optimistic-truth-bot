@@ -1,0 +1,11 @@
+{
+  "experiment": {
+    "timestamp": "14-03-2025 18:39",
+    "title": "GPT Refined Prompt",
+    "goal": "After the last execution, what happens if we refine the prompt using ChatGPT deep research to auto improve the prompt for us.",
+    "previous_experiment": "13032025-post-run-replay",
+    "modifications": {
+      "prompt_refinement": "New and improved prompt, refined via ChatGPT deep research"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "query_id": "0x70374848895922a746fce700208bfe1caf971d1cb918d3799f0e375881741127",
+  "question_id_short": "70374848",
+  "transaction_hash": "0x43957c16a89dd94a5be0720c08a85a316eecab0514067db99385f7ce40170efd",
+  "user_prompt": "\n\nancillary_data:\nq: title: Oklahoma vs. Georgia, description: In the upcoming CBB game, scheduled for March 12 at 9:30PM ET:\nIf the Oklahoma win, the market will resolve to \"Oklahoma\".\nIf the Georgia win, the market will resolve to \"Georgia\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Georgia, p2 to Oklahoma, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}",
+  "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Oklahoma vs. Georgia CBB game scheduled for March 12 at 9:30 PM ET. The current date provided is March 14, 2025, which is two days after the game was supposed to happen. \n\nFirst, I need to check if the game actually took place. Since the current date is March 14, the game should have already occurred. The next step is to find out the result of that game. The ancillary data mentions that if Oklahoma wins, the market resolves to p2 (Oklahoma), if Georgia wins, p1 (Georgia), and if canceled, p3 (50-50). \n\nI should look through the search results to find any information about the game's outcome. However, the user hasn't provided any specific search results here. Without access to real-time data or historical game results, I can't confirm the actual outcome. Since the game was scheduled for the past, but there's no data available here, I can't definitively determine the result. \n\nAdditionally, the resolution conditions state that if the game is canceled, it resolves to p3. But without information on whether the game was postponed or canceled, I can't assume that. The safe approach here is to note that the event's outcome isn't verifiable with the given data, leading to a p4 recommendation, which is used when the request can't be resolved due to lack of information. However, wait\u2014the current date is after the scheduled game date. If the game was indeed played, but there's no data here, does that still count as unresolved? \n\nWait, the instructions say that if the event is in the past, we should resolve based on verified facts. But if there's no information available, even though the event was supposed to happen, we can't confirm it. In such cases, the resolution might depend on the availability of information. Since the user hasn't provided any sources, and I can't access external data, I have to go by what's provided. Since there's no data here, I can't verify the outcome. Therefore, the correct recommendation would be p4, indicating insufficient information to resolve the market.\n\nBut wait, the current date is March 14, 2025, and the game was on March 12. If the game was played, but no info is available, maybe it's considered canceled? Or perhaps the market should resolve to p3 if canceled. However, without confirmation of cancellation, we can't assume that. The lack of information means we can't confirm either outcome, so p4 is appropriate here.\n</think>\n\nThe Oklahoma vs. Georgia CBB game was scheduled for March 12, 2025, at 9:30 PM ET. As of the current date (March 14, 2025), this event is in the past. However, no verifiable information about the game's outcome, postponement, or cancellation is provided in the available data. Without confirmed results from reliable sources, the resolution cannot be definitively determined.  \n\nrecommendation: p4",
+  "recommendation": "p4",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "timestamp": 1741975595.264683,
+  "processed_file": "questionId_70374848.json",
+  "response_metadata": {
+    "model": "sonar-deep-research",
+    "created_timestamp": 1741975595,
+    "created_datetime": "2025-03-14T19:06:35",
+    "completion_tokens": 643,
+    "prompt_tokens": 565,
+    "total_tokens": 1208,
+    "api_response_time_seconds": 147.85864305496216
+  },
+  "citations": [],
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586845,
+    "block_number": 68983738,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a204f6b6c61686f6d612076732e2047656f726769612c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d6172636820313220617420393a3330504d2045543a0a496620746865204f6b6c61686f6d612077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4f6b6c61686f6d61e2809d2e0a4966207468652047656f726769612077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c47656f72676961e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f2047656f726769612c20703220746f204f6b6c61686f6d612c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  },
+  "resolved_price_outcome": "p2",
+  "disputed": false,
+  "proposed_price_outcome": "p2",
+  "tags": [
+    "Sports",
+    "Games",
+    "CBB"
+  ]
+}

@@ -14,6 +14,11 @@
     "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
     "proposal_bond": 100000000,
     "reward_amount": 2000000,
-    "updates": []
+    "updates": [],
+    "tags": [
+      "Sports",
+      "NHL",
+      "Games"
+    ]
   }
 ]
