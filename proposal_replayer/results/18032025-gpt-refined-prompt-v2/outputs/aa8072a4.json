@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query step by step. The user wants to know if the Oklahoma City Thunder will make the 2025 NBA Playoffs, with specific resolution conditions. The ancillary data says that reaching the Play-In Tournament doesn't count; they need to be in the top 16 playoff spots. The market resolves to \"Yes\" (p2) if they make it, \"No\" (p1) if not, and p3 if uncertain.\n\nFirst, I need to check the current date provided, which is March 18, 2025. The search results include information up to March 15, 2025. Let's look through the sources.\n\nSearch result [1] from March 15 mentions the Thunder lead the Western Conference playoff picture and their playoff odds are off the board (over 99% implied probability). It also states they clinched the No. 1 seed last year and made the playoffs in 2023-24. But this is about last season, not the current one.\n\nWait, no, looking again: [1] says \"After claiming the No. 1 seed last year, the Oklahoma City Thunder lead the 2025 NBA playoff picture.\" So \"last year\" here refers to 2023-24, and now in 2025, they're leading again. Their playoff chances are off the board, meaning they're virtually certain to make it.\n\nSearch result [3] from March 15 explicitly states, \"The Thunder have clinched a playoff spot in the West.\" That's a direct confirmation. The article also mentions they clinched on Wednesday in Boston, which would be around March 12, 2025, given the current date is March 18.\n\nAnother source, [8] (updated March 14), lists the Thunder as having clinched playoffs (marked with (x)) in the Western Conference standings. They're the top seed with a 54-12 record, far ahead of others. This confirms they've secured a playoff spot, not just the Play-In.\n\nAdditionally, [4] mentions the Thunder's championship odds but notes they don't have playoff odds because it's a near certainty. [6] discusses their first-round schedule as the top seed, which implies they're already in the playoffs.\n\nThe key point is that the resolution condition requires the team to be in the playoffs, not just the Play-In. Since multiple sources confirm the Thunder have clinched a playoff spot, they are guaranteed a top 6 seed, avoiding the Play-In. Therefore, the answer should resolve to \"Yes\" (p2).\n</think>\n\nThe Oklahoma City Thunder have clinched a playoff spot in the 2024-25 NBA season, securing their position in the postseason bracket. As of March 14, 2025, the Thunder hold the No. 1 seed in the Western Conference with a 54-12 record, 13 games ahead of the second-place Houston Rockets[3][8]. Official sources confirm they **locked their playoff berth** on March 12, 2025, during a game against the Boston Celtics[3]. \n\nThe team\u2019s playoff odds were listed as \"off the board\" (effectively 100%) due to their dominant performance[1][4], and they are projected to face the play-in tournament winner in the first round[6]. Since the Thunder have already secured a top-six seed, they **avoid the play-in tournament entirely**, meeting the resolution condition of earning a direct playoff spot[3][8]. \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742295966.770108,
   "processed_file": "questionId_aa8072a4.json",
   "response_metadata": {
@@ -41,5 +41,8 @@
   "tags": [
     "Sports",
     "NBA"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

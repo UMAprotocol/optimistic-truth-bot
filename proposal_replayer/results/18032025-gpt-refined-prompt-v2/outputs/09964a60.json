@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query step by step. The user wants to know whether Club Brugge or Aston Villa advanced in the UEFA Champions League Round of 16, based on the provided search results. The ancillary data specifies that p1 is Aston Villa, p2 is Club Brugge, and p3 is 50-50 if the match is postponed or canceled beyond December 31, 2025. \n\nFirst, I need to check the dates of the matches. The first leg was on March 4, 2025, and the second leg on March 12, 2025, as per sources [1], [2], [3], [4], [6], [8], [13], [14], [15]. Both legs have already been played, so there's no postponement or cancellation here. That rules out p3.\n\nNext, looking at the aggregate scores. The first leg at Club Brugge ended 1-3 in favor of Aston Villa (sources [2], [3], [6], [14]). The second leg at Aston Villa's home, Villa Park, ended 3-0 for Aston Villa (sources [1], [10], [13], [14], [15]). Adding both legs, the aggregate is 6-1 to Aston Villa. \n\nMultiple sources confirm that Aston Villa advanced to the quarter-finals. For example, source [1] states they \"marched into the Champions League quarterfinals,\" and source [15] explicitly mentions the aggregate score. There's no conflicting information in the search results; all point to Villa's victory. \n\nThe resolution conditions require official UEFA sources. Source [6] is from UEFA.com, which is the official site, and it mentions Villa's 3-1 first-leg advantage leading to their quarter-final entry. Additionally, the second-leg result is covered in UEFA's preview and other reliable sports outlets like ESPN and Eurosport. \n\nNo sources indicate that Club Brugge advanced or that the match was unresolved. Therefore, the correct resolution is p1 (Aston Villa).\n</think>\n\nAston Villa advanced to the UEFA Champions League quarterfinals after defeating Club Brugge 6-1 on aggregate in their Round of 16 tie. The first leg on March 4, 2025, ended 3-1 in favor of Aston Villa[2][3][6], with goals from Leon Bailey, an own goal by Brandon Mechele, and a penalty by Marco Asensio[2][3]. The second leg on March 12, 2025, saw Villa secure a 3-0 victory at Villa Park, with Asensio scoring twice and Ian Maatsen adding another[1][13][14]. Club Brugge\u2019s chances diminished after Kyriani Sabbe\u2019s 16th-minute red card in the second leg[1][14]. \n\nThe aggregate result (6-1) confirms Aston Villa\u2019s progression to face Paris Saint-Germain in the quarterfinals[1][11][15]. Official UEFA sources and multiple match reports corroborate this outcome[1][6][15]. \n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296103.596208,
   "processed_file": "questionId_09964a60.json",
   "response_metadata": {
@@ -51,5 +51,8 @@
     "psg",
     "Soccer",
     "UCL"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

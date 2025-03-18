@@ -28,45 +28,46 @@ The pipeline consists of the following scripts:
    - Provides command-line options for customization and skipping steps
    - Handles error cases and ensures directories exist
 
+5. `prompt_refiner.py`:
+   - Analyzes examples and refines the system prompt using ChatGPT
+   - Saves the refined prompt to a file
+
 ## Setup and Run
 
 Here are the commands to set up and run the ChatGPT overseer pipeline:
 
 ```bash
-# 1. Ensure the required directories exist
-mkdir -p proposal_replayer/combinatorial_follower
-
-# 2. Optional: Set environment variables for API keys
+# 1. Optional: Set environment variables for API keys
 export CHATGPT_API_KEY="your_openai_api_key_here"
 export PERPLEXITY_API_KEY="your_perplexity_api_key_here"
 
-# 3. Run the entire pipeline with default settings (5 samples)
-python proposal_replayer/combinatorial_follower/run_pipeline.py
+# 2. Run the entire pipeline with default settings (5 samples)
+python combinatorial_follower/run_pipeline.py
 
 # Alternative: Run with more samples (e.g., 10)
-python proposal_replayer/combinatorial_follower/run_pipeline.py --sample_size 10
+python combinatorial_follower/run_pipeline.py --sample_size 10
 
 # Alternative: Run with all samples
-python proposal_replayer/combinatorial_follower/run_pipeline.py --sample_size 0
+python combinatorial_follower/run_pipeline.py --sample_size 0
 ```
 
 If you prefer to run each step individually:
 
 ```bash
 # 1. Generate the overseer prompts
-python proposal_replayer/combinatorial_follower/chatgpt_overseer_prompt_creator.py --sample_size 10
+python combinatorial_follower/chatgpt_overseer_prompt_creator.py --sample_size 10
 
 # 2. Run the iterative prompting
-python proposal_replayer/combinatorial_follower/chatgpt_overseer_runner.py
+python combinatorial_follower/chatgpt_overseer_runner.py
 
 # 3. Generate the final overseer prompt
-python proposal_replayer/combinatorial_follower/generate_final_overseer_prompt.py
+python combinatorial_follower/generate_final_overseer_prompt.py
 ```
 
 ## Output
 
 The final overseer prompt will be saved to:
-`proposal_replayer/combinatorial_follower/final_overseer_prompt.md`
+`combinatorial_follower/final_overseer_prompt.md`
 
 This prompt can be used to guide ChatGPT in evaluating and improving Perplexity's responses, creating a system where:
 
@@ -80,7 +81,9 @@ This prompt can be used to guide ChatGPT in evaluating and improving Perplexity'
 The pipeline can be customized with various command-line arguments:
 
 - `--input_dir`: Specify the directory containing the JSON files with Perplexity outputs
-- `--output_dir`: Specify the directory to save the output files
+  (default: proposal_replayer/results/14032025-gpt-refined-prompt/outputs)
+- `--output_dir`: Specify the directory to save the output files 
+  (default: combinatorial_follower)
 - `--sample_size`: Specify the number of samples to process (0 for all)
 - `--chatgpt_api_key`: Specify the API key for ChatGPT
 - `--perplexity_api_key`: Specify the API key for Perplexity

@@ -186,13 +186,13 @@ def main():
     parser.add_argument(
         "--input_file",
         type=str,
-        default="proposal_replayer/combinatorial_follower/iterative_results.json",
+        default="combinatorial_follower/iterative_results.json",
         help="Input file with iterative prompting results",
     )
     parser.add_argument(
         "--output_file",
         type=str,
-        default="proposal_replayer/combinatorial_follower/final_overseer_prompt.md",
+        default="combinatorial_follower/final_overseer_prompt.md",
         help="Output file to save the final prompt",
     )
     args = parser.parse_args()

@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query step by step. The user is asking about resolving a market based on the outcome of the Timberwolves vs. Nuggets game scheduled for March 12, 2025, at 10:00 PM ET. The ancillary data specifies that if the Timberwolves win, it's p2; if the Nuggets win, p1; if postponed, the market stays open; if canceled, it's 50-50 (p3). \n\nFirst, I need to check if the game actually happened on that date. Looking at the search results, there's a recap from ESPN (source [1]) dated March 13, 2025, which is the day after the game. The recap states that the Timberwolves defeated the Nuggets 115-95 on March 12. This directly answers the outcome. \n\nAdditionally, source [5] from Fox Sports confirms the same result, mentioning the Timberwolves never trailed and won 115-95. The spread and total bets are discussed, but the key point is the Timberwolves' victory. \n\nI should also check if there's any mention of the game being postponed or canceled. Source [4] and [8] discuss game cancellations due to weather, but those are from January 2025 and involve different teams (Hawks vs. Rockets, Lakers, Clippers). The March 12 game between Timberwolves and Nuggets isn't mentioned as postponed or canceled in any of the provided sources. \n\nSince the game was played as scheduled and the Timberwolves won, the resolution should be p2 according to the ancillary data. There's no conflicting information in the search results, so the answer is straightforward.\n</think>\n\nThe Minnesota Timberwolves defeated the Denver Nuggets 115-95 in their March 12, 2025, NBA game[1][5]. Anthony Edwards led the Timberwolves with 29 points, while Julius Randle added 25 points, extending Minnesota's winning streak to six games[1]. The Nuggets never led in the contest, with Nikola Jokic's 34-point effort proving insufficient for Denver[1][5]. The game concluded without postponement or cancellation[1][5], meeting all scheduled conditions.  \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296117.854361,
   "processed_file": "questionId_c77dcbd0.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "NBA",
     "Games"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

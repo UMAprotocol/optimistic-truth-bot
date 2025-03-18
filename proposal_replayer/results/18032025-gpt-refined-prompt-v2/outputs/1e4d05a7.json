@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query step by step. The user wants to know if the market should resolve to \"Yes\" (p2) because Trump invited the Philadelphia Eagles to the White House by March 31, 2025. \n\nFirst, I need to check the search results for evidence of an invitation. Looking at the sources:\n\n- Source [1] from March 10, 2025, states the Eagles \"enthusiastically accepted\" the invitation, and the White House is working on logistics. Trump himself mentioned inviting them.\n- Source [2] from February 25, 2025, quotes Trump saying he will invite them and that the invitation was sent the same day.\n- Sources [3], [4], [5], [6], [7], and [8] all confirm that Trump extended the invitation, and the Eagles accepted. \n\nThe key date here is March 31, 2025. All the sources mentioning the invitation are from February and March 2025, well before the deadline. The White House official in [1] and [5] explicitly states the invite was sent and accepted. \n\nSince the resolution condition is based on credible reporting, and multiple credible sources (Fox News, CBS, WHYY, etc.) confirm the invitation was extended before March 31, the answer should be \"Yes\" (p2). There's no conflicting information suggesting the invitation wasn't sent. All sources align on Trump inviting the Eagles, and the team accepting. Therefore, the market resolves to p2.\n</think>\n\nThe Philadelphia Eagles were invited to the White House by President Donald Trump following their Super Bowl LIX victory, with multiple credible sources confirming the invitation was extended and accepted before the March 31, 2025 deadline. \n\nKey details from verified reports:\n- **Invitation extended**: President Trump announced the invitation on February 25, 2025, during a press conference, directing staff to send it immediately[2][4][7][8]. A White House official confirmed the invitation was formally sent on March 10, 2025[1][5].\n- **Acceptance**: The Eagles organization \"enthusiastically accepted\" the invitation and began coordinating logistics for the visit[1][5][6].\n- **Historical context**: This contrasts with 2018, when Trump revoked the Eagles' invitation due to disputes over national anthem protests[4][6].\n\nThe resolution conditions specify that the market resolves to \"Yes\" (p2) if Trump invited the Eagles by March 31, 2025. All credible reporting confirms the invitation was both extended and accepted within the timeframe, with no contradictory evidence. \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296862.738744,
   "processed_file": "questionId_1e4d05a7.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "Trump",
     "NFL"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

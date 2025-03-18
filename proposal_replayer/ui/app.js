@@ -528,12 +528,12 @@ function displayExperimentsTable() {
         return;
     }
     
-    // Sort experiments by timestamp (oldest first - ascending order)
+    // Sort experiments by timestamp (newest first - descending order)
     const sortedExperiments = [...experimentsData].sort((a, b) => {
         // Try to compare timestamps
         const dateA = a.timestamp ? new Date(a.timestamp.replace(/(\d+)[\/\-](\d+)[\/\-](\d+)/, '$3-$2-$1')) : new Date(0);
         const dateB = b.timestamp ? new Date(b.timestamp.replace(/(\d+)[\/\-](\d+)[\/\-](\d+)/, '$3-$2-$1')) : new Date(0);
-        return dateA - dateB;
+        return dateB - dateA; // Changed to sort in descending order (newest first)
     });
     
     // Generate table rows with full-width format

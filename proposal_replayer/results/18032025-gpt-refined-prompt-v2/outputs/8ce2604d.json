@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Charlotte vs. Rice college basketball game played on March 12, 2025. The ancillary data specifies that if Charlotte wins, it resolves to \"Charlotte\" (p2), if Rice wins, to \"Rice\" (p1), and if canceled, 50-50 (p3). \n\nFirst, I need to confirm the game's date and time. The query mentions March 12 at 1:00 PM ET. The current date provided is March 18, 2025, so the game is in the past. That means I don't have to worry about it being a future event. \n\nLooking at the search results, multiple sources report the outcome. Source [1] is the Charlotte 49ers' official site, stating they defeated Rice 64-61. Source [4] from Rice's official site confirms the loss, and source [6] also details Rice's defeat. Additionally, source [8] from the American Athletic Conference's site corroborates the result. All these are reliable, primary sources. \n\nThe score is consistent across these sources: Charlotte 64, Rice 61. The game wasn't postponed or canceled, as all reports discuss the game's details and outcome. Therefore, the market should resolve to p2, corresponding to Charlotte's victory. No conflicting information exists in the search results, so the resolution is clear.\n</think>\n\nThe Charlotte 49ers defeated the Rice Owls 64-61 in the first round of the 2025 AAC Men's Basketball Tournament on March 12, 2025[1][4][8]. Trailing by 11 points at halftime, Charlotte staged a second-half comeback fueled by strong performances from Giancarlo Rosado and Nik Graves (18 points each) and Kylan Blackmon's 12 second-half points[1][4]. The game was decided in the final seconds when Rosado made two clutch free throws with 6.4 seconds remaining, followed by a Rice turnover on the ensuing inbound play[1][8].\n\nKey factors in the outcome:\n- **Second-half turnaround**: Charlotte shot 52.2% from the field after halftime compared to Rice's 34.6%[1][4]\n- **Free throw disparity**: Charlotte made 26/34 free throws (76.5%) vs Rice's 14/22 (63.6%)[4][6]\n- **Three-point struggles**: Rice went 1-13 (7.7%) from beyond the arc[1][4]\n\nThe game concluded as scheduled without postponement or cancellation[1][4][8]. Based on the resolution conditions and verified outcome, the market should resolve to **Charlotte** as the winner.\n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296395.948768,
   "processed_file": "questionId_8ce2604d.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Islanders vs. Kings game on March 11, 2025. The resolution conditions are p1 for Kings win, p2 for Islanders, and p3 if the game is canceled or postponed. \n\nFirst, I need to check the search results to confirm the game's outcome. Looking at the sources, multiple articles (1, 2, 3, 4, 5, 8) report that the Kings won 4-1. The date of the game is March 11, which matches the query. The sources mention the Kings' three consecutive wins, specific goal scorers, and the final score. There's no mention of the game being postponed or canceled. All sources consistently state the Kings' victory. Since the game occurred as scheduled and the Kings won, the resolution should be p1.\n</think>\n\nThe NHL game between the New York Islanders and Los Angeles Kings on March 11, 2025, concluded with a **4-1 victory for the Kings** [1][2][3][5][8]. Key highlights include:\n\n- **Los Angeles Kings** scored two short-handed goals and successfully defended against all eight Islanders power plays [1][3][8].\n- **Quinton Byfield** extended his goal streak to four games with a short-handed breakaway goal [1][2][4].\n- The Kings' **penalty-kill unit** went 8-for-8, and two Islanders goals were overturned due to goaltender interference challenges [1][3][5][8].\n\nThe game was played as scheduled, with no indications of postponement or cancellation. Based on the resolution conditions, the market resolves to **p1** (Kings win).\n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296047.858016,
   "processed_file": "questionId_48a549bc.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "NHL",
     "Games"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

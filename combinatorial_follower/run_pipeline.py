@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument(
         "--output_dir",
         type=str,
-        default="proposal_replayer/combinatorial_follower",
+        default="combinatorial_follower",
         help="Directory to save output files",
     )
     parser.add_argument(
@@ -86,7 +86,7 @@ def main():
         success = run_command(
             [
                 "python",
-                "proposal_replayer/combinatorial_follower/chatgpt_overseer_prompt_creator.py",
+                "combinatorial_follower/chatgpt_overseer_prompt_creator.py",
                 "--input_dir",
                 args.input_dir,
                 "--output_file",
@@ -116,7 +116,7 @@ def main():
         success = run_command(
             [
                 "python",
-                "proposal_replayer/combinatorial_follower/chatgpt_overseer_runner.py",
+                "combinatorial_follower/chatgpt_overseer_runner.py",
                 "--input_file",
                 prompt_file,
                 "--output_file",
@@ -137,7 +137,7 @@ def main():
         success = run_command(
             [
                 "python",
-                "proposal_replayer/combinatorial_follower/generate_final_overseer_prompt.py",
+                "combinatorial_follower/generate_final_overseer_prompt.py",
                 "--input_file",
                 results_file,
                 "--output_file",

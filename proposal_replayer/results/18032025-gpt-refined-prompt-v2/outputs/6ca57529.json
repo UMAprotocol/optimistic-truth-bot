@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Coppin State vs. SC State basketball game scheduled for March 12, 2025, at 8:00 PM ET. The ancillary data specifies that if SC State wins, it's p1; Coppin State win is p2; postponed keeps it open, and canceled resolves to p3 (50-50). \n\nFirst, I need to check if the game occurred as scheduled. The current date given is March 18, 2025, which is after March 12. So the event date is in the past. Now, looking at the search results, multiple sources confirm the game took place. For example, source [1] from CBS Sports and [7] from SC State's athletics site both report the game happened on March 12, with SC State winning 68-63. \n\nNext, verify the outcome. All relevant sources ([1], [2], [4], [6], [7]) consistently state that South Carolina State (SC State) won the game. The final score was 68-63 in favor of SC State. There's no mention of the game being postponed or canceled. \n\nSince the event occurred and SC State won, according to the resolution conditions, the market should resolve to p1. The sources are reliable, including official team websites and sports news outlets, which adds credibility. No conflicting information is present, so the recommendation is clear.\n</think>\n\nThe March 12, 2025, Coppin State vs. South Carolina State (SC State) men's basketball game occurred as scheduled, with **SC State winning 68-63**[1][2][7]. Multiple sources confirm the game was played in the MEAC Tournament quarterfinals at Norfolk Scope Arena, with SC State overcoming a halftime deficit (37-41) through strong second-half performance[1][6][7]. No evidence indicates postponement or cancellation.\n\n**Key details**:\n- SC State's Wilson Dubinsky led scoring with 20 points (4/5 from three-point range)[1][7]\n- Coppin State's Peter Oduro (15 pts) and Toby Nnadozie (14 pts) led their effort[1][6]\n- SC State extended its winning streak to 9 games[1][7]\n\nThis outcome meets the resolution condition for **p1 (SC State victory)** as defined in the ancillary data.\n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742295966.020374,
   "processed_file": "questionId_6ca57529.json",
   "response_metadata": {
@@ -46,5 +46,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

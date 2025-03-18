@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the DePaul vs. Georgetown game scheduled for March 12, 2025, at 6:30 PM ET. The ancillary data specifies that if DePaul wins, the market resolves to \"DePaul\" (p2), if Georgetown wins, it's \"Georgetown\" (p1), and if canceled, it's 50-50 (p3). \n\nFirst, I need to check if the game occurred as scheduled. The current date given is March 18, 2025, so the game date is in the past. Looking at the search results, multiple sources ([1], [2], [5], [11], [16]) report that DePaul defeated Georgetown 71-67 on March 12 in the Big East Tournament. For example, source [1] states DePaul won 71-67, and source [16] confirms the same score with DePaul as the victor. \n\nNext, I need to ensure there's no postponement or cancellation. Source [4] and [8] mention a COVID-19 postponement in 2021, but that's irrelevant here. The 2025 game proceeded as planned. The resolution conditions mention postponement leading to the market staying open, but since the game happened, that's not a factor. \n\nThe ancillary data also notes that if the game is canceled, it resolves to 50-50. However, all recent sources confirm the game was played. Therefore, the outcome is clear: DePaul won. \n\nI should also check for any discrepancies. All relevant 2025 sources agree on the result, and there's no mention of the game being canceled or postponed. Thus, the market should resolve to p2 (DePaul). \n\nFinally, ensure that the recommendation aligns with the user's conditions. Since DePaul won, the correct resolution is p2.\n</think>\n\nThe DePaul Blue Demons defeated the Georgetown Hoyas 71-67 in their March 12, 2025, Big East Tournament game at Madison Square Garden. This marked DePaul's third victory over Georgetown in the 2024-25 season, completing a series sweep that included regular-season wins on January 18 (73-68) and March 8 (83-77). Key factors in the tournament matchup included:\n\n**Game Highlights**  \n- NJ Benson's 18-point performance off the bench for DePaul, including 13 second-half points, after returning from a month-long hand injury[1][11]  \n- Four Blue Demons scoring double digits, with Layden Blocker adding 16 points and 6 assists[2][16]  \n- Georgetown's Micah Peavy leading all scorers with 26 points, but the Hoyas struggled defensively without injured center Thomas Sorber[10][16]  \n\nThe game proceeded as scheduled despite Georgetown's COVID-19-related postponements in previous seasons[4][8]. With no cancellation or postponement affecting this matchup, and DePaul achieving a verified victory, the market resolves based on the completed outcome.  \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296511.2236302,
   "processed_file": "questionId_f14e9f10.json",
   "response_metadata": {
@@ -51,5 +51,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

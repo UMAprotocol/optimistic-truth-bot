@@ -110,9 +110,11 @@ def get_market_resolution(output_data):
 
 def update_output_file(output_path, resolution_data):
     try:
-        resolved_price, disputer_address, new_timestamp, final_resolved_price = (
-            resolution_data
-        )
+        resolved_price, disputer_address = resolution_data
+        # Initialize optional values to None
+        new_timestamp = None
+        final_resolved_price = None
+
         with open(output_path, "r") as f:
             data = json.load(f)
 
@@ -257,8 +259,10 @@ def process_all_results_directories():
         print(f"  📊 Found {file_count} files in {exp_dir.name}/outputs")
 
         # Process the files
-        processed_count = process_files(outputs_dir, "outputs")
-        print(f"  ✅ Processed {processed_count} files in {exp_dir.name}/outputs")
+        processed, updated, errors, skipped = process_files(outputs_dir, "outputs")
+        print(
+            f"  ✅ Processed: {processed}, Updated: {updated}, Errors: {errors}, Skipped: {skipped}"
+        )
 
 
 def main():

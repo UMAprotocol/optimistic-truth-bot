@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a UMA optimistic oracle request for the Air Force vs. UNLV game. The event date is March 12, 2025, and the current timestamp is March 18, 2025. Since the event date is in the past, I need to check if the game occurred and its outcome.\n\nLooking at the search results, multiple sources confirm the game took place. Sources [1], [2], [4], [6], and [7] all report that UNLV defeated Air Force 68-59 in the Mountain West tournament first round on March 12. The ancillary data specifies that if UNLV wins, the resolution is p1. All the sources agree on the outcome, so there's no ambiguity. The game wasn't postponed or canceled, so p3 isn't applicable. Therefore, the correct resolution is p1.\n</think>\n\nThe UNLV men's basketball team defeated Air Force 68-59 in the first round of the Mountain West tournament on March 12, 2025, at the Thomas & Mack Center[1][2][4][6][7]. The sixth-seeded Rebels overcame a halftime deficit with a decisive 19-0 run in the second half, led by Jalen Hill's 18 points and 10 rebounds[1][2][4]. Air Force's Ethan Taylor scored a game-high 23 points but couldn't prevent the Falcons' elimination[1][6]. The game was completed as scheduled with no postponements or cancellations mentioned in any sources.\n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296887.559076,
   "processed_file": "questionId_a5722f27.json",
   "response_metadata": {
@@ -46,5 +46,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

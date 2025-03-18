@@ -268,13 +268,13 @@ def main():
     parser.add_argument(
         "--input_file",
         type=str,
-        default="proposal_replayer/combinatorial_follower/chatgpt_overseer_prompts.md",
+        default="combinatorial_follower/chatgpt_overseer_prompts.md",
         help="Input file with ChatGPT overseer prompts",
     )
     parser.add_argument(
         "--output_file",
         type=str,
-        default="proposal_replayer/combinatorial_follower/iterative_results.json",
+        default="combinatorial_follower/iterative_results.json",
         help="Output file to save results",
     )
     parser.add_argument(

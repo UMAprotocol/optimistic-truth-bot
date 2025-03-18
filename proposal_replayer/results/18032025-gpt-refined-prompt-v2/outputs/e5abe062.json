@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to know if Trump said \"Saint Patrick\" during his press conference with the Irish Prime Minister on March 12, 2025. The resolution conditions are specific: p2 (Yes) if he used the exact term, considering pluralization or possessive forms, but not other variations. The event in question is the St. Patrick's Day Reception at 5 PM ET.\n\nFirst, I need to check the search results for any mention of Trump using \"Saint Patrick\" during that event. Let's go through the sources. \n\nLooking at source [9], the transcript of the Oval Office meeting, Trump says, \"It's a great honor to have Miche\u00e1l Martin... to celebrate St. Patrick's with you.\" Here, he uses \"St. Patrick's,\" which is a possessive form. According to the resolution conditions, possessive forms count, so this would qualify. \n\nSource [11] and [12] are transcripts from the St. Patrick's Day reception. In [11], Trump says, \"happy St. Patrick's Day\" and refers to \"Saint Patrick's Cathedral.\" The exact term \"Saint Patrick\" is used here. Similarly, in [12], he mentions \"St. Patrick's Day\" again. \n\nSource [10] and [13] mention Trump mistakenly calling Saint Patrick a \"patriot saint\" during the reception. Even though he fumbled, he still said \"Saint Patrick.\" \n\nThe key here is that the press conference in question is the St. Patrick's Day Reception, and multiple sources confirm Trump used \"Saint Patrick\" in his remarks. Even with the slip-up, the term was uttered. Therefore, the market should resolve to Yes (p2).\n</think>\n\nPresident Donald Trump did use the term \"Saint Patrick\" during his March 12, 2025 St. Patrick's Day reception with Irish Prime Minister Miche\u00e1l Martin. Multiple transcripts and news reports confirm he referenced \"Saint Patrick's Cathedral\" in New York City during his remarks, calling it \"one of THE MOST beautiful cathedrals in the world\" and describing it as \"a monument not only to God but also to the patron Saint of Ireland\" [10][13]. While he later misspoke by calling Saint Patrick a \"patriot saint\" [10][13], both instances involved direct usage of the required term.\n\nThe White House reception (scheduled for 5 PM ET) included Trump's formal remarks where he:\n1. Repeatedly referenced \"St. Patrick's Day\" as the occasion [11][12][15]\n2. Specifically used the full term \"Saint Patrick\" when discussing the cathedral [10][13]\n3. Made multiple possessive references to \"St. Patrick's\" [9][11]\n\nPer the resolution conditions, possessive forms like \"St. Patrick's\" qualify as valid instances. The market explicitly includes the scheduled reception (not just a press conference Q&A) as part of the qualifying event window. No evidence suggests the event was canceled or unaired.\n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296356.997428,
   "processed_file": "questionId_e5abe062.json",
   "response_metadata": {
@@ -56,5 +56,8 @@
     "Politics",
     "Trump",
     "Mentions"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

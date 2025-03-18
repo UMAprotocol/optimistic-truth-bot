@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Phoenix Suns vs. Houston Rockets game scheduled for March 12, 2025, at 8:00 PM ET. The ancillary data specifies that if the Rockets win, it's p1; Suns win, p2; postponed remains open; canceled is p3 (50-50). \n\nFirst, I need to check if the game occurred as scheduled. The current date given is March 18, 2025, which is after the game date. So the event is in the past. Now, I need to confirm the result. \n\nLooking at the search results, multiple sources report the game took place. The ESPN recap [7] states the Rockets won 111-104. CBS Sports [2] and Fox Sports [8] both confirm the same score. YouTube highlights [1][4][5] also mention the Rockets' victory with Jalen Green scoring 29 points. Additionally, Burn City Sports [6] details the Rockets' win and the Suns' loss, dropping them six games below .500. \n\nThere's no mention of the game being postponed or canceled. The fight between Adams and Plumlee led to ejections but didn't affect the game's completion. All sources agree the game was played and concluded with a Rockets victory. \n\nSince the Rockets won, according to the resolution conditions, the market should resolve to p1. No conflicting information found, so the recommendation is clear.\n</think>\n\nThe NBA game between the Phoenix Suns and Houston Rockets on March 12, 2025, concluded with the **Houston Rockets winning 111-104** [2][7][8]. Jalen Green led the Rockets with 29 points, supported by Alperen \u015eeng\u00fcn (20 points) and Dillon Brooks (19 points) [2][6][7]. The game featured a second-quarter altercation between Steven Adams and Mason Plumlee, resulting in both players being ejected [2][4][6]. Bradley Beal scored 25 points for the Suns, while Devin Booker and Kevin Durant each added 19 points [6][7].  \n\nThe Rockets maintained control with a 9-2 fourth-quarter run to secure their fourth consecutive win, while the Suns fell to 30-36, struggling in the Western Conference play-in race [6][7]. The game was not postponed or canceled, and all sources confirm it concluded as scheduled.  \n\n**recommendation: p1**",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742295792.18238,
   "processed_file": "questionId_33afebf0.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "NBA",
     "Games"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

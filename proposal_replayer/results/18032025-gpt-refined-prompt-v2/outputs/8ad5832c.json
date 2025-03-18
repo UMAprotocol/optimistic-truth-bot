@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Cal Poly vs. UC Davis basketball game on March 12, 2025. The ancillary data specifies that if Cal Poly wins, the market resolves to \"Cal Poly\" (p2), and if UC Davis wins, it's \"UC Davis\" (p1). If the game is postponed, it stays open; if canceled, it's 50-50 (p3). \n\nFirst, I need to check if the game happened as scheduled. The current date given is March 18, 2025, which is after March 12, so the event should have occurred. Looking at the search results, multiple sources ([1], [2], [3], [4], [6]) report that Cal Poly defeated UC Davis 86-76 on March 12. For example, source [1] states Cal Poly secured an 86-76 victory, and source [2] confirms the same score with details about the game. UC Davis's own website ([4]) also acknowledges the loss, mentioning the final score and that their season ended. \n\nNext, I need to ensure there's no mention of the game being postponed or canceled. All sources reference the game taking place on March 12, so it wasn't postponed. The detailed stats and post-game comments from coaches indicate the game was completed. Therefore, the resolution should be based on the actual outcome. Since Cal Poly won, the market should resolve to p2. \n\nI also need to check if there's any conflicting information. All sources align on the result, so there's no ambiguity. The ancillary data's conditions are met: the game occurred, and Cal Poly won. No need to consider p3 or p1. The recommendation is p2.\n</think>\n\nCal Poly defeated UC Davis 86-76 in their Big West Conference Tournament first-round game on March 12, 2025. The Mustangs overcame a nine-point halftime deficit with a dominant second-half performance, outscoring the Aggies 48-29 after intermission[1][2][3][4]. Key contributors included Owen Koonce (18 points, 6 assists), Isaac Jessup (17 points, 4 three-pointers), and Jarred Hyder (16 points)[2][3]. UC Davis' Pablo Tamba scored a career-high 25 points in the losing effort[4].\n\n**Game Breakdown**  \n- **First Half**: UC Davis led 47-38 after shooting 65.2% from the field[1][3]  \n- **Second Half**: Cal Poly shot 66.7% (20/30 FG) and went on a 21-2 run to take control[3][6]  \n- **Key Difference**: Cal Poly scored 32 paint points vs UC Davis' 18[1]  \n\nThe outcome meets the resolution criteria specified in the ancillary data, as the game was completed as scheduled with a decisive result. \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296386.635264,
   "processed_file": "questionId_8ad5832c.json",
   "response_metadata": {
@@ -47,5 +47,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

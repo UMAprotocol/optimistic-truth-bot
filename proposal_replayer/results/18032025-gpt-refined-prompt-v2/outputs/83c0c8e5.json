@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Virginia vs. Georgia Tech basketball game scheduled for March 12, 2025, at 12:00 PM ET. The ancillary data specifies that if Virginia wins, it's p2; Georgia Tech wins, p1; postponed remains open; canceled is p3. \n\nFirst, I need to check the current date. The system says it's March 18, 2025, which is after the game date. So the event has already occurred. Now, I need to verify the outcome using the provided search results.\n\nLooking at the search results, several sources (1, 2, 3, 5, 7, 10, 13) mention the March 12 game. For example, result [2] from the ACC's official site states Georgia Tech won 66-60. Similarly, [3] from Virginia's sports site confirms the loss. ESPN's recap in [5] and CBS Sports in [7] also report Georgia Tech's victory. \n\nI should cross-check to ensure there's no conflicting information. All sources consistently report Georgia Tech as the winner. There's no mention of the game being postponed or canceled. Therefore, the market should resolve to p1, corresponding to Georgia Tech's win. \n\nNo sources indicate any issues with the game's completion, so p3 isn't applicable. The answer is clear from the search results.\n</think>\n\nThe ACC Tournament second-round game between Georgia Tech and Virginia on March 12, 2025, resulted in a **66-60 victory for Georgia Tech**[2][3][5][7][10]. This marked the Yellow Jackets' first win over Virginia since January 2016, snapping a 13-game losing streak in the series[5][7][13]. Key factors included:\n\n- **Duncan Powell's 21-point performance** (15 in the second half)[5][7]\n- **Double-doubles from Baye Ndongo** (16 points, 10 rebounds) and **Naithan George** (13 points, 10 rebounds, 8 assists)[2][5]\n- Georgia Tech's **44-26 rebounding advantage** and **40-24 edge in paint scoring**[2][3]\n\nVirginia's Isaac McKneely led all scorers with 27 points (7/11 three-pointers)[3][5], but the Cavaliers shot just 36.2% from the field[3][13]. The game was tied 25-25 at halftime before Georgia Tech built a 13-point lead late in the second half[2][3].\n\nThe outcome meets the resolution conditions specified in the ancillary data, as the game was completed as scheduled with no postponement or cancellation. \n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296789.417991,
   "processed_file": "questionId_83c0c8e5.json",
   "response_metadata": {
@@ -47,5 +47,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

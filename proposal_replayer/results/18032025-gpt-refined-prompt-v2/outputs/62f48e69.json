@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Davidson vs. Richmond college basketball game scheduled for March 12, 2025, at 11:30 AM ET. The ancillary data specifies that if Davidson wins, it's p1; if Richmond wins, p2; if postponed, the market stays open; if canceled, it's 50-50 (p3). \n\nFirst, I need to check if the event occurred as scheduled. The current date given is March 18, 2025, which is after the game date. So the event should have already happened. Now, looking at the search results, several sources mention the game's outcome. \n\nSearch result [5] from ESPN shows the final score as Davidson 69-65 Richmond. That's a direct confirmation. Additionally, result [6] from Richmond's official site details the game, stating Davidson won 69-65. Result [10] on AiScore also lists the final score as 69-65 in favor of Davidson. There's consistency across multiple sources, including official team websites and sports news outlets, all reporting Davidson's victory. \n\nI should also check if there's any mention of the game being postponed or canceled. The search results don't indicate any cancellation or postponement. In fact, the game is reported as having taken place on March 12. There's a mention of a women's basketball game cancellation in result [4], but that's a different team and date, so it's irrelevant here.\n\nSince the game was played and Davidson won according to multiple reliable sources, the resolution should be p1. No conflicting information is present, so the answer is straightforward.\n</think>\n\nDavidson defeated Richmond 69-65 in their Atlantic 10 Conference Tournament game on March 12, 2025, as confirmed by multiple sources including ESPN[5], Richmond's official athletics website[6], and AiScore[10]. The game took place at Capital One Arena in Washington, D.C., with Davidson securing the victory through key plays in the final minutes[6]. No postponements or cancellations were reported for this matchup[5][6][10]. \n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296354.4531572,
   "processed_file": "questionId_62f48e69.json",
   "response_metadata": {
@@ -48,5 +48,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }
