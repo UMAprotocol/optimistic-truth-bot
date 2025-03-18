@@ -33,10 +33,8 @@ load_dotenv()
 # Directory paths
 CURRENT_DIR = Path(__file__).parent
 OUTPUTS_DIR = CURRENT_DIR / "outputs"
-RERUNS_DIR = CURRENT_DIR / "reruns"
 
 logger.info(f"Outputs directory: {OUTPUTS_DIR}")
-logger.info(f"Reruns directory: {RERUNS_DIR}")
 
 # Set up Web3 connection
 POLYGON_RPC_URL = os.getenv("POLYGON_RPC_URL")
@@ -112,7 +110,9 @@ def get_market_resolution(output_data):
 
 def update_output_file(output_path, resolution_data):
     try:
-        resolved_price, disputer_address = resolution_data
+        resolved_price, disputer_address, new_timestamp, final_resolved_price = (
+            resolution_data
+        )
         with open(output_path, "r") as f:
             data = json.load(f)
 
@@ -133,6 +133,17 @@ def update_output_file(output_path, resolution_data):
             logger.info(
                 f"Market {data.get('query_id')} was disputed by {disputer_address}"
             )
+
+            # If we have a new timestamp and final resolution after dispute, add them
+            if new_timestamp and final_resolved_price is not None:
+                data["dispute_timestamp"] = new_timestamp
+                data["final_resolved_price"] = final_resolved_price
+                data["final_resolved_price_outcome"] = price_to_outcome(
+                    final_resolved_price
+                )
+                logger.info(
+                    f"Added final resolution data after dispute for {data.get('query_id')}"
+                )
 
         # Restructure raw_proposal_data to proposal_metadata
         if "raw_proposal_data" in data:

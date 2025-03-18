@@ -2733,3 +2733,41 @@
 2025-03-17 13:30:30,136 - proposal_finalizer - INFO - Updated f409f21c.json with resolved price: 1000000000000000000
 2025-03-17 13:30:30,136 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 70, Errors: 0, Skipped: 1
 2025-03-17 13:30:30,136 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-17 15:46:03,156 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-17 15:46:03,156 - proposal_finalizer - INFO - Reruns directory: /Users/chris/uma/large-language-oracle/proposal_replayer/reruns
+2025-03-17 15:46:03,864 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-17 15:46:03,873 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-17 15:46:03,873 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-17 15:46:03,874 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-17 15:46:03,876 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-17 15:46:03,877 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-17 15:46:03,882 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-17 15:46:03,882 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt/outputs
+2025-03-17 15:46:03,885 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-17 15:46:03,885 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-17 15:52:35,876 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-17 15:52:36,555 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-17 15:52:36,568 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-17 15:52:36,568 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-17 15:52:36,568 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-17 15:52:36,569 - proposal_finalizer - INFO - Checking resolution for query ID: 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a
+2025-03-17 15:52:36,980 - proposal_finalizer - INFO - Market 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a resolved with price: -57896044618658097711785492504343953926634992332820282019728792003956564819968
+2025-03-17 15:52:36,981 - proposal_finalizer - INFO - Disputer address for 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a: 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-17 15:52:36,981 - proposal_finalizer - INFO - Market 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a was disputed by 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-17 15:52:36,982 - proposal_finalizer - INFO - Updated 53e26dfd.json with resolved price: -57896044618658097711785492504343953926634992332820282019728792003956564819968
+2025-03-17 15:52:36,988 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 1, Errors: 0, Skipped: 70
+2025-03-17 15:52:36,989 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-17 15:52:36,989 - proposal_finalizer - INFO - Checking resolution for query ID: 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a
+2025-03-17 15:52:37,398 - proposal_finalizer - INFO - Market 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a resolved with price: -57896044618658097711785492504343953926634992332820282019728792003956564819968
+2025-03-17 15:52:37,398 - proposal_finalizer - INFO - Disputer address for 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a: 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-17 15:52:37,398 - proposal_finalizer - INFO - Market 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a was disputed by 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-17 15:52:37,398 - proposal_finalizer - INFO - Updated 53e26dfd.json with resolved price: -57896044618658097711785492504343953926634992332820282019728792003956564819968
+2025-03-17 15:52:37,403 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 1, Errors: 0, Skipped: 72
+2025-03-17 15:52:37,404 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt/outputs
+2025-03-17 15:52:37,404 - proposal_finalizer - INFO - Checking resolution for query ID: 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a
+2025-03-17 15:52:37,808 - proposal_finalizer - INFO - Market 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a resolved with price: -57896044618658097711785492504343953926634992332820282019728792003956564819968
+2025-03-17 15:52:37,808 - proposal_finalizer - INFO - Disputer address for 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a: 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-17 15:52:37,808 - proposal_finalizer - INFO - Market 0x53e26dfd6887d561a0f76532f740b98e075774e0a276ac7e4dfbb60e33a4672a was disputed by 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-17 15:52:37,808 - proposal_finalizer - INFO - Updated 53e26dfd.json with resolved price: -57896044618658097711785492504343953926634992332820282019728792003956564819968
+2025-03-17 15:52:37,812 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 1, Errors: 0, Skipped: 70
+2025-03-17 15:52:37,813 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
