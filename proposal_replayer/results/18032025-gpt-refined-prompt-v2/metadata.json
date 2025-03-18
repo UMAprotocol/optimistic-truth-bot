@@ -1,0 +1,13 @@
+{
+  "experiment": {
+    "timestamp": "11:43 18-03-2025",
+    "title": "GPT Refined Prompt V2",
+    "goal": "Iterate over all previous errors and try get ChatGPT to build a better prompt to feed into perplexity.",
+    "previous_experiment": "13032025-post-run-replay",
+    "modifications": {
+      "prompt": "For each time this model got it wrong, prompt GPT to make the perplexity Prompt better."
+    },
+    "system_prompt": null,
+    "setup": null
+  }
+}

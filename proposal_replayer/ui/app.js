@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load experiments directory data
     loadExperimentsData();
 
+    // Setup tag filter when data is loaded
+    document.addEventListener('dataLoaded', setupTagFilter);
+
     // Set up search functionality
     document.getElementById('searchBtn')?.addEventListener('click', () => {
         currentSearch = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -48,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('filterIncorrect')?.addEventListener('click', () => {
         applyFilter('incorrect');
     });
+    
+    // Set up clear tag filter button
+    document.getElementById('clearTagFilter')?.addEventListener('click', clearTagFilter);
 });
 
 // Initialize charts for the selected experiment
@@ -177,6 +183,9 @@ function calculateAnalytics(dataArray) {
     let p12Total = 0;
     let p12Correct = 0;
     
+    // Initialize tag statistics
+    const tagStats = {};
+    
     // Filter out entries with undefined or null resolved_price_outcome
     const resolvedEntries = dataArray.filter(entry => 
         entry && entry.resolved_price_outcome !== undefined && 
@@ -217,13 +226,47 @@ function calculateAnalytics(dataArray) {
             p12Total++;
             if (isCorrect) p12Correct++;
         }
+        
+        // Calculate tag statistics
+        if (entry.tags && Array.isArray(entry.tags)) {
+            entry.tags.forEach(tag => {
+                // Initialize tag stats if not already done
+                if (!tagStats[tag]) {
+                    tagStats[tag] = {
+                        total: 0,
+                        correct: 0,
+                        incorrect: 0,
+                        disputed: 0
+                    };
+                }
+                
+                // Update counts
+                tagStats[tag].total++;
+                
+                if (isCorrect) {
+                    tagStats[tag].correct++;
+                } else {
+                    tagStats[tag].incorrect++;
+                }
+                
+                if (entry.disputed === true) {
+                    tagStats[tag].disputed++;
+                }
+            });
+        }
     });
     
-    // Calculate percentages and prepare result
+    // Calculate percentages
     const totalCount = correctCount + incorrectCount;
     const accuracyPercent = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
     const p123Accuracy = p123Total > 0 ? (p123Correct / p123Total) * 100 : 0;
     const p12Accuracy = p12Total > 0 ? (p12Correct / p12Total) * 100 : 0;
+    
+    // Calculate accuracy percentage for each tag
+    Object.keys(tagStats).forEach(tag => {
+        const stats = tagStats[tag];
+        stats.accuracyPercent = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
+    });
     
     return {
         correctCount,
@@ -234,7 +277,8 @@ function calculateAnalytics(dataArray) {
         p12Accuracy,
         noDataCount: p4Count,
         recommendationCounts: [p1Count, p2Count, p3Count, p4Count],
-        resolutionCounts: [resolution1Count, resolution0Count, resolutionOtherCount]
+        resolutionCounts: [resolution1Count, resolution0Count, resolutionOtherCount],
+        tagStats: tagStats
     };
 }
 
@@ -261,9 +305,9 @@ function isRecommendationCorrect(entry) {
     return false;
 }
 
-// Update the analytics display with calculated metrics
+// Update analytics display including tag accuracy
 function updateAnalyticsDisplay(analytics) {
-    // If analytics is null or undefined, set default empty values
+    // If analytics is null or undefined, set default values
     if (!analytics) {
         analytics = {
             correctCount: 0,
@@ -274,75 +318,106 @@ function updateAnalyticsDisplay(analytics) {
             p12Accuracy: 0,
             noDataCount: 0,
             recommendationCounts: [0, 0, 0, 0],
-            resolutionCounts: [0, 0, 0]
+            resolutionCounts: [0, 0, 0],
+            tagStats: {}
         };
     }
-
-    // Update titles
-    document.getElementById('analyticsTitle').textContent = currentExperiment ? 
-        `${currentExperiment.title} Analytics` : 'Analytics';
     
     // Update accuracy circle
     const accuracyCircle = document.getElementById('accuracyCircle');
-    const accuracyPercent = document.getElementById('accuracyPercent');
-    if (accuracyCircle && accuracyPercent) {
-        const percent = analytics.accuracyPercent.toFixed(1);
-        accuracyPercent.textContent = `${percent}%`;
+    if (accuracyCircle) {
+        // Clear existing content
+        accuracyCircle.innerHTML = '';
         
-        // Color the circle based on accuracy
-        if (analytics.accuracyPercent >= 80) {
-            accuracyCircle.style.backgroundColor = '#28a745'; // green for good
-        } else if (analytics.accuracyPercent >= 50) {
-            accuracyCircle.style.backgroundColor = '#ffc107'; // yellow for medium
-        } else {
-            accuracyCircle.style.backgroundColor = '#dc3545'; // red for poor
-        }
+        // Create SVG
+        const size = 150;
+        const radius = 60;
+        const strokeWidth = 12;
+        const center = size / 2;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (analytics.accuracyPercent / 100) * circumference;
+        
+        // Create SVG element
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', size);
+        svg.setAttribute('height', size);
+        svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+        
+        // Create background circle
+        const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bgCircle.setAttribute('cx', center);
+        bgCircle.setAttribute('cy', center);
+        bgCircle.setAttribute('r', radius);
+        bgCircle.setAttribute('fill', 'none');
+        bgCircle.setAttribute('stroke', '#e9ecef');
+        bgCircle.setAttribute('stroke-width', strokeWidth);
+        
+        // Create progress circle
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', center);
+        circle.setAttribute('cy', center);
+        circle.setAttribute('r', radius);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', '#28a745');
+        circle.setAttribute('stroke-width', strokeWidth);
+        circle.setAttribute('stroke-dasharray', circumference);
+        circle.setAttribute('stroke-dashoffset', offset);
+        circle.setAttribute('transform', `rotate(-90 ${center} ${center})`);
+        
+        // Add circles to SVG
+        svg.appendChild(bgCircle);
+        svg.appendChild(circle);
+        
+        // Add SVG to container
+        accuracyCircle.appendChild(svg);
+        
+        // Add accuracy text
+        const accuracyText = document.createElement('span');
+        accuracyText.className = 'accuracy-value';
+        accuracyText.textContent = `${Math.round(analytics.accuracyPercent)}%`;
+        accuracyCircle.appendChild(accuracyText);
     }
     
-    // Update count stats
+    // Update accuracy percentage
+    const accuracyPercent = document.getElementById('accuracyPercent');
+    if (accuracyPercent) {
+        accuracyPercent.textContent = `${Math.round(analytics.accuracyPercent)}%`;
+    }
+    
+    // Update counts
     document.getElementById('correctCount').textContent = analytics.correctCount;
     document.getElementById('incorrectCount').textContent = analytics.incorrectCount;
     document.getElementById('totalCount').textContent = analytics.totalCount;
-    
-    // Update specialized accuracy
-    const p123Bar = document.getElementById('p123Accuracy');
-    if (p123Bar) {
-        const p123Percent = analytics.p123Accuracy.toFixed(1);
-        p123Bar.style.width = `${p123Percent}%`;
-        p123Bar.setAttribute('aria-valuenow', p123Percent);
-        p123Bar.textContent = `${p123Percent}%`;
-    }
-    
-    const p12Bar = document.getElementById('p12Accuracy');
-    if (p12Bar) {
-        const p12Percent = analytics.p12Accuracy.toFixed(1);
-        p12Bar.style.width = `${p12Percent}%`;
-        p12Bar.setAttribute('aria-valuenow', p12Percent);
-        p12Bar.textContent = `${p12Percent}%`;
-    }
-    
-    // Update no data count
     document.getElementById('noDataCount').textContent = analytics.noDataCount;
     
-    // Update charts
-    updateDistributionCharts(analytics);
-}
-
-// Update the distribution charts with the analytics data
-function updateDistributionCharts(analytics) {
-    // Default empty data if analytics is null
-    const recommendationData = analytics ? analytics.recommendationCounts : [0, 0, 0, 0];
-    const resolutionData = analytics ? analytics.resolutionCounts : [0, 0, 0];
+    // Update specialized accuracy metrics
+    const p123Accuracy = document.getElementById('p123Accuracy');
+    if (p123Accuracy) {
+        p123Accuracy.style.width = `${analytics.p123Accuracy}%`;
+        p123Accuracy.setAttribute('aria-valuenow', analytics.p123Accuracy);
+        p123Accuracy.textContent = `${Math.round(analytics.p123Accuracy)}%`;
+    }
     
+    const p12Accuracy = document.getElementById('p12Accuracy');
+    if (p12Accuracy) {
+        p12Accuracy.style.width = `${analytics.p12Accuracy}%`;
+        p12Accuracy.setAttribute('aria-valuenow', analytics.p12Accuracy);
+        p12Accuracy.textContent = `${Math.round(analytics.p12Accuracy)}%`;
+    }
+    
+    // Update charts
     if (recommendationChart) {
-        recommendationChart.data.datasets[0].data = recommendationData;
+        recommendationChart.data.datasets[0].data = analytics.recommendationCounts;
         recommendationChart.update();
     }
     
     if (resolutionChart) {
-        resolutionChart.data.datasets[0].data = resolutionData;
+        resolutionChart.data.datasets[0].data = analytics.resolutionCounts;
         resolutionChart.update();
     }
+    
+    // Update tag accuracy section
+    updateTagAccuracyDisplay(analytics.tagStats);
 }
 
 // Helper function to format date in 24-hour format
@@ -392,17 +467,20 @@ function createTxLink(hash) {
 
 // Apply a filter to the table
 function applyFilter(filter) {
-    currentFilter = filter;
-    
-    // Update button states
+    // Reset active class on filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     
-    document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`)?.classList.add('active');
+    // Set active class on the clicked button
+    document.getElementById('filter' + filter.charAt(0).toUpperCase() + filter.slice(1))?.classList.add('active');
     
-    // Apply the filter to the table
-    applyTableFilter(filter);
+    // Get current tag selections
+    const checkboxes = document.querySelectorAll('.tag-checkbox:checked');
+    const selectedTags = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Apply all filters
+    applyAllFilters(filter, selectedTags);
 }
 
 // Load data about available experiment directories
@@ -516,6 +594,12 @@ async function loadExperimentData(directory) {
         document.getElementById('resultsTableCard').style.display = 'block';
         document.querySelector('.results-section').style.display = 'block';
         
+        // Hide tag filter until we know if we have tags
+        const tagFilterCard = document.getElementById('tagFilterCard');
+        if (tagFilterCard) {
+            tagFilterCard.style.display = 'none';
+        }
+        
         // Reset analytics display with empty data
         updateAnalyticsDisplay(null);
         
@@ -532,7 +616,7 @@ async function loadExperimentData(directory) {
         // Show loading indicator
         document.getElementById('resultsTableBody').innerHTML = `
             <tr>
-                <td colspan="6" class="text-center">
+                <td colspan="7" class="text-center">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -599,14 +683,18 @@ async function loadExperimentData(directory) {
         } catch (error) {
             console.error('Error loading output files:', error);
             
-            // Hide analytics and filter when there's an error loading files
+            // Hide analytics, filter, and tag filter when there's an error loading files
             document.getElementById('analyticsDashboard').style.display = 'none';
             document.getElementById('filterControls').style.display = 'none';
+            const tagFilterCard = document.getElementById('tagFilterCard');
+            if (tagFilterCard) {
+                tagFilterCard.style.display = 'none';
+            }
             
             // Show error message
             document.getElementById('resultsTableBody').innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center text-danger">
+                    <td colspan="7" class="text-center text-danger">
                         Error loading output files: ${error.message}
                     </td>
                 </tr>
@@ -625,15 +713,23 @@ async function loadExperimentData(directory) {
             // Calculate and display analytics
             const analytics = calculateAnalytics(currentData);
             updateAnalyticsDisplay(analytics);
+            
+            // Trigger custom event to setup tag filter
+            const dataLoadedEvent = new CustomEvent('dataLoaded');
+            document.dispatchEvent(dataLoadedEvent);
         } else {
-            // Hide analytics and filter when there's no data
+            // Hide analytics, filter, and tag filter when there's no data
             document.getElementById('analyticsDashboard').style.display = 'none';
             document.getElementById('filterControls').style.display = 'none';
+            const tagFilterCard = document.getElementById('tagFilterCard');
+            if (tagFilterCard) {
+                tagFilterCard.style.display = 'none';
+            }
             
             // Show error message if we couldn't load any data
             document.getElementById('resultsTableBody').innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center">
+                    <td colspan="7" class="text-center">
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             No data found for experiment <strong>${directory}</strong>
@@ -645,13 +741,17 @@ async function loadExperimentData(directory) {
     } catch (error) {
         console.error('Error loading experiment data:', error);
         
-        // Hide analytics and filter on error
+        // Hide analytics, filter, and tag filter on error
         document.getElementById('analyticsDashboard').style.display = 'none';
         document.getElementById('filterControls').style.display = 'none';
+        const tagFilterCard = document.getElementById('tagFilterCard');
+        if (tagFilterCard) {
+            tagFilterCard.style.display = 'none';
+        }
         
         document.getElementById('resultsTableBody').innerHTML = `
             <tr>
-                <td colspan="6" class="text-center text-danger">
+                <td colspan="7" class="text-center text-danger">
                     Error loading experiment data: ${error.message}
                 </td>
             </tr>
@@ -955,44 +1055,12 @@ function updateTableWithData(dataArray) {
 
 // Apply filter and search to the table
 function applyTableFilter(filter) {
-    if (!currentData) return;
+    // Get current tag selections
+    const checkboxes = document.querySelectorAll('.tag-checkbox:checked');
+    const selectedTags = Array.from(checkboxes).map(cb => cb.value);
     
-    let filteredData = [...currentData];
-    
-    // Apply correctness filter if specified
-    if (filter === 'correct' || filter === 'incorrect' || filter === 'disputed') {
-        filteredData = filteredData.filter(item => {
-            if (filter === 'disputed') {
-                return item.disputed === true;
-            } else {
-                const isCorrect = isRecommendationCorrect(item);
-                return filter === 'correct' ? isCorrect : !isCorrect;
-            }
-        });
-    }
-    
-    // Apply search filter if there's a search term
-    if (currentSearch) {
-        filteredData = filteredData.filter(item => {
-            // Search in query ID
-            if (item.query_id?.toLowerCase().includes(currentSearch)) return true;
-            
-            // Search in recommendation
-            if (item.recommendation?.toLowerCase().includes(currentSearch)) return true;
-            
-            // Search in prompt
-            if (item.proposal_data?.prompt?.toLowerCase().includes(currentSearch)) return true;
-            
-            // Search in title
-            const title = extractTitle(item);
-            if (title.toLowerCase().includes(currentSearch)) return true;
-            
-            return false;
-        });
-    }
-    
-    // Update table with filtered data
-    updateTableWithData(filteredData);
+    // Apply all filters
+    applyAllFilters(filter, selectedTags);
 }
 
 // Show detailed information for a specific data item
@@ -1018,8 +1086,9 @@ function showDetails(data, index) {
     // Check if disputed
     const isDisputed = data.disputed === true;
     
-    // Get proposed price if available
-    const proposedPrice = data.proposed_price_outcome || data.proposed_price || 'N/A';
+    // Get proposed price if available, being careful with 0 values
+    const proposedPrice = data.proposed_price_outcome !== undefined ? data.proposed_price_outcome : 
+                         (data.proposed_price !== undefined ? data.proposed_price : 'N/A');
     
     // Generate the content
     let content = `
@@ -1032,6 +1101,16 @@ function showDetails(data, index) {
                                        (isRecommendationCorrect(data) ? 'Yes' : 'No') : 'N/A'}
         </div>
     `;
+    
+    // Add tags section if available
+    if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+        content += `
+            <div class="mb-3">
+                <strong>Tags:</strong> 
+                ${data.tags.map(tag => `<span class="tag-badge">${tag}</span>`).join('')}
+            </div>
+        `;
+    }
     
     // Add overview section with clickable query ID for copying
     content += `
@@ -1380,4 +1459,191 @@ function createAddressLink(address) {
     const displayAddress = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
     
     return `<a href="${baseUrl}${address}" target="_blank" class="tx-link code-font">${displayAddress}</a>`;
+}
+
+// Function to setup tag filter with 3-column checkbox layout
+function setupTagFilter() {
+    if (!currentData || currentData.length === 0) return;
+    
+    // Extract all unique tags from the data
+    const allTags = new Set();
+    currentData.forEach(item => {
+        if (item.tags && Array.isArray(item.tags)) {
+            item.tags.forEach(tag => allTags.add(tag));
+        }
+    });
+    
+    // Sort tags alphabetically
+    const sortedTags = Array.from(allTags).sort();
+    
+    // Only proceed if we have tags
+    if (sortedTags.length > 0) {
+        // Get the container for tag checkboxes
+        const container = document.getElementById('tagCheckboxContainer');
+        if (!container) return;
+        
+        // Clear the container
+        container.innerHTML = '';
+        
+        // Add a checkbox for each tag
+        sortedTags.forEach(tag => {
+            const item = document.createElement('div');
+            item.className = 'tag-checkbox-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `tag-${tag.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            checkbox.className = 'tag-checkbox';
+            checkbox.value = tag;
+            
+            const label = document.createElement('label');
+            label.htmlFor = checkbox.id;
+            label.textContent = tag;
+            
+            // Add click event for the label to toggle checkbox
+            label.addEventListener('click', (e) => {
+                e.preventDefault();
+                checkbox.checked = !checkbox.checked;
+                applyTagFilter();
+            });
+            
+            // Add change event for the checkbox
+            checkbox.addEventListener('change', applyTagFilter);
+            
+            item.appendChild(checkbox);
+            item.appendChild(label);
+            container.appendChild(item);
+        });
+        
+        // Show the tag filter card
+        const tagFilterCard = document.getElementById('tagFilterCard');
+        if (tagFilterCard) {
+            tagFilterCard.style.display = '';
+        }
+    }
+}
+
+// Apply tag filter using checkboxes
+function applyTagFilter() {
+    const checkboxes = document.querySelectorAll('.tag-checkbox:checked');
+    const selectedTags = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Apply all filters
+    applyAllFilters(currentFilter, selectedTags);
+}
+
+// Clear tag filter
+function clearTagFilter() {
+    const checkboxes = document.querySelectorAll('.tag-checkbox');
+    checkboxes.forEach(cb => cb.checked = false);
+    
+    // Apply all filters without tag filters
+    applyAllFilters(currentFilter, []);
+}
+
+// Apply all filters (correctness, tags, search)
+function applyAllFilters(correctnessFilter, tagFilters = []) {
+    currentFilter = correctnessFilter;
+    
+    if (!currentData) return;
+    
+    let filteredData = [...currentData];
+    
+    // Apply correctness filter if specified
+    if (correctnessFilter === 'correct' || correctnessFilter === 'incorrect' || correctnessFilter === 'disputed') {
+        filteredData = filteredData.filter(item => {
+            if (correctnessFilter === 'disputed') {
+                return item.disputed === true;
+            } else {
+                const isCorrect = isRecommendationCorrect(item);
+                return correctnessFilter === 'correct' ? isCorrect : !isCorrect;
+            }
+        });
+    }
+    
+    // Apply tag filters if specified
+    if (tagFilters && tagFilters.length > 0) {
+        filteredData = filteredData.filter(item => {
+            if (!item.tags || !Array.isArray(item.tags)) return false;
+            
+            // Check if item has ALL selected tags (AND logic)
+            return tagFilters.every(tag => item.tags.includes(tag));
+        });
+    }
+    
+    // Apply search filter if there's a search term
+    if (currentSearch) {
+        filteredData = filteredData.filter(item => {
+            // Search in query ID
+            if (item.query_id?.toLowerCase().includes(currentSearch)) return true;
+            
+            // Search in recommendation
+            if (item.recommendation?.toLowerCase().includes(currentSearch)) return true;
+            
+            // Search in prompt
+            if (item.proposal_data?.prompt?.toLowerCase().includes(currentSearch)) return true;
+            
+            // Search in title
+            const title = extractTitle(item);
+            if (title.toLowerCase().includes(currentSearch)) return true;
+            
+            return false;
+        });
+    }
+    
+    // Update table with filtered data
+    updateTableWithData(filteredData);
+}
+
+// Update tag accuracy display
+function updateTagAccuracyDisplay(tagStats) {
+    const tagAccuracyTableBody = document.getElementById('tagAccuracyTableBody');
+    const tagsTab = document.getElementById('tags-tab');
+    
+    if (!tagAccuracyTableBody || !tagsTab) return;
+    
+    // Only enable tag tab if we have tag stats
+    const tagCount = Object.keys(tagStats).length;
+    if (tagCount === 0) {
+        // Disable the tag tab if no tags
+        tagsTab.classList.add('disabled');
+        tagsTab.setAttribute('tabindex', '-1');
+        
+        // Make sure we show the "Overall" tab
+        document.getElementById('overall-tab')?.click();
+        
+        // Clear table
+        tagAccuracyTableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted">No tag data available</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Enable tag tab
+    tagsTab.classList.remove('disabled');
+    tagsTab.removeAttribute('tabindex');
+    
+    // Sort tags by total count (descending)
+    const sortedTags = Object.keys(tagStats).sort((a, b) => 
+        tagStats[b].total - tagStats[a].total
+    );
+    
+    // Create rows for each tag
+    tagAccuracyTableBody.innerHTML = sortedTags.map(tag => {
+        const stats = tagStats[tag];
+        const accuracyClass = stats.accuracyPercent >= 80 ? 'high-accuracy' : 
+                             (stats.accuracyPercent >= 50 ? 'medium-accuracy' : 'low-accuracy');
+        
+        return `
+            <tr>
+                <td><span class="tag-badge">${tag}</span></td>
+                <td>${stats.total}</td>
+                <td class="accuracy-cell ${accuracyClass}">${stats.accuracyPercent.toFixed(1)}%</td>
+                <td>${stats.correct}</td>
+                <td>${stats.incorrect}</td>
+            </tr>
+        `;
+    }).join('');
 } 

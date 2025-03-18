@@ -9,49 +9,65 @@ import itertools
 import threading
 import sys
 import time
+import requests
 from openai import OpenAI
 from prompt import create_messages
 import logging
 import os
-
-MARKET_CATEGORIES = [
-    "Breaking News",
-    "Trump Presidency",
-    "Economy",
-    "Ukraine",
-    "March Madness",
-    "Trade War",
-    "AI",
-    "Geopolitics",
-    "NFL",
-    "DOGE",
-    "Crypto Prices",
-    "Epstein",
-    "Gaza",
-    "South Korea",
-    "Declassification",
-    "Kanye",
-    "TikTok",
-    "Recurring",
-    "Cabinet",
-    "Bitcoin",
-    "German Election",
-    "Israel",
-    "Trump 100 Days",
-    "OpenAI",
-    "Weather",
-    "Elon Musk",
-    "Middle East",
-    "Fed Rates",
-    "Global Elections",
-    "Canada",
-    "Movies",
-]
+from web3 import Web3
 
 OptimisticOracleV2 = "0xeE3Afe347D5C74317041E2618C49534dAf887c24"
 NegRiskUmaCtfAdapter = "0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d"
 UmaCtfAdapter = "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74"
 yesOrNoIdentifier = "0x5945535f4f525f4e4f5f51554552590000000000000000000000000000000000"
+POLYMARKET_API_BASE = "https://clob.polymarket.com/markets/"
+
+
+def compute_condition_id(
+    oracle_address: str, question_id: str, outcome_slot_count: int
+) -> str:
+    """
+    Compute the condition ID used in Polymarket API queries.
+
+    Args:
+        oracle_address: The address of the oracle contract
+        question_id: The query ID/question ID
+        outcome_slot_count: Number of outcome slots (typically 2 for Yes/No markets)
+
+    Returns:
+        Condition ID string with 0x prefix
+    """
+    oracle_address = Web3.to_checksum_address(oracle_address)
+    # Pack the parameters as in Solidity
+    packed = Web3.solidity_keccak(
+        ["address", "bytes32", "uint256"],
+        [oracle_address, question_id, outcome_slot_count],
+    )
+
+    return "0x" + packed.hex()
+
+
+def get_polymarket_data(condition_id: str) -> dict:
+    """
+    Fetch market data from Polymarket API with rate limiting.
+
+    Args:
+        condition_id: The condition ID to query
+
+    Returns:
+        JSON response from Polymarket API or None if failed
+    """
+    url = f"{POLYMARKET_API_BASE}{condition_id}"
+
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching Polymarket data for {condition_id}: {str(e)}")
+        return None
+    finally:
+        time.sleep(0.5)  # 500ms between API requests
 
 
 def load_abi(filename):

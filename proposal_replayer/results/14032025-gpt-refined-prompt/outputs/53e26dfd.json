@@ -56,5 +56,8 @@
     "Politics",
     "Trump",
     "Mentions"
-  ]
+  ],
+  "proposed_price_outcome": "p2",
+  "disputed": true,
+  "disputer_address": "0xD7f6ebDf0235f587154E2D7D38f9D80568494993"
 }

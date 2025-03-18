@@ -9,6 +9,7 @@ Example: python proposal_replayer/proposal_fetcher.py --start-block 68945138
 from web3 import Web3
 from dotenv import load_dotenv
 import os, time, json, argparse, sys, codecs
+import requests
 
 print(
     "⛓️ Starting UMA Proposal Fetcher - Listening for blockchain events and processing proposals 🔍 📡"
@@ -21,6 +22,8 @@ from common import (
     OptimisticOracleV2,
     UmaCtfAdapter,
     price_to_outcome,
+    compute_condition_id,
+    get_polymarket_data,
 )
 
 logger = setup_logging("proposal_fetcher", "logs/proposal_fetcher.log")
@@ -257,11 +260,42 @@ def listen_for_propose_price_events(start_block=None):
         logger.error(f"Error in event listener: {e}")
 
 
+def enrich_proposal_with_polymarket_data(result, question_id):
+    """Enrich proposal with data from Polymarket API."""
+    try:
+        # Compute condition ID
+        condition_id = compute_condition_id(UmaCtfAdapter, question_id, 2)
+        logger.info(f"Querying Polymarket API for condition_id: {condition_id}")
+
+        # Fetch market data
+        poly_data = get_polymarket_data(condition_id)
+        if not poly_data:
+            logger.warning(f"No Polymarket data found for {question_id}")
+            return result
+
+        # Extract required fields
+        result["tags"] = poly_data.get("tags", [])
+        result["icon"] = poly_data.get("icon", "")
+        result["end_date_iso"] = poly_data.get("end_date_iso", "")
+        result["game_start_time"] = poly_data.get("game_start_time", "")
+
+        logger.info(f"Added Polymarket data for {question_id}: tags={result['tags']}")
+        return result
+
+    except Exception as e:
+        logger.error(f"Error enriching proposal with Polymarket data: {e}")
+        return result
+
+
 def save_proposal(result, question_id):
     question_id_short = question_id[2:10]  # First 8 chars after 0x
     result_filename = os.path.join(
         PROPOSALS_DIR, f"questionId_{question_id_short}.json"
     )
+
+    # Enrich with Polymarket data
+    result = enrich_proposal_with_polymarket_data(result, question_id)
+
     proposals = [result]
 
     if os.path.exists(result_filename):
