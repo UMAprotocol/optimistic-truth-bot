@@ -95,7 +95,17 @@ Based on the above information, please provide your review, satisfaction level, 
 
 def save_prompts_to_file(main_prompt, instance_prompts, output_file):
     """Save the generated prompts to a file."""
-    with open(output_file, "w", encoding="utf-8") as file:
+    # Extract just the filename, ignore any directory in the path
+    _, basename = os.path.split(output_file)
+
+    # Define output directory path
+    output_dir = Path("combinatorial_follower/overseer_prompt_output")
+    output_dir.mkdir(exist_ok=True)
+
+    # Use the filename in the output directory
+    output_path = os.path.join(output_dir, basename)
+
+    with open(output_path, "w", encoding="utf-8") as file:
         file.write("# ChatGPT Overseer Prompt\n\n")
         file.write("## Main Prompt\n\n")
         file.write(main_prompt)
@@ -104,6 +114,8 @@ def save_prompts_to_file(main_prompt, instance_prompts, output_file):
             file.write(f"### Instance {i+1}\n\n")
             file.write(prompt)
             file.write("\n\n---\n\n")
+
+    print(f"Prompts saved to {output_path}")
 
 
 def main():

@@ -2,6 +2,7 @@ import argparse
 import json
 from pathlib import Path
 from typing import Dict, List
+import os
 
 
 def load_results(results_file: str) -> List[Dict]:
@@ -203,13 +204,25 @@ def main():
         print(f"Error: Input file '{args.input_file}' does not exist.")
         return
 
-    # Create output directory if it doesn't exist
-    output_file = Path(args.output_file)
-    output_file.parent.mkdir(parents=True, exist_ok=True)
+    # Extract just the filename, ignore any directory in the path
+    _, input_basename = os.path.split(args.input_file)
+    _, output_basename = os.path.split(args.output_file)
+
+    # Define output directory path
+    output_dir = Path("combinatorial_follower/overseer_prompt_output")
+    output_dir.mkdir(exist_ok=True)
+
+    # Use the filename in the output directory
+    input_path = (
+        args.input_file
+        if os.path.exists(args.input_file)
+        else os.path.join(output_dir, input_basename)
+    )
+    output_path = os.path.join(output_dir, output_basename)
 
     # Load results
-    results = load_results(args.input_file)
-    print(f"Loaded results for {len(results)} instances from {args.input_file}")
+    results = load_results(input_path)
+    print(f"Loaded results for {len(results)} instances from {input_path}")
 
     # Analyze results
     stats = analyze_results(results)
@@ -220,8 +233,10 @@ def main():
     print("Generated final ChatGPT overseer prompt")
 
     # Save prompt
-    save_prompt(prompt, args.output_file)
-    print(f"Saved final prompt to {args.output_file}")
+    with open(output_path, "w") as f:
+        f.write(prompt)
+
+    print(f"Final prompt written to {output_path}")
 
 
 if __name__ == "__main__":

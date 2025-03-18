@@ -3146,3 +3146,22 @@
 2025-03-18 13:00:37,526 - proposal_finalizer - INFO - Updated f409f21c.json with resolved price: 1000000000000000000
 2025-03-18 13:00:37,526 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 71, Errors: 0, Skipped: 0
 2025-03-18 13:00:37,526 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-18 14:13:05,322 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-18 14:13:06,075 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-18 14:13:06,089 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-18 14:13:06,089 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-18 14:13:06,090 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-18 14:13:06,101 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-18 14:13:06,101 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-18 14:13:06,111 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-18 14:13:06,111 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt/outputs
+2025-03-18 14:13:06,119 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-18 14:13:06,119 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-perplexity-chatgpt-overseer/outputs
+2025-03-18 14:13:06,119 - proposal_finalizer - WARNING - No query_id found in output data
+2025-03-18 14:13:06,119 - proposal_finalizer - INFO - Market None not yet resolved, skipping
+2025-03-18 14:13:06,120 - proposal_finalizer - WARNING - No query_id found in output data
+2025-03-18 14:13:06,120 - proposal_finalizer - INFO - Market None not yet resolved, skipping
+2025-03-18 14:13:06,120 - proposal_finalizer - INFO - outputs processing complete. Processed: 2, Updated: 0, Errors: 0, Skipped: 2
+2025-03-18 14:13:06,120 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2/outputs
+2025-03-18 14:13:06,131 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-18 14:13:06,131 - proposal_finalizer - INFO - ✅ Proposal finalizer completed

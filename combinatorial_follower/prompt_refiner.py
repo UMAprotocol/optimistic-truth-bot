@@ -81,6 +81,21 @@ def get_json_files():
     return list(RESULTS_DIR.glob("*.json"))
 
 
+def save_refined_prompt(refined_prompt, filename="refined_prompt.txt"):
+    # Extract just the filename, ignore any directory in the path
+    _, basename = os.path.split(filename)
+    
+    # Define output directory path
+    output_dir = Path("combinatorial_follower/overseer_prompt_output")
+    output_dir.mkdir(exist_ok=True)
+    
+    # Use the filename in the output directory
+    output_path = os.path.join(output_dir, basename)
+    with open(output_path, "w") as f:
+        f.write(refined_prompt)
+    print(f"Refined prompt saved to {output_path}")
+
+
 def main():
     """Main function."""
     logger.info("Starting prompt refinement process")
@@ -137,11 +152,7 @@ Provide a complete, refined version of the system prompt that addresses these is
     logger.info("Received refined prompt from ChatGPT")
 
     # Save the refined prompt
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write(refined_prompt)
-    logger.info(f"Saved refined prompt to {OUTPUT_FILE}")
-
-    print(f"Prompt refinement complete. Refined prompt saved to {OUTPUT_FILE}")
+    save_refined_prompt(refined_prompt)
 
 
 if __name__ == "__main__":
