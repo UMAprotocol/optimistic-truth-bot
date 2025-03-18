@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Montreal Canadiens vs. Seattle Kraken game on March 12, 2025. The ancillary data specifies that if the Kraken win, it's p1; if the Canadiens win, p2; postponed stays open, and canceled is p3. \n\nFirst, I need to check the current date. The system says it's March 18, 2025, so the game date (March 12) is in the past. That means the event has already occurred. Now, I need to verify the outcome using the provided search results.\n\nLooking at the search results, multiple sources confirm the game result. Source [1] mentions the Kraken won 5-4 in overtime with Montour's record-breaking goal. Source [2] also describes the Kraken's comeback and Montour's overtime winner. Similarly, sources [4], [6], [7], and [8] all state the Kraken won 5-4. The Canadiens' official site in [4] even acknowledges the loss. \n\nThere's no mention of the game being postponed or canceled. All sources agree the game was played and completed with Seattle as the winner. Therefore, according to the resolution conditions, the market should resolve to p1 (Kraken). No conflicting information found, so the recommendation is clear.\n</think>\n\nThe NHL game between the Montreal Canadiens and Seattle Kraken on March 12, 2025, concluded with a **5-4 overtime victory for the Seattle Kraken**[1][2][6][8]. Brandon Montour scored the fastest overtime goal in NHL history (4 seconds into OT) to secure the win, capping a comeback from a two-goal third-period deficit[1][6]. \n\nThis outcome meets the resolution criteria specified in the ancillary data, where a Kraken win corresponds to **p1**. The game was neither postponed nor canceled, as evidenced by multiple verified game recaps and box scores[1][4][6][8]. \n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296526.830047,
   "processed_file": "questionId_287ed13a.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "NHL",
     "Games"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

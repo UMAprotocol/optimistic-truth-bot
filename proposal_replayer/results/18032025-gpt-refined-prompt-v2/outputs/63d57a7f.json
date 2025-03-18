@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the USC vs. Rutgers basketball game played on March 12, 2025. The ancillary data specifies that if USC wins, the market resolves to \"USC\" (p2), if Rutgers wins, it's \"Rutgers\" (p1), and if canceled, it's 50-50 (p3). \n\nFirst, I need to check if the event occurred as scheduled. The current date given is March 18, 2025, so the game date (March 12) is in the past. No mention of postponement or cancellation in the search results. All sources [1][2][4][9][10][12][14][15][16] confirm the game took place on March 12, 2025. \n\nNext, determine the winner. Multiple sources report USC defeated Rutgers in double overtime. For example, source [1] states USC won 97-89, and [9] mentions USC's victory. Key players like Desmond Claude and Wesley Yates III are highlighted as top scorers for USC. Rutgers' Dylan Harper had a strong performance but it wasn't enough. \n\nNo sources indicate the game was postponed or canceled. All evidence points to the game being completed with a clear result. Therefore, according to the resolution conditions, since USC won, the market should resolve to p2.\n</think>\n\nThe USC Trojans defeated the Rutgers Scarlet Knights 97-89 in a double-overtime thriller during the first round of the Big Ten Tournament on March 12, 2025[1][9][14][16]. The game, played at Gainbridge Fieldhouse in Indianapolis, saw USC overcome a late Rutgers comeback in regulation and two overtime periods to secure the victory. Key performances included:\n\n- **Desmond Claude** (USC): 28 points, 8 assists[1][12][14]  \n- **Wesley Yates III** (USC): 24 points, including critical three-pointers[12][14]  \n- **Rashaun Agee** (USC): 23 points, 11 rebounds[1][14]  \n- **Dylan Harper** (Rutgers): 27 points, 8 rebounds, 8 assists[1][16]  \n\nThe game featured 7 lead changes and 11 ties[16], with Rutgers forcing 21 turnovers[16] but ultimately failing to contain USC's offensive trio. The outcome was decided in the second overtime when USC went on an 8-0 run to pull away[12][14]. \n\n**Resolution Conditions Met**:  \n- The game occurred as scheduled on March 12, 2025, with no postponement or cancellation[1][9][14]  \n- USC secured a definitive victory in double overtime[1][9][14]  \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296668.6185842,
   "processed_file": "questionId_63d57a7f.json",
   "response_metadata": {
@@ -50,5 +50,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

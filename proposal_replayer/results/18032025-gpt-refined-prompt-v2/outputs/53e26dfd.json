@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to know if Volodymyr Zelenskyy will say \"Biden\" during his press conference with the Irish Prime Minister on March 12, 2025. Wait, no, actually, looking back, the query is about whether Donald Trump will say \"Biden\" during his press conference with Miche\u00e1l Martin, the Irish PM, on that date. The resolution conditions are p1 for No, p2 for Yes, and p3 for uncertain. \n\nFirst, I need to check the search results provided to see if there's any mention of Trump saying \"Biden\" during that specific event. The key here is the press conference on March 12, 2025. Let me go through the search results. \n\nLooking at the sources, several mention the meeting between Trump and Martin. For example, source [4] from March 12, 2025, discusses their meeting where Trump talked about the EU and tariffs. Source [9] is a video where Trump gets angry and mentions trade imbalances with Ireland. Source [16] is a transcript of their full meeting, which might include the press conference. \n\nIn source [16], the transcript includes Trump discussing various topics, including the war in Ukraine and inflation. He mentions Biden in the context of criticizing his handling of the situation: \"Biden should have never let it happen incompetence allowed this to happen...\" This seems to be during the press conference part of their meeting. \n\nAdditionally, source [15] is a transcript of a Trump news conference at Mar-a-Lago, but that's a different event. The relevant event here is the March 12 press conference with Martin. \n\nIn source [16], Trump explicitly mentions Biden, which would count towards the resolution condition. The query states that any usage of the term \"Biden\" regardless of context counts, including possessive forms. Since Trump referred to Biden by name in the press conference, the answer should be \"Yes,\" corresponding to p2. \n\nI need to confirm that this mention occurred during the press conference on March 12. The search result [16] is from March 13, 2025, and details their meeting. The transcript includes Trump criticizing Biden's policies, which fits the timeframe. Therefore, the resolution should be p2 (Yes).\n</think>\n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": -57896044618658097711785492504343953926634992332820282019728792003956564819968,
   "timestamp": 1742295920.937419,
   "processed_file": "questionId_53e26dfd.json",
   "response_metadata": {
@@ -56,5 +56,9 @@
     "Politics",
     "Trump",
     "Mentions"
-  ]
+  ],
+  "resolved_price_outcome": "p4",
+  "proposed_price_outcome": "p2",
+  "disputed": true,
+  "disputer_address": "0xD7f6ebDf0235f587154E2D7D38f9D80568494993"
 }

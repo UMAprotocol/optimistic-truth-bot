@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Anaheim Ducks vs. Utah Hockey Club game on March 12, 2025. The ancillary data specifies that if Utah wins, it's p1; if the Ducks win, p2; if postponed, wait; if canceled, p3 (50-50). \n\nFirst, I need to check the current date. The given current date is March 18, 2025, which is after the game date of March 12. So the event has already occurred. Now, I need to verify the actual outcome using the provided search results.\n\nLooking at the search results, sources [1], [2], and [5] all report that Utah Hockey Club defeated the Anaheim Ducks 3-2 on March 12. For example, source [1] states, \"Dylan Guenther broke a tie on a power play... Utah Hockey Club beat the Anaheim Ducks 3-2.\" Similarly, source [5] confirms the same score and outcome. \n\nOther sources like [3], [4], [6], [7], and [8] discuss previous games or predictions but aren't relevant to the March 12 game. The key here is that multiple reliable sources (CBS Sports, NHL.com) confirm Utah's victory. \n\nSince the game wasn't postponed or canceled, and Utah won, the resolution should be p1 according to the ancillary data. There's no conflicting information in the search results about this particular game's outcome. All recent and relevant sources point to Utah's win. Therefore, the recommendation is p1.\n</think>\n\nThe Anaheim Ducks and Utah Hockey Club played their NHL game on March 12, 2025, as scheduled. According to multiple verified sources, **Utah Hockey Club defeated the Anaheim Ducks 3-2** in regulation time. The decisive goal was scored by Dylan Guenther on a third-period power play, securing Utah's victory[1][2][5]. The game was not postponed or canceled, and no unresolved conditions apply.  \n\nBased on the ancillary data provided, the market resolution corresponds to **p1** (Utah win).  \n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296308.851659,
   "processed_file": "questionId_3d6df7ea.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "NHL",
     "Games"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

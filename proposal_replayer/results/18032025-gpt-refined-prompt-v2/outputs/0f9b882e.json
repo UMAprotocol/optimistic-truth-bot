@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Fresno State vs. Nevada CBB game scheduled for March 12, 2025, at 4:30 PM ET. The resolution conditions are p1 for Nevada winning, p2 for Fresno State, and p3 if the game is canceled. \n\nFirst, I need to check the current date, which is March 18, 2025. The game was supposed to happen on March 12, so it's already in the past. Now, I need to verify if the game occurred and who won. \n\nLooking at the search results, several sources mention the game. Result [1] from nevadawolfpack.com states that Nevada defeated Fresno State 86-71 in their Mountain West Tournament opener on March 12. Similarly, result [2] from ESPN confirms the final score as Nevada 86-71. Result [5] from gobulldogs.com also acknowledges Fresno State's loss to Nevada, ending their season. Other sources like [10] and [12] provide detailed accounts of the game, all confirming Nevada's victory. \n\nThere's no mention of the game being postponed or canceled. All sources indicate the game took place as scheduled. Therefore, according to the resolution conditions, since Nevada won, the market should resolve to p1.\n</think>\n\nNevada defeated Fresno State 86-71 in their Mountain West Tournament first-round game on March 12, 2025, as confirmed by multiple sources including official team websites[1][5], ESPN[2][4], and CBS Sports[10]. The Wolf Pack led wire-to-wire, building a 21-point first-half advantage and maintaining a double-digit margin throughout the second half[12]. Key contributors included Kobe Sanders (17 points, 10 assists) and Nick Davidson (11 points, 11 rebounds)[1][10], while Fresno State's Elijah Price posted a 17-point, 11-rebound double-double in the loss[5].\n\nThe game occurred as scheduled with no indications of postponement or cancellation in any sources. All reports confirm the contest concluded with Nevada as the decisive winner.\n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296089.679706,
   "processed_file": "questionId_0f9b882e.json",
   "response_metadata": {
@@ -47,5 +47,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

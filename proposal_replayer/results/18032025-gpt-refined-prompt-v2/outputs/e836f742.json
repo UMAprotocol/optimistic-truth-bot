@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Fordham vs. Rhode Island basketball game scheduled for March 12, 2025, at 2:00 PM ET. The ancillary data specifies that if Fordham wins, the market resolves to \"Fordham\" (p2), if Rhode Island wins, it's \"Rhode Island\" (p1), and if canceled, it's 50-50 (p3). \n\nFirst, I need to check if the game happened as scheduled. The current date given is March 18, 2025, which is after the game date. So the event is in the past. Now, I need to verify the outcome using the provided search results.\n\nLooking at the search results, several sources mention the game. Result [4] from CBS Sports and [8] from ABC News both report that Fordham won 88-71. Additionally, result [5] from Fordham's athletics site and [7] from Rhode Island's site confirm the same score. The box score in result [11] also lists Fordham with 88 points and Rhode Island with 71. \n\nSince multiple reliable sources confirm Fordham's victory, the event did occur, and there's no mention of postponement or cancellation. Therefore, according to the resolution conditions, the market should resolve to p2 (Fordham). No conflicting information is present, so the recommendation is straightforward.\n</think>\n\nThe Fordham Rams defeated the Rhode Island Rams 88-71 in the Atlantic 10 Conference Tournament game played on March 12, 2025[4][7][8]. Multiple sources confirm Fordham led from the start and maintained control throughout the game, with Jackie Johnson III scoring 29 points and Japhet Medor adding 26 points for Fordham[4][5][8]. Rhode Island's Jaden House led his team with 19 points but couldn't overcome Fordham's offensive surge[7][8]. The game was completed as scheduled with no indications of postponement or cancellation in any sources[4][5][7][8].\n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296693.5234718,
   "processed_file": "questionId_e836f742.json",
   "response_metadata": {
@@ -48,5 +48,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

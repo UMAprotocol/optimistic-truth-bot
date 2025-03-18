@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a UMA optimistic oracle request based on the Clippers vs. Heat game on March 12, 2025. The ancillary data specifies that if the Clippers win, it's p2; if the Heat win, p1. If postponed, it stays open, and if canceled, it's 50-50 (p3). \n\nFirst, I need to check if the event occurred. The current date given is March 18, 2025, so the game date (March 12) is in the past. That means I need to verify the outcome. \n\nLooking at the search results, multiple sources confirm the game took place. Source [1] states the Clippers won 119-104. Source [2] and [3] also report the same score, with Bogdanovic scoring 30 points for the Clippers. Source [4] has the final score as 119-104 in favor of the Clippers. Even source [6] mentions the Clippers' victory. \n\nAll the sources agree that the Clippers won. There's no mention of the game being postponed or canceled. The resolution conditions say a Clippers win is p2. Therefore, the recommendation should be p2.\n</think>\n\nThe Los Angeles Clippers defeated the Miami Heat 119-104 in their NBA game on March 12, 2025, at Kaseya Center. Key performances included Bogdan Bogdanovic\u2019s season-high 30 points and Ivica Zubac\u2019s 26 points and 14 rebounds for the Clippers, while Tyler Herro led the Heat with 31 points[1][2][3][4][6]. The Clippers\u2019 victory improved their playoff positioning in the Western Conference, while the Heat extended their losing streak to five games[1][2][3]. \n\n**Resolution Analysis**:  \n- The game occurred as scheduled on March 12, 2025, with no indications of postponement or cancellation[1][2][3][4][6].  \n- The Clippers\u2019 win aligns with the ancillary data\u2019s resolution condition for **p2** (Clippers victory).  \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296644.865986,
   "processed_file": "questionId_e5239f66.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "NBA",
     "Games"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

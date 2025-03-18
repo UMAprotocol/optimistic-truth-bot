@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query step by step. The user wants to resolve a market based on the outcome of the Iowa vs. Ohio State men's basketball game scheduled for March 12, 2025, at 6:00 PM ET. The ancillary data specifies that if Iowa wins, it's p2; if Ohio State wins, p1; postponed keeps it open, and canceled resolves to p3 (50-50).\n\nFirst, I need to check if the game occurred as scheduled. The current date given is March 18, 2025, which is after March 12, so the event should have already happened. Let's look through the search results to find the outcome.\n\nLooking at the sources, result [4] from hawkeyesports.com dated March 13, 2025, states that the 15th-seeded Iowa defeated 10th-seeded Ohio State 77-70 in the Big Ten Tournament opening round. This is a direct report of the game happening on March 12, with a final score in favor of Iowa. Additionally, source [5] is a YouTube video recapping Ohio State's loss to Iowa 77-70 on March 13, 2025, which aligns with the game date mentioned. Source [2] from SI.com also mentions the game was scheduled for March 12 and provides context about Ohio State's need to perform in the tournament, but the key confirmation comes from the official university site and the video recap.\n\nOther sources like [3] and [6] discuss a postponed game from 2022, which is irrelevant here. Source [7] and [8] refer to a January 2025 game where Ohio State won, but that's a different matchup. The key is the March 12 game, which sources [4] and [5] confirm Iowa won. There's no mention of postponement or cancellation in the relevant 2025 sources. Therefore, the market should resolve to p2 (Iowa).\n</think>\n\nThe Iowa Hawkeyes defeated the Ohio State Buckeyes 77-70 in their Big Ten Tournament opening-round game on March 12, 2025[4][5]. This outcome occurred as scheduled, with no indications of postponement or cancellation in the verified sources. The game was part of the conference tournament, where Iowa entered as the 15th seed and Ohio State as the 10th seed[4]. Key contributors for Iowa included Payton Sandfort (17 points) and Josh Dix (16 points), while Ohio State's Bruce Thornton led his team with 15 points[4][5].\n\nBased on the resolution conditions provided:\n- **Iowa's victory** directly triggers **p2** resolution[4][5]\n- The game was completed as scheduled with a definitive result\n- No evidence exists of postponement or cancellation requiring p3 consideration\n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296459.424072,
   "processed_file": "questionId_6c8569c0.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

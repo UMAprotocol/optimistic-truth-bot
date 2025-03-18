@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Vancouver Canucks vs. Calgary Flames game on March 12, 2025. The ancillary data specifies that if the Canucks win, it's p2 (Canucks), Flames win p1 (Flames), postponed stays open, canceled is 50-50 (p3). \n\nFirst, I need to check if the game happened as scheduled. The search results mention the game on March 12, 2025. Sources [1], [3], [6], and [8] all report the game took place. So no postponement or cancellation.\n\nNext, determine the winner. Multiple sources ([1], [3], [6], [8]) state the Canucks won 4-3 in a shootout. Even though the game went to a shootout, in NHL terms, a shootout win counts as a regular win for the team. So the Canucks are the winners here.\n\nCheck the resolution conditions: Canucks win \u2192 p2. The ancillary data aligns with this. No conflicting info in the sources. All reports confirm the Canucks' victory. Therefore, the recommendation should be p2.\n</think>\n\nThe Vancouver Canucks defeated the Calgary Flames 4-3 in a shootout during their March 12, 2025 game[1][3][6][8]. Despite trailing 3-2 entering the third period, Elias Pettersson tied the game late in regulation before Conor Garland secured the shootout winner in the fourth round[1][3][6]. This result tied both teams at 71 points in the Western Conference standings[1][6]. \n\nUnder the specified resolution conditions, the market resolves to **\"Canucks\"** (p2) since Vancouver won the game. The outcome was determined by the NHL-standard shootout victory procedure, which qualifies as a win for resolution purposes[1][3][6][8].\n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296620.31758,
   "processed_file": "questionId_db4377db.json",
   "response_metadata": {
@@ -43,5 +43,8 @@
     "Sports",
     "NHL",
     "Games"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a UMA optimistic oracle request for a CBB game between UT Arlington and Grand Canyon scheduled for March 12, 2025, at 11:30 PM ET. The ancillary data specifies that if Grand Canyon wins, it resolves to p1; if UT Arlington wins, p2; if postponed, stays open; if canceled, p3 (50-50). \n\nFirst, I need to check if the event date is in the past relative to the current timestamp provided, which is March 18, 2025. The game was on March 12, so it's in the past. Now, I need to verify the outcome using the provided search results. \n\nLooking at the search results, several sources report the game's result. Source [1] mentions the women's basketball game on March 15 where Grand Canyon won 65-62, but that's a different game. The men's game in question is covered in sources [5], [8], [9], [10], [11], [12], [13], [14], and [15]. \n\nSource [5] shows the final score as Grand Canyon 98, UT Arlington 75. Source [8] is an AP recap stating Grand Canyon won 98-75. Source [15] from the Grand Canyon athletics site confirms the same score and outcome. Other sources like [9], [11], and [14] also reference Grand Canyon's victory. \n\nSince the event occurred and multiple reliable sources confirm Grand Canyon's win, the resolution should be p1. There's no mention of postponement or cancellation, so p3 isn't applicable. All conditions are met for resolving to p1.\n</think>\n\nThe CBB game between UT Arlington and Grand Canyon occurred on March 12, 2025, as scheduled. According to multiple verified sources, **Grand Canyon defeated UT Arlington 98-75** in the WAC Tournament quarterfinal[5][8][15]. The Lopes led 46-32 at halftime and maintained a double-digit advantage throughout the second half, with six players scoring in double figures[8][15]. \n\nThis outcome meets the resolution conditions specified in the ancillary data:\n- **Grand Canyon victory** \u2192 Resolution **p1**  \n- Game occurred as scheduled (no postponement/cancellation) \u2192 No 50-50 split required\n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742296153.407134,
   "processed_file": "questionId_147b3e44.json",
   "response_metadata": {
@@ -49,5 +49,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }

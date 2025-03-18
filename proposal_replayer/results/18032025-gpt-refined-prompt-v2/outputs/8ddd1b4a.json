@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the La Salle vs. Massachusetts basketball game scheduled for March 12, 2025, at 4:30 PM ET. The ancillary data specifies that if La Salle wins, it's p2; if Massachusetts wins, p1; if postponed, the market stays open; if canceled, it's 50-50 (p3). \n\nFirst, I need to check if the game happened as scheduled. The current date given is March 18, 2025, which is after March 12, so the event date is in the past. Now, looking at the search results, several sources ([1], [9], [10], [11], [13]) report that the game took place on March 12, 2025. Specifically, sources [9] and [10] from CBS Sports and the University of Massachusetts athletics site confirm the final score: La Salle 78, Massachusetts 71. \n\nI need to ensure that the game wasn't postponed or canceled. All the sources mention the game occurring on the scheduled date, so no postponement or cancellation. The resolution conditions state that a win by La Salle should resolve to p2. The final score clearly shows La Salle won, so the correct resolution is p2. \n\nI also check if there's any conflicting information. Other sources like [6] and [12] discuss previous matchups, but the March 12 game is well-documented. The prediction in [14] had Massachusetts favored, but the actual result was a La Salle victory. No sources indicate any issues with the game's completion. Therefore, the market should resolve to p2 as per the ancillary data.\n</think>\n\nThe La Salle Explorers defeated the Massachusetts Minutemen 78-71 in their March 12, 2025, Atlantic 10 Conference Tournament game[1][9][10][11]. The game occurred as scheduled with no postponement or cancellation. Corey McKeithan led La Salle with 30 points, while Daniel Rivera (22 points) and Jaylen Curry (18 points) were top performers for Massachusetts[9][10].  \n\n**Key details confirming the outcome:**  \n- Final score: La Salle 78, Massachusetts 71[1][9][10]  \n- The game was part of the A-10 Tournament\u2019s first round at Capital One Arena[9][11]  \n- La Salle advanced to face Saint Joseph\u2019s in the next round[9][11]  \n\n**Resolution recommendation:**  \nPer the ancillary data, the market resolves to **p2** (La Salle win).  \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742296001.5344691,
   "processed_file": "questionId_8ddd1b4a.json",
   "response_metadata": {
@@ -49,5 +49,8 @@
     "Sports",
     "Games",
     "CBB"
-  ]
+  ],
+  "resolved_price_outcome": "p2",
+  "proposed_price_outcome": "p2",
+  "disputed": false
 }

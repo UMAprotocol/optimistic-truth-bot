@@ -119,7 +119,7 @@ def main():
     parser.add_argument(
         "--output_file",
         type=str,
-        default="proposal_replayer/combinatorial_follower/chatgpt_overseer_prompts.md",
+        default="combinatorial_follower/chatgpt_overseer_prompts.md",
         help="Output file to save the generated prompts",
     )
     parser.add_argument(

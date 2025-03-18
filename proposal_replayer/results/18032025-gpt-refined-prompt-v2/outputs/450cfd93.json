@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Mavericks vs. Spurs game on March 12, 2025. The ancillary data specifies that if the Spurs win, it's p1; Mavericks win, p2; postponed remains open; canceled is p3 (50-50). \n\nFirst, I need to check the search results to confirm the game's outcome. Looking at the sources, multiple results mention the game. Search result [1] from the NBA's YouTube channel states the Spurs defeated the Mavericks 126-116 on March 12. That's a direct confirmation. \n\nResult [2] is another Spurs' YouTube video highlighting their win, same score. Result [4] also covers the game highlights, reiterating the Spurs' victory. The box score in [6] from Fox Sports lists the final score as SAS 126, DAL 116. Additionally, the postgame interviews in [7] with Mitch Johnson confirm the Spurs' win. \n\nAll sources agree the game happened as scheduled on March 12, with no mention of postponement or cancellation. The final score clearly shows the Spurs won. Therefore, according to the resolution conditions, the market should resolve to p1 (Spurs). No conflicting information found, so the answer is straightforward.\n</think>\n\nThe NBA game between the Dallas Mavericks and San Antonio Spurs on March 12, 2025, concluded with the **San Antonio Spurs winning 126-116**[1][2][4][6]. Multiple sources confirm the final score, including official NBA highlights[1], Spurs team coverage[2][7], and the box score from Fox Sports[6]. The game occurred as scheduled with no indications of postponement or cancellation in the provided sources. \n\nBased on the resolution conditions defined in the ancillary data, where a Spurs victory corresponds to **p1**, this market should resolve to **p1**. \n\nrecommendation: p1",
   "recommendation": "p1",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1742295873.941824,
   "processed_file": "questionId_450cfd93.json",
   "response_metadata": {
@@ -42,5 +42,8 @@
     "Sports",
     "NBA",
     "Games"
-  ]
+  ],
+  "resolved_price_outcome": "p1",
+  "proposed_price_outcome": "p1",
+  "disputed": false
 }
