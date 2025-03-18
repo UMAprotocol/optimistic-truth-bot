@@ -77,11 +77,30 @@ def ensure_directory_exists(directory):
 def main():
     args = parse_args()
 
+    # Define output directory path
+    output_dir = Path("combinatorial_follower/overseer_prompt_output")
+    output_dir.mkdir(exist_ok=True)
+
+    # Update all output file paths to use overseer_prompt_output directory
+    overseer_prompts_file = os.path.join(
+        "combinatorial_follower/overseer_prompt_output", "chatgpt_overseer_prompts.md"
+    )
+    final_prompt_file = os.path.join(
+        "combinatorial_follower/overseer_prompt_output", "final_overseer_prompt.md"
+    )
+    results_file = os.path.join(
+        "combinatorial_follower/overseer_prompt_output", "iterative_results.json"
+    )
+
     # Ensure output directory exists
     ensure_directory_exists(args.output_dir)
 
+    # Add more verbose logging
+    print(f"Using overseer_prompts_file: {overseer_prompts_file}")
+    print(f"Using final_prompt_file: {final_prompt_file}")
+    print(f"Using results_file: {results_file}")
+
     # Step 1: Create ChatGPT overseer prompts
-    prompt_file = os.path.join(args.output_dir, "chatgpt_overseer_prompts.md")
     if not args.skip_prompt_creation:
         success = run_command(
             [
@@ -90,7 +109,7 @@ def main():
                 "--input_dir",
                 args.input_dir,
                 "--output_file",
-                prompt_file,
+                overseer_prompts_file,
                 "--sample_size",
                 str(args.sample_size),
             ],
@@ -104,7 +123,6 @@ def main():
         print("Skipping prompt creation step")
 
     # Step 2: Run iterative prompting
-    results_file = os.path.join(args.output_dir, "iterative_results.json")
     if not args.skip_iterative_prompting:
         # Set environment variables for API keys
         env = os.environ.copy()
@@ -118,7 +136,7 @@ def main():
                 "python",
                 "combinatorial_follower/chatgpt_overseer_runner.py",
                 "--input_file",
-                prompt_file,
+                overseer_prompts_file,
                 "--output_file",
                 results_file,
             ],
@@ -132,7 +150,6 @@ def main():
         print("Skipping iterative prompting step")
 
     # Step 3: Generate final prompt
-    final_prompt_file = os.path.join(args.output_dir, "final_overseer_prompt.md")
     if not args.skip_final_prompt:
         success = run_command(
             [

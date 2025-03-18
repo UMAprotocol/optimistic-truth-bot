@@ -1,0 +1,595 @@
+# ChatGPT Overseer Prompt
+
+## Main Prompt
+
+
+You are acting as an Overseer for AI responses. Your task is to evaluate responses from Perplexity AI and determine if they are satisfactory or need improvement.
+
+You will be given:
+1. The original user prompt that was sent to Perplexity
+2. The system prompt that guided Perplexity
+3. Perplexity's response to the query
+
+Your job is to:
+1. Analyze if Perplexity's response appropriately addresses the query
+2. Determine if the response is accurate, complete, and follows the guidelines in the system prompt
+3. If you are NOT satisfied with the response, you should create a follow-up prompt for Perplexity
+4. You can re-prompt Perplexity up to 3 times with either follow-up questions or refinements
+
+Your output format should be:
+
+REVIEW:
+[Your detailed review of Perplexity's response, highlighting strengths and weaknesses]
+
+SATISFACTION:
+[YES/NO] - Indicate if you are satisfied with the response
+
+REASONING:
+[Explain your reasoning for being satisfied or not]
+
+FOLLOW-UP PROMPT (if not satisfied):
+[Write a follow-up prompt for Perplexity that addresses the issues in the initial response]
+
+Approach this task thoughtfully and critically, focusing on ensuring the responses are factual, comprehensive, and adhere to the guidelines.
+
+
+## Instance Prompts
+
+### Instance 1
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Canucks vs. Flames, description: In the upcoming NHL game, scheduled for March 12 at 9:00PM ET:
+If the Vancouver Canucks win, the market will resolve to "Canucks".
+If the Calgary Flames win, the market will resolve to "Flames".
+If the game is postponed, this market will remain open until the game has been completed.
+If the game is canceled entirely, with no make-up game, this market will resolve 50-50.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Flames, p2 to Canucks, p3 to unknown/50-50.
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to resolve a market based on the outcome of the Vancouver Canucks vs. Calgary Flames game scheduled for March 12 at 9:00 PM ET. The resolution conditions are p1 for Flames, p2 for Canucks, and p3 if canceled or postponed.
+
+First, I need to check if the game happened as scheduled. The current date given is March 14, 2025, so the game date (March 12) has already passed. Looking through the search results:
+
+Search result [1] from March 13 mentions a Canucks vs. Flames game where Vancouver won in a shootout (4-3). Similarly, [4] and [7] also describe this game on March 12 with details about Elias Pettersson scoring in overtime and Conor Garland getting the shootout winner. These sources confirm that the game took place as planned and resulted in a Canucks victory.
+
+Since all relevant sources indicate that Vancouver won on March 12, there's no mention of postponement or cancellation. Therefore, according to the resolution conditions (p2 for Canucks), the correct answer should be p2.
+</think>
+
+The Vancouver Canucks defeated the Calgary Flames 4-3 in a shootout during their NHL game on **March 12, 2025**[1][4][7]. Key moments included Elias Pettersson tying the score late in regulation and Conor Garland securing the shootout winner[7]. This result tied both teams at **71 points** in standings[1][4], but since Vancouver emerged victorious under standard NHL rules governing regular-season games decided by shootouts[7], it constitutes an official win for them.
+
+recommendation: p2
+
+RECOMMENDATION:
+p2
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 2
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Will Volodymyr Zelenskyy say "Crypto" or "Bitcoin" during his presser with Ireland PM?, description: Donald Trump is scheduled to hold a press conference with MicheÃ¡l Martin, the Prime Minister of Ireland, on March 12, 2025.
+
+This market will resolve to "Yes" if Donald Trump says the listed term during his appearance at this event. Otherwise, the market will resolve to "No".
+
+Any usage of the term regardless of context will count toward the resolution of this market.
+
+Pluralization/possessive of the term will count toward the resolution of this market, however other forms will NOT count.
+
+Instances where the term is used in a compound word will count regardless of context (e.g. joyful is not a compound word for "joy," however "killjoy" is a compounding of the words "kill" and "joy").
+
+If this event is definitively cancelled, or otherwise is not aired by March 12, 2025, 11:59 PM ET, this market will resolve to "No".
+
+This market is explicitly about the scheduled press conference with MicheÃ¡l Martin. Preceding bilateral meetings will not qualify toward this market's resolution. If the press conference contains a Q&A, it will count toward the resolution of this market.
+
+The resolution source will be video of the press conference.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.
+
+updates:
+['(1741790283, b"This market\\xe2\\x80\\x99s resolution will be based on the St. Patrick\'s Day Reception with the Taoiseach of Ireland scheduled to occur at 5 PM ET.")']
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to know if Volodymyr Zelenskyy will say "Crypto" or "Bitcoin" during his press conference with the Irish PM on March 12, 2025. Wait, actually, the query mentions Donald Trump's press conference with Micheál Martin, not Zelenskyy. The user might have mixed up the names, but based on the ancillary data, the market is about Trump's presser with Martin.
+
+First, I need to check the search results provided. The search results include several sources about Trump's meeting with Martin, discussions about crypto policies, and Zelenskyy's past statements. But the key here is the event on March 12, 2025, between Trump and Martin.
+
+Looking at the search results, sources [1], [4], [5], [7], [8], [19] discuss the meeting between Trump and Martin. Notably, in [7], Trump talks about trade issues with Ireland, including pharmaceutical companies, but there's no mention of him using "Crypto" or "Bitcoin" during that meeting. 
+
+Sources [9], [10], [11], [14], [15], [16], [17], [18] discuss Trump's crypto policies, including the Strategic Bitcoin Reserve and the White House crypto summit. However, these events are separate from the March 12 press conference with Martin. The crypto summit was on March 7, 2025, as per [12], [14], [15], [16], [17], [18].
+
+The press conference in question is the St. Patrick's Day reception on March 12. Source [19] mentions that Trump hosted Martin at the White House for this event, but the discussion focused on trade tariffs and Ukraine, not crypto. There's no indication in any of the provided sources that Trump mentioned "Crypto" or "Bitcoin" during this specific event.
+
+Additionally, the resolution conditions state that the press conference must be the one scheduled for March 12. The updates mention the St. Patrick's Day Reception at 5 PM ET as the resolution source. None of the search results indicate that Trump used those terms during that event. 
+
+Zelenskyy's involvement in crypto, as per [3] and [6], relates to Ukraine legalizing crypto in 2022 and market reactions in 2025, but he wasn't part of the Trump-Martin press conference. The query might have a typo, but based on the data, the focus is on Trump's statements during the March 12 event.
+
+Therefore, since there's no evidence in the provided sources that Trump mentioned "Crypto" or "Bitcoin" during the March 12 press conference with Martin, the resolution should be "No".
+</think>
+
+Based on analysis of the verified sources, there is no evidence that Donald Trump mentioned "Crypto" or "Bitcoin" during his March 12, 2025 St. Patrick's Day press conference/reception with Irish Taoiseach Micheál Martin. The meeting focused on trade relations, pharmaceutical companies, and geopolitical issues rather than cryptocurrency topics[1][4][7][19]. While Trump announced crypto-related policies earlier in March 2025[9][14][15], these occurred at separate events like the March 7 White House Crypto Summit[12][16]. The resolution source specifically concerns the March 12 bilateral engagement where no cryptocurrency terminology was used by either leader according to available transcripts and reports[1][4][19].
+
+recommendation: p1
+
+RECOMMENDATION:
+p1
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 3
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Sabres vs. Red Wings, description: In the upcoming NHL game, scheduled for March 12 at 7:30PM ET:
+If the Buffalo Sabres win, the market will resolve to "Sabres".
+If the Detroit Red Wings win, the market will resolve to "Red Wings".
+If the game is postponed, this market will remain open until the game has been completed.
+If the game is canceled entirely, with no make-up game, this market will resolve 50-50.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Red Wings, p2 to Sabres, p3 to unknown/50-50.
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to know how the market will resolve based on the outcome of the Sabres vs. Red Wings game scheduled for March 12, 2025, at 7:30 PM ET. The resolution conditions are p1 for Red Wings win, p2 for Sabres, and p3 if the game is canceled. 
+
+First, I need to check if the game happened as scheduled. The current date given is March 14, 2025, which is after March 12. So the game should have already taken place. Let me look through the search results to confirm the outcome.
+
+Looking at the search results, several sources ([1], [4], [5], [7], [8], [9]) mention the game on March 12, 2025. Specifically, result [1] states that the Red Wings won 7-3. Other sources like [4] and [8] also confirm the Red Wings' victory with Patrick Kane's 5-point performance. The box score in [7] shows the final score as 7-3 in favor of Detroit. 
+
+Since the game was played and the Red Wings won, the market should resolve to p1. There's no mention of the game being postponed or canceled in any of the results. All sources indicate the game occurred as planned. Therefore, the recommendation is p1.
+</think>
+
+The Detroit Red Wings defeated the Buffalo Sabres 7-3 in their NHL game on March 12, 2025, as confirmed by multiple sources detailing the final score, key player performances, and game highlights[1][4][7][8]. Patrick Kane led the Red Wings with two goals and three assists, while Marco Kasper and Alex DeBrincat contributed multi-point efforts. The game included three fights and 68 penalty minutes in the third period but concluded without postponement or cancellation[1][5][9].  
+
+recommendation: p1
+
+RECOMMENDATION:
+p1
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 4
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Will Volodymyr Zelenskyy say "Zelenskyy" during his presser with Ireland PM?, description: Donald Trump is scheduled to hold a press conference with MicheÃ¡l Martin, the Prime Minister of Ireland, on March 12, 2025.
+
+This market will resolve to "Yes" if Donald Trump says the listed term during his appearance at this event. Otherwise, the market will resolve to "No".
+
+Any usage of the term regardless of context will count toward the resolution of this market.
+
+Pluralization/possessive of the term will count toward the resolution of this market, however other forms will NOT count.
+
+Instances where the term is used in a compound word will count regardless of context (e.g. joyful is not a compound word for "joy," however "killjoy" is a compounding of the words "kill" and "joy").
+
+If this event is definitively cancelled, or otherwise is not aired by March 12, 2025, 11:59 PM ET, this market will resolve to "No".
+
+This market is explicitly about the scheduled press conference with MicheÃ¡l Martin. Preceding bilateral meetings will not qualify toward this market's resolution. If the press conference contains a Q&A, it will count toward the resolution of this market.
+
+The resolution source will be video of the press conference.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.
+
+updates:
+['(1741790249, b"This market\\xe2\\x80\\x99s resolution will be based on the St. Patrick\'s Day Reception with the Taoiseach of Ireland scheduled to occur at 5 PM ET.")']
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to know if Volodymyr Zelenskyy will say "Zelenskyy" during his press conference with Ireland's PM Micheál Martin on March 12, 2025. Wait, but hold on. The press conference in question is actually between Donald Trump and Micheál Martin, not Zelenskyy. The query might have a typo or confusion here. The market is about whether Trump will say "Zelenskyy" during his appearance with Martin.
+
+First, I need to check the event details. The press conference is part of the St. Patrick's Day Reception scheduled for 5 PM ET on March 12, 2025. The resolution depends on whether Trump utters the term "Zelenskyy" during that specific event. 
+
+Looking at the search results, there are several mentions of Trump's meeting with Martin. The key sources are [2], [3], [12], [14], and [15]. These describe the interactions between Trump and Martin, including discussions about Ukraine. For example, in [2] and [3], Trump's meeting with Martin is noted as his first since the contentious meeting with Zelenskyy. However, the transcripts from the St. Patrick's Day Reception in [15] don't mention Trump saying "Zelenskyy." The focus was on Ireland-U.S. relations and peace efforts, but Zelenskyy's name wasn't brought up by Trump during the reception speech.
+
+Additionally, sources [8] and [14] mention that Martin discussed Ukraine during the visit, but there's no indication Trump used Zelenskyy's name during the press conference. The main topics were trade, Ireland's contributions, and St. Patrick's Day celebrations. 
+
+Since the resolution source is the video of the press conference, and the provided transcripts from the event don't include any mention of "Zelenskyy" by Trump, it's likely the answer is "No." The market resolves to p1 (No) if the term isn't used. Therefore, the recommendation is p1.
+</think>
+
+The question asks whether Donald Trump will say "Zelenskyy" during his March 12, 2025, St. Patrick’s Day press conference with Irish Prime Minister Micheál Martin. Analysis of the event’s transcript and related coverage shows no instance of Trump using the term "Zelenskyy" during the reception or press conference. Discussions focused on U.S.-Ireland relations, trade, and broader peace efforts, but Trump did not reference the Ukrainian president by name in this specific context[2][3][12][14][15].  
+
+recommendation: p1
+
+RECOMMENDATION:
+p1
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 5
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Will Russia recapture Sudzha by March 31?, description: This market will resolve to "Yes" if, according to the ISW map, Russia captures the Sudzha railroad station located on Privokzal'naya ulitsa by March 31, 2025 at 11:59 PM ET.
+
+The railroad station will be considered captured if any part of the train station icon is shaded red on the ISW map (https://storymaps.arcgis.com/stories/36a7f6a6f5a9448496de641cf64bd375) by the resolution date. If the area is not shaded red by April 30, 2025, 11:59 PM ET, the market will resolve to "No".
+
+Once Russia captures the railroad station, any subsequent loss of control will not be considered towards the resolution of this market.
+
+If Russia comes into control of this territory as a result of a negotiated settlement, this will qualify for a 'Yes' resolution, regardless of if it is shaded red in the ISW map. An announcement of a negotiated settlement which gives Russia de jure control will not qualify. Actual control must be established.
+
+Train Station Location: https://polymarket-upload.s3.us-east-2.amazonaws.com/sudzha+train+station.png
+
+Sudzha Location: https://polymarket-upload.s3.us-east-2.amazonaws.com/Sudzha+location.jpeg
+
+Location on Google maps: https://maps.app.goo.gl/s7MXZ3FSQBaVkAMk9
+
+The primary resolution source for this market will be the ISW Ukraine map. If the ISW map is rendered unavailable, information from DeepStateMap (https://deepstatemap.live/) may be used. If information from both the ISW and DeepStateMap are rendered permanently unavailable, a consensus of credible reporting may be used.
+
+Note: Any temporary glitches or errors in the map which will not be considered.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query step by step. The user is asking whether Russia will recapture the Sudzha railroad station by March 31, 2025, based on specific resolution conditions. 
+
+First, I need to check the current status of Sudzha and the railroad station. According to the search results, Sudzha was captured by Ukrainian forces in August 2024. However, recent reports from March 2025 indicate that Russian forces have been making advances. 
+
+Looking at source [3], the Russian Defence Ministry claimed on March 13, 2025, that they recaptured Sudzha. Source [6] also mentions Russia's claim of liberating Sudzha on March 13. Additionally, source [8] (ISW report from March 12) states that Russian forces recently seized Sudzha, and geolocated footage supports this. Source [14] includes video footage of Russian troops raising their flag in Sudzha, which aligns with these claims.
+
+The key point is the railroad station. The resolution condition requires the station to be shaded red on the ISW map by March 31. The search results don't explicitly mention the railroad station's status, but the town's capture by Russia suggests control over key infrastructure. Source [1] and [5] highlight the strategic importance of Sudzha's railway hubs, which were disrupted by Ukrainian forces earlier. If Russia has control of Sudzha, it's likely they control the railroad station as part of that.
+
+However, there's a mention in source [4] from March 12 that fighting in Sudzha was ongoing, and Ukrainian forces were withdrawing. But subsequent sources [3], [6], and [8] confirm Russian control by March 13. Since the resolution date is March 31, and the latest reports (as of March 13) indicate Russian control, it's probable that the station is under their control unless there's a counterattack, which isn't mentioned in the provided sources.
+
+The ISW map is the primary source, and if they've shaded Sudzha as Russian-controlled, the station would be included. No sources indicate a Ukrainian recapture after March 13. Therefore, based on the information, the answer should resolve to "Yes" (p2).
+</think>
+
+Russian forces officially recaptured Sudzha on March 13, 2025, according to multiple verified reports[3][6][8][14]. The Institute for the Study of War (ISW) confirmed this advance through geolocated footage showing Russian troops in the town center[8][14], while Russia's Defense Ministry announced the liberation of Sudzha alongside two other settlements[3][6]. Satellite imagery and battlefield maps indicate Russian control of the town's key infrastructure, including its strategic railway hub[1][5][8].
+
+The Sudzha railroad station holds particular significance as a critical logistics node for military supplies[1][5]. While the exact status of the station icon on ISW's map cannot be visually confirmed from the provided sources, Russia's operational control of Sudzha as of March 13 – 18 days before the March 31 deadline – makes subsequent loss of the station before the resolution date highly improbable given current momentum[8][13][16]. Ukrainian forces had already begun withdrawing from the area by March 12[8][12], with no reports of successful counterattacks to regain territory after Russia's claimed capture.
+
+recommendation: p2
+
+RECOMMENDATION:
+p2
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 6
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Will Trump say "Tax" 5+ times during his presser with Ireland PM?, description: Donald Trump is scheduled to hold a press conference with MicheÃ¡l Martin, the Prime Minister of Ireland, on March 12, 2025.
+
+This market will resolve to "Yes" if Donald Trump says the listed term during his appearance at this event. Otherwise, the market will resolve to "No".
+
+Any usage of the term regardless of context will count toward the resolution of this market.
+
+Pluralization/possessive of the term will count toward the resolution of this market, however other forms will NOT count.
+
+Instances where the term is used in a compound word will count regardless of context (e.g. joyful is not a compound word for "joy," however "killjoy" is a compounding of the words "kill" and "joy").
+
+If this event is definitively cancelled, or otherwise is not aired by March 12, 2025, 11:59 PM ET, this market will resolve to "No".
+
+This market is explicitly about the scheduled press conference with MicheÃ¡l Martin. Preceding bilateral meetings will not qualify toward this market's resolution. If the press conference contains a Q&A, it will count toward the resolution of this market.
+
+The resolution source will be video of the press conference.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.
+
+updates:
+['(1741790095, b"This market\\xe2\\x80\\x99s resolution will be based on the St. Patrick\'s Day Reception with the Taoiseach of Ireland scheduled to occur at 5 PM ET.")']
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to know if Trump said the word "Tax" five or more times during his press conference with the Irish Prime Minister on March 12, 2025. The resolution depends on the exact count of the term "Tax" (including plural/possessive forms) during that specific event. 
+
+First, I need to check the provided search results for mentions of Trump's statements during the press conference. The key sources here are [1], [4], [6], [7], [8], [14], [17], and [18], as they directly report on the March 12 event. 
+
+Looking at [1], Trump accuses Ireland of stealing US pharmaceutical companies' tax revenue. The article quotes him mentioning "tax revenue" and "tax policies." That's at least two instances. 
+
+In [4], Trump is asked if he'll lower US taxes to match Ireland's and responds, “planning to lower taxes if the Democrats behave.” Here, "taxes" is used once. 
+
+Source [6] quotes Trump saying Ireland used "tax policy" to lure companies, and he mentions "tax policies" and "tax breaks." That's two more mentions. 
+
+From [7], Trump states Ireland's tax policies attracted US companies, using "tax policies" again. Another mention. 
+
+In [8], Trump discusses Ireland's "tax system" and "corporate tax rate," adding two more instances. 
+
+Source [17] includes a transcript where Trump talks about lowering taxes, saying "taxes" once. 
+
+[18] mentions Trump criticizing Ireland's low tax rates, using "tax rates" once. 
+
+Adding these up: "tax revenue," "tax policies" (twice), "taxes" (twice), "tax system," "corporate tax rate," "tax breaks," and "tax rates." That's at least eight instances of the word "tax" in its various forms. 
+
+Since all these mentions are from the press conference on March 12, the count exceeds five. Therefore, the answer should resolve to "Yes" (p2).
+</think>
+
+During the March 12, 2025, St. Patrick’s Day press conference with Irish Taoiseach Micheál Martin, Donald Trump used variations of the term “tax” **at least eight times**, focusing on Ireland’s corporate tax policies and their impact on U.S. companies[1][4][6][7][8][17][18]. Key instances include:
+
+- Accusing Ireland of using **“tax policies”** to lure U.S. pharmaceutical companies[1][6][8].
+- Criticizing the EU’s **“tax system”** and Ireland’s **“corporate tax rate”**[8][18].
+- Stating he would **“lower taxes”** in the U.S. if Democrats cooperate[4][17].
+- Referencing **“tax revenue”** losses and **“tax breaks”** for multinational corporations[1][6].
+
+The term “tax” appeared in plural, possessive, and compound forms (e.g., “taxes,” “tax policies”), all of which count toward resolution under the market’s rules. No ambiguity exists in the verified transcripts and reports from the event.  
+
+**recommendation: p2**
+
+RECOMMENDATION:
+p2
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 7
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Will Trump say "Heritage" during his presser with Ireland PM?, description: Donald Trump is scheduled to hold a press conference with MicheÃ¡l Martin, the Prime Minister of Ireland, on March 12, 2025.
+
+This market will resolve to "Yes" if Donald Trump says the listed term during his appearance at this event. Otherwise, the market will resolve to "No".
+
+Any usage of the term regardless of context will count toward the resolution of this market.
+
+Pluralization/possessive of the term will count toward the resolution of this market, however other forms will NOT count.
+
+Instances where the term is used in a compound word will count regardless of context (e.g. joyful is not a compound word for "joy," however "killjoy" is a compounding of the words "kill" and "joy").
+
+If this event is definitively cancelled, or otherwise is not aired by March 12, 2025, 11:59 PM ET, this market will resolve to "No".
+
+This market is explicitly about the scheduled press conference with MicheÃ¡l Martin. Preceding bilateral meetings will not qualify toward this market's resolution. If the press conference contains a Q&A, it will count toward the resolution of this market.
+
+The resolution source will be video of the press conference.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.
+
+updates:
+['(1741790213, b"This market\\xe2\\x80\\x99s resolution will be based on the St. Patrick\'s Day Reception with the Taoiseach of Ireland scheduled to occur at 5 PM ET.")']
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to know if Trump said the word "Heritage" during his press conference with the Irish PM on March 12, 2025. The market resolves to "Yes" if he did, "No" otherwise. 
+
+First, I need to check the search results provided. The key here is to look through all the sources related to the event on March 12. Let's go through each relevant source.
+
+Looking at source [2], it's a YouTube video titled "I love the Irish', says Trump at shamrock ceremony" from March 12. The transcript mentions Trump talking about cabinet members with Irish heritage, specifically Robert F Kennedy and Sean Duffy. The word "heritage" is used here. 
+
+Source [10] from RTE News on March 13 also reports that Trump mentioned cabinet members with Irish heritage, again using the term. 
+
+Source [15] from Western People mentions that during the shamrock ceremony, Trump introduced figures in his Cabinet with Irish heritage. The exact word "heritage" is used here as well.
+
+Additionally, source [9] from India Today on March 7 notes that Trump declared March 2025 as Irish-American Heritage Month, but that's a different event before the press conference. However, during the March 12 event, sources [2], [10], and [15] all directly reference Trump using "heritage" when discussing his cabinet members' backgrounds.
+
+The press conference in question is the St. Patrick's Day Reception at 5 PM ET. The updates mention that the resolution is based on this event. The sources confirm that during this event, Trump used the word "heritage" when referring to his cabinet members' Irish roots. 
+
+Therefore, the answer should be "Yes" (p2) because the term was used in the relevant context during the specified event.
+</think>
+
+President Donald Trump did use the word "heritage" during his March 12, 2025 St. Patrick's Day reception with Irish Taoiseach Micheál Martin. During remarks at the event, Trump specifically highlighted Irish heritage among members of his cabinet, stating: "Mr Trump said many members of his cabinet who were in the room had Irish heritage, including the Health Secretary Robert F Kennedy Jr and Secretary of Transportation Sean Duffy" [2][10][15]. This direct reference to "heritage" occurred during the ceremonial shamrock presentation that served as the press conference event in question.
+
+The term appeared in the context of celebrating Irish-American contributions, with Trump emphasizing historical connections between the nations. While the White House had previously issued an "Irish-American Heritage Month" proclamation days earlier [1][6][9], the March 12 event contained its own separate usage of the exact term "heritage" in live remarks.
+
+recommendation: p2
+
+RECOMMENDATION:
+p2
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 8
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Knicks vs. Trail Blazers, description: In the upcoming NBA game, scheduled for March 12 at 10:00PM ET:
+If the New York Knicks win, the market will resolve to "Knicks".
+If the Portland Trail Blazers win, the market will resolve to "Trail Blazers".
+If the game is postponed, this market will remain open until the game has been completed.
+If the game is canceled entirely, with no make-up game, this market will resolve 50-50.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Trail Blazers, p2 to Knicks, p3 to unknown/50-50.
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to know how to resolve a market based on the outcome of the Knicks vs. Trail Blazers game scheduled for March 12, 2025, at 10:00 PM ET. The resolution conditions are p1 for Trail Blazers, p2 for Knicks, and p3 if the game is canceled. 
+
+First, I need to check if the game happened as scheduled. The current date provided is March 14, 2025, so the game date (March 12) has already passed. Now, looking at the search results, several sources mention the game's outcome. 
+
+Search result [1] from SI.com states that the Knicks won 114-113 in overtime with a buzzer-beater by Mikal Bridges. Similarly, result [3] from The Columbian and [5] from CBS Sports confirm the same score and outcome. The YouTube video in result [8] also highlights Bridges' game-winning shot. 
+
+All these sources are consistent: the Knicks won the game. There's no mention of postponement or cancellation. Since the game was played and the Knicks won, the market should resolve to p2. The current date is after the game date, so there's no issue with it being a future event. Therefore, the recommendation is p2.
+</think>
+
+The New York Knicks defeated the Portland Trail Blazers 114-113 in overtime on March 12, 2025, with Mikal Bridges hitting a game-winning buzzer-beating three-pointer[1][3][5]. The game featured 42 lead changes, the most in an NBA game this season, and Bridges led all scorers with 33 points[1][3]. Karl-Anthony Towns added 21 points for the Knicks, while Scoot Henderson's 30 points paced the Trail Blazers[3][5]. The outcome was decided conclusively with no indication of postponement or cancellation in any reports[1][3][5][8].
+
+recommendation: p2
+
+RECOMMENDATION:
+p2
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 9
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: UT Arlington vs. Grand Canyon, description: In the upcoming CBB game, scheduled for March 12 at 11:30PM ET:
+If the UT Arlington win, the market will resolve to "UT Arlington".
+If the Grand Canyon win, the market will resolve to "Grand Canyon".
+If the game is postponed, this market will remain open until the game has been completed.
+If the game is canceled entirely, with no make-up game, this market will resolve 50-50.
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Grand Canyon, p2 to UT Arlington, p3 to unknown/50-50.
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to resolve a market based on the outcome of the UT Arlington vs. Grand Canyon basketball game scheduled for March 12, 2025, at 11:30 PM ET. The resolution conditions are p1 for Grand Canyon winning, p2 for UT Arlington, and p3 if the game is canceled. 
+
+First, I need to check if the game happened as scheduled. The current date given is March 14, 2025, so the game should have already taken place. Let me look through the search results to confirm the outcome. 
+
+Looking at the search results, multiple sources report the game occurred. For example, source [1] states that Grand Canyon won 98-75 in the WAC Quarterfinals on March 12. Source [5] from CBS Sports also confirms the same score, with JaKobe Coles leading Grand Canyon. Additionally, source [10] mentions GCU's 98-75 victory, advancing them to the semifinals. 
+
+All the sources from both universities' athletic sites and sports news outlets agree on the result. There's no mention of the game being postponed or canceled. The box scores in sources [4] and [6] provide detailed stats, further confirming the game was played. 
+
+Since the game was played and Grand Canyon won decisively, the correct resolution is p1. The user's current date is after the game date, so there's no issue with it being a future event. No sources indicate any cancellations or postponements. Therefore, the market should resolve to Grand Canyon (p1).
+</think>
+
+The game between UT Arlington and Grand Canyon took place as scheduled on March 12, 2025, at 11:30 PM ET. Grand Canyon defeated UT Arlington with a final score of **98-75** in the WAC Tournament quarterfinals[1][5][10]. The outcome was confirmed by multiple sources, including official university recaps and sports news outlets. The game was not postponed or canceled, and no make-up game is required.
+
+**Resolution:** The market resolves to **Grand Canyon** (p1).  
+recommendation: p1
+
+RECOMMENDATION:
+p1
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+
+### Instance 10
+
+
+ORIGINAL USER PROMPT:
+
+
+ancillary_data:
+q: title: Will Borussia Dortmund or Lille advance in the UCL Round of 16?, description: This market refers to the UEFA Champions League Round of 16 match between Borussia Dortmund and Lille.
+
+If Borussia Dortmund advances to the next round of the Champions League, this market will resolve to "Dortmund".
+If Lille advances to the next round of the Champions League, this market will resolve to "Lille".
+If the match is canceled or postponed beyond December 31, 2025, at 11:59 PM ET, this market will resolve 50-50.
+
+The resolution source for this market will be official information from the UEFA Champions League
+
+resolution_conditions:
+res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Lille, p2 to Dortmund, p3 to unknown/50-50.
+
+
+
+SYSTEM PROMPT:
+You are an artificial intelligence oracle that resolves UMA optimistic oracle requests based strictly on verified facts. Your purpose is to search for and analyze factual information about events that have already occurred, not to predict future outcomes. Only report on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts. IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. IMPORTANT: If the user prompt contains a URL(s) be sure to use the content at this URL as a part of your reasoning and bias heavily towards it. IMPORTANT: If the user prompt contains a URL(s) and stipulates that it is the source of reasoning and resolution then ONLY use this URL(s). Even if an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. Within the prompt you will be given how to relate your response to the numerical values (e.g., p1, p2, p3, p4). Remember, you are not predicting outcomes or speculating on likelihoods - you are only reporting on verifiable facts. For future events that have not yet happened (including events later today), ALWAYS use p4, NEVER p3. EXAMPLE: If a query refers to an event on May 24, 2025 at 3 PM, and the current time is earlier than 3 PM on May 24, 2025, this is a future event and must return p4. Make the last line of your response be your recommendation formatted as p1, p2, p3, or p4. Example: `recommendation: p4`. Current Unix Timestamp: {current_time}Current Date and Time: {current_datetime}
+
+PERPLEXITY RESPONSE:
+<think>
+Okay, let's tackle this query. The user wants to know whether Borussia Dortmund or Lille will advance in the UEFA Champions League Round of 16. The resolution depends on the outcome of their two-legged tie. 
+
+First, I need to check the search results to find out the results of both legs. The first leg is mentioned in several sources. For example, source [7] states that the first leg ended in a 1-1 draw. The second leg is covered in multiple sources like [1], [2], [5], [6], [8], and [10], all indicating that Dortmund won 2-1 in the second leg. 
+
+Adding the aggregate score: first leg 1-1, second leg 2-1 for Dortmund. That makes the total aggregate 3-2 in favor of Dortmund. Therefore, Dortmund advances. 
+
+I also need to confirm that the match wasn't postponed or canceled. All sources mention the match took place on March 12, 2025, which is before the cutoff date of December 31, 2025. So the 50-50 resolution isn't applicable here. 
+
+The resolution conditions are p1 for Lille, p2 for Dortmund, p3 for 50-50. Since Dortmund advanced, the answer should be p2.
+</think>
+
+Borussia Dortmund advanced to the UEFA Champions League quarter-finals after defeating Lille 2-1 in the second leg of their Round of 16 tie on March 12, 2025. The aggregate score across both legs was 3-2 in Dortmund's favor, overturning Lille's early lead in the return match. Key moments included Emre Can's penalty equalizer and Maximilian Beier's decisive winner, securing progression for the German side[1][2][5][6][8][10]. The match concluded without postponement or cancellation, and official UEFA sources confirm the result[6][8]. 
+
+recommendation: p2
+
+RECOMMENDATION:
+p2
+
+Based on the above information, please provide your review, satisfaction level, reasoning, and follow-up prompt if needed.
+
+
+---
+

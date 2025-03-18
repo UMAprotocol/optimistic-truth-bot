@@ -255,10 +255,19 @@ def load_instance_prompts(prompt_file: str) -> List[Dict]:
     return instances
 
 
-def save_results(results: List[Dict], output_file: str):
-    """Save the results to a JSON file."""
-    with open(output_file, "w", encoding="utf-8") as file:
-        json.dump(results, file, indent=2)
+def save_results(results, filename="iterative_results.json"):
+    # Extract just the filename, ignore any directory in the path
+    _, basename = os.path.split(filename)
+
+    # Define output directory path
+    output_dir = Path("combinatorial_follower/overseer_prompt_output")
+    output_dir.mkdir(exist_ok=True)
+
+    # Use the filename in the output directory
+    output_path = os.path.join(output_dir, basename)
+    with open(output_path, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"Results saved to {output_path}")
 
 
 def main():
