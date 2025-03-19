@@ -971,8 +971,15 @@ function updateTableWithData(dataArray) {
         return;
     }
     
+    // Sort the data by timestamp (newest first)
+    const sortedData = [...dataArray].sort((a, b) => {
+        const timestampA = a.timestamp || a.unix_timestamp || 0;
+        const timestampB = b.timestamp || b.unix_timestamp || 0;
+        return timestampB - timestampA; // Descending order (newest first)
+    });
+    
     // Generate table rows
-    tableBody.innerHTML = dataArray.map((item, index) => {
+    tableBody.innerHTML = sortedData.map((item, index) => {
         // Safety check for null/undefined items
         if (!item) return '';
         
@@ -1051,7 +1058,7 @@ function updateTableWithData(dataArray) {
     });
     
     // Update the count display
-    document.getElementById('displayingCount').textContent = dataArray.length;
+    document.getElementById('displayingCount').textContent = sortedData.length;
     document.getElementById('totalEntriesCount').textContent = currentData.length;
 }
 
