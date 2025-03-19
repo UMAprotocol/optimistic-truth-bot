@@ -1,6 +1,6 @@
 {
   "experiment": {
-    "timestamp": "18-03-2025 14:08",
+    "timestamp": "19-03-2025 12:08",
     "title": "Perplexity ChatGPT Overseer",
     "goal": "See if we can build a combinatorial model combination. Use ChatGPT to oversee the results from Perplexity and re-prompt Perplexity with follow on questions if ChatGPT is not happy.",
     "previous_experiment": null,
