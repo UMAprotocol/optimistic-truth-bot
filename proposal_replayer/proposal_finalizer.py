@@ -90,18 +90,24 @@ def get_market_resolution(output_data):
             UmaCtfAdapter, yesOrNoIdentifier, timestamp, ancillary_data_hex
         ).call()
 
-        # Check if market has settled
-        if not request_data[3]:  # settled flag
+        # Return partial data even if market is not settled
+        disputer_address = request_data[1]
+        resolved_price = (
+            request_data[6] if request_data[3] else None
+        )  # Only include price if settled
+        is_settled = request_data[3]  # settled flag
+
+        logger.info(f"Market {query_id} disputer address: {disputer_address}")
+        if is_settled:
+            logger.info(f"Market {query_id} resolved with price: {resolved_price}")
+        else:
             logger.info(f"Market {query_id} not settled yet")
-            return None
 
-        resolved_price = request_data[6]
-        disputer_address = request_data[1]  # Extract disputer address from the response
-
-        logger.info(f"Market {query_id} resolved with price: {resolved_price}")
-        logger.info(f"Disputer address for {query_id}: {disputer_address}")
-
-        return resolved_price, disputer_address
+        return {
+            "resolved_price": resolved_price,
+            "disputer_address": disputer_address,
+            "is_settled": is_settled,
+        }
 
     except Exception as e:
         logger.error(f"Error querying resolution for {query_id}: {str(e)}")
@@ -110,42 +116,38 @@ def get_market_resolution(output_data):
 
 def update_output_file(output_path, resolution_data):
     try:
-        resolved_price, disputer_address = resolution_data
-        # Initialize optional values to None
-        new_timestamp = None
-        final_resolved_price = None
+        if not resolution_data:
+            logger.error(f"No resolution data provided for {output_path}")
+            return False
 
         with open(output_path, "r") as f:
             data = json.load(f)
 
-        # Update the resolved price
-        data["resolved_price"] = resolved_price
-        data["resolved_price_outcome"] = price_to_outcome(resolved_price)
-
-        # Add proposed_price_outcome using the proposed_price
+        # Add proposed_price_outcome using the proposed_price if it exists
         if "proposed_price" in data:
             data["proposed_price_outcome"] = price_to_outcome(data["proposed_price"])
 
-        # Add disputed flag - True if disputer address is not zero address
+        # Add dispute information
         zero_address = "0x0000000000000000000000000000000000000000"
-        data["disputed"] = disputer_address != zero_address
+        disputer_address = resolution_data.get("disputer_address")
+        is_disputed = disputer_address != zero_address
+        data["disputed"] = is_disputed
 
-        if data["disputed"]:
+        if is_disputed:
             data["disputer_address"] = disputer_address
             logger.info(
                 f"Market {data.get('query_id')} was disputed by {disputer_address}"
             )
 
-            # If we have a new timestamp and final resolution after dispute, add them
-            if new_timestamp and final_resolved_price is not None:
-                data["dispute_timestamp"] = new_timestamp
-                data["final_resolved_price"] = final_resolved_price
-                data["final_resolved_price_outcome"] = price_to_outcome(
-                    final_resolved_price
-                )
-                logger.info(
-                    f"Added final resolution data after dispute for {data.get('query_id')}"
-                )
+        # Update resolved price if the market is settled
+        if resolution_data.get("is_settled"):
+            data["resolved_price"] = resolution_data.get("resolved_price")
+            data["resolved_price_outcome"] = price_to_outcome(
+                resolution_data.get("resolved_price")
+            )
+        else:
+            # For unsettled markets, set resolved_price_outcome to null
+            data["resolved_price_outcome"] = None
 
         # Restructure raw_proposal_data to proposal_metadata
         if "raw_proposal_data" in data:
@@ -167,7 +169,7 @@ def update_output_file(output_path, resolution_data):
         with open(output_path, "w") as f:
             json.dump(data, f, indent=2)
 
-        logger.info(f"Updated {output_path.name} with resolved price: {resolved_price}")
+        logger.info(f"Updated {output_path.name} with additional information")
         return True
     except Exception as e:
         logger.error(f"Error updating file {output_path}: {str(e)}")
@@ -204,13 +206,15 @@ def process_files(directory, file_type):
             resolution_data = get_market_resolution(data)
 
             if resolution_data is not None:
-                # Update the file with resolution data
+                # Update the file with resolution data (partial or complete)
                 if update_output_file(file_path, resolution_data):
                     updated_count += 1
                 else:
                     error_count += 1
             else:
-                logger.info(f"Market {data.get('query_id')} not yet resolved, skipping")
+                logger.info(
+                    f"Could not retrieve data for {data.get('query_id')}, skipping"
+                )
                 skipped_count += 1
 
         except Exception as e:

@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('filterIncorrect')?.addEventListener('click', () => {
         applyFilter('incorrect');
     });
+
+    document.getElementById('filterIncorrectIgnoringP4')?.addEventListener('click', () => {
+        applyFilter('incorrectIgnoringP4');
+    });
     
     // Set up clear tag filter button
     document.getElementById('clearTagFilter')?.addEventListener('click', clearTagFilter);
@@ -166,7 +170,6 @@ function initializeCharts() {
 
 // Calculate analytics for the displayed data
 function calculateAnalytics(dataArray) {
-    // Initialize counters
     let correctCount = 0;
     let incorrectCount = 0;
     let p1Count = 0;
@@ -176,14 +179,10 @@ function calculateAnalytics(dataArray) {
     let resolution1Count = 0;
     let resolution0Count = 0;
     let resolutionOtherCount = 0;
-    
-    // Track specialized analytics
-    let p123Total = 0;
-    let p123Correct = 0;
     let p12Total = 0;
     let p12Correct = 0;
     
-    // Initialize tag statistics
+    // Tag statistics
     const tagStats = {};
     
     // Filter out entries with undefined or null resolved_price_outcome
@@ -210,21 +209,17 @@ function calculateAnalytics(dataArray) {
         
         // Calculate correctness
         const isCorrect = isRecommendationCorrect(entry);
-        if (isCorrect) {
+        // Only include in counts if we can determine correctness (not null)
+        if (isCorrect === true) {
             correctCount++;
-        } else {
+        } else if (isCorrect === false) {
             incorrectCount++;
         }
         
         // Calculate specialized metrics
-        if (rec === 'p1' || rec === 'p2' || rec === 'p3') {
-            p123Total++;
-            if (isCorrect) p123Correct++;
-        }
-        
         if (rec === 'p1' || rec === 'p2') {
             p12Total++;
-            if (isCorrect) p12Correct++;
+            if (isCorrect === true) p12Correct++;
         }
         
         // Calculate tag statistics
@@ -240,12 +235,12 @@ function calculateAnalytics(dataArray) {
                     };
                 }
                 
-                // Update counts
+                // Update counts only if correctness can be determined
                 tagStats[tag].total++;
                 
-                if (isCorrect) {
+                if (isCorrect === true) {
                     tagStats[tag].correct++;
-                } else {
+                } else if (isCorrect === false) {
                     tagStats[tag].incorrect++;
                 }
                 
@@ -259,7 +254,6 @@ function calculateAnalytics(dataArray) {
     // Calculate percentages
     const totalCount = correctCount + incorrectCount;
     const accuracyPercent = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
-    const p123Accuracy = p123Total > 0 ? (p123Correct / p123Total) * 100 : 0;
     const p12Accuracy = p12Total > 0 ? (p12Correct / p12Total) * 100 : 0;
     
     // Calculate accuracy percentage for each tag
@@ -273,7 +267,6 @@ function calculateAnalytics(dataArray) {
         incorrectCount,
         totalCount,
         accuracyPercent,
-        p123Accuracy,
         p12Accuracy,
         noDataCount: p4Count,
         recommendationCounts: [p1Count, p2Count, p3Count, p4Count],
@@ -301,8 +294,8 @@ function isRecommendationCorrect(entry) {
         return false;
     }
     
-    // Can't determine correctness if no resolution field is present
-    return false;
+    // If no resolution is available (unresolved status), don't count it as incorrect
+    return null;
 }
 
 // Update analytics display including tag accuracy
@@ -314,7 +307,6 @@ function updateAnalyticsDisplay(analytics) {
             incorrectCount: 0,
             totalCount: 0,
             accuracyPercent: 0,
-            p123Accuracy: 0,
             p12Accuracy: 0,
             noDataCount: 0,
             recommendationCounts: [0, 0, 0, 0],
@@ -391,13 +383,6 @@ function updateAnalyticsDisplay(analytics) {
     document.getElementById('noDataCount').textContent = analytics.noDataCount;
     
     // Update specialized accuracy metrics
-    const p123Accuracy = document.getElementById('p123Accuracy');
-    if (p123Accuracy) {
-        p123Accuracy.style.width = `${analytics.p123Accuracy}%`;
-        p123Accuracy.setAttribute('aria-valuenow', analytics.p123Accuracy);
-        p123Accuracy.textContent = `${Math.round(analytics.p123Accuracy)}%`;
-    }
-    
     const p12Accuracy = document.getElementById('p12Accuracy');
     if (p12Accuracy) {
         p12Accuracy.style.width = `${analytics.p12Accuracy}%`;
@@ -834,6 +819,11 @@ function displayExperimentMetadata() {
         content += `<p><strong>Previous Experiment:</strong> ${experimentInfo.previous_experiment}</p>`;
     }
     
+    // Prompt version
+    if (experimentInfo.prompt_version) {
+        content += `<p><strong>Prompt Version:</strong> ${experimentInfo.prompt_version}</p>`;
+    }
+    
     // Modifications
     if (experimentInfo.modifications) {
         content += `<div><strong>Modifications:</strong><ul>`;
@@ -987,8 +977,20 @@ function updateTableWithData(dataArray) {
         if (!item) return '';
         
         const isCorrect = isRecommendationCorrect(item);
-        const correctnessClass = isCorrect ? 'text-success' : 'text-danger';
-        const correctnessIcon = isCorrect ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+        let correctnessClass = '';
+        let correctnessIcon = '';
+        
+        if (isCorrect === true) {
+            correctnessClass = 'text-success';
+            correctnessIcon = 'bi-check-circle-fill';
+        } else if (isCorrect === false) {
+            correctnessClass = 'text-danger';
+            correctnessIcon = 'bi-x-circle-fill';
+        } else {
+            // Unresolved status - neutral styling
+            correctnessClass = 'text-secondary';
+            correctnessIcon = 'bi-dash-circle';
+        }
         
         // Determine if we can calculate correctness
         const canCalculateCorrectness = (item.resolved_price_outcome !== undefined && 
@@ -1090,15 +1092,27 @@ function showDetails(data, index) {
     const proposedPrice = data.proposed_price_outcome !== undefined ? data.proposed_price_outcome : 
                          (data.proposed_price !== undefined ? data.proposed_price : 'N/A');
     
+    // Get correctness state
+    const isCorrect = isRecommendationCorrect(data);
+    let alertClass = 'alert-secondary';
+    let correctnessText = 'Unresolved';
+    
+    if (isCorrect === true) {
+        alertClass = 'alert-success';
+        correctnessText = 'Yes';
+    } else if (isCorrect === false) {
+        alertClass = 'alert-danger';
+        correctnessText = 'No';
+    }
+    
     // Generate the content
     let content = `
-        <div class="alert ${isRecommendationCorrect(data) ? 'alert-success' : 'alert-danger'} mb-4">
+        <div class="alert ${alertClass} mb-4">
             <strong>Recommendation:</strong> ${data.recommendation || 'N/A'} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
             <strong>Resolved:</strong> ${data.resolved_price_outcome || data.resolved_price || 'Unresolved'} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
-            <strong>Correct:</strong> ${(data.resolved_price_outcome !== undefined || data.resolved_price !== undefined) ? 
-                                       (isRecommendationCorrect(data) ? 'Yes' : 'No') : 'N/A'}
+            <strong>Correct:</strong> ${correctnessText}
         </div>
     `;
     
@@ -1550,13 +1564,20 @@ function applyAllFilters(correctnessFilter, tagFilters = []) {
     let filteredData = [...currentData];
     
     // Apply correctness filter if specified
-    if (correctnessFilter === 'correct' || correctnessFilter === 'incorrect' || correctnessFilter === 'disputed') {
+    if (correctnessFilter === 'correct' || correctnessFilter === 'incorrect' || correctnessFilter === 'disputed' || correctnessFilter === 'incorrectIgnoringP4') {
         filteredData = filteredData.filter(item => {
             if (correctnessFilter === 'disputed') {
                 return item.disputed === true;
+            } else if (correctnessFilter === 'incorrectIgnoringP4') {
+                // Only show incorrect results where AI recommendation was NOT p4
+                const isCorrect = isRecommendationCorrect(item);
+                const isNotP4 = item.recommendation && item.recommendation.toLowerCase() !== 'p4';
+                return isCorrect === false && isNotP4;
             } else {
                 const isCorrect = isRecommendationCorrect(item);
-                return correctnessFilter === 'correct' ? isCorrect : !isCorrect;
+                // Skip entries where we can't determine correctness (null)
+                if (isCorrect === null) return false;
+                return correctnessFilter === 'correct' ? isCorrect === true : isCorrect === false;
             }
         });
     }

@@ -1,15 +1,27 @@
 #!/usr/bin/env python3
 """
 UMA Proposal Replayer - Monitors proposals directory, queries Perplexity API for solutions, saves outputs.
-Usage: python proposal_replayer/proposal_replayer.py
+Usage: python proposal_replayer/proposal_replayer.py [--start-block NUMBER] [--output-dir PATH]
 """
 
 import os, json, time, threading, sys
+import argparse
 from datetime import datetime
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from dotenv import load_dotenv
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description="UMA Proposal Replayer")
+parser.add_argument(
+    "--start-block",
+    type=int,
+    default=0,
+    help="Starting block number to process proposals from",
+)
+parser.add_argument("--output-dir", type=str, help="Directory to store output files")
+args = parser.parse_args()
 
 print(
     "🔍 Starting UMA Proposal Replayer - Monitoring for proposals and querying Perplexity API 🤖 📊"
@@ -29,8 +41,17 @@ load_dotenv()
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
 PROPOSALS_DIR = Path(__file__).parent / "proposals"
-OUTPUTS_DIR = Path(__file__).parent / "outputs"
+# Use command line argument for output directory if provided, otherwise use default
+OUTPUTS_DIR = (
+    Path(args.output_dir) if args.output_dir else Path(__file__).parent / "outputs"
+)
 OUTPUTS_DIR.mkdir(exist_ok=True)
+
+# Store the starting block number
+START_BLOCK_NUMBER = args.start_block
+
+logger.info(f"Using starting block number: {START_BLOCK_NUMBER}")
+logger.info(f"Output directory set to: {OUTPUTS_DIR}")
 
 
 def format_prompt_from_json(proposal_data):
@@ -41,11 +62,12 @@ def format_prompt_from_json(proposal_data):
     resolution_conditions = proposal_data.get("resolution_conditions", "")
     updates = proposal_data.get("updates", [])
 
-    prompt = f"\n\nancillary_data:\n{ancillary_data}\n\n"
+    prompt = f"system: {get_system_prompt()}\n\n"
+    prompt += f"user:\n\nancillary_data:\n{ancillary_data}\n\n"
     if resolution_conditions:
         prompt += f"resolution_conditions:\n{resolution_conditions}\n\n"
     if updates:
-        prompt += f"updates:\n{updates}\n\n"
+        prompt += f"updates:\n{updates}"
     return prompt
 
 
@@ -71,6 +93,18 @@ def is_already_processed(query_id):
     return (OUTPUTS_DIR / get_output_filename(query_id)).exists()
 
 
+def get_block_number_from_proposal(proposal_data):
+    if isinstance(proposal_data, list) and len(proposal_data) > 0:
+        return proposal_data[0].get("block_number", 0)
+    return proposal_data.get("block_number", 0)
+
+
+def should_process_proposal(proposal_data):
+    # Check if the block number is greater than or equal to our starting block
+    block_number = get_block_number_from_proposal(proposal_data)
+    return block_number >= START_BLOCK_NUMBER
+
+
 def process_proposal_file(file_path):
     file_name = os.path.basename(file_path)
     logger.info(f"Processing proposal: {file_name}")
@@ -78,6 +112,13 @@ def process_proposal_file(file_path):
     try:
         with open(file_path, "r") as f:
             proposal_data = json.load(f)
+
+        # Check if we should process this proposal based on block number
+        if not should_process_proposal(proposal_data):
+            logger.info(
+                f"Skipping proposal with block number below {START_BLOCK_NUMBER}"
+            )
+            return True
 
         query_id = get_query_id_from_proposal(proposal_data)
         if query_id and is_already_processed(query_id):
@@ -186,12 +227,23 @@ def process_proposal_file(file_path):
 
 
 def process_all_existing_files():
-    logger.info("Checking for unprocessed files in proposals directory")
+    logger.info(
+        f"Checking for unprocessed files in proposals directory (block >= {START_BLOCK_NUMBER})"
+    )
 
     for file_path in PROPOSALS_DIR.glob("*.json"):
         try:
             with open(file_path, "r") as f:
-                query_id = get_query_id_from_proposal(json.load(f))
+                proposal_data = json.load(f)
+
+            # Check if the proposal meets our block number requirement
+            if not should_process_proposal(proposal_data):
+                logger.debug(
+                    f"Skipping {file_path.name} with block number below {START_BLOCK_NUMBER}"
+                )
+                continue
+
+            query_id = get_query_id_from_proposal(proposal_data)
 
             if not is_already_processed(query_id):
                 logger.info(f"Found unprocessed file: {file_path.name}")
