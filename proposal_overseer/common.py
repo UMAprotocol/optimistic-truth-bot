@@ -134,9 +134,32 @@ def query_chatgpt(
 
 def extract_recommendation(response_text):
     """Extract the recommendation (p1, p2, p3, p4) from the response text."""
-    match = re.search(r"recommendation:\s*(p[1-4])", response_text, re.IGNORECASE)
-    if match:
-        return match.group(1).lower()  # Normalize to lowercase
+    # Handle various formats including markdown, bold, parenthetical remarks
+    patterns = [
+        # Standard format: recommendation: p1
+        r"recommendation:\s*(p[1-4])",
+        # Markdown with bold or emphasis: **Recommendation**: p1 (No)
+        r"\*\*Recommendation\*\*:?\s*(p[1-4]).*?(?:\n|$)",
+        # Markdown with emphasis: *Recommendation*: p1 (No)
+        r"\*Recommendation\*:?\s*(p[1-4]).*?(?:\n|$)",
+        # Capitalized: Recommendation: p1
+        r"Recommendation:?\s*(p[1-4]).*?(?:\n|$)",
+        # Just the p value at the end of the text
+        r"(?:recommended|final)?\s*(?:value|result|answer|outcome)?:?\s*(p[1-4])(?:\s|$|\.|\)|\n)",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, response_text, re.IGNORECASE)
+        if match:
+            return match.group(1).lower()  # Normalize to lowercase
+
+    # If nothing found, try a more aggressive search just for p1-p4 near the end
+    lines = response_text.split("\n")
+    for line in lines[-5:]:  # Check last 5 lines
+        p_match = re.search(r"(p[1-4])", line, re.IGNORECASE)
+        if p_match:
+            return p_match.group(1).lower()
+
     return None
 
 
@@ -174,29 +197,87 @@ def get_overseer_decision(overseer_response):
         overseer_response (str): The response from the ChatGPT overseer
 
     Returns:
-        str: 'satisfied', 'retry', or 'default_p4'
+        tuple: (decision, require_rerun, critique, prompt_update)
+            decision - 'satisfied', 'retry', or 'default_p4'
+            require_rerun - boolean indicating if a rerun is required
+            critique - string with critique feedback
+            prompt_update - string with updated prompt if provided, None otherwise
     """
-    # Look for clear decision indicators in the response
+    # First try to extract the new JSON format
+    decision_match = re.search(
+        r"```decision\s*(\{.*?\})\s*```", overseer_response, re.DOTALL
+    )
+
+    if decision_match:
+        try:
+            decision_data = json.loads(decision_match.group(1))
+            verdict = decision_data.get("verdict", "").lower()
+
+            if "satisfied" in verdict:
+                decision = "satisfied"
+            elif "retry" in verdict:
+                decision = "retry"
+            elif "default" in verdict or "p4" in verdict:
+                decision = "default_p4"
+            else:
+                decision = "default_p4"  # Default to p4 as safest option
+
+            return (
+                decision,
+                decision_data.get("require_rerun", False),
+                decision_data.get("critique", ""),
+                decision_data.get("prompt_update", None),
+            )
+        except json.JSONDecodeError:
+            # If JSON parsing fails, fall back to legacy format
+            pass
+
+    # More aggressive pattern matching for verdict fields that appear outside JSON
+    verdict_match = re.search(
+        r"verdict\s*:?\s*(SATISFIED|RETRY|DEFAULT[\s_-]TO[\s_-]P4)",
+        overseer_response,
+        re.IGNORECASE,
+    )
+    if verdict_match:
+        verdict = verdict_match.group(1).lower()
+        if "satisfied" in verdict:
+            return "satisfied", False, extract_critique(overseer_response), None
+        elif "retry" in verdict:
+            return (
+                "retry",
+                True,
+                extract_critique(overseer_response),
+                extract_prompt_update(overseer_response),
+            )
+        elif "default" in verdict or "p4" in verdict:
+            return "default_p4", False, extract_critique(overseer_response), None
+
+    # Legacy format parsing with expanded patterns
     if re.search(
-        r"Decision:\s*SATISFIED|response is accurate|response is correct|satisfied with the response|100% confident|completely confident",
+        r"Decision:\s*SATISFIED|response is accurate|response is correct|satisfied with the response|100% confident|completely confident|can be used confidently",
         overseer_response,
         re.IGNORECASE,
     ):
-        return "satisfied"
+        return "satisfied", False, extract_critique(overseer_response), None
 
     elif re.search(
         r"Decision:\s*DEFAULT TO P4|default to p4|should return p4|use p4 instead|switch to p4|change to p4|recommend p4|uncertainty|insufficient evidence|not enough information|requires more data|better safe",
         overseer_response,
         re.IGNORECASE,
     ):
-        return "default_p4"
+        return "default_p4", False, extract_critique(overseer_response), None
 
     elif re.search(
         r"Decision:\s*RETRY|retry|revise|requery|update the prompt|try again|needs improvement|should be clarified|can be fixed|could be improved",
         overseer_response,
         re.IGNORECASE,
     ):
-        return "retry"
+        return (
+            "retry",
+            True,
+            extract_critique(overseer_response),
+            extract_prompt_update(overseer_response),
+        )
 
     # If no clear pattern and we see any uncertainty language, default to p4
     if re.search(
@@ -204,22 +285,157 @@ def get_overseer_decision(overseer_response):
         overseer_response,
         re.IGNORECASE,
     ):
-        return "default_p4"
+        return "default_p4", False, extract_critique(overseer_response), None
+
+    # If we see clear language about being satisfied, accept the response
+    if re.search(
+        r"(the response is accurate|can be used confidently|properly analyzed|answered correctly|addresses the query|provides appropriate|good recommendation)",
+        overseer_response,
+        re.IGNORECASE,
+    ):
+        return "satisfied", False, extract_critique(overseer_response), None
 
     # If no clear pattern, default to p4 as the safest option
-    return "default_p4"
+    return "default_p4", False, extract_critique(overseer_response), None
 
 
-def perplexity_chatgpt_loop(
+def extract_critique(overseer_response):
+    """Extract critique from the overseer response text."""
+    # Look for explicit critique sections
+    critique_patterns = [
+        r"(?:Issues|Problems|Concerns|Weaknesses):(.*?)(?:\n\n|\Z)",
+        r"(?:Missing information|What is missing|Gaps|Lacks):(.*?)(?:\n\n|\Z)",
+        r"(?:Improvements needed|Areas to improve|Should improve):(.*?)(?:\n\n|\Z)",
+        r"(?:Critique|Feedback|Assessment):(.*?)(?:\n\n|\Z)",
+    ]
+
+    for pattern in critique_patterns:
+        match = re.search(pattern, overseer_response, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+
+    # If no specific critique found, extract a generic section
+    critique_section = re.search(
+        r"(?:Decision:.*?\n)(.*?)(?:\n\n|$)", overseer_response, re.DOTALL
+    )
+    if critique_section:
+        return critique_section.group(1).strip()
+
+    # Return a default if nothing found
+    return "No specific critique provided."
+
+
+# Common proposal processing utilities
+def format_prompt_from_json(proposal_data):
+    """
+    Format a proposal data object into a user prompt.
+
+    Args:
+        proposal_data (dict or list): The proposal data
+
+    Returns:
+        str: Formatted prompt string
+    """
+    if isinstance(proposal_data, list) and len(proposal_data) > 0:
+        proposal_data = proposal_data[0]
+
+    ancillary_data = proposal_data.get("ancillary_data", "")
+    resolution_conditions = proposal_data.get("resolution_conditions", "")
+    updates = proposal_data.get("updates", [])
+
+    prompt = f"user:\n\nancillary_data:\n{ancillary_data}\n\n"
+    if resolution_conditions:
+        prompt += f"resolution_conditions:\n{resolution_conditions}\n\n"
+    if updates:
+        prompt += f"updates:\n{updates}"
+    return prompt
+
+
+def get_query_id_from_proposal(proposal_data):
+    """
+    Extract the query ID from a proposal.
+
+    Args:
+        proposal_data (dict or list): The proposal data
+
+    Returns:
+        str: Query ID
+    """
+    if isinstance(proposal_data, list) and len(proposal_data) > 0:
+        return proposal_data[0].get("query_id", "")
+    return proposal_data.get("query_id", "")
+
+
+def get_question_id_short(query_id):
+    """
+    Create a shortened version of a query ID for display and filenames.
+
+    Args:
+        query_id (str): Full query ID
+
+    Returns:
+        str: Short query ID
+    """
+    if not query_id:
+        return "unknown"
+    return query_id[2:10] if query_id.startswith("0x") else query_id[:8]
+
+
+def get_output_filename(query_id):
+    """
+    Generate an output filename for a query.
+
+    Args:
+        query_id (str): Query ID
+
+    Returns:
+        str: Output filename
+    """
+    return f"{get_question_id_short(query_id)}.json"
+
+
+def get_block_number_from_proposal(proposal_data):
+    """
+    Extract the block number from a proposal.
+
+    Args:
+        proposal_data (dict or list): The proposal data
+
+    Returns:
+        int: Block number
+    """
+    if isinstance(proposal_data, list) and len(proposal_data) > 0:
+        return proposal_data[0].get("block_number", 0)
+    return proposal_data.get("block_number", 0)
+
+
+def should_process_proposal(proposal_data, start_block_number=0):
+    """
+    Determine if a proposal should be processed based on block number.
+
+    Args:
+        proposal_data (dict or list): The proposal data
+        start_block_number (int): Minimum block number to process
+
+    Returns:
+        bool: True if the proposal should be processed
+    """
+    block_number = get_block_number_from_proposal(proposal_data)
+    return block_number >= start_block_number
+
+
+def enhanced_perplexity_chatgpt_loop(
     user_prompt,
     perplexity_api_key,
     chatgpt_api_key,
     original_system_prompt,
     logger,
     max_attempts=3,
+    min_attempts=2,
 ):
     """
-    Implement the loop between Perplexity and ChatGPT for validation and refinement.
+    Enhanced version of perplexity_chatgpt_loop that ensures at least min_attempts
+    before defaulting to p4, and encourages deeper research on retry attempts.
 
     Args:
         user_prompt (str): The user prompt content
@@ -228,6 +444,7 @@ def perplexity_chatgpt_loop(
         original_system_prompt (str): Initial system prompt for Perplexity
         logger (logging.Logger): Logger instance
         max_attempts (int): Maximum number of retry attempts
+        min_attempts (int): Minimum number of attempts before defaulting to p4
 
     Returns:
         dict: Result containing final response, recommendation, and metadata
@@ -235,10 +452,44 @@ def perplexity_chatgpt_loop(
     system_prompt = original_system_prompt
     attempts = 0
     responses = []
+    previous_perplexity_response = None
+    previous_overseer_critique = None
 
     while attempts < max_attempts:
         attempts += 1
         logger.info(f"Perplexity query attempt {attempts}/{max_attempts}")
+
+        # For retry attempts, add guidance based on previous overseer feedback
+        if attempts > 1:
+            retry_instruction = (
+                "\n\nIMPORTANT - I need you to improve your previous response:"
+            )
+
+            # If we have specific critique from the overseer, use it
+            if previous_overseer_critique:
+                retry_instruction += f"\n\nThe previous response had these issues:\n{previous_overseer_critique}\n"
+
+            # Add general instructions for improvement on retry
+            retry_instruction += "\n1. Dig deeper into available sources and data"
+            retry_instruction += (
+                "\n2. Be more critical of potentially unreliable sources"
+            )
+            retry_instruction += "\n3. Consider all interpretations of the query"
+            retry_instruction += (
+                "\n4. Provide more specific evidence for your recommendation"
+            )
+            retry_instruction += (
+                "\n5. Make sure your recommendation is fully justified by your analysis"
+            )
+
+            if previous_perplexity_response and "p4" in previous_perplexity_response:
+                # If the previous response defaulted to p4, encourage a more thorough search
+                retry_instruction += "\n\nTry your best to find information that would lead to a definitive answer (p1/p2/p3) if possible, before defaulting to p4."
+
+            # Add the retry instruction to the system prompt if not already present
+            if "I need you to improve your previous response" not in system_prompt:
+                system_prompt = system_prompt + retry_instruction
+                logger.info("Added specific improvement instructions for retry attempt")
 
         # Query Perplexity
         stop_spinner = threading.Event()
@@ -261,6 +512,7 @@ def perplexity_chatgpt_loop(
 
             perplexity_text = perplexity_response.choices[0].message.content
             recommendation = extract_recommendation(perplexity_text)
+            previous_perplexity_response = perplexity_text
 
             # Store response metadata
             response_data = {
@@ -316,26 +568,55 @@ def perplexity_chatgpt_loop(
 
             from proposal_overseer.prompt_overseer import get_overseer_prompt
 
-            overseer_prompt = get_overseer_prompt(
+            # For later attempts, encourage more critical analysis from the overseer
+            enhanced_overseer_prompt = get_overseer_prompt(
                 user_prompt=user_prompt,
                 system_prompt=system_prompt,
                 perplexity_response=perplexity_text,
                 recommendation=recommendation,
+                attempt=attempts,
             )
 
+            # Add additional instructions for the overseer on retry attempts
+            if attempts > 1:
+                enhanced_overseer_prompt += (
+                    "\n\nThis is attempt #"
+                    + str(attempts)
+                    + ". Please be especially critical of this response. If you see any potential for improvement or additional information that could be found, explain specifically what is missing and what could be improved."
+                )
+                enhanced_overseer_prompt += "\n\nIf you recommend a retry, please be very specific about what additional information or improvements you want to see in the next response."
+
             start_time = time.time()
-            overseer_response = query_chatgpt(overseer_prompt, chatgpt_api_key)
+            overseer_response = query_chatgpt(enhanced_overseer_prompt, chatgpt_api_key)
             overseer_response_time = time.time() - start_time
 
             overseer_text = overseer_response.choices[0].message.content
-            decision = get_overseer_decision(overseer_text)
+            decision, require_rerun, critique, prompt_update = get_overseer_decision(
+                overseer_text
+            )
+
+            # CRITICAL CHECK: ALWAYS force a retry if first attempt has p4 recommendation
+            if attempts == 1 and recommendation == "p4":
+                logger.info(
+                    "First attempt with p4 recommendation - FORCING retry regardless of overseer decision"
+                )
+                decision = "retry"
+                require_rerun = True
+                if not critique or critique == "No specific critique provided.":
+                    critique = "First attempt with p4 recommendation requires at least one more attempt with improved search strategies."
+
+            # Save the extracted critique for potential next attempt
+            if critique:
+                previous_overseer_critique = critique
+                logger.info("Extracted critique for next attempt")
 
             # Store overseer metadata
             overseer_data = {
                 "interaction_type": "chatgpt_evaluation",
                 "stage": f"evaluation_{attempts}",
                 "response": overseer_text,
-                "decision": decision,
+                "satisfaction_level": None,  # Will be set below
+                "critique": critique,
                 "metadata": {
                     "model": overseer_response.model,
                     "created_timestamp": overseer_response.created,
@@ -351,45 +632,95 @@ def perplexity_chatgpt_loop(
                 "system_prompt_before": system_prompt,
             }
 
-            # Process the overseer's decision
+            # Process the decision - CRITICAL FIX: Always respect the overseer's decision
+            # If the overseer is satisfied, we must accept that and NEVER force a second verification
             if decision == "satisfied":
-                logger.info("Overseer is satisfied with the response")
+                logger.info(
+                    "Overseer is satisfied with the response - accepting without question"
+                )
                 overseer_data["satisfaction_level"] = "satisfied"
                 responses.append(overseer_data)
                 stop_spinner.set()
                 spinner_thread.join()
                 break
 
-            elif decision == "default_p4":
-                logger.info("Overseer recommends defaulting to p4")
+            # Continue with remaining decision logic only if not satisfied
+            if require_rerun:
+                # If we have a prompt update from the decision, use it
+                if prompt_update:
+                    overseer_data["prompt_updated"] = True
+                    overseer_data["system_prompt_before"] = system_prompt
+                    overseer_data["system_prompt_after"] = prompt_update
+                    system_prompt = prompt_update
+                    logger.info("Using prompt update from overseer decision")
+
+                # Set satisfaction level based on decision
+                if decision == "default_p4" and attempts >= min_attempts:
+                    logger.info(
+                        f"Overseer recommends defaulting to p4 but first running again"
+                    )
+                    overseer_data["satisfaction_level"] = "uncertain_retry_requested"
+                elif decision == "default_p4":
+                    logger.info(
+                        f"Overseer suggested p4 but forcing retry (attempt {attempts}/{min_attempts} min)"
+                    )
+                    overseer_data["satisfaction_level"] = "forced_retry"
+                else:  # retry
+                    logger.info(f"Overseer requested retry with improvements")
+                    overseer_data["satisfaction_level"] = "retry_requested"
+
+                responses.append(overseer_data)
+                stop_spinner.set()
+                spinner_thread.join()
+                continue
+            else:
+                # No rerun required and not satisfied = default to p4
+                # If we haven't reached min_attempts, force another run anyway
+                if decision == "default_p4" and attempts < min_attempts:
+                    logger.info(
+                        f"Overseer wants to default to p4, but we need to meet min_attempts ({attempts}/{min_attempts})"
+                    )
+
+                    # Create a forced retry message
+                    if not previous_overseer_critique:
+                        previous_overseer_critique = f"This is attempt {attempts} of {min_attempts} minimum attempts. Even though the overseer suggests defaulting to p4, we're forcing another attempt to meet the minimum requirements."
+                        overseer_data["critique"] = previous_overseer_critique
+
+                    # Force a retry with a special system prompt
+                    forced_retry_instruction = (
+                        f"\n\nIMPORTANT - This is a forced attempt {attempts} of {min_attempts} minimum required attempts:"
+                        "\n1. The previous attempt suggested defaulting to p4, but we need to make additional attempts"
+                        "\n2. Try different search strategies to uncover information not found in previous attempts"
+                        "\n3. Consider alternative interpretations or perspectives"
+                        "\n4. Be creative in your research approach to find better information"
+                        "\n5. This attempt is required to meet the minimum attempt count policy"
+                    )
+
+                    updated_system_prompt = system_prompt + forced_retry_instruction
+                    overseer_data["prompt_updated"] = True
+                    overseer_data["system_prompt_before"] = system_prompt
+                    overseer_data["system_prompt_after"] = updated_system_prompt
+                    system_prompt = updated_system_prompt
+
+                    overseer_data["satisfaction_level"] = "forced_retry"
+                    responses.append(overseer_data)
+                    stop_spinner.set()
+                    spinner_thread.join()
+                    continue
+
+                # The decision is default_p4 and we're ok with that
+                logger.info(
+                    f"Overseer recommends defaulting to p4 - accepting this decision"
+                )
                 # Override the recommendation to p4
                 response_data["recommendation"] = "p4"
                 response_data["recommendation_overridden"] = True
-                overseer_data["satisfaction_level"] = "not_satisfied_defaulted_to_p4"
+                overseer_data["satisfaction_level"] = "defaulted_to_p4"
                 overseer_data["override_action"] = "recommendation_changed_to_p4"
                 responses.append(overseer_data)
                 stop_spinner.set()
                 spinner_thread.join()
                 break
-
-            else:  # "retry"
-                # Extract updated system prompt if available
-                updated_prompt = extract_prompt_update(overseer_text)
-                if updated_prompt:
-                    overseer_data["prompt_updated"] = True
-                    overseer_data["system_prompt_before"] = system_prompt
-                    overseer_data["system_prompt_after"] = updated_prompt
-                    system_prompt = updated_prompt
-                    logger.info("System prompt updated for next attempt")
-                else:
-                    logger.info(
-                        "No system prompt update found, using original for next attempt"
-                    )
-
-                overseer_data["satisfaction_level"] = "not_satisfied_retry_requested"
-                responses.append(overseer_data)
-                stop_spinner.set()
-                spinner_thread.join()
 
         except Exception as e:
             stop_spinner.set()
@@ -422,18 +753,34 @@ def perplexity_chatgpt_loop(
             "system_prompt": original_system_prompt,
         }
 
+    # For accuracy metrics - track whether we had multiple attempts and outcome changed
+    initial_recommendation = None
+    final_recommendation = None
+
+    for r in responses:
+        if r.get("interaction_type") == "perplexity_query":
+            if r.get("attempt") == 1:
+                initial_recommendation = r.get("recommendation")
+            final_recommendation = r.get("recommendation")
+
+    recommendation_changed = (initial_recommendation != final_recommendation) and (
+        attempts > 1
+    )
+
     final_result = {
         "attempts": attempts,
         "responses": responses,
-        "final_response": (
-            final_perplexity_response.get("response", "")
-            if final_perplexity_response
-            else ""
-        ),
+        "initial_recommendation": initial_recommendation,
         "final_recommendation": (
             final_perplexity_response.get("recommendation", "p4")
             if final_perplexity_response
             else "p4"
+        ),
+        "recommendation_changed": recommendation_changed,
+        "final_response": (
+            final_perplexity_response.get("response", "")
+            if final_perplexity_response
+            else ""
         ),
         "final_system_prompt": (
             final_perplexity_response.get("system_prompt", original_system_prompt)
@@ -443,3 +790,42 @@ def perplexity_chatgpt_loop(
     }
 
     return final_result
+
+
+# Keep the old function for backward compatibility but mark it as deprecated
+def perplexity_chatgpt_loop(
+    user_prompt,
+    perplexity_api_key,
+    chatgpt_api_key,
+    original_system_prompt,
+    logger,
+    max_attempts=3,
+):
+    """
+    DEPRECATED: Use enhanced_perplexity_chatgpt_loop instead.
+
+    Implement the loop between Perplexity and ChatGPT for validation and refinement.
+
+    Args:
+        user_prompt (str): The user prompt content
+        perplexity_api_key (str): Perplexity API key
+        chatgpt_api_key (str): OpenAI API key
+        original_system_prompt (str): Initial system prompt for Perplexity
+        logger (logging.Logger): Logger instance
+        max_attempts (int): Maximum number of retry attempts
+
+    Returns:
+        dict: Result containing final response, recommendation, and metadata
+    """
+    logger.warning(
+        "perplexity_chatgpt_loop is deprecated. Use enhanced_perplexity_chatgpt_loop instead."
+    )
+    return enhanced_perplexity_chatgpt_loop(
+        user_prompt=user_prompt,
+        perplexity_api_key=perplexity_api_key,
+        chatgpt_api_key=chatgpt_api_key,
+        original_system_prompt=original_system_prompt,
+        logger=logger,
+        max_attempts=max_attempts,
+        min_attempts=1,  # Original function effectively had min_attempts=1
+    )
