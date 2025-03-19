@@ -1217,6 +1217,20 @@ function showDetails(data, index) {
         `;
     }
     
+    // Add response section
+    if (data.response) {
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Response</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <pre class="mb-0 response-text">${data.response}</pre>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
     // Add response metadata if available
     if (data.response_metadata) {
         content += `
@@ -1238,16 +1252,141 @@ function showDetails(data, index) {
         `;
     }
     
-    // Add response section
-    if (data.response) {
+    // Add overseer data section if available
+    if (data.overseer_data) {
         content += `
             <div class="detail-section">
-                <h4 class="section-title">Response</h4>
-                <div class="card">
+                <h4 class="section-title">Overseer Data</h4>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <strong>Overseer Summary</strong>
+                    </div>
                     <div class="card-body">
-                        <pre class="mb-0 response-text">${data.response}</pre>
+                        <p><strong>Attempts:</strong> ${data.overseer_data.attempts}</p>
+                        <div class="recommendation-journey mt-3 mb-2">
+                            <strong>Recommendation Journey:</strong>
+                            <div class="journey-steps mt-2">
+                                ${data.overseer_data.recommendation_journey.map((step, idx) => `
+                                    <div class="journey-step">
+                                        <span class="step-number">${idx + 1}</span>
+                                        <div class="step-details">
+                                            <div><strong>Attempt:</strong> ${step.attempt}</div>
+                                            <div><strong>Perplexity:</strong> <code>${step.perplexity_recommendation}</code></div>
+                                            <div><strong>Overseer:</strong> <code>${step.overseer_decision}</code></div>
+                                            <div><strong>Prompt Updated:</strong> ${step.prompt_updated ? 'Yes' : 'No'}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
+                <div class="accordion" id="interactionsAccordion">
+                    ${data.overseer_data.interactions.map((interaction, idx) => `
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading${idx}">
+                                <button class="accordion-button ${idx > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse${idx}" aria-expanded="${idx === 0 ? 'true' : 'false'}" aria-controls="collapse${idx}">
+                                    <strong>${interaction.interaction_type === 'perplexity_query' ? 
+                                        `Attempt ${interaction.attempt}: Perplexity ${interaction.stage}` : 
+                                        `ChatGPT Evaluation: ${interaction.stage}`}</strong>
+                                    ${interaction.recommendation ? ` - Recommendation: <code>${interaction.recommendation}</code>` : ''}
+                                    ${interaction.decision ? ` - Decision: <code>${interaction.decision}</code>` : ''}
+                                </button>
+                            </h2>
+                            <div id="collapse${idx}" class="accordion-collapse collapse ${idx === 0 ? 'show' : ''}" 
+                                aria-labelledby="heading${idx}" data-bs-parent="#interactionsAccordion">
+                                <div class="accordion-body">
+                                    ${interaction.interaction_type === 'perplexity_query' ? `
+                                        <div class="card mb-3">
+                                            <div class="card-header">Response</div>
+                                            <div class="card-body">
+                                                <pre class="mb-0 response-text">${interaction.response}</pre>
+                                            </div>
+                                        </div>
+                                        ${interaction.citations && interaction.citations.length > 0 ? `
+                                            <div class="card mb-3">
+                                                <div class="card-header">Citations</div>
+                                                <div class="card-body">
+                                                    <ul class="citation-list">
+                                                        ${interaction.citations.map(citation => `
+                                                            <li><a href="${citation}" target="_blank">${citation}</a></li>
+                                                        `).join('')}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                        <div class="card">
+                                            <div class="card-header">Response Metadata</div>
+                                            <div class="card-body p-0">
+                                                <table class="table meta-table mb-0">
+                                                    ${Object.entries(interaction.response_metadata || {}).map(([key, value]) => `
+                                                        <tr>
+                                                            <th>${formatKeyName(key)}</th>
+                                                            <td>${formatValue(value)}</td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </table>
+                                            </div>
+                                        </div>
+                                    ` : `
+                                        <div class="card mb-3">
+                                            <div class="card-header">Evaluation</div>
+                                            <div class="card-body">
+                                                <pre class="mb-0 response-text">${interaction.response}</pre>
+                                            </div>
+                                        </div>
+                                        <div class="alert ${interaction.decision === 'satisfied' ? 'alert-success' : 
+                                            interaction.decision === 'not_satisfied' ? 'alert-danger' : 'alert-warning'}">
+                                            <strong>Decision:</strong> ${formatKeyName(interaction.decision || '')}
+                                            ${interaction.critique ? `<p class="mt-2 mb-0"><strong>Critique:</strong> ${interaction.critique}</p>` : ''}
+                                        </div>
+                                        ${interaction.recommendation_overridden ? `
+                                            <div class="alert alert-info">
+                                                <strong>Recommendation was overridden</strong>
+                                            </div>
+                                        ` : ''}
+                                        ${interaction.prompt_updated ? `
+                                            <div class="alert alert-info">
+                                                <strong>Prompt was updated</strong>
+                                            </div>
+                                        ` : ''}
+                                        <div class="card">
+                                            <div class="card-header">Metadata</div>
+                                            <div class="card-body p-0">
+                                                <table class="table meta-table mb-0">
+                                                    ${Object.entries(interaction.metadata || {}).map(([key, value]) => `
+                                                        <tr>
+                                                            <th>${formatKeyName(key)}</th>
+                                                            <td>${formatValue(value)}</td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </table>
+                                            </div>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                ${data.overseer_data.final_response_metadata ? `
+                    <div class="card mt-3">
+                        <div class="card-header">Final Response Metadata</div>
+                        <div class="card-body p-0">
+                            <table class="table meta-table mb-0">
+                                ${Object.entries(data.overseer_data.final_response_metadata).map(([key, value]) => `
+                                    <tr>
+                                        <th>${formatKeyName(key)}</th>
+                                        <td>${formatValue(value)}</td>
+                                    </tr>
+                                `).join('')}
+                            </table>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
@@ -1345,7 +1484,8 @@ function showDetails(data, index) {
         'query_id', 'question_id_short', 'recommendation', 'proposed_price', 'resolved_price', 
         'resolved_price_outcome', 'timestamp', 'unix_timestamp', 'transaction_hash', 
         'proposal_data', 'api_response', 'response', 'system_prompt', 'user_prompt',
-        'ancillary_data', 'citations', 'proposal_metadata', 'response_metadata', 'processed_file'
+        'ancillary_data', 'citations', 'proposal_metadata', 'response_metadata', 'processed_file',
+        'overseer_data', 'tags', 'disputed', 'proposed_price_outcome'
     ];
     
     const remainingEntries = Object.entries(data).filter(([key]) => !commonFields.includes(key));

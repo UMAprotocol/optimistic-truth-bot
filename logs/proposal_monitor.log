@@ -600,3 +600,5 @@
 2025-03-19 06:16:20,847 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
 2025-03-19 06:16:20,930 - proposal_monitor - INFO - API response received in 70.57 seconds
 2025-03-19 06:16:20,932 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_36aa5243.json with recommendation: p4
+2025-03-19 13:42:32,184 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
+2025-03-19 13:42:32,187 - proposal_monitor - INFO - Proposal monitor stopped

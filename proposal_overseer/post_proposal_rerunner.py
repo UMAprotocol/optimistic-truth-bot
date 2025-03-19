@@ -1,41 +1,49 @@
 #!/usr/bin/env python3
 """
-UMA Proposal Replayer with ChatGPT Oversight - Monitors proposals directory, queries Perplexity API with ChatGPT validation.
-Usage: python proposal_overseer/proposal_replayer.py [--start-block NUMBER] [--output-dir PATH] [--max-attempts NUMBER]
+UMA Post Proposal Re-runner with ChatGPT Oversight - Processes existing proposals with Perplexity-ChatGPT validation loop.
+Usage: python proposal_overseer/post_proposal_rerunner.py [--proposals-dir PATH] [--output-dir PATH] [--max-concurrent N] [--max-attempts N]
 """
 
 import os
 import json
 import time
+import threading
 import sys
 import argparse
-import re
+from datetime import datetime
 from pathlib import Path
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 from dotenv import load_dotenv
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
+import re
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(
-    description="UMA Proposal Replayer with ChatGPT Oversight"
+    description="UMA Post Proposal Re-runner with ChatGPT Oversight"
 )
-parser.add_argument(
-    "--start-block",
-    type=int,
-    default=0,
-    help="Starting block number to process proposals from",
-)
-parser.add_argument("--output-dir", type=str, help="Directory to store output files")
 parser.add_argument(
     "--proposals-dir",
     type=str,
     help="Directory containing proposal JSON files to process",
+)
+parser.add_argument("--output-dir", type=str, help="Directory to store output files")
+parser.add_argument(
+    "--max-concurrent",
+    type=int,
+    default=5,
+    help="Maximum number of concurrent API requests",
 )
 parser.add_argument(
     "--max-attempts",
     type=int,
     default=3,
     help="Maximum number of attempts to query Perplexity with ChatGPT validation",
+)
+parser.add_argument(
+    "--start-block",
+    type=int,
+    default=0,
+    help="Starting block number to process proposals from",
 )
 parser.add_argument(
     "--min-attempts",
@@ -46,7 +54,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 print(
-    "🔍 Starting UMA Proposal Replayer with ChatGPT Oversight - Monitoring for proposals and validating results 🤖 📊"
+    "🔍 Starting UMA Post Proposal Re-runner with ChatGPT Oversight - Processing existing proposals 🤖 📊"
 )
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -56,6 +64,7 @@ from prompt import get_system_prompt
 from proposal_overseer.common import (
     setup_logging,
     spinner_animation,
+    perplexity_chatgpt_loop,
     extract_recommendation,
     query_perplexity,
     query_chatgpt,
@@ -64,7 +73,7 @@ from proposal_overseer.common import (
     enhanced_perplexity_chatgpt_loop,
 )
 
-logger = setup_logging("proposal_overseer", "logs/proposal_overseer.log")
+logger = setup_logging("post_proposal_rerunner", "logs/post_proposal_rerunner.log")
 load_dotenv()
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -99,12 +108,75 @@ if not PROPOSALS_DIR.exists():
 START_BLOCK_NUMBER = args.start_block
 MAX_ATTEMPTS = args.max_attempts
 MIN_ATTEMPTS = args.min_attempts
+MAX_CONCURRENT = args.max_concurrent
 
 logger.info(f"Using starting block number: {START_BLOCK_NUMBER}")
 logger.info(f"Proposals directory set to: {PROPOSALS_DIR}")
 logger.info(f"Output directory set to: {OUTPUTS_DIR}")
 logger.info(f"Maximum attempts set to: {MAX_ATTEMPTS}")
 logger.info(f"Minimum attempts before defaulting to p4: {MIN_ATTEMPTS}")
+logger.info(f"Maximum concurrent requests set to: {MAX_CONCURRENT}")
+
+
+class RateLimiter:
+    """Rate limiter for API calls with a maximum of N requests per minute."""
+
+    def __init__(self, max_requests_per_minute=5):
+        self.max_requests = max_requests_per_minute
+        self.request_timestamps = deque(maxlen=max_requests_per_minute)
+        self.lock = threading.Lock()
+        self.in_flight = 0
+        self.in_flight_lock = threading.Lock()
+
+    def wait_if_needed(self):
+        """Wait if needed to comply with rate limits. Returns wait time in seconds."""
+        with self.lock:
+            now = time.time()
+
+            # If we haven't made enough requests yet, no need to wait
+            if len(self.request_timestamps) < self.max_requests:
+                self.request_timestamps.append(now)
+                return 0
+
+            # Check if the oldest request is more than 60 seconds old
+            oldest_request_time = self.request_timestamps[0]
+            time_since_oldest = now - oldest_request_time
+
+            if time_since_oldest < 60:
+                # Need to wait until the oldest request is 60 seconds old
+                wait_time = 60 - time_since_oldest
+                logger.info(
+                    f"Rate limit reached. Waiting {wait_time:.2f} seconds before next request"
+                )
+                time.sleep(wait_time)
+                now = time.time()  # Update time after waiting
+
+            # Remove the oldest timestamp and add the new one
+            self.request_timestamps.popleft()
+            self.request_timestamps.append(now)
+
+            return max(0, 60 - time_since_oldest)
+
+    def increment_in_flight(self):
+        """Increment the count of in-flight requests."""
+        with self.in_flight_lock:
+            self.in_flight += 1
+            return self.in_flight
+
+    def decrement_in_flight(self):
+        """Decrement the count of in-flight requests."""
+        with self.in_flight_lock:
+            self.in_flight -= 1
+            return self.in_flight
+
+    def get_in_flight(self):
+        """Get the current number of in-flight requests."""
+        with self.in_flight_lock:
+            return self.in_flight
+
+
+# Create a global rate limiter instance
+perplexity_rate_limiter = RateLimiter(max_requests_per_minute=5)
 
 
 def format_prompt_from_json(proposal_data):
@@ -170,12 +242,12 @@ def process_proposal_file(file_path):
             logger.info(
                 f"Skipping proposal with block number below {START_BLOCK_NUMBER}"
             )
-            return True
+            return True, False  # Processed (skipped), but no API call made
 
         query_id = get_query_id_from_proposal(proposal_data)
         if query_id and is_already_processed(query_id):
             logger.info(f"Proposal {query_id} already processed, skipping")
-            return True
+            return True, False  # Processed (skipped), but no API call made
 
         user_prompt = format_prompt_from_json(proposal_data)
         system_prompt = get_system_prompt()
@@ -188,19 +260,40 @@ def process_proposal_file(file_path):
             "proposed_price", None
         )
 
+        # Wait if needed to respect rate limits
+        wait_time = perplexity_rate_limiter.wait_if_needed()
+        if wait_time > 0:
+            logger.info(
+                f"Rate limited: waited {wait_time:.2f}s before querying for {get_question_id_short(query_id)}"
+            )
+
+        # Track in-flight requests
+        in_flight = perplexity_rate_limiter.increment_in_flight()
         logger.info(
-            f"Starting enhanced Perplexity-ChatGPT loop for {get_question_id_short(query_id)}"
+            f"Starting Perplexity-ChatGPT loop for {get_question_id_short(query_id)} (in-flight: {in_flight})"
         )
 
-        result = enhanced_perplexity_chatgpt_loop(
-            user_prompt=user_prompt,
-            perplexity_api_key=PERPLEXITY_API_KEY,
-            chatgpt_api_key=OPENAI_API_KEY,
-            original_system_prompt=system_prompt,
-            logger=logger,
-            max_attempts=MAX_ATTEMPTS,
-            min_attempts=MIN_ATTEMPTS,
-        )
+        start_time = time.time()
+        try:
+            # Use the enhanced loop function that enforces minimum attempts
+            result = enhanced_perplexity_chatgpt_loop(
+                user_prompt=user_prompt,
+                perplexity_api_key=PERPLEXITY_API_KEY,
+                chatgpt_api_key=OPENAI_API_KEY,
+                original_system_prompt=system_prompt,
+                logger=logger,
+                max_attempts=MAX_ATTEMPTS,
+                min_attempts=MIN_ATTEMPTS,
+            )
+        finally:
+            # Decrement in-flight counter
+            in_flight = perplexity_rate_limiter.decrement_in_flight()
+            logger.info(
+                f"Completed Perplexity-ChatGPT loop for {get_question_id_short(query_id)} (in-flight: {in_flight})"
+            )
+
+        api_response_time = time.time() - start_time
+        logger.info(f"API responses received in {api_response_time:.2f} seconds")
 
         # Extract and organize proposal metadata
         if isinstance(proposal_data, list) and len(proposal_data) > 0:
@@ -239,9 +332,7 @@ def process_proposal_file(file_path):
             "proposal_metadata": proposal_metadata,
             "resolved_price_outcome": None,
             "disputed": False,
-            "initial_recommendation": result["initial_recommendation"],
             "recommendation": result["final_recommendation"],
-            "recommendation_changed": result["recommendation_changed"],
             "proposed_price_outcome": extract_recommendation(result["final_response"]),
             "user_prompt": user_prompt,  # Include the user prompt in the output
             "system_prompt": system_prompt,  # Include the system prompt in the output
@@ -300,67 +391,71 @@ def process_proposal_file(file_path):
         logger.info(
             f"Output saved to {output_file} with final recommendation: {output_data['recommendation']}"
         )
-        return True
+        return True, True  # Processed and API call made
 
     except Exception as e:
         logger.error(f"Error processing {file_path}: {str(e)}")
-        return False
-
-
-def process_all_existing_files():
-    logger.info(
-        f"Checking for unprocessed files in proposals directory (block >= {START_BLOCK_NUMBER})"
-    )
-
-    for file_path in PROPOSALS_DIR.glob("*.json"):
+        # Ensure we decrement in-flight counter even on error
         try:
-            with open(file_path, "r") as f:
-                proposal_data = json.load(f)
-
-            # Check if the proposal meets our block number requirement
-            if not should_process_proposal(proposal_data):
-                logger.debug(
-                    f"Skipping {file_path.name} with block number below {START_BLOCK_NUMBER}"
-                )
-                continue
-
-            query_id = get_query_id_from_proposal(proposal_data)
-
-            if not is_already_processed(query_id):
-                logger.info(f"Found unprocessed file: {file_path.name}")
-                process_proposal_file(file_path)
-            else:
-                logger.debug(f"Skipping already processed file: {file_path.name}")
-        except Exception as e:
-            logger.error(f"Error checking file {file_path}: {str(e)}")
+            perplexity_rate_limiter.decrement_in_flight()
+        except:
+            pass
+        return False, False  # Not processed, no API call made
 
 
-class NewFileHandler(FileSystemEventHandler):
-    def on_created(self, event):
-        if not event.is_directory and event.src_path.endswith(".json"):
-            logger.info(f"New proposal detected: {os.path.basename(event.src_path)}")
-            time.sleep(1)  # Small delay to ensure file is fully written
-            process_proposal_file(event.src_path)
+def process_all_proposals():
+    logger.info(f"Processing all proposals from {PROPOSALS_DIR}")
+    logger.info(f"Using maximum of {MAX_CONCURRENT} concurrent requests")
+
+    # Collect all proposal files first
+    proposal_files = list(Path(PROPOSALS_DIR).glob("*.json"))
+    logger.info(f"Found {len(proposal_files)} proposal files to process")
+
+    # Setup counters
+    processed_count = 0
+    skipped_count = 0
+    api_calls_made = 0
+    start_time = time.time()
+
+    # Process files with a thread pool
+    with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
+        # Submit all tasks
+        future_to_file = {
+            executor.submit(process_proposal_file, file_path): file_path
+            for file_path in proposal_files
+        }
+
+        # Process results as they complete
+        for future in future_to_file:
+            file_path = future_to_file[future]
+            try:
+                processed, api_call_made = future.result()
+                if processed:
+                    processed_count += 1
+                    if api_call_made:
+                        api_calls_made += 1
+                else:
+                    skipped_count += 1
+            except Exception as e:
+                logger.error(f"Error processing file {file_path}: {str(e)}")
+                skipped_count += 1
+
+    elapsed_time = time.time() - start_time
+    runtime_minutes = elapsed_time / 60
+
+    logger.info(
+        f"Processing complete. Processed: {processed_count}, Skipped: {skipped_count}"
+    )
+    logger.info(
+        f"API usage summary: {api_calls_made} calls over {runtime_minutes:.2f} minutes "
+        f"(Average: {api_calls_made/max(1, runtime_minutes):.2f} calls/minute)"
+    )
 
 
 def main():
-    logger.info("Starting proposal monitor with ChatGPT oversight")
-    process_all_existing_files()
-
-    observer = Observer()
-    observer.schedule(NewFileHandler(), str(PROPOSALS_DIR), recursive=False)
-    observer.start()
-    logger.info(f"Watching directory: {PROPOSALS_DIR}")
-
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        logger.info("Stopping monitor due to keyboard interrupt")
-        observer.stop()
-
-    observer.join()
-    logger.info("Proposal monitor stopped")
+    logger.info("Starting post proposal re-runner with ChatGPT oversight")
+    process_all_proposals()
+    logger.info("Post proposal re-runner with ChatGPT oversight finished")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 {
   "experiment": {
     "timestamp": "18-03-2025 11:43",
-    "title": "GPT Refined Prompt V2",
+    "title": "GPT Refined Prompt V2 replay",
     "goal": "Iterate over all previous errors and try get ChatGPT to build a better prompt to feed into perplexity.",
     "previous_experiment": "13032025-post-run-replay",
     "modifications": {
