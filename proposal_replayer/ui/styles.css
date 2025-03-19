@@ -1035,4 +1035,49 @@ select[multiple] {
     background-color: #f8f9fa;
     padding: 15px;
     border-radius: 4px;
+}
+
+.prompt-compare-buttons {
+    margin-top: 10px;
+}
+
+.prompt-compare-buttons .btn {
+    margin-right: 8px;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+}
+
+.prompt-diff {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.override-alert {
+    background-color: #f8f9fa;
+    border-left: 4px solid #17a2b8;
+}
+
+.satisfaction-satisfied {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.satisfaction-not-satisfied {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.satisfaction-retry {
+    color: #ffc107;
+    font-weight: 500;
+}
+
+.satisfaction-default {
+    color: #6c757d;
+    font-weight: 500;
 } 

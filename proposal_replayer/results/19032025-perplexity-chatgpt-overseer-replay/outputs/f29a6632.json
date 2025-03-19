@@ -1,0 +1,83 @@
+{
+  "query_id": "0xf29a6632abc135722f01a33aa21dc9cb5ea29b15fb65ab667a8aa652260dff50",
+  "question_id_short": "f29a6632",
+  "transaction_hash": "0xc8e7adcd2d9ccfe0ebd26f10b16663cd7a2d11964e1e9583e615ea62bcc08111",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "timestamp": 1742402488.644601,
+  "processed_file": "questionId_f29a6632.json",
+  "proposal_metadata": {
+    "creator": "0xC789d2C42502A2548eEF3eDBe84dFe9ED233403A",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1742105011,
+    "block_number": 69223802,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a204b72616b656e2076732e20426c61636b6861776b732c206465736372697074696f6e3a20496e20746865207570636f6d696e67204e484c2067616d652c207363686564756c656420666f72204d6172636820313820617420383a3330504d2045543a0a4966207468652053656174746c65204b72616b656e2077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4b72616b656ee2809d2e0a496620746865204368696361676f20426c61636b6861776b732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c426c61636b6861776b73e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f20426c61636b6861776b732c20703220746f204b72616b656e2c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a63373839643263343235303261323534386565663365646265383464666539656432333334303361"
+  },
+  "resolved_price_outcome": "p2",
+  "disputed": false,
+  "recommendation": "p2",
+  "proposed_price_outcome": "p2",
+  "user_prompt": "user:\n\nancillary_data:\nq: title: Kraken vs. Blackhawks, description: In the upcoming NHL game, scheduled for March 18 at 8:30PM ET:\nIf the Seattle Kraken win, the market will resolve to \"Kraken\".\nIf the Chicago Blackhawks win, the market will resolve to \"Blackhawks\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Blackhawks, p2 to Kraken, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1742402417 Current Date and Time: 2025-03-19 16:40:17 UTC",
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [
+      {
+        "attempt": 1,
+        "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Seattle Kraken vs. Chicago Blackhawks game on March 18, 2025. The ancillary data specifies that if the Kraken win, it's p2; if the Blackhawks win, p1; postponed stays open, and canceled is p3. \n\nFirst, I need to check the event date. The game was scheduled for March 18, 2025, at 8:30 PM ET. The current timestamp given is March 19, 2025, 4:41 PM UTC, which is the same day in ET (UTC-4 or -5 depending on daylight saving). Wait, March 19 UTC would be March 18 in ET. Let me confirm time zones. March 19, 2025, 16:40 UTC is equivalent to March 19, 12:40 PM ET. But the game was on March 18 at 8:30 PM ET. So the game date is in the past relative to the current timestamp. That means the event has already occurred.\n\nNext, I need to verify the outcome. Looking at the search results, multiple sources (1, 2, 3, 10, 12) report that the Seattle Kraken won 6-2 against the Chicago Blackhawks. For example, source [1] states, \"Shane Wright scores 2, Adam Larsson has goal and assist as Kraken beat Blackhawks 6-2.\" Similarly, source [12] mentions the Kraken scoring six unanswered goals. \n\nThere's no mention of the game being postponed or canceled. All sources confirm the game took place as scheduled with a Kraken victory. The resolution conditions state a Kraken win resolves to p2. Therefore, the recommendation should be p2.\n</think>\n\nThe Seattle Kraken defeated the Chicago Blackhawks 6-2 in their NHL game on March 18, 2025. Multiple sources confirm the Kraken overcame an early 2-0 deficit with six unanswered goals, including two from Shane Wright and contributions from Adam Larsson (1 goal, 2 assists) and Matty Beniers (1 goal, 1 assist)[1][2][10][12]. The outcome meets the resolution condition specifying a Kraken win. \n\nrecommendation: p2",
+        "recommendation": "p2",
+        "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1742402417 Current Date and Time: 2025-03-19 16:40:17 UTC",
+        "response_metadata": {
+          "model": "sonar-deep-research",
+          "created_timestamp": 1742402486,
+          "created_datetime": "2025-03-19T17:41:26",
+          "completion_tokens": 492,
+          "prompt_tokens": 955,
+          "total_tokens": 1447,
+          "api_response_time_seconds": 68.59722113609314
+        },
+        "citations": [
+          "https://www.cbssports.com/nhl/gametracker/boxscore/NHL_20250318_SEA@CHI/",
+          "https://www.tsn.ca/nhl/shane-wright-scores-two-as-kraken-beat-blackhawks-1.2273164",
+          "https://www.fox13seattle.com/sports/six-unanswered-goals-lead-seattle-kraken-6-2-rout-over-blackhawks",
+          "https://www.thescore.com/nhl/events/30509",
+          "https://livescores.biz/hockey/game_info/chicago-blackhawks-seattle-kraken-2025-03-19",
+          "https://evrimagaci.org/tpg/blackhawks-host-kraken-on-pride-night-with-both-teams-seeking-breakthrough-268980",
+          "https://www.fanduel.com/research/kraken-vs-blackhawks-prediction-nhl-odds-3-18-2025",
+          "https://www.cbsnews.com/chicago/news/blackhawks-lose-kraken-5-goals-4-games/",
+          "https://www.nhl.com/kraken/news/final-buzzer-chicago-blackhawks-seattle-kraken-0318-gd",
+          "https://www.cbsnews.com/chicago/news/blackhawks-fall-kraken/",
+          "https://www.oddsshark.com/nhl/seattle-chicago-odds-march-18-2025-2302539",
+          "https://www.nhl.com/news/seattle-kraken-chicago-blackhawks-game-recap-march-18"
+        ],
+        "interaction_type": "perplexity_query",
+        "stage": "initial_response",
+        "error": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+      }
+    ],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p2",
+        "overseer_satisfaction_level": null,
+        "prompt_updated": false
+      }
+    ],
+    "final_response_metadata": {
+      "model": "sonar-deep-research",
+      "created_timestamp": 1742402486,
+      "created_datetime": "2025-03-19T17:41:26",
+      "completion_tokens": 492,
+      "prompt_tokens": 955,
+      "total_tokens": 1447,
+      "api_response_time_seconds": 68.59722113609314
+    }
+  },
+  "tags": [
+    "Sports",
+    "NHL",
+    "Games"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "query_id": "0xae03f9e612e6ba9c9050f3d0403f6d7a465e4a9e3caea44da01251f6c14e6d1d",
+  "question_id_short": "ae03f9e6",
+  "transaction_hash": "0xc703e6bed33ee36c4ef1cddad74d69e8cce621f8d3296712266d6da48e75a96f",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "timestamp": 1742402434.331459,
+  "processed_file": "questionId_ae03f9e6.json",
+  "proposal_metadata": {
+    "creator": "0xE4D717ae9467Be8ED8bD84A0e03a279e7150d459",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 1741586713,
+    "block_number": 68974103,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a2054657861732076732e2056616e64657262696c742c206465736372697074696f6e3a20496e20746865207570636f6d696e67204342422067616d652c207363686564756c656420666f72204d6172636820313220617420333a3330504d2045543a0a4966207468652054657861732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c5465786173e2809d2e0a4966207468652056616e64657262696c742077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c56616e64657262696c74e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f2056616e64657262696c742c20703220746f2054657861732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a65346437313761653934363762653865643862643834613065303361323739653731353064343539"
+  },
+  "resolved_price_outcome": "p2",
+  "disputed": false,
+  "recommendation": "p2",
+  "proposed_price_outcome": "p2",
+  "user_prompt": "user:\n\nancillary_data:\nq: title: Texas vs. Vanderbilt, description: In the upcoming CBB game, scheduled for March 12 at 3:30PM ET:\nIf the Texas win, the market will resolve to \"Texas\".\nIf the Vanderbilt win, the market will resolve to \"Vanderbilt\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Vanderbilt, p2 to Texas, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1742402349 Current Date and Time: 2025-03-19 16:39:09 UTC",
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [
+      {
+        "attempt": 1,
+        "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the Texas vs. Vanderbilt CBB game scheduled for March 12, 2025, at 3:30 PM ET. The ancillary data specifies that if Texas wins, it's p2; Vanderbilt wins, p1; postponed keeps it open; canceled is p3 (50-50). \n\nFirst, I need to check if the game occurred as scheduled. The current date given is March 19, 2025, which is after March 12, so the game should have already happened. Let me look through the search results to find information about this specific game.\n\nLooking at the search results, several sources mention the game on March 12. Source [1] is an article from March 12, 2025, titled \"Texas men's basketball takes step toward securing NCAA Tournament with win over Vanderbilt.\" It states that Texas beat Vanderbilt 79-72 in the SEC Tournament. Source [4] also mentions the same game, with the headline \"Texas faces uphill climb in SEC first-round game vs. Vanderbilt\" and the result being a 79-72 victory for Texas. Source [6] and [7] from ESPN confirm the score as 79-72 in favor of Texas, part of the SEC Tournament's first round.\n\nAdditionally, source [8] refers to a previous meeting on February 8 where Vanderbilt won, but the March 12 game is clearly a different event. The March 12 game is part of the SEC Tournament, as indicated in multiple sources. There's no mention of postponement or cancellation for this specific March 12 game. The sources [2] and [5] discuss other postponed games (January 20) and spring games, which are irrelevant here.\n\nSince the game was played on March 12 as scheduled and Texas won, the market should resolve to p2 (\"Texas\"). All the evidence points to the game being completed with a Texas victory, so the recommendation is p2.\n</think>\n\nThe Texas Longhorns defeated the Vanderbilt Commodores 79-72 in their March 12, 2025 SEC Tournament first-round game[1][4][6][7]. The game occurred as scheduled with no postponement or cancellation, as confirmed by multiple sources detailing the matchup and final score[1][4][6][7]. Texas secured the victory behind 19-point performances from Tramon Mark and Tre Johnson, advancing to face Texas A&M in the next round[6][7]. \n\nrecommendation: p2",
+        "recommendation": "p2",
+        "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1742402349 Current Date and Time: 2025-03-19 16:39:09 UTC",
+        "response_metadata": {
+          "model": "sonar-deep-research",
+          "created_timestamp": 1742402432,
+          "created_datetime": "2025-03-19T17:40:32",
+          "completion_tokens": 524,
+          "prompt_tokens": 943,
+          "total_tokens": 1467,
+          "api_response_time_seconds": 82.66339302062988
+        },
+        "citations": [
+          "https://kykernel.com/113506/sports/texas-mens-basketball-takes-step-toward-securing-ncaa-tournament-with-win-over-vanderbilt/",
+          "https://vucommodores.com/wednesday-postponed/",
+          "https://vucommodores.com/texas-slips-by-vanderbilt-70-64/",
+          "https://www.cbssports.com/college-basketball/gametracker/live/NCAAB_20250312_TEXAS@VANDY/",
+          "https://www.si.com/college/usc/football/usc-trojans-texas-longhorns-ohio-state-cancel-spring-games-tampering-problem-college-football-nebraska-big-ten-sec",
+          "https://www.espn.com/mens-college-basketball/recap/_/gameId/401744154",
+          "https://www.espn.com/mens-college-basketball/game/_/gameId/401744154/texas-vanderbilt",
+          "https://vucommodores.com/back-home-for-texas/"
+        ],
+        "interaction_type": "perplexity_query",
+        "stage": "initial_response",
+        "error": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+      }
+    ],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p2",
+        "overseer_satisfaction_level": null,
+        "prompt_updated": false
+      }
+    ],
+    "final_response_metadata": {
+      "model": "sonar-deep-research",
+      "created_timestamp": 1742402432,
+      "created_datetime": "2025-03-19T17:40:32",
+      "completion_tokens": 524,
+      "prompt_tokens": 943,
+      "total_tokens": 1467,
+      "api_response_time_seconds": 82.66339302062988
+    }
+  },
+  "tags": [
+    "Sports",
+    "Games",
+    "CBB"
+  ]
+}
