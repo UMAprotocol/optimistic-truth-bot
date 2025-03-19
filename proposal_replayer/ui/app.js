@@ -382,14 +382,6 @@ function updateAnalyticsDisplay(analytics) {
     document.getElementById('totalCount').textContent = analytics.totalCount;
     document.getElementById('noDataCount').textContent = analytics.noDataCount;
     
-    // Update specialized accuracy metrics
-    const p12Accuracy = document.getElementById('p12Accuracy');
-    if (p12Accuracy) {
-        p12Accuracy.style.width = `${analytics.p12Accuracy}%`;
-        p12Accuracy.setAttribute('aria-valuenow', analytics.p12Accuracy);
-        p12Accuracy.textContent = `${Math.round(analytics.p12Accuracy)}%`;
-    }
-    
     // Update charts
     if (recommendationChart) {
         recommendationChart.data.datasets[0].data = analytics.recommendationCounts;
@@ -1272,7 +1264,7 @@ function showDetails(data, index) {
                                         <div class="step-details">
                                             <div><strong>Attempt:</strong> ${step.attempt}</div>
                                             <div><strong>Perplexity:</strong> <code>${step.perplexity_recommendation}</code></div>
-                                            <div><strong>Overseer:</strong> <code>${step.overseer_decision}</code></div>
+                                            <div><strong>Overseer:</strong> ${formatSatisfactionLevel(step.overseer_satisfaction_level || step.overseer_decision)}</div>
                                             <div><strong>Prompt Updated:</strong> ${step.prompt_updated ? 'Yes' : 'No'}</div>
                                         </div>
                                     </div>
@@ -1289,10 +1281,11 @@ function showDetails(data, index) {
                                 <button class="accordion-button ${idx > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" 
                                     data-bs-target="#collapse${idx}" aria-expanded="${idx === 0 ? 'true' : 'false'}" aria-controls="collapse${idx}">
                                     <strong>${interaction.interaction_type === 'perplexity_query' ? 
-                                        `Attempt ${interaction.attempt}: Perplexity ${interaction.stage}` : 
-                                        `ChatGPT Evaluation: ${interaction.stage}`}</strong>
+                                        `Attempt ${interaction.attempt}: ${formatStageName(interaction.stage)}` : 
+                                        `ChatGPT: ${formatStageName(interaction.stage)}`}</strong>
                                     ${interaction.recommendation ? ` - Recommendation: <code>${interaction.recommendation}</code>` : ''}
-                                    ${interaction.decision ? ` - Decision: <code>${interaction.decision}</code>` : ''}
+                                    ${interaction.decision || interaction.satisfaction_level ? 
+                                        ` - Decision: <code>${interaction.decision || interaction.satisfaction_level}</code>` : ''}
                                 </button>
                             </h2>
                             <div id="collapse${idx}" class="accordion-collapse collapse ${idx === 0 ? 'show' : ''}" 
@@ -1337,19 +1330,46 @@ function showDetails(data, index) {
                                                 <pre class="mb-0 response-text">${interaction.response}</pre>
                                             </div>
                                         </div>
-                                        <div class="alert ${interaction.decision === 'satisfied' ? 'alert-success' : 
-                                            interaction.decision === 'not_satisfied' ? 'alert-danger' : 'alert-warning'}">
-                                            <strong>Decision:</strong> ${formatKeyName(interaction.decision || '')}
+                                        <div class="alert ${interaction.decision === 'satisfied' || interaction.satisfaction_level === 'satisfied' ? 'alert-success' : 
+                                            interaction.decision === 'not_satisfied' || interaction.satisfaction_level === 'not_satisfied' ? 'alert-danger' : 
+                                            interaction.satisfaction_level && interaction.satisfaction_level.includes('retry') ? 'alert-warning' : 'alert-secondary'}">
+                                            <strong>Decision:</strong> ${formatSatisfactionLevel(interaction.satisfaction_level || interaction.decision)}
                                             ${interaction.critique ? `<p class="mt-2 mb-0"><strong>Critique:</strong> ${interaction.critique}</p>` : ''}
                                         </div>
                                         ${interaction.recommendation_overridden ? `
-                                            <div class="alert alert-info">
-                                                <strong>Recommendation was overridden</strong>
+                                            <div class="alert alert-info override-alert">
+                                                <strong><i class="bi bi-arrow-repeat"></i> Recommendation was overridden</strong>
+                                                ${interaction.override_action ? 
+                                                    `<p class="mt-2 mb-0 small">${interaction.override_action.replace(/_/g, ' ')}</p>` : ''}
                                             </div>
                                         ` : ''}
                                         ${interaction.prompt_updated ? `
                                             <div class="alert alert-info">
                                                 <strong>Prompt was updated</strong>
+                                                ${interaction.system_prompt_before ? `
+                                                    <div class="mt-2">
+                                                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" 
+                                                            data-bs-target="#promptBefore${idx}" aria-expanded="false" aria-controls="promptBefore${idx}">
+                                                            Show Prompt Before
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-secondary ms-2" type="button" data-bs-toggle="collapse" 
+                                                            data-bs-target="#promptAfter${idx}" aria-expanded="false" aria-controls="promptAfter${idx}">
+                                                            Show Prompt After
+                                                        </button>
+                                                    </div>
+                                                    <div class="collapse mt-3" id="promptBefore${idx}">
+                                                        <div class="card card-body">
+                                                            <h6>Before:</h6>
+                                                            <pre class="mb-0 prompt-text">${interaction.system_prompt_before}</pre>
+                                                        </div>
+                                                    </div>
+                                                    <div class="collapse mt-3" id="promptAfter${idx}">
+                                                        <div class="card card-body">
+                                                            <h6>After:</h6>
+                                                            <pre class="mb-0 prompt-text">${interaction.system_prompt_after}</pre>
+                                                        </div>
+                                                    </div>
+                                                ` : ''}
                                             </div>
                                         ` : ''}
                                         <div class="card">
@@ -1814,4 +1834,33 @@ function updateTagAccuracyDisplay(tagStats) {
             </tr>
         `;
     }).join('');
+}
+
+// Format interaction stage names for better readability
+function formatStageName(stage) {
+    if (!stage) return '';
+    
+    // Handle standard formatting
+    return stage.replace(/_/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+        .replace(/(\d+)$/, ' $1'); // Add space before any trailing number
+}
+
+// Format satisfaction level with appropriate styling
+function formatSatisfactionLevel(level) {
+    if (!level) return '';
+    
+    let cssClass = 'satisfaction-default';
+    
+    if (level.includes('satisfied')) {
+        cssClass = 'satisfaction-satisfied';
+    } else if (level.includes('not_satisfied')) {
+        cssClass = 'satisfaction-not-satisfied';
+    } else if (level.includes('retry')) {
+        cssClass = 'satisfaction-retry';
+    }
+    
+    return `<span class="${cssClass}">${formatKeyName(level)}</span>`;
 } 
