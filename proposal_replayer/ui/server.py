@@ -95,7 +95,12 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(500)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                error_message = f"Error processing results directories: {str(e)}"
+                logger.error(error_message)
+                import traceback
+
+                logger.error(traceback.format_exc())
+                self.wfile.write(json.dumps({"error": error_message}).encode())
                 return
 
         # If not API request, handle as normal file request

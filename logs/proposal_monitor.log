@@ -451,3 +451,152 @@
 2025-03-13 07:06:58,435 - proposal_monitor - INFO - Output saved to /Users/chris/uma/large-language-oracle/proposal_replayer/outputs/output_1e4d05a7.json with recommendation: p2
 2025-03-13 10:43:23,927 - proposal_monitor - INFO - Stopping monitor due to keyboard interrupt
 2025-03-13 10:43:23,928 - proposal_monitor - INFO - Proposal monitor stopped
+2025-03-18 20:04:11,883 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-18 20:04:11,883 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory
+2025-03-18 20:04:11,883 - proposal_monitor - INFO - Found unprocessed file: questionId_33afebf0.json
+2025-03-18 20:04:11,883 - proposal_monitor - INFO - Processing proposal: questionId_33afebf0.json
+2025-03-18 20:09:18,939 - proposal_monitor - INFO - Using starting block number: 69210555
+2025-03-18 20:09:18,939 - proposal_monitor - INFO - Output directory set to: proposal_replayer/results/1803205-gpt-refined-prompt-follower/output
+2025-03-18 20:09:18,939 - proposal_monitor - INFO - Starting proposal monitor
+2025-03-18 20:09:18,939 - proposal_monitor - INFO - Checking for unprocessed files in proposals directory (block >= 69210555)
+2025-03-18 20:09:18,941 - proposal_monitor - INFO - Watching directory: /Users/chris/uma/large-language-oracle/proposal_replayer/proposals
+2025-03-18 23:11:23,110 - proposal_monitor - INFO - New proposal detected: questionId_baaf011f.json
+2025-03-18 23:11:24,121 - proposal_monitor - INFO - Processing proposal: questionId_baaf011f.json
+2025-03-18 23:12:10,369 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-18 23:12:10,449 - proposal_monitor - INFO - API response received in 46.33 seconds
+2025-03-18 23:12:10,451 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_baaf011f.json with recommendation: p2
+2025-03-19 00:42:51,794 - proposal_monitor - INFO - New proposal detected: questionId_6262aea2.json
+2025-03-19 00:42:52,801 - proposal_monitor - INFO - Processing proposal: questionId_6262aea2.json
+2025-03-19 00:43:21,248 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 00:43:21,317 - proposal_monitor - INFO - API response received in 28.51 seconds
+2025-03-19 00:43:21,319 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_6262aea2.json with recommendation: p4
+2025-03-19 00:44:54,535 - proposal_monitor - INFO - New proposal detected: questionId_44326cae.json
+2025-03-19 00:44:55,543 - proposal_monitor - INFO - Processing proposal: questionId_44326cae.json
+2025-03-19 00:46:15,715 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 00:46:15,762 - proposal_monitor - INFO - API response received in 80.22 seconds
+2025-03-19 00:46:15,763 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_44326cae.json with recommendation: p2
+2025-03-19 00:47:57,883 - proposal_monitor - INFO - New proposal detected: questionId_05154a1e.json
+2025-03-19 00:47:58,890 - proposal_monitor - INFO - Processing proposal: questionId_05154a1e.json
+2025-03-19 00:48:25,884 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 00:48:25,939 - proposal_monitor - INFO - API response received in 27.05 seconds
+2025-03-19 00:48:25,941 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_05154a1e.json with recommendation: p4
+2025-03-19 00:52:32,275 - proposal_monitor - INFO - New proposal detected: questionId_4e1a3f82.json
+2025-03-19 00:52:33,280 - proposal_monitor - INFO - Processing proposal: questionId_4e1a3f82.json
+2025-03-19 00:53:53,266 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 00:53:53,275 - proposal_monitor - INFO - API response received in 79.99 seconds
+2025-03-19 00:53:53,279 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_4e1a3f82.json with recommendation: p2
+2025-03-19 01:49:11,546 - proposal_monitor - INFO - New proposal detected: questionId_7c1fb89f.json
+2025-03-19 01:49:12,549 - proposal_monitor - INFO - Processing proposal: questionId_7c1fb89f.json
+2025-03-19 01:52:50,487 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 01:52:50,545 - proposal_monitor - INFO - API response received in 217.99 seconds
+2025-03-19 01:52:50,547 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_7c1fb89f.json with recommendation: p4
+2025-03-19 01:52:50,547 - proposal_monitor - INFO - New proposal detected: questionId_c9325f28.json
+2025-03-19 01:52:51,548 - proposal_monitor - INFO - Processing proposal: questionId_c9325f28.json
+2025-03-19 01:54:53,942 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 01:54:54,013 - proposal_monitor - INFO - API response received in 122.46 seconds
+2025-03-19 01:54:54,015 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_c9325f28.json with recommendation: p4
+2025-03-19 01:55:49,563 - proposal_monitor - INFO - New proposal detected: questionId_0c4331e9.json
+2025-03-19 01:55:50,572 - proposal_monitor - INFO - Processing proposal: questionId_0c4331e9.json
+2025-03-19 01:57:52,267 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 01:57:52,272 - proposal_monitor - INFO - API response received in 121.70 seconds
+2025-03-19 01:57:52,275 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_0c4331e9.json with recommendation: p1
+2025-03-19 02:16:04,776 - proposal_monitor - INFO - New proposal detected: questionId_82209b63.json
+2025-03-19 02:16:05,785 - proposal_monitor - INFO - Processing proposal: questionId_82209b63.json
+2025-03-19 02:17:50,684 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 02:17:50,699 - proposal_monitor - INFO - API response received in 104.91 seconds
+2025-03-19 02:17:50,702 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_82209b63.json with recommendation: p4
+2025-03-19 02:27:43,744 - proposal_monitor - INFO - New proposal detected: questionId_bba5ba8b.json
+2025-03-19 02:27:44,749 - proposal_monitor - INFO - Processing proposal: questionId_bba5ba8b.json
+2025-03-19 02:31:01,536 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 02:31:01,589 - proposal_monitor - INFO - API response received in 196.84 seconds
+2025-03-19 02:31:01,591 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_bba5ba8b.json with recommendation: p4
+2025-03-19 02:38:21,957 - proposal_monitor - INFO - New proposal detected: questionId_b68fddcd.json
+2025-03-19 02:38:22,968 - proposal_monitor - INFO - Processing proposal: questionId_b68fddcd.json
+2025-03-19 02:40:28,130 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 02:40:28,236 - proposal_monitor - INFO - API response received in 125.27 seconds
+2025-03-19 02:40:28,239 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_b68fddcd.json with recommendation: p4
+2025-03-19 02:40:28,239 - proposal_monitor - INFO - New proposal detected: questionId_e7dff8b9.json
+2025-03-19 02:40:29,240 - proposal_monitor - INFO - Processing proposal: questionId_e7dff8b9.json
+2025-03-19 02:42:04,598 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 02:42:04,702 - proposal_monitor - INFO - API response received in 95.46 seconds
+2025-03-19 02:42:04,705 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_e7dff8b9.json with recommendation: p1
+2025-03-19 02:47:00,470 - proposal_monitor - INFO - New proposal detected: questionId_b89b411b.json
+2025-03-19 02:47:01,479 - proposal_monitor - INFO - Processing proposal: questionId_b89b411b.json
+2025-03-19 02:49:06,157 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 02:49:06,200 - proposal_monitor - INFO - API response received in 124.72 seconds
+2025-03-19 02:49:06,203 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_b89b411b.json with recommendation: p4
+2025-03-19 02:49:06,203 - proposal_monitor - INFO - New proposal detected: questionId_f57511e0.json
+2025-03-19 02:49:07,212 - proposal_monitor - INFO - Processing proposal: questionId_f57511e0.json
+2025-03-19 02:50:18,210 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 02:50:18,256 - proposal_monitor - INFO - API response received in 71.04 seconds
+2025-03-19 02:50:18,257 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_f57511e0.json with recommendation: p4
+2025-03-19 03:04:16,640 - proposal_monitor - INFO - New proposal detected: questionId_dd382c63.json
+2025-03-19 03:04:17,644 - proposal_monitor - INFO - Processing proposal: questionId_dd382c63.json
+2025-03-19 03:06:32,065 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 03:06:32,100 - proposal_monitor - INFO - API response received in 134.45 seconds
+2025-03-19 03:06:32,101 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_dd382c63.json with recommendation: p2
+2025-03-19 03:32:05,450 - proposal_monitor - INFO - New proposal detected: questionId_a2d2ace8.json
+2025-03-19 03:32:06,455 - proposal_monitor - INFO - Processing proposal: questionId_a2d2ace8.json
+2025-03-19 03:34:53,606 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 03:34:53,708 - proposal_monitor - INFO - API response received in 167.25 seconds
+2025-03-19 03:34:53,710 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_a2d2ace8.json with recommendation: p2
+2025-03-19 03:44:44,883 - proposal_monitor - INFO - New proposal detected: questionId_2191a29b.json
+2025-03-19 03:44:45,888 - proposal_monitor - INFO - Processing proposal: questionId_2191a29b.json
+2025-03-19 03:48:26,647 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 03:48:26,699 - proposal_monitor - INFO - API response received in 220.81 seconds
+2025-03-19 03:48:26,700 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_2191a29b.json with recommendation: p4
+2025-03-19 03:48:48,884 - proposal_monitor - INFO - New proposal detected: questionId_35ab743a.json
+2025-03-19 03:48:49,885 - proposal_monitor - INFO - Processing proposal: questionId_35ab743a.json
+2025-03-19 03:51:39,144 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 03:51:39,161 - proposal_monitor - INFO - API response received in 169.27 seconds
+2025-03-19 03:51:39,163 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_35ab743a.json with recommendation: p2
+2025-03-19 03:58:26,427 - proposal_monitor - INFO - New proposal detected: questionId_d277463b.json
+2025-03-19 03:58:27,437 - proposal_monitor - INFO - Processing proposal: questionId_d277463b.json
+2025-03-19 04:01:12,284 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 04:01:12,304 - proposal_monitor - INFO - API response received in 164.87 seconds
+2025-03-19 04:01:12,307 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_d277463b.json with recommendation: p1
+2025-03-19 04:01:12,307 - proposal_monitor - INFO - New proposal detected: questionId_f29a6632.json
+2025-03-19 04:01:13,315 - proposal_monitor - INFO - Processing proposal: questionId_f29a6632.json
+2025-03-19 04:02:37,087 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 04:02:37,134 - proposal_monitor - INFO - API response received in 83.82 seconds
+2025-03-19 04:02:37,136 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_f29a6632.json with recommendation: p2
+2025-03-19 04:11:38,476 - proposal_monitor - INFO - New proposal detected: questionId_e2e8a058.json
+2025-03-19 04:11:39,482 - proposal_monitor - INFO - Processing proposal: questionId_e2e8a058.json
+2025-03-19 04:15:18,962 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 04:15:18,983 - proposal_monitor - INFO - API response received in 219.50 seconds
+2025-03-19 04:15:18,984 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_e2e8a058.json with recommendation: p4
+2025-03-19 04:34:55,577 - proposal_monitor - INFO - New proposal detected: questionId_ac5916f4.json
+2025-03-19 04:34:56,585 - proposal_monitor - INFO - Processing proposal: questionId_ac5916f4.json
+2025-03-19 04:36:28,282 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 04:36:28,366 - proposal_monitor - INFO - API response received in 91.78 seconds
+2025-03-19 04:36:28,368 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_ac5916f4.json with recommendation: p2
+2025-03-19 04:36:58,497 - proposal_monitor - INFO - New proposal detected: questionId_b8d4dd27.json
+2025-03-19 04:36:59,503 - proposal_monitor - INFO - Processing proposal: questionId_b8d4dd27.json
+2025-03-19 04:40:59,668 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 04:40:59,704 - proposal_monitor - INFO - API response received in 240.20 seconds
+2025-03-19 04:40:59,705 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_b8d4dd27.json with recommendation: p1
+2025-03-19 05:27:02,232 - proposal_monitor - INFO - New proposal detected: questionId_ac051609.json
+2025-03-19 05:27:03,237 - proposal_monitor - INFO - Processing proposal: questionId_ac051609.json
+2025-03-19 05:29:02,324 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 05:29:02,432 - proposal_monitor - INFO - API response received in 119.19 seconds
+2025-03-19 05:29:02,434 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_ac051609.json with recommendation: p1
+2025-03-19 05:43:13,766 - proposal_monitor - INFO - New proposal detected: questionId_ab50f129.json
+2025-03-19 05:43:14,774 - proposal_monitor - INFO - Processing proposal: questionId_ab50f129.json
+2025-03-19 05:44:21,535 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 05:44:21,577 - proposal_monitor - INFO - API response received in 66.80 seconds
+2025-03-19 05:44:21,578 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_ab50f129.json with recommendation: p1
+2025-03-19 05:46:17,153 - proposal_monitor - INFO - New proposal detected: questionId_79dc968a.json
+2025-03-19 05:46:18,163 - proposal_monitor - INFO - Processing proposal: questionId_79dc968a.json
+2025-03-19 05:48:52,081 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 05:48:52,104 - proposal_monitor - INFO - API response received in 153.94 seconds
+2025-03-19 05:48:52,105 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_79dc968a.json with recommendation: p4
+2025-03-19 06:03:00,473 - proposal_monitor - INFO - New proposal detected: questionId_567fb0d6.json
+2025-03-19 06:03:01,482 - proposal_monitor - INFO - Processing proposal: questionId_567fb0d6.json
+2025-03-19 06:05:33,363 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 06:05:33,439 - proposal_monitor - INFO - API response received in 151.96 seconds
+2025-03-19 06:05:33,441 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_567fb0d6.json with recommendation: p4
+2025-03-19 06:15:09,347 - proposal_monitor - INFO - New proposal detected: questionId_36aa5243.json
+2025-03-19 06:15:10,357 - proposal_monitor - INFO - Processing proposal: questionId_36aa5243.json
+2025-03-19 06:16:20,847 - httpx - INFO - HTTP Request: POST https://api.perplexity.ai/chat/completions "HTTP/1.1 200 OK"
+2025-03-19 06:16:20,930 - proposal_monitor - INFO - API response received in 70.57 seconds
+2025-03-19 06:16:20,932 - proposal_monitor - INFO - Output saved to proposal_replayer/results/1803205-gpt-refined-prompt-follower/output/output_36aa5243.json with recommendation: p4
