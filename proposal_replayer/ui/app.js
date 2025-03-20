@@ -382,6 +382,15 @@ function updateAnalyticsDisplay(analytics) {
     document.getElementById('totalCount').textContent = analytics.totalCount;
     document.getElementById('noDataCount').textContent = analytics.noDataCount;
     
+    // Update P1-P2 Accuracy progress bar
+    const p12AccuracyBar = document.getElementById('p12Accuracy');
+    if (p12AccuracyBar) {
+        const p12Value = Math.round(analytics.p12Accuracy);
+        p12AccuracyBar.style.width = `${p12Value}%`;
+        p12AccuracyBar.setAttribute('aria-valuenow', p12Value);
+        p12AccuracyBar.textContent = `${p12Value}%`;
+    }
+    
     // Update charts
     if (recommendationChart) {
         recommendationChart.data.datasets[0].data = analytics.recommendationCounts;

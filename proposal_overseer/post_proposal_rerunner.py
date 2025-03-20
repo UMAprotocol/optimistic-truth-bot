@@ -64,7 +64,6 @@ from prompt import get_system_prompt
 from proposal_overseer.common import (
     setup_logging,
     spinner_animation,
-    perplexity_chatgpt_loop,
     extract_recommendation,
     query_perplexity,
     query_chatgpt,
@@ -368,6 +367,33 @@ def process_proposal_file(file_path):
                                 and r["interaction_type"] == "chatgpt_evaluation"
                             ),
                             False,
+                        ),
+                        "critique": next(
+                            (
+                                r["critique"]
+                                for r in result["responses"]
+                                if r.get("stage") == f"evaluation_{i+1}"
+                                and r["interaction_type"] == "chatgpt_evaluation"
+                            ),
+                            None,
+                        ),
+                        "system_prompt_before": next(
+                            (
+                                r["system_prompt_before"]
+                                for r in result["responses"]
+                                if r.get("stage") == f"evaluation_{i+1}"
+                                and r["interaction_type"] == "chatgpt_evaluation"
+                            ),
+                            None,
+                        ),
+                        "system_prompt_after": next(
+                            (
+                                r["system_prompt_after"]
+                                for r in result["responses"]
+                                if r.get("stage") == f"evaluation_{i+1}"
+                                and r["interaction_type"] == "chatgpt_evaluation"
+                            ),
+                            None,
                         ),
                     }
                     for i in range(result["attempts"])

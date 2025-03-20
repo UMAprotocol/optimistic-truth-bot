@@ -9507,3 +9507,7 @@
 2025-03-19 13:42:18,083 - proposal_fetcher - INFO - Checking blocks 69240148 to 69240161...
 2025-03-19 13:42:18,223 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
 2025-03-19 13:42:31,346 - proposal_fetcher - INFO - Event listener stopped by user.
+2025-03-19 18:07:10,183 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-19 18:07:10,882 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-19 18:07:11,038 - proposal_fetcher - INFO - Starting from block 69247328 (current: 69247328)
+2025-03-19 18:07:15,322 - proposal_fetcher - INFO - Event listener stopped by user.

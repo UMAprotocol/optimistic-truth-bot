@@ -342,12 +342,12 @@ def format_prompt_from_json(proposal_data):
     ancillary_data = proposal_data.get("ancillary_data", "")
     resolution_conditions = proposal_data.get("resolution_conditions", "")
     updates = proposal_data.get("updates", [])
+    unix_timestamp = proposal_data.get("unix_timestamp", "")
 
     prompt = f"user:\n\nancillary_data:\n{ancillary_data}\n\n"
-    if resolution_conditions:
-        prompt += f"resolution_conditions:\n{resolution_conditions}\n\n"
-    if updates:
-        prompt += f"updates:\n{updates}"
+    prompt += f"resolution_conditions:\n{resolution_conditions}\n\n"
+    prompt += f"updates:\n{updates}"
+    prompt += f"proposal_unix_timestamp:\n{unix_timestamp}"
     return prompt
 
 
@@ -742,6 +742,90 @@ def enhanced_perplexity_chatgpt_loop(
         None,
     )
 
+    # Add a final overseer evaluation for the last attempt if one doesn't exist
+    # This ensures the overseer's evaluation is included even for the final attempt
+    last_perplexity_attempt = max(
+        [
+            r.get("attempt", 0)
+            for r in responses
+            if r.get("interaction_type") == "perplexity_query"
+        ],
+        default=0,
+    )
+    last_evaluation_attempt = max(
+        [
+            r.get("stage", "").split("_")[-1]
+            for r in responses
+            if r.get("interaction_type") == "chatgpt_evaluation"
+        ],
+        default="0",
+    )
+
+    # Convert last_evaluation_attempt to int if it's a number
+    try:
+        last_evaluation_attempt = int(last_evaluation_attempt)
+    except ValueError:
+        last_evaluation_attempt = 0
+
+    # If the last perplexity attempt doesn't have a corresponding evaluation, add one
+    if last_perplexity_attempt > last_evaluation_attempt and final_perplexity_response:
+        logger.info(
+            f"Adding final overseer evaluation for attempt {last_perplexity_attempt}"
+        )
+
+        try:
+            # Create a simple evaluation request for the final response
+            overseer_start_time = time.time()
+
+            from proposal_overseer.prompt_overseer import get_overseer_prompt
+
+            enhanced_overseer_prompt = get_overseer_prompt(
+                user_prompt=user_prompt,
+                system_prompt=system_prompt,
+                perplexity_response=final_perplexity_response.get("response", ""),
+                recommendation=final_perplexity_response.get("recommendation", ""),
+                attempt=last_perplexity_attempt,
+            )
+
+            overseer_response = query_chatgpt(
+                enhanced_overseer_prompt,
+                chatgpt_api_key,
+                model="gpt-4-turbo",
+            )
+
+            overseer_text = overseer_response.choices[0].message.content
+            decision, _, critique, _ = get_overseer_decision(overseer_text)
+
+            # Add the final evaluation to responses
+            final_evaluation = {
+                "interaction_type": "chatgpt_evaluation",
+                "stage": f"evaluation_{last_perplexity_attempt}",
+                "response": overseer_text,
+                "satisfaction_level": (
+                    "satisfied" if decision == "satisfied" else "final_evaluation"
+                ),
+                "critique": critique,
+                "metadata": {
+                    "model": overseer_response.model,
+                    "created_timestamp": overseer_response.created,
+                    "created_datetime": datetime.fromtimestamp(
+                        overseer_response.created
+                    ).isoformat(),
+                    "completion_tokens": overseer_response.usage.completion_tokens,
+                    "prompt_tokens": overseer_response.usage.prompt_tokens,
+                    "total_tokens": overseer_response.usage.total_tokens,
+                    "api_response_time_seconds": time.time() - overseer_start_time,
+                },
+                "prompt_updated": False,  # No updates on final evaluation
+                "system_prompt_before": system_prompt,
+                "system_prompt_after": system_prompt,  # Same since no update
+            }
+
+            responses.append(final_evaluation)
+            logger.info("Added final overseer evaluation")
+        except Exception as e:
+            logger.error(f"Error adding final evaluation: {str(e)}")
+
     # If there's no perplexity response at all (unlikely), create a default empty one
     if not final_perplexity_response and responses:
         final_perplexity_response = responses[-1]
@@ -790,42 +874,3 @@ def enhanced_perplexity_chatgpt_loop(
     }
 
     return final_result
-
-
-# Keep the old function for backward compatibility but mark it as deprecated
-def perplexity_chatgpt_loop(
-    user_prompt,
-    perplexity_api_key,
-    chatgpt_api_key,
-    original_system_prompt,
-    logger,
-    max_attempts=3,
-):
-    """
-    DEPRECATED: Use enhanced_perplexity_chatgpt_loop instead.
-
-    Implement the loop between Perplexity and ChatGPT for validation and refinement.
-
-    Args:
-        user_prompt (str): The user prompt content
-        perplexity_api_key (str): Perplexity API key
-        chatgpt_api_key (str): OpenAI API key
-        original_system_prompt (str): Initial system prompt for Perplexity
-        logger (logging.Logger): Logger instance
-        max_attempts (int): Maximum number of retry attempts
-
-    Returns:
-        dict: Result containing final response, recommendation, and metadata
-    """
-    logger.warning(
-        "perplexity_chatgpt_loop is deprecated. Use enhanced_perplexity_chatgpt_loop instead."
-    )
-    return enhanced_perplexity_chatgpt_loop(
-        user_prompt=user_prompt,
-        perplexity_api_key=perplexity_api_key,
-        chatgpt_api_key=chatgpt_api_key,
-        original_system_prompt=original_system_prompt,
-        logger=logger,
-        max_attempts=max_attempts,
-        min_attempts=1,  # Original function effectively had min_attempts=1
-    )
