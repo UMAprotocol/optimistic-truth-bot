@@ -278,6 +278,33 @@ def process_proposal_file(file_path):
                             ),
                             False,
                         ),
+                        "critique": next(
+                            (
+                                r["critique"]
+                                for r in result["responses"]
+                                if r.get("stage") == f"evaluation_{i+1}"
+                                and r["interaction_type"] == "chatgpt_evaluation"
+                            ),
+                            None,
+                        ),
+                        "system_prompt_before": next(
+                            (
+                                r["system_prompt_before"]
+                                for r in result["responses"]
+                                if r.get("stage") == f"evaluation_{i+1}"
+                                and r["interaction_type"] == "chatgpt_evaluation"
+                            ),
+                            None,
+                        ),
+                        "system_prompt_after": next(
+                            (
+                                r["system_prompt_after"]
+                                for r in result["responses"]
+                                if r.get("stage") == f"evaluation_{i+1}"
+                                and r["interaction_type"] == "chatgpt_evaluation"
+                            ),
+                            None,
+                        ),
                     }
                     for i in range(result["attempts"])
                 ],

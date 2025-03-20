@@ -69,6 +69,11 @@ Where:
 Be extremely critical and cautious. The response must be highly accurate and reliable. When in doubt, recommend DEFAULT_TO_P4 or RETRY with specific improvements.
 
 Remember: First attempt p4 recommendations MUST always get a RETRY verdict with require_rerun=true.
+
+EXTRA THINGS TO CONSIDER:
+- Ensure that if the user prompt relates to a particular source that perplexity is using the correct source
+- Ensure that if the user prompt contains updates, perplexity is using the updates to update its analysis and resolution and is factoring them heavily into its recommendation
+- Perplexity can often be bad at identifying "how many times did x get mentioned" or "how many times did y say z" etc - be sure to verify that the reasoning is using the correct source
 """
     return prompt
 
