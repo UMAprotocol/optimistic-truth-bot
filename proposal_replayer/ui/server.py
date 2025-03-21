@@ -35,11 +35,16 @@ PARENT_DIR = Path(__file__).parent.parent
 UI_DIR = PARENT_DIR / "ui"
 RESULTS_DIR = PARENT_DIR / "results"
 LOG_DIR = PARENT_DIR / "logs"
+OUTPUTS_DIR = PARENT_DIR / "outputs"
+RERUNS_DIR = PARENT_DIR / "reruns"
 # Base repository directory (one level up from proposal_replayer)
 BASE_REPO_DIR = PARENT_DIR.parent
 
-# Ensure log directory exists
+# Ensure required directories exist
 LOG_DIR.mkdir(exist_ok=True)
+RESULTS_DIR.mkdir(exist_ok=True)
+OUTPUTS_DIR.mkdir(exist_ok=True)
+RERUNS_DIR.mkdir(exist_ok=True)
 
 # Global variables
 server = None
@@ -706,15 +711,39 @@ def setup_file_watcher():
     observer = Observer()
     event_handler = FileChangeHandler(restart_event)
 
-    # Watch UI directory
-    observer.schedule(event_handler, str(UI_DIR), recursive=False)
+    try:
+        # Watch UI directory
+        logger.info(f"Setting up watcher for UI directory: {UI_DIR}")
+        observer.schedule(event_handler, str(UI_DIR), recursive=False)
 
-    # Watch outputs and reruns directories
-    observer.schedule(event_handler, str(PARENT_DIR / "outputs"), recursive=False)
-    observer.schedule(event_handler, str(PARENT_DIR / "reruns"), recursive=False)
+        # Watch outputs and reruns directories
+        logger.info(f"Setting up watcher for outputs directory: {OUTPUTS_DIR}")
+        observer.schedule(event_handler, str(OUTPUTS_DIR), recursive=False)
 
-    observer.start()
+        logger.info(f"Setting up watcher for reruns directory: {RERUNS_DIR}")
+        observer.schedule(event_handler, str(RERUNS_DIR), recursive=False)
+
+        observer.start()
+        logger.info("File watchers started successfully")
+    except OSError as e:
+        logger.error(
+            f"Error setting up file watchers: {e}. Auto-reload will be disabled."
+        )
+        # Create a dummy observer if the real one fails
+        observer = DummyObserver()
+
     return observer
+
+
+# A dummy observer for when the real one can't be created
+class DummyObserver:
+    """A dummy observer that does nothing."""
+
+    def stop(self):
+        pass
+
+    def join(self):
+        pass
 
 
 def run_server():
