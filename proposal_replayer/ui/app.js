@@ -1292,15 +1292,20 @@ async function loadExperimentData(directory) {
 // Helper function to fetch a list of files in a directory
 async function fetchFileList(dirPath) {
     try {
+        console.log('Attempting to fetch files from:', dirPath);
+        
         // First try the directory listing API if it exists
+        console.log('Trying directory listing API...');
         const response = await fetch(`/api/list-files?path=${dirPath}`);
         
         if (response.ok) {
             const data = await response.json();
+            console.log('Files found via API:', data.files || []);
             return data.files || [];
         }
         
         // If that fails, try to scrape the directory listing
+        console.log('Trying directory scraping...');
         const dirResponse = await fetch(`/${dirPath}/`);
         if (dirResponse.ok) {
             const html = await dirResponse.text();
@@ -1308,13 +1313,57 @@ async function fetchFileList(dirPath) {
             const doc = parser.parseFromString(html, 'text/html');
             
             // Extract links to JSON files
-            return Array.from(doc.querySelectorAll('a'))
+            const links = Array.from(doc.querySelectorAll('a'))
                 .filter(a => a.href.endsWith('.json'))
                 .map(a => a.href.split('/').pop());
+            
+            console.log('Files found via scraping:', links);
+            return links;
+        }
+        
+        // If scraping doesn't work, check for specific known files directly
+        console.log('Trying direct file checks...');
+        const potentialFiles = [
+            'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
+            '51ddd061.json', 'd9d48807.json', '210e2087.json', '1e4d05a7.json',
+            'e9384a05.json', 'a5722f27.json', '3a4eb4fc.json', 'f409f21c.json'
+        ];
+        
+        const foundFiles = [];
+        for (const filename of potentialFiles) {
+            try {
+                const fileUrl = `/${dirPath}/${filename}`;
+                console.log('Checking for file:', fileUrl);
+                const testResponse = await fetch(fileUrl, { method: 'HEAD' });
+                if (testResponse.ok) {
+                    console.log('Found file:', filename);
+                    foundFiles.push(filename);
+                }
+            } catch (err) {
+                console.warn(`Error checking for ${filename}:`, err);
+            }
+        }
+        
+        if (foundFiles.length > 0) {
+            console.log('Files found by direct check:', foundFiles);
+            return foundFiles;
+        }
+        
+        // Try to list all files in the outputs directory if available
+        try {
+            console.log('Trying to check outputs directory content...');
+            const outputsResponse = await fetch(`/api/outputs-directory?path=${dirPath}`);
+            if (outputsResponse.ok) {
+                const data = await outputsResponse.json();
+                console.log('Files from outputs directory:', data.files || []);
+                return data.files || [];
+            }
+        } catch (err) {
+            console.warn('Error checking outputs directory:', err);
         }
         
         // As a fallback, use this hardcoded list of sample filenames that we've seen
-        // This is not ideal but will help in case directory listing is not available
+        console.log('Using fallback file list');
         return [
             'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
             '51ddd061.json', 'd9d48807.json', '210e2087.json', '1e4d05a7.json',

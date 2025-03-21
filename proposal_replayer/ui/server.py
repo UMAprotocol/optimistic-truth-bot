@@ -22,6 +22,23 @@ import logging
 import select
 import fcntl
 import errno
+import urllib.parse
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+
+    # Load .env from the base repository directory (one level up from proposal_replayer)
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    load_dotenv(dotenv_path=env_path)
+    print(f"Loaded environment variables from {env_path}")
+except ImportError:
+    print(
+        "Warning: python-dotenv not installed. Environment variables from .env file will not be loaded."
+    )
+    print("Install with: pip install python-dotenv")
+except Exception as e:
+    print(f"Warning: Could not load .env file: {e}")
 
 # Set up logging
 logging.basicConfig(
@@ -39,6 +56,12 @@ OUTPUTS_DIR = PARENT_DIR / "outputs"
 RERUNS_DIR = PARENT_DIR / "reruns"
 # Base repository directory (one level up from proposal_replayer)
 BASE_REPO_DIR = PARENT_DIR.parent
+
+# Authentication settings - Change these!
+AUTH_ENABLED = os.environ.get("AUTH_ENABLED", "true").lower() == "true"
+AUTH_USERNAME = os.environ.get("AUTH_USERNAME", "admin")
+AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD", "password123")
+AUTH_TOKEN_SECRET = os.environ.get("AUTH_TOKEN_SECRET", "change-this-secret-key")
 
 # Ensure required directories exist
 LOG_DIR.mkdir(exist_ok=True)
@@ -292,7 +315,7 @@ process_monitor_thread.start()
 
 class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(PARENT_DIR), **kwargs)
+        super().__init__(*args, directory=str(UI_DIR), **kwargs)
 
     def end_headers(self):
         # Add CORS headers
@@ -306,7 +329,207 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         # Custom log formatting
         logger.info(f"{self.address_string()} - {format % args}")
 
+    def is_authenticated(self):
+        """Check if the request is authenticated"""
+        if not AUTH_ENABLED:
+            return True
+
+        # Check for auth cookie
+        cookies_header = self.headers.get("Cookie", "")
+        cookies = {}
+        for cookie in cookies_header.split(";"):
+            if "=" in cookie:
+                name, value = cookie.strip().split("=", 1)
+                cookies[name] = value
+
+        auth_token = cookies.get("auth_token", "")
+
+        # Very simple token validation
+        import hashlib
+        import hmac
+
+        # Create expected token
+        expected = hmac.new(
+            AUTH_TOKEN_SECRET.encode(),
+            f"{AUTH_USERNAME}:{AUTH_PASSWORD}".encode(),
+            hashlib.sha256,
+        ).hexdigest()
+
+        return hmac.compare_digest(auth_token, expected)
+
+    def serve_login_page(self):
+        """Serve the login page"""
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+
+        login_html = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Login - Large Language Oracle</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body {{
+                    background-color: #f8f9fa;
+                    height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }}
+                .login-container {{
+                    max-width: 400px;
+                    padding: 15px;
+                    margin: 0 auto;
+                }}
+                .login-header {{
+                    background-color: #ec5b54;
+                    color: white;
+                    padding: 20px;
+                    border-radius: 5px 5px 0 0;
+                    text-align: center;
+                }}
+                .login-form {{
+                    background-color: white;
+                    padding: 20px;
+                    border-radius: 0 0 5px 5px;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                }}
+                .error-message {{
+                    color: #dc3545;
+                    margin-bottom: 15px;
+                    text-align: center;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="login-container">
+                <div class="login-header">
+                    <h2>Large Language Oracle</h2>
+                </div>
+                <div class="login-form">
+                    <div id="errorMessage" class="error-message" style="display: none;">
+                        Invalid username or password
+                    </div>
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                    </form>
+                </div>
+            </div>
+            
+            <script>
+                document.getElementById('loginForm').addEventListener('submit', async function(e) {{
+                    e.preventDefault();
+                    
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    
+                    try {{
+                        const response = await fetch('/api/login', {{
+                            method: 'POST',
+                            headers: {{
+                                'Content-Type': 'application/json',
+                            }},
+                            body: JSON.stringify({{ username, password }})
+                        }});
+                        
+                        if (response.ok) {{
+                            const data = await response.json();
+                            document.cookie = `auth_token=${{data.token}}; path=/; max-age=86400`;
+                            window.location.href = '/';
+                        }} else {{
+                            document.getElementById('errorMessage').style.display = 'block';
+                        }}
+                    }} catch (error) {{
+                        console.error('Login error:', error);
+                        document.getElementById('errorMessage').style.display = 'block';
+                    }}
+                }});
+            </script>
+        </body>
+        </html>
+        """
+
+        self.wfile.write(login_html.encode())
+
     def do_GET(self):
+        # Redirect to login page if not authenticated
+        if (
+            not self.is_authenticated()
+            and self.path != "/api/login"
+            and not self.path.endswith((".css", ".js", ".png", ".jpg", ".jpeg", ".ico"))
+        ):
+            if self.path == "/login":
+                self.serve_login_page()
+                return
+            else:
+                self.send_response(302)
+                self.send_header("Location", "/login")
+                self.end_headers()
+                return
+
+        # Special handling for results directory files
+        if self.path.startswith("/results/"):
+            # Remap the path to the actual results directory
+            file_path = PARENT_DIR / self.path[1:]  # Remove leading slash
+            logger.info(f"Accessing result file: {self.path}")
+            logger.info(f"Mapped to: {file_path}")
+            logger.info(f"File exists: {file_path.exists()}")
+
+            try:
+                if file_path.exists() and file_path.is_file():
+                    logger.info(f"Serving file: {file_path}")
+                    self.send_response(200)
+                    # Set the appropriate content type
+                    if file_path.suffix == ".json":
+                        self.send_header("Content-Type", "application/json")
+                    elif file_path.suffix == ".txt":
+                        self.send_header("Content-Type", "text/plain")
+                    else:
+                        self.send_header("Content-Type", "application/octet-stream")
+
+                    # Set content length
+                    self.send_header("Content-Length", str(file_path.stat().st_size))
+                    self.end_headers()
+
+                    # Send the file contents
+                    with open(file_path, "rb") as f:
+                        self.wfile.write(f.read())
+                    return
+                else:
+                    logger.error(f"File not found: {file_path}")
+                    # Check if directory exists but file doesn't
+                    if file_path.parent.exists():
+                        logger.info(f"Directory exists: {file_path.parent}")
+                        logger.info(
+                            f"Directory contents: {list(file_path.parent.iterdir())}"
+                        )
+
+                    self.send_response(404)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "File not found"}).encode())
+                    return
+            except Exception as e:
+                logger.error(f"Error serving file {file_path}: {e}")
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                return
+
+        # If authenticated, serve content based on the path
+
         # API endpoint for results directories
         if self.path == "/api/results-directories":
             try:
@@ -394,6 +617,60 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
                 return
 
+        # API endpoint to list files in an outputs directory
+        elif self.path.startswith("/api/outputs-directory"):
+            try:
+                # Parse the query parameter
+                query = urllib.parse.urlparse(self.path).query
+                params = urllib.parse.parse_qs(query)
+                dir_path = params.get("path", [""])[0]
+
+                if not dir_path:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps({"error": "path parameter is required"}).encode()
+                    )
+                    return
+
+                # Construct the full path to the directory
+                full_path = PARENT_DIR / dir_path.lstrip("/")
+                logger.info(f"Listing files in directory: {full_path}")
+
+                # Check if the directory exists
+                if not full_path.exists() or not full_path.is_dir():
+                    logger.error(f"Directory not found: {full_path}")
+                    self.send_response(404)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps({"error": "Directory not found"}).encode()
+                    )
+                    return
+
+                # List all JSON files in the directory
+                files = [
+                    f.name
+                    for f in full_path.iterdir()
+                    if f.is_file() and f.suffix == ".json"
+                ]
+                logger.info(f"Found {len(files)} JSON files in {full_path}")
+                logger.info(f"Files: {files}")
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"files": files}).encode())
+                return
+            except Exception as e:
+                logger.error(f"Error listing directory: {e}")
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                return
+
         # API endpoint for specific process logs
         elif self.path.startswith("/api/process/"):
             try:
@@ -441,6 +718,57 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
+        # API endpoint for login
+        if self.path == "/api/login":
+            try:
+                content_length = int(self.headers.get("Content-Length", 0))
+                post_data = self.rfile.read(content_length).decode("utf-8")
+                payload = json.loads(post_data)
+
+                username = payload.get("username", "")
+                password = payload.get("password", "")
+
+                if username == AUTH_USERNAME and password == AUTH_PASSWORD:
+                    # Generate a token
+                    import hashlib
+                    import hmac
+
+                    token = hmac.new(
+                        AUTH_TOKEN_SECRET.encode(),
+                        f"{username}:{password}".encode(),
+                        hashlib.sha256,
+                    ).hexdigest()
+
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps({"success": True, "token": token}).encode()
+                    )
+                else:
+                    self.send_response(401)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps({"error": "Invalid credentials"}).encode()
+                    )
+
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                return
+
+        # Check authentication for all other POST endpoints
+        if not self.is_authenticated():
+            self.send_response(401)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": "Authentication required"}).encode())
+            return
+
         # API endpoint to start a new process
         if self.path == "/api/process/start":
             try:
