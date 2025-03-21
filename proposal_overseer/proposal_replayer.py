@@ -242,6 +242,7 @@ def process_proposal_file(file_path):
             "initial_recommendation": result["initial_recommendation"],
             "recommendation": result["final_recommendation"],
             "recommendation_changed": result["recommendation_changed"],
+            "recommendation_overridden": result.get("recommendation_overridden", False),
             "proposed_price_outcome": extract_recommendation(result["final_response"]),
             "user_prompt": user_prompt,  # Include the user prompt in the output
             "system_prompt": system_prompt,  # Include the system prompt in the output
