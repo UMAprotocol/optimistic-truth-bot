@@ -64,7 +64,9 @@ Where:
 - RETRY: The response has issues but could be improved with another attempt.
 - DEFAULT_TO_P4: The query cannot be resolved confidently and should default to p4.
 - require_rerun: Must be true for RETRY, typically false for SATISFIED, and can be true or false for DEFAULT_TO_P4.
-- prompt_update: Required if require_rerun is true, should provide specific guidance for improvement.
+- prompt_update: For RETRY, provide ONLY the specific refinements or additional instructions needed, not a complete system prompt replacement. Only provide a full system prompt replacement if you believe the entire prompt structure needs to be changed.
+
+IMPORTANT: When providing a prompt_update, focus on specific refinements and additions that would help improve the response. DO NOT rewrite the entire system prompt unless absolutely necessary. Your refinements will be appended to the existing system prompt, not replace it.
 
 Be extremely critical and cautious. The response must be highly accurate and reliable. When in doubt, recommend DEFAULT_TO_P4 or RETRY with specific improvements.
 

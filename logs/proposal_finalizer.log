@@ -4417,3 +4417,171 @@
 2025-03-20 14:02:15,657 - proposal_finalizer - INFO - Updated 84db9689.json with additional information
 2025-03-20 14:02:15,658 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 4, Errors: 0, Skipped: 95
 2025-03-20 14:02:15,658 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-21 12:31:48,550 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-21 12:31:49,287 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-21 12:31:49,304 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-21 12:31:49,304 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-21 12:31:49,304 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-21 12:31:49,309 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-21 12:31:49,310 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-21 12:31:49,310 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-21 12:31:49,726 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-21 12:31:49,726 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-21 12:31:49,726 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-21 12:31:49,729 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-21 12:31:49,732 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 1, Errors: 0, Skipped: 27
+2025-03-21 12:31:49,733 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-21 12:31:49,738 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-21 12:31:49,739 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-21 12:31:49,743 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-21 12:31:49,744 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-21 12:31:49,748 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-21 12:31:49,749 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-21 12:31:49,749 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-21 12:31:50,152 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-21 12:31:50,152 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-21 12:31:50,152 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-21 12:31:50,155 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-21 12:31:50,156 - proposal_finalizer - INFO - Checking resolution for query ID: 0x163ab2a4af17e77e18f1d9acc1a43c2130dde0b5c3796054a5e72c17803cd1d9
+2025-03-21 12:31:50,562 - proposal_finalizer - INFO - Market 0x163ab2a4af17e77e18f1d9acc1a43c2130dde0b5c3796054a5e72c17803cd1d9 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:50,562 - proposal_finalizer - INFO - Market 0x163ab2a4af17e77e18f1d9acc1a43c2130dde0b5c3796054a5e72c17803cd1d9 resolved with price: 0
+2025-03-21 12:31:50,565 - proposal_finalizer - INFO - Updated 163ab2a4.json with additional information
+2025-03-21 12:31:50,565 - proposal_finalizer - INFO - Checking resolution for query ID: 0xb2c8ec17e5ec9f881e9452a5836c074e173dfd520062a1316d5a85fa90695e0b
+2025-03-21 12:31:50,972 - proposal_finalizer - INFO - Market 0xb2c8ec17e5ec9f881e9452a5836c074e173dfd520062a1316d5a85fa90695e0b disputer address: 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-21 12:31:50,972 - proposal_finalizer - INFO - Market 0xb2c8ec17e5ec9f881e9452a5836c074e173dfd520062a1316d5a85fa90695e0b resolved with price: 1000000000000000000
+2025-03-21 12:31:50,973 - proposal_finalizer - INFO - Market 0xb2c8ec17e5ec9f881e9452a5836c074e173dfd520062a1316d5a85fa90695e0b was disputed by 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-21 12:31:50,975 - proposal_finalizer - INFO - Updated b2c8ec17.json with additional information
+2025-03-21 12:31:50,977 - proposal_finalizer - INFO - Checking resolution for query ID: 0xcc83e6b928da4d02ebc221c296f1afea165953af3019f992fd77a1d90fcdff5c
+2025-03-21 12:31:51,379 - proposal_finalizer - INFO - Market 0xcc83e6b928da4d02ebc221c296f1afea165953af3019f992fd77a1d90fcdff5c disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:51,379 - proposal_finalizer - INFO - Market 0xcc83e6b928da4d02ebc221c296f1afea165953af3019f992fd77a1d90fcdff5c resolved with price: 0
+2025-03-21 12:31:51,381 - proposal_finalizer - INFO - Updated cc83e6b9.json with additional information
+2025-03-21 12:31:51,382 - proposal_finalizer - INFO - Checking resolution for query ID: 0x613b77ce44e1ce9f7356b9f2e352002ef389e347a017c3c35a28a08bb464c654
+2025-03-21 12:31:51,794 - proposal_finalizer - INFO - Market 0x613b77ce44e1ce9f7356b9f2e352002ef389e347a017c3c35a28a08bb464c654 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:51,794 - proposal_finalizer - INFO - Market 0x613b77ce44e1ce9f7356b9f2e352002ef389e347a017c3c35a28a08bb464c654 resolved with price: 1000000000000000000
+2025-03-21 12:31:51,795 - proposal_finalizer - INFO - Updated 613b77ce.json with additional information
+2025-03-21 12:31:51,797 - proposal_finalizer - INFO - Checking resolution for query ID: 0x860fddb38d4726a874fca4e755a17ed6e7836b6fc959bc714e18128a8b3c9654
+2025-03-21 12:31:52,198 - proposal_finalizer - INFO - Market 0x860fddb38d4726a874fca4e755a17ed6e7836b6fc959bc714e18128a8b3c9654 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:52,198 - proposal_finalizer - INFO - Market 0x860fddb38d4726a874fca4e755a17ed6e7836b6fc959bc714e18128a8b3c9654 resolved with price: 0
+2025-03-21 12:31:52,201 - proposal_finalizer - INFO - Updated 860fddb3.json with additional information
+2025-03-21 12:31:52,201 - proposal_finalizer - INFO - Checking resolution for query ID: 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3
+2025-03-21 12:31:52,608 - proposal_finalizer - INFO - Market 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:52,608 - proposal_finalizer - INFO - Market 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3 resolved with price: 1000000000000000000
+2025-03-21 12:31:52,609 - proposal_finalizer - INFO - Updated 7645a6f6.json with additional information
+2025-03-21 12:31:52,610 - proposal_finalizer - INFO - Checking resolution for query ID: 0x3feab300277bbecf585f346e404877448c03cd97b51fb5190cea93abedcd93f7
+2025-03-21 12:31:53,010 - proposal_finalizer - INFO - Market 0x3feab300277bbecf585f346e404877448c03cd97b51fb5190cea93abedcd93f7 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:53,010 - proposal_finalizer - INFO - Market 0x3feab300277bbecf585f346e404877448c03cd97b51fb5190cea93abedcd93f7 resolved with price: 0
+2025-03-21 12:31:53,012 - proposal_finalizer - INFO - Updated 3feab300.json with additional information
+2025-03-21 12:31:53,013 - proposal_finalizer - INFO - Checking resolution for query ID: 0xe5abe062af1646d7245c5337f30e6aaaa400ae308ad5bcaea53bad00715e818c
+2025-03-21 12:31:53,413 - proposal_finalizer - INFO - Market 0xe5abe062af1646d7245c5337f30e6aaaa400ae308ad5bcaea53bad00715e818c disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:53,413 - proposal_finalizer - INFO - Market 0xe5abe062af1646d7245c5337f30e6aaaa400ae308ad5bcaea53bad00715e818c resolved with price: 1000000000000000000
+2025-03-21 12:31:53,415 - proposal_finalizer - INFO - Updated e5abe062.json with additional information
+2025-03-21 12:31:53,419 - proposal_finalizer - INFO - Checking resolution for query ID: 0x6af203383ab712a05ad459148d9268798c964bc93b2f04c2c28781613ef27883
+2025-03-21 12:31:53,824 - proposal_finalizer - INFO - Market 0x6af203383ab712a05ad459148d9268798c964bc93b2f04c2c28781613ef27883 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:53,824 - proposal_finalizer - INFO - Market 0x6af203383ab712a05ad459148d9268798c964bc93b2f04c2c28781613ef27883 resolved with price: 0
+2025-03-21 12:31:53,826 - proposal_finalizer - INFO - Updated 6af20338.json with additional information
+2025-03-21 12:31:53,828 - proposal_finalizer - INFO - Checking resolution for query ID: 0xfaa01feb4d105b2e7d9ad777f1247d16b6936954dd5e5d177fffae0dae6fc6ef
+2025-03-21 12:31:54,237 - proposal_finalizer - INFO - Market 0xfaa01feb4d105b2e7d9ad777f1247d16b6936954dd5e5d177fffae0dae6fc6ef disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:54,238 - proposal_finalizer - INFO - Market 0xfaa01feb4d105b2e7d9ad777f1247d16b6936954dd5e5d177fffae0dae6fc6ef resolved with price: 0
+2025-03-21 12:31:54,240 - proposal_finalizer - INFO - Updated faa01feb.json with additional information
+2025-03-21 12:31:54,241 - proposal_finalizer - INFO - Checking resolution for query ID: 0x0e5fb292a6e713146d7df2f4f510115a492a8007c34c8dbade0c9e800b7d5017
+2025-03-21 12:31:54,646 - proposal_finalizer - INFO - Market 0x0e5fb292a6e713146d7df2f4f510115a492a8007c34c8dbade0c9e800b7d5017 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:54,646 - proposal_finalizer - INFO - Market 0x0e5fb292a6e713146d7df2f4f510115a492a8007c34c8dbade0c9e800b7d5017 resolved with price: 0
+2025-03-21 12:31:54,648 - proposal_finalizer - INFO - Updated 0e5fb292.json with additional information
+2025-03-21 12:31:54,648 - proposal_finalizer - INFO - Checking resolution for query ID: 0x84db968945ab51903a4cf15e1372cbe1f2f45bc62a7098cf8d58df13d1d0d274
+2025-03-21 12:31:55,050 - proposal_finalizer - INFO - Market 0x84db968945ab51903a4cf15e1372cbe1f2f45bc62a7098cf8d58df13d1d0d274 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:55,050 - proposal_finalizer - INFO - Market 0x84db968945ab51903a4cf15e1372cbe1f2f45bc62a7098cf8d58df13d1d0d274 resolved with price: 0
+2025-03-21 12:31:55,051 - proposal_finalizer - INFO - Updated 84db9689.json with additional information
+2025-03-21 12:31:55,051 - proposal_finalizer - INFO - Checking resolution for query ID: 0x3a4eb4fc005801ee3a4055d056e08edfd35a757db1f2beb7860d0445bd499167
+2025-03-21 12:31:55,454 - proposal_finalizer - INFO - Market 0x3a4eb4fc005801ee3a4055d056e08edfd35a757db1f2beb7860d0445bd499167 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:55,454 - proposal_finalizer - INFO - Market 0x3a4eb4fc005801ee3a4055d056e08edfd35a757db1f2beb7860d0445bd499167 resolved with price: 0
+2025-03-21 12:31:55,458 - proposal_finalizer - INFO - Updated 3a4eb4fc.json with additional information
+2025-03-21 12:31:55,459 - proposal_finalizer - INFO - Checking resolution for query ID: 0xf409f21caf3e94f6dd557e9012b4e89a75c7f7da8a83bbd15c0d068c4b2f4831
+2025-03-21 12:31:55,864 - proposal_finalizer - INFO - Market 0xf409f21caf3e94f6dd557e9012b4e89a75c7f7da8a83bbd15c0d068c4b2f4831 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 12:31:55,865 - proposal_finalizer - INFO - Market 0xf409f21caf3e94f6dd557e9012b4e89a75c7f7da8a83bbd15c0d068c4b2f4831 resolved with price: 1000000000000000000
+2025-03-21 12:31:55,867 - proposal_finalizer - INFO - Updated f409f21c.json with additional information
+2025-03-21 12:31:55,867 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 15, Errors: 0, Skipped: 84
+2025-03-21 12:31:55,868 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-21 14:13:44,856 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-21 14:13:45,643 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-21 14:13:45,656 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-21 14:13:45,656 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-21 14:13:45,657 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-21 14:13:45,671 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-21 14:13:45,671 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-21 14:13:45,672 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-21 14:13:46,080 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-21 14:13:46,080 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-21 14:13:46,080 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-21 14:13:46,081 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-21 14:13:46,085 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 1, Errors: 0, Skipped: 27
+2025-03-21 14:13:46,085 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-21 14:13:46,099 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-21 14:13:46,099 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-21 14:13:46,106 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-21 14:13:46,106 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-21 14:13:46,114 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-21 14:13:46,114 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-21 14:13:46,116 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-21 14:13:46,526 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-21 14:13:46,526 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-21 14:13:46,527 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-21 14:13:46,530 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-21 14:13:46,536 - proposal_finalizer - INFO - Checking resolution for query ID: 0x163ab2a4af17e77e18f1d9acc1a43c2130dde0b5c3796054a5e72c17803cd1d9
+2025-03-21 14:13:46,959 - proposal_finalizer - INFO - Market 0x163ab2a4af17e77e18f1d9acc1a43c2130dde0b5c3796054a5e72c17803cd1d9 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:46,959 - proposal_finalizer - INFO - Market 0x163ab2a4af17e77e18f1d9acc1a43c2130dde0b5c3796054a5e72c17803cd1d9 resolved with price: 0
+2025-03-21 14:13:46,962 - proposal_finalizer - INFO - Updated 163ab2a4.json with additional information
+2025-03-21 14:13:46,963 - proposal_finalizer - INFO - Checking resolution for query ID: 0xb2c8ec17e5ec9f881e9452a5836c074e173dfd520062a1316d5a85fa90695e0b
+2025-03-21 14:13:47,381 - proposal_finalizer - INFO - Market 0xb2c8ec17e5ec9f881e9452a5836c074e173dfd520062a1316d5a85fa90695e0b disputer address: 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-21 14:13:47,382 - proposal_finalizer - INFO - Market 0xb2c8ec17e5ec9f881e9452a5836c074e173dfd520062a1316d5a85fa90695e0b resolved with price: 1000000000000000000
+2025-03-21 14:13:47,382 - proposal_finalizer - INFO - Market 0xb2c8ec17e5ec9f881e9452a5836c074e173dfd520062a1316d5a85fa90695e0b was disputed by 0xD7f6ebDf0235f587154E2D7D38f9D80568494993
+2025-03-21 14:13:47,384 - proposal_finalizer - INFO - Updated b2c8ec17.json with additional information
+2025-03-21 14:13:47,393 - proposal_finalizer - INFO - Checking resolution for query ID: 0xcc83e6b928da4d02ebc221c296f1afea165953af3019f992fd77a1d90fcdff5c
+2025-03-21 14:13:47,807 - proposal_finalizer - INFO - Market 0xcc83e6b928da4d02ebc221c296f1afea165953af3019f992fd77a1d90fcdff5c disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:47,808 - proposal_finalizer - INFO - Market 0xcc83e6b928da4d02ebc221c296f1afea165953af3019f992fd77a1d90fcdff5c resolved with price: 0
+2025-03-21 14:13:47,813 - proposal_finalizer - INFO - Updated cc83e6b9.json with additional information
+2025-03-21 14:13:47,815 - proposal_finalizer - INFO - Checking resolution for query ID: 0x613b77ce44e1ce9f7356b9f2e352002ef389e347a017c3c35a28a08bb464c654
+2025-03-21 14:13:48,234 - proposal_finalizer - INFO - Market 0x613b77ce44e1ce9f7356b9f2e352002ef389e347a017c3c35a28a08bb464c654 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:48,234 - proposal_finalizer - INFO - Market 0x613b77ce44e1ce9f7356b9f2e352002ef389e347a017c3c35a28a08bb464c654 resolved with price: 1000000000000000000
+2025-03-21 14:13:48,235 - proposal_finalizer - INFO - Updated 613b77ce.json with additional information
+2025-03-21 14:13:48,241 - proposal_finalizer - INFO - Checking resolution for query ID: 0x860fddb38d4726a874fca4e755a17ed6e7836b6fc959bc714e18128a8b3c9654
+2025-03-21 14:13:48,650 - proposal_finalizer - INFO - Market 0x860fddb38d4726a874fca4e755a17ed6e7836b6fc959bc714e18128a8b3c9654 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:48,651 - proposal_finalizer - INFO - Market 0x860fddb38d4726a874fca4e755a17ed6e7836b6fc959bc714e18128a8b3c9654 resolved with price: 0
+2025-03-21 14:13:48,655 - proposal_finalizer - INFO - Updated 860fddb3.json with additional information
+2025-03-21 14:13:48,660 - proposal_finalizer - INFO - Checking resolution for query ID: 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3
+2025-03-21 14:13:49,077 - proposal_finalizer - INFO - Market 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:49,079 - proposal_finalizer - INFO - Market 0x7645a6f6010f230f766016866d979ca121a2e183b1a37f6736d5af9a9a2afdf3 resolved with price: 1000000000000000000
+2025-03-21 14:13:49,082 - proposal_finalizer - INFO - Updated 7645a6f6.json with additional information
+2025-03-21 14:13:49,083 - proposal_finalizer - INFO - Checking resolution for query ID: 0x3feab300277bbecf585f346e404877448c03cd97b51fb5190cea93abedcd93f7
+2025-03-21 14:13:49,527 - proposal_finalizer - INFO - Market 0x3feab300277bbecf585f346e404877448c03cd97b51fb5190cea93abedcd93f7 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:49,528 - proposal_finalizer - INFO - Market 0x3feab300277bbecf585f346e404877448c03cd97b51fb5190cea93abedcd93f7 resolved with price: 0
+2025-03-21 14:13:49,530 - proposal_finalizer - INFO - Updated 3feab300.json with additional information
+2025-03-21 14:13:49,533 - proposal_finalizer - INFO - Checking resolution for query ID: 0xe5abe062af1646d7245c5337f30e6aaaa400ae308ad5bcaea53bad00715e818c
+2025-03-21 14:13:49,965 - proposal_finalizer - INFO - Market 0xe5abe062af1646d7245c5337f30e6aaaa400ae308ad5bcaea53bad00715e818c disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:49,966 - proposal_finalizer - INFO - Market 0xe5abe062af1646d7245c5337f30e6aaaa400ae308ad5bcaea53bad00715e818c resolved with price: 1000000000000000000
+2025-03-21 14:13:49,972 - proposal_finalizer - INFO - Updated e5abe062.json with additional information
+2025-03-21 14:13:49,983 - proposal_finalizer - INFO - Checking resolution for query ID: 0x6af203383ab712a05ad459148d9268798c964bc93b2f04c2c28781613ef27883
+2025-03-21 14:13:50,407 - proposal_finalizer - INFO - Market 0x6af203383ab712a05ad459148d9268798c964bc93b2f04c2c28781613ef27883 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:50,408 - proposal_finalizer - INFO - Market 0x6af203383ab712a05ad459148d9268798c964bc93b2f04c2c28781613ef27883 resolved with price: 0
+2025-03-21 14:13:50,411 - proposal_finalizer - INFO - Updated 6af20338.json with additional information
+2025-03-21 14:13:50,417 - proposal_finalizer - INFO - Checking resolution for query ID: 0xfaa01feb4d105b2e7d9ad777f1247d16b6936954dd5e5d177fffae0dae6fc6ef
+2025-03-21 14:13:50,825 - proposal_finalizer - INFO - Market 0xfaa01feb4d105b2e7d9ad777f1247d16b6936954dd5e5d177fffae0dae6fc6ef disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:50,825 - proposal_finalizer - INFO - Market 0xfaa01feb4d105b2e7d9ad777f1247d16b6936954dd5e5d177fffae0dae6fc6ef resolved with price: 0
+2025-03-21 14:13:50,826 - proposal_finalizer - INFO - Updated faa01feb.json with additional information
+2025-03-21 14:13:50,830 - proposal_finalizer - INFO - Checking resolution for query ID: 0x0e5fb292a6e713146d7df2f4f510115a492a8007c34c8dbade0c9e800b7d5017
+2025-03-21 14:13:51,241 - proposal_finalizer - INFO - Market 0x0e5fb292a6e713146d7df2f4f510115a492a8007c34c8dbade0c9e800b7d5017 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:51,241 - proposal_finalizer - INFO - Market 0x0e5fb292a6e713146d7df2f4f510115a492a8007c34c8dbade0c9e800b7d5017 resolved with price: 0
+2025-03-21 14:13:51,244 - proposal_finalizer - INFO - Updated 0e5fb292.json with additional information
+2025-03-21 14:13:51,246 - proposal_finalizer - INFO - Checking resolution for query ID: 0x84db968945ab51903a4cf15e1372cbe1f2f45bc62a7098cf8d58df13d1d0d274
+2025-03-21 14:13:51,724 - proposal_finalizer - INFO - Market 0x84db968945ab51903a4cf15e1372cbe1f2f45bc62a7098cf8d58df13d1d0d274 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:51,724 - proposal_finalizer - INFO - Market 0x84db968945ab51903a4cf15e1372cbe1f2f45bc62a7098cf8d58df13d1d0d274 resolved with price: 0
+2025-03-21 14:13:51,728 - proposal_finalizer - INFO - Updated 84db9689.json with additional information
+2025-03-21 14:13:51,730 - proposal_finalizer - INFO - Checking resolution for query ID: 0x3a4eb4fc005801ee3a4055d056e08edfd35a757db1f2beb7860d0445bd499167
+2025-03-21 14:13:52,147 - proposal_finalizer - INFO - Market 0x3a4eb4fc005801ee3a4055d056e08edfd35a757db1f2beb7860d0445bd499167 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:52,147 - proposal_finalizer - INFO - Market 0x3a4eb4fc005801ee3a4055d056e08edfd35a757db1f2beb7860d0445bd499167 resolved with price: 0
+2025-03-21 14:13:52,155 - proposal_finalizer - INFO - Updated 3a4eb4fc.json with additional information
+2025-03-21 14:13:52,156 - proposal_finalizer - INFO - Checking resolution for query ID: 0xf409f21caf3e94f6dd557e9012b4e89a75c7f7da8a83bbd15c0d068c4b2f4831
+2025-03-21 14:13:52,562 - proposal_finalizer - INFO - Market 0xf409f21caf3e94f6dd557e9012b4e89a75c7f7da8a83bbd15c0d068c4b2f4831 disputer address: 0x0000000000000000000000000000000000000000
+2025-03-21 14:13:52,563 - proposal_finalizer - INFO - Market 0xf409f21caf3e94f6dd557e9012b4e89a75c7f7da8a83bbd15c0d068c4b2f4831 resolved with price: 1000000000000000000
+2025-03-21 14:13:52,568 - proposal_finalizer - INFO - Updated f409f21c.json with additional information
+2025-03-21 14:13:52,568 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 15, Errors: 0, Skipped: 84
+2025-03-21 14:13:52,568 - proposal_finalizer - INFO - ✅ Proposal finalizer completed

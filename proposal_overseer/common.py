@@ -524,8 +524,21 @@ def enhanced_perplexity_chatgpt_loop(
 
             # Add the retry instruction to the system prompt if not already present
             if "I need you to improve your previous response" not in system_prompt:
-                system_prompt = system_prompt + retry_instruction
-                logger.info("Added specific improvement instructions for retry attempt")
+                # Track cumulative refinements
+                if attempts > 2:
+                    logger.info(f"Adding retry instructions for attempt #{attempts}")
+                    # For later attempts, make it clear this is an additional refinement
+                    system_prompt = (
+                        system_prompt
+                        + f"\n\nADDITIONAL REFINEMENT FOR ATTEMPT #{attempts}:\n"
+                        + retry_instruction
+                    )
+                else:
+                    # For the first retry, use standard format
+                    system_prompt = system_prompt + retry_instruction
+                    logger.info(
+                        "Added specific improvement instructions for retry attempt"
+                    )
 
         # Query Perplexity
         stop_spinner = threading.Event()
@@ -556,6 +569,8 @@ def enhanced_perplexity_chatgpt_loop(
                 "response": perplexity_text,
                 "recommendation": recommendation,
                 "system_prompt": system_prompt,
+                "cumulative_refinements": attempts
+                > 1,  # Track if refinements were applied
                 "response_metadata": {
                     "model": perplexity_response.model,
                     "created_timestamp": perplexity_response.created,
@@ -583,12 +598,12 @@ def enhanced_perplexity_chatgpt_loop(
 
             logger.info(f"Perplexity returned recommendation: {recommendation}")
 
-            # If last attempt, no need to check with overseer
-            if attempts == max_attempts:
-                stop_spinner.set()
-                spinner_thread.join()
-                logger.info(f"Reached maximum attempts ({max_attempts})")
-                break
+            # Note that we've reached max attempts but continue to get validation
+            is_final_attempt = attempts == max_attempts
+            if is_final_attempt:
+                logger.info(
+                    f"Reached maximum attempts ({max_attempts}), getting final validation"
+                )
 
             # Query ChatGPT as the overseer
             stop_spinner.set()
@@ -686,15 +701,48 @@ def enhanced_perplexity_chatgpt_loop(
                 spinner_thread.join()
                 break
 
-            # Continue with remaining decision logic only if not satisfied
+            # If this is the final attempt and overseer is not satisfied, default to p4
+            if is_final_attempt:
+                logger.info(
+                    "Final attempt and overseer is not satisfied - defaulting to p4"
+                )
+                # Override the recommendation to p4
+                response_data["recommendation"] = "p4"
+                response_data["recommendation_overridden"] = True
+                overseer_data["satisfaction_level"] = "final_attempt_defaulted_to_p4"
+                overseer_data["override_action"] = "max_attempts_reached_changed_to_p4"
+                # Ensure system_prompt_after is set
+                overseer_data["system_prompt_after"] = system_prompt
+                responses.append(overseer_data)
+                stop_spinner.set()
+                spinner_thread.join()
+                break
+
+            # Continue with remaining decision logic only if not satisfied and not final attempt
             if require_rerun:
                 # If we have a prompt update from the decision, use it
                 if prompt_update:
                     overseer_data["prompt_updated"] = True
                     overseer_data["system_prompt_before"] = system_prompt
-                    overseer_data["system_prompt_after"] = prompt_update
-                    system_prompt = prompt_update
-                    logger.info("Using prompt update from overseer decision")
+
+                    # Check if the prompt_update is a complete system prompt or just refinements
+                    if prompt_update.startswith(
+                        "You are an artificial intelligence oracle"
+                    ):
+                        # It's a complete system prompt replacement
+                        overseer_data["system_prompt_after"] = prompt_update
+                        system_prompt = prompt_update
+                        logger.info(
+                            "Using complete system prompt replacement from overseer"
+                        )
+                    else:
+                        # It's refinements that should be appended
+                        updated_system_prompt = (
+                            system_prompt + "\n\nADDITIONAL GUIDANCE:\n" + prompt_update
+                        )
+                        overseer_data["system_prompt_after"] = updated_system_prompt
+                        system_prompt = updated_system_prompt
+                        logger.info("Appending overseer refinements to system prompt")
                 else:
                     # Ensure system_prompt_after is set even when no update
                     overseer_data["system_prompt_after"] = system_prompt
@@ -887,16 +935,21 @@ def enhanced_perplexity_chatgpt_loop(
     # For accuracy metrics - track whether we had multiple attempts and outcome changed
     initial_recommendation = None
     final_recommendation = None
+    final_recommendation_overridden = False
 
     for r in responses:
         if r.get("interaction_type") == "perplexity_query":
             if r.get("attempt") == 1:
                 initial_recommendation = r.get("recommendation")
             final_recommendation = r.get("recommendation")
+            final_recommendation_overridden = r.get("recommendation_overridden", False)
 
     recommendation_changed = (initial_recommendation != final_recommendation) and (
         attempts > 1
     )
+
+    if final_recommendation_overridden:
+        logger.info(f"Final recommendation was overridden to {final_recommendation}")
 
     final_result = {
         "attempts": attempts,
@@ -908,6 +961,7 @@ def enhanced_perplexity_chatgpt_loop(
             else "p4"
         ),
         "recommendation_changed": recommendation_changed,
+        "recommendation_overridden": final_recommendation_overridden,
         "final_response": (
             final_perplexity_response.get("response", "")
             if final_perplexity_response
