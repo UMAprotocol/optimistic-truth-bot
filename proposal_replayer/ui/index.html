@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proposal Replayer Results</title>
+    <title>Large Language Oracle</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="styles.css">
@@ -11,190 +11,321 @@
 <body>
     <header>
         <div class="container">
-            <h1><i class="bi bi-play-circle-fill"></i> Proposal Replayer</h1>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="bi bi-play-circle-fill"></i> Large Language Oracle</h1>
+            </div>
+            <!-- Main Navigation Tabs -->
+            <ul class="nav nav-tabs main-tabs" id="mainNavTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics-content" type="button" role="tab" aria-controls="analytics-content" aria-selected="true">
+                        <i class="bi bi-bar-chart-fill"></i> Analytics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="experiment-tab" data-bs-toggle="tab" data-bs-target="#experiment-content" type="button" role="tab" aria-controls="experiment-content" aria-selected="false">
+                        <i class="bi bi-terminal-fill"></i> Experiment Runner
+                    </button>
+                </li>
+            </ul>
         </div>
     </header>
 
     <div class="container main-container">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Experiment Results</h3>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0" id="resultsDirectoryTable">
-                                <tbody id="resultsDirectoryTableBody">
-                                    <tr>
-                                        <td class="text-center">
-                                            <div class="spinner-border text-primary" role="status">
-                                                <span class="visually-hidden">Loading...</span>
-                                            </div>
-                                            <p class="mt-2">Loading experiments...</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-8">
-                <!-- Experiment Metadata Card - Initially Hidden -->
-                <div class="card mb-4" id="experimentMetadataCard" style="display: none;">
-                    <div class="card-header">
-                        <h3>Experiment Metadata</h3>
-                    </div>
-                    <div class="card-body" id="experimentMetadataContent">
-                        <!-- Metadata content will be populated here -->
-                    </div>
-                </div>
-
-                <!-- Analytics Dashboard -->
-                <div class="card" id="analyticsDashboard" style="display: none;">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h3 id="analyticsTitle" class="mb-0">Analytics</h3>
-                            <ul class="nav nav-tabs card-header-tabs" id="analyticsTabs" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="overall-tab" data-bs-toggle="tab" data-bs-target="#overall-content" type="button" role="tab" aria-controls="overall-content" aria-selected="true">Overall</button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="tags-tab" data-bs-toggle="tab" data-bs-target="#tags-content" type="button" role="tab" aria-controls="tags-content" aria-selected="false">Tag Accuracy</button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="tab-content" id="analyticsTabContent">
-                            <!-- Overall Tab -->
-                            <div class="tab-pane fade show active" id="overall-content" role="tabpanel" aria-labelledby="overall-tab">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="dashboard-item">
-                                            <div class="accuracy-circle" id="accuracyCircle">
-                                                <span class="accuracy-value" id="accuracyPercent">0%</span>
-                                            </div>
-                                            <div class="stats-info">
-                                                <h4>Accuracy</h4>
-                                                <p><span id="correctCount">0</span> correct / <span id="incorrectCount">0</span> incorrect</p>
-                                                <p>Total: <span id="totalCount">0</span></p>
-                                            </div>
-                                        </div>
-                                        <div class="dashboard-item mt-4">
-                                            <br>
-                                            <h4>P1-P2 Accuracy (Ignoring P3/P4)</h4>
-                                            <div class="progress">
-                                                <div class="progress-bar bg-info" role="progressbar" id="p12Accuracy" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
-                                            </div>
-                                            <p class="mt-3">No data recommendations: <span id="noDataCount">0</span></p>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="chart-container">
-                                            <h4>Recommendations</h4>
-                                            <canvas id="recommendationChart"></canvas>
-                                        </div>
-                                        <div class="chart-container mt-4">
-                                            <h4>Resolutions</h4>
-                                            <canvas id="resolutionChart"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
+        <div class="tab-content" id="mainTabContent">
+            <!-- Analytics Tab Content -->
+            <div class="tab-pane fade show active" id="analytics-content" role="tabpanel" aria-labelledby="analytics-tab">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Experiment Results</h3>
                             </div>
-                            
-                            <!-- Tag Accuracy Tab -->
-                            <div class="tab-pane fade" id="tags-content" role="tabpanel" aria-labelledby="tags-tab">
+                            <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-sm table-hover" id="tagAccuracyTable">
-                                        <thead>
+                                    <table class="table table-hover mb-0" id="resultsDirectoryTable">
+                                        <tbody id="resultsDirectoryTableBody">
                                             <tr>
-                                                <th>Tag</th>
-                                                <th>Count</th>
-                                                <th>Accuracy</th>
-                                                <th>Correct</th>
-                                                <th>Incorrect</th>
+                                                <td class="text-center">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                    <p class="mt-2">Loading experiments...</p>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody id="tagAccuracyTableBody">
-                                            <!-- Tag statistics will be populated here -->
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="col-md-8">
+                        <!-- Experiment Metadata Card - Initially Hidden -->
+                        <div class="card mb-4" id="experimentMetadataCard" style="display: none;">
+                            <div class="card-header">
+                                <h3>Experiment Metadata</h3>
+                            </div>
+                            <div class="card-body" id="experimentMetadataContent">
+                                <!-- Metadata content will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Analytics Dashboard -->
+                        <div class="card" id="analyticsDashboard" style="display: none;">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3 id="analyticsTitle" class="mb-0">Analytics</h3>
+                                    <ul class="nav nav-tabs card-header-tabs" id="analyticsTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="overall-tab" data-bs-toggle="tab" data-bs-target="#overall-content" type="button" role="tab" aria-controls="overall-content" aria-selected="true">Overall</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="tags-tab" data-bs-toggle="tab" data-bs-target="#tags-content" type="button" role="tab" aria-controls="tags-content" aria-selected="false">Tag Accuracy</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="tab-content" id="analyticsTabContent">
+                                    <!-- Overall Tab -->
+                                    <div class="tab-pane fade show active" id="overall-content" role="tabpanel" aria-labelledby="overall-tab">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="dashboard-item">
+                                                    <div class="accuracy-circle" id="accuracyCircle">
+                                                        <span class="accuracy-value" id="accuracyPercent">0%</span>
+                                                    </div>
+                                                    <div class="stats-info">
+                                                        <h4>Accuracy</h4>
+                                                        <p><span id="correctCount">0</span> correct / <span id="incorrectCount">0</span> incorrect</p>
+                                                        <p>Total: <span id="totalCount">0</span></p>
+                                                    </div>
+                                                </div>
+                                                <div class="dashboard-item mt-4">
+                                                    <br>
+                                                    <h4>P1-P2 Accuracy (Ignoring P3/P4)</h4>
+                                                    <div class="progress">
+                                                        <div class="progress-bar bg-info" role="progressbar" id="p12Accuracy" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                                    </div>
+                                                    <p class="mt-3">No data recommendations: <span id="noDataCount">0</span></p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="chart-container">
+                                                    <h4>Recommendations</h4>
+                                                    <canvas id="recommendationChart"></canvas>
+                                                </div>
+                                                <div class="chart-container mt-4">
+                                                    <h4>Resolutions</h4>
+                                                    <canvas id="resolutionChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tag Accuracy Tab -->
+                                    <div class="tab-pane fade" id="tags-content" role="tabpanel" aria-labelledby="tags-tab">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover" id="tagAccuracyTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Tag</th>
+                                                        <th>Count</th>
+                                                        <th>Accuracy</th>
+                                                        <th>Correct</th>
+                                                        <th>Incorrect</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tagAccuracyTableBody">
+                                                    <!-- Tag statistics will be populated here -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 id="analyticsNote" class="mt-4 mb-3" style="display: none;">Results</h3>
+                    </div>
                 </div>
                 
-                <h3 id="analyticsNote" class="mt-4 mb-3" style="display: none;">Results</h3>
-            </div>
-        </div>
-        
-        <!-- Results Section with Large Heading -->
-        <div class="results-section" style="display: none;">
-            <h2 class="main-heading">Results</h2>
-            
-            <div class="row align-items-center mb-4" id="filterControls" style="display: none;">
-                <div class="col-md-6">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-outline-secondary filter-btn active" id="filterAll">All</button>
-                        <button type="button" class="btn btn-outline-warning filter-btn" id="filterDisputed">Disputed</button>
-                        <button type="button" class="btn btn-outline-success filter-btn" id="filterCorrect">Correct</button>
-                        <button type="button" class="btn btn-outline-danger filter-btn" id="filterIncorrect">Incorrect</button>
-                        <button type="button" class="btn btn-outline-danger filter-btn" id="filterIncorrectIgnoringP4">Incorrect (Ignoring P4)</button>
+                <!-- Results Section with Large Heading -->
+                <div class="results-section" style="display: none;">
+                    <h2 class="main-heading">Results</h2>
+                    
+                    <div class="row align-items-center mb-4" id="filterControls" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary filter-btn active" id="filterAll">All</button>
+                                <button type="button" class="btn btn-outline-warning filter-btn" id="filterDisputed">Disputed</button>
+                                <button type="button" class="btn btn-outline-success filter-btn" id="filterCorrect">Correct</button>
+                                <button type="button" class="btn btn-outline-danger filter-btn" id="filterIncorrect">Incorrect</button>
+                                <button type="button" class="btn btn-outline-danger filter-btn" id="filterIncorrectIgnoringP4">Incorrect (Ignoring P4)</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group ms-auto" style="max-width: 400px; float: right;">
+                                <input type="text" class="form-control" id="searchInput" placeholder="Search queries...">
+                                <button class="btn btn-primary" type="button" id="searchBtn">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="input-group ms-auto" style="max-width: 400px; float: right;">
-                        <input type="text" class="form-control" id="searchInput" placeholder="Search queries...">
-                        <button class="btn btn-primary" type="button" id="searchBtn">
-                            <i class="bi bi-search"></i> Search
-                        </button>
+                    
+                    <!-- Tag Filter Section - Will be shown when tags are available -->
+                    <div class="card mb-4" id="tagFilterCard" style="display: none;">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Filter by Tags</h5>
+                            <button class="btn btn-sm btn-outline-secondary" id="clearTagFilter">Clear All</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="tag-grid" id="tagCheckboxContainer">
+                                <!-- Tag checkboxes will be generated here in 3 columns -->
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Tag Filter Section - Will be shown when tags are available -->
-            <div class="card mb-4" id="tagFilterCard" style="display: none;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Filter by Tags</h5>
-                    <button class="btn btn-sm btn-outline-secondary" id="clearTagFilter">Clear All</button>
-                </div>
-                <div class="card-body">
-                    <div class="tag-grid" id="tagCheckboxContainer">
-                        <!-- Tag checkboxes will be generated here in 3 columns -->
-                    </div>
-                </div>
-            </div>
 
-            <!-- Results Table -->
-            <div class="card" id="resultsTableCard" style="display: none;">
-                <div class="card-header">
-                    <h3 id="resultsTableTitle">Results</h3>
-                    <p class="mb-0">Displaying <span id="displayingCount">0</span> of <span id="totalEntriesCount">0</span> entries</p>
+                    <!-- Results Table -->
+                    <div class="card" id="resultsTableCard" style="display: none;">
+                        <div class="card-header">
+                            <h3 id="resultsTableTitle">Results</h3>
+                            <p class="mb-0">Displaying <span id="displayingCount">0</span> of <span id="totalEntriesCount">0</span> entries</p>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="resultsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>AI Rec</th>
+                                            <th>Res</th>
+                                            <th>Disputed</th>
+                                            <th>Correct</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="resultsTableBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center">Select an experiment to view results</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="resultsTable">
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>ID</th>
-                                    <th>Title</th>
-                                    <th>AI Rec</th>
-                                    <th>Res</th>
-                                    <th>Disputed</th>
-                                    <th>Correct</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resultsTableBody">
-                                <tr>
-                                    <td colspan="7" class="text-center">Select an experiment to view results</td>
-                                </tr>
-                            </tbody>
-                        </table>
+            </div>
+            
+            <!-- Experiment Runner Tab Content -->
+            <div class="tab-pane fade" id="experiment-content" role="tabpanel" aria-labelledby="experiment-tab">
+                <div class="experiment-runner-container mt-4">
+                    <h2 class="mb-4">Experiment Runner</h2>
+                    
+                    <!-- Command Form -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3>Run Experiment</h3>
+                        </div>
+                        <div class="card-body d-flex w-100 p-3">
+                            <form id="experimentForm" class="d-flex w-100">
+                                <div class="input-group w-100">
+                                    <span class="input-group-text"><i class="bi bi-terminal"></i></span>
+                                    <input type="text" class="form-control command-input" id="commandInput" placeholder="Enter command to run">
+                                    <button class="btn btn-primary" type="submit" id="runCommandBtn">
+                                        <i class="bi bi-play-fill"></i> Run
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Process Management Tabs -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" id="processManagementTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active-content" type="button" role="tab" aria-controls="active-content" aria-selected="true">
+                                        Active Processes
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-content" type="button" role="tab" aria-controls="history-content" aria-selected="false">
+                                        Command History
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="tab-content" id="processManagementTabContent">
+                                <!-- Active Processes -->
+                                <div class="tab-pane fade show active" id="active-content" role="tabpanel" aria-labelledby="active-tab">
+                                    <table class="table table-hover" id="processesTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Started</th>
+                                                <th>Command</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="processesTableBody">
+                                            <tr>
+                                                <td colspan="4" class="text-center">No active processes</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Command History -->
+                                <div class="tab-pane fade" id="history-content" role="tabpanel" aria-labelledby="history-tab">
+                                    <table class="table table-hover" id="historyTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Command</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historyTableBody">
+                                            <tr>
+                                                <td colspan="4" class="text-center">No command history</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Process Logs -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 id="logsTitle">Process Logs</h3>
+                            <div>
+                                <div class="form-check form-switch d-inline-block me-3">
+                                    <input class="form-check-input" type="checkbox" id="showTimestamps" checked>
+                                    <label class="form-check-label" for="showTimestamps">Show Timestamps</label>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" id="clearLogsBtn">
+                                    <i class="bi bi-trash"></i> Clear
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" id="downloadLogsBtn">
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="process-logs" id="processLogs">
+                                <div class="text-center text-muted p-5">
+                                    <i class="bi bi-terminal-x fs-1"></i>
+                                    <p class="mt-3">Select a process to view logs</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

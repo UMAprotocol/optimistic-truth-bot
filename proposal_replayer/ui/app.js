@@ -10,10 +10,18 @@ let currentSearch = ''; // Track current search term
 let recommendationChart = null;
 let resolutionChart = null;
 
+// Experiment runner variables
+let activeProcesses = [];
+let commandHistory = [];
+let currentProcessId = null;
+
 // Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize modal
     modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    
+    // Initialize tab functionality
+    initializeTabs();
     
     // Load experiments directory data
     loadExperimentsData();
@@ -58,7 +66,543 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set up clear tag filter button
     document.getElementById('clearTagFilter')?.addEventListener('click', clearTagFilter);
+    
+    // Set up experiment runner events
+    initializeExperimentRunner();
 });
+
+// Initialize the tab functionality
+function initializeTabs() {
+    // Handle main navigation tab clicks
+    document.querySelectorAll('#mainNavTabs .nav-link').forEach(tab => {
+        tab.addEventListener('click', (event) => {
+            // Prevent default hash-based scrolling
+            event.preventDefault();
+            
+            // Store the active tab using Bootstrap's tab API instead of URL hash
+            const tabInstance = new bootstrap.Tab(event.target);
+            tabInstance.show();
+        });
+    });
+}
+
+// Initialize experiment runner components
+function initializeExperimentRunner() {
+    // Load command history from localStorage
+    loadCommandHistory();
+    
+    // Handle experiment form submission
+    const experimentForm = document.getElementById('experimentForm');
+    if (experimentForm) {
+        experimentForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+            
+            if (command) {
+                // Start a new process via the API
+                startProcess(command);
+                // Add to command history
+                addToCommandHistory(command);
+                commandInput.value = '';
+            }
+        });
+    }
+    
+    // Initialize buttons
+    document.getElementById('clearLogsBtn')?.addEventListener('click', () => {
+        clearLogs();
+    });
+    
+    document.getElementById('downloadLogsBtn')?.addEventListener('click', () => {
+        downloadLogs();
+    });
+    
+    // Handle timestamp toggle
+    const timestampToggle = document.getElementById('showTimestamps');
+    if (timestampToggle) {
+        timestampToggle.addEventListener('change', () => {
+            document.body.classList.toggle('hide-timestamps', !timestampToggle.checked);
+            // If we have a selected process, update its logs display
+            if (currentProcessId) {
+                updateProcessLogs(currentProcessId);
+            }
+        });
+    }
+    
+    // Initialize process list
+    loadActiveProcesses();
+    
+    // Set up polling for process updates
+    setInterval(loadActiveProcesses, 1000);
+}
+
+// Load command history from localStorage
+function loadCommandHistory() {
+    try {
+        const savedHistory = localStorage.getItem('commandHistory');
+        if (savedHistory) {
+            commandHistory = JSON.parse(savedHistory);
+            updateCommandHistoryTable();
+        }
+    } catch (error) {
+        console.error('Error loading command history:', error);
+        commandHistory = [];
+    }
+}
+
+// Add a command to history and save to localStorage
+function addToCommandHistory(command) {
+    // Create a new history entry
+    const historyEntry = {
+        id: Date.now().toString(), // Use timestamp as ID
+        command: command,
+        timestamp: Date.now(),
+        status: 'running'
+    };
+    
+    // Add to beginning of history array
+    commandHistory.unshift(historyEntry);
+    
+    // Limit history to 100 entries
+    if (commandHistory.length > 100) {
+        commandHistory = commandHistory.slice(0, 100);
+    }
+    
+    // Save to localStorage
+    try {
+        localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+    } catch (error) {
+        console.error('Error saving command history:', error);
+    }
+    
+    // Update history table
+    updateCommandHistoryTable();
+}
+
+// Update the history status for a command
+function updateCommandHistoryStatus(processId, status) {
+    // Find matching history entry for the most recent command with this status
+    const processInfo = activeProcesses.find(p => p.id === processId);
+    if (!processInfo) return;
+    
+    const command = processInfo.command;
+    const historyEntry = commandHistory.find(h => h.command === command && h.status === 'running');
+    
+    if (historyEntry) {
+        historyEntry.status = status;
+        // Save updated history to localStorage
+        try {
+            localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+        } catch (error) {
+            console.error('Error saving command history:', error);
+        }
+        
+        // Update history table
+        updateCommandHistoryTable();
+    }
+}
+
+// Update the command history table
+function updateCommandHistoryTable() {
+    const tableBody = document.getElementById('historyTableBody');
+    if (!tableBody) return;
+    
+    if (commandHistory.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center">No command history</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = commandHistory.map(entry => {
+        const formattedTime = formatDate(Math.floor(entry.timestamp / 1000));
+        let statusClass = '';
+        let statusText = entry.status;
+        
+        if (entry.status === 'running') {
+            statusClass = 'status-running';
+            statusText = `<i class="bi bi-play-fill"></i> Running`;
+        } else if (entry.status === 'completed') {
+            statusClass = 'status-completed';
+            statusText = `<i class="bi bi-check-circle"></i> Completed`;
+        } else if (entry.status === 'failed' || entry.status === 'stopped') {
+            statusClass = 'status-failed';
+            statusText = `<i class="bi bi-x-circle"></i> ${entry.status === 'failed' ? 'Failed' : 'Stopped'}`;
+        }
+        
+        return `
+            <tr class="history-row" data-entry-id="${entry.id}">
+                <td>${formattedTime}</td>
+                <td class="command-cell history-command" title="${entry.command}"><code>${entry.command}</code></td>
+                <td class="${statusClass}">${statusText}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary use-command-btn">
+                        <i class="bi bi-arrow-up-square"></i> Use
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Add click event for command reuse
+    document.querySelectorAll('.use-command-btn').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const row = event.target.closest('.history-row');
+            if (row) {
+                const entryId = row.getAttribute('data-entry-id');
+                const historyEntry = commandHistory.find(h => h.id === entryId);
+                if (historyEntry) {
+                    document.getElementById('commandInput').value = historyEntry.command;
+                    document.getElementById('commandInput').focus();
+                }
+            }
+        });
+    });
+    
+    // Also allow clicking on the command itself to reuse it
+    document.querySelectorAll('.history-command').forEach(cell => {
+        cell.addEventListener('click', (event) => {
+            const row = event.target.closest('.history-row');
+            if (row) {
+                const entryId = row.getAttribute('data-entry-id');
+                const historyEntry = commandHistory.find(h => h.id === entryId);
+                if (historyEntry) {
+                    document.getElementById('commandInput').value = historyEntry.command;
+                    document.getElementById('commandInput').focus();
+                }
+            }
+        });
+    });
+}
+
+// Start a new process via API
+async function startProcess(command) {
+    try {
+        // Disable the form during submission
+        const runBtn = document.getElementById('runCommandBtn');
+        const commandInput = document.getElementById('commandInput');
+        if (runBtn) runBtn.disabled = true;
+        if (commandInput) commandInput.disabled = true;
+        
+        // Call the API to start the process
+        const response = await fetch('/api/process/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ command })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Process started:', data.process_id);
+            
+            // Immediately load the updated process list
+            await loadActiveProcesses();
+            
+            // Select the new process
+            if (data.process_id) {
+                selectProcess(data.process_id);
+            }
+        } else {
+            const error = await response.json();
+            console.error('Failed to start process:', error.error);
+            
+            // Update history status
+            const historyEntry = commandHistory.find(h => h.command === command && h.status === 'running');
+            if (historyEntry) {
+                historyEntry.status = 'failed';
+                localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+                updateCommandHistoryTable();
+            }
+            
+            // Add an error notification
+            if (document.getElementById('processLogs')) {
+                document.getElementById('processLogs').innerHTML += `
+                    <div class="log-entry log-error">
+                        <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
+                        <span class="log-message">Failed to start process: ${error.error || 'Unknown error'}</span>
+                    </div>
+                `;
+            }
+        }
+    } catch (error) {
+        console.error('Error starting process:', error);
+    } finally {
+        // Re-enable the form
+        const runBtn = document.getElementById('runCommandBtn');
+        const commandInput = document.getElementById('commandInput');
+        if (runBtn) runBtn.disabled = false;
+        if (commandInput) commandInput.disabled = false;
+    }
+}
+
+// Load active processes from the API
+async function loadActiveProcesses() {
+    try {
+        const response = await fetch('/api/processes');
+        if (response.ok) {
+            const processes = await response.json();
+            
+            // Check if any processes changed status
+            const previousProcesses = [...activeProcesses];
+            activeProcesses = processes;
+            
+            // Update history statuses if needed
+            processes.forEach(process => {
+                const prevProcess = previousProcesses.find(p => p.id === process.id);
+                if (!prevProcess || prevProcess.status !== process.status) {
+                    // Status changed or new process
+                    if (process.status === 'completed' || process.status === 'failed' || process.status === 'stopped') {
+                        updateCommandHistoryStatus(process.id, process.status);
+                    }
+                }
+            });
+            
+            // Update the UI
+            updateProcessesTable();
+            
+            // If we have a currently selected process, update its logs
+            if (currentProcessId) {
+                updateProcessLogs(currentProcessId);
+            }
+        } else {
+            console.error('Failed to load processes');
+        }
+    } catch (error) {
+        console.error('Error loading processes:', error);
+    }
+}
+
+// Stop a running process via API
+async function stopProcess(processId) {
+    try {
+        const response = await fetch(`/api/process/stop/${processId}`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            console.log('Process stopped:', processId);
+            
+            // Update history status
+            updateCommandHistoryStatus(processId, 'stopped');
+            
+            // Reload the process list
+            await loadActiveProcesses();
+            
+            // Update the logs for the stopped process
+            if (currentProcessId === processId) {
+                updateProcessLogs(processId);
+            }
+        } else {
+            console.error('Failed to stop process');
+        }
+    } catch (error) {
+        console.error('Error stopping process:', error);
+    }
+}
+
+// Update the processes table based on the activeProcesses array
+function updateProcessesTable() {
+    const tableBody = document.getElementById('processesTableBody');
+    if (!tableBody) return;
+    
+    if (activeProcesses.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center">No active processes</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Sort processes by start time (newest first)
+    const sortedProcesses = [...activeProcesses].sort((a, b) => {
+        const timeA = a.start_time || 0;
+        const timeB = b.start_time || 0;
+        return timeB - timeA;
+    });
+    
+    tableBody.innerHTML = sortedProcesses.map(process => {
+        const formattedTime = formatDate(process.start_time);
+        let statusClass = '';
+        let statusText = process.status;
+        
+        if (process.status === 'running') {
+            statusClass = 'status-running';
+            statusText = `<i class="bi bi-play-fill"></i> Running`;
+        } else if (process.status === 'completed') {
+            statusClass = 'status-completed';
+            statusText = `<i class="bi bi-check-circle"></i> Completed`;
+        } else if (process.status === 'failed' || process.status === 'stopped') {
+            statusClass = 'status-failed';
+            statusText = `<i class="bi bi-x-circle"></i> ${process.status === 'failed' ? 'Failed' : 'Stopped'}`;
+        } else if (process.status === 'pending') {
+            statusClass = 'status-pending';
+            statusText = `<i class="bi bi-hourglass"></i> Pending`;
+        }
+        
+        const isRunning = process.status === 'running';
+        const processId = process.id || '';
+        
+        return `
+            <tr class="process-row ${processId === currentProcessId ? 'table-active' : ''}" data-process-id="${processId}">
+                <td>${formattedTime}</td>
+                <td class="command-cell" title="${process.command}"><code>${process.command}</code></td>
+                <td class="${statusClass}">${statusText}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary process-action-btn view-logs-btn">
+                            <i class="bi bi-file-text"></i> Logs
+                        </button>
+                        ${isRunning ? `
+                            <button class="btn btn-sm btn-outline-danger process-action-btn stop-process-btn">
+                                <i class="bi bi-stop-fill"></i> Stop
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Add click event listeners to the action buttons
+    document.querySelectorAll('.view-logs-btn').forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const row = event.target.closest('.process-row');
+            if (row) {
+                const processId = row.getAttribute('data-process-id');
+                selectProcess(processId);
+            }
+        });
+    });
+    
+    document.querySelectorAll('.stop-process-btn').forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const row = event.target.closest('.process-row');
+            if (row) {
+                const processId = row.getAttribute('data-process-id');
+                stopProcess(processId);
+            }
+        });
+    });
+    
+    // Add click event to rows for selecting a process
+    document.querySelectorAll('.process-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const processId = row.getAttribute('data-process-id');
+            selectProcess(processId);
+        });
+    });
+}
+
+// Select a process and display its logs
+function selectProcess(processId) {
+    // Update current process
+    currentProcessId = processId;
+    
+    // Highlight selected row
+    document.querySelectorAll('.process-row').forEach(row => {
+        if (row.getAttribute('data-process-id') === processId) {
+            row.classList.add('table-active');
+        } else {
+            row.classList.remove('table-active');
+        }
+    });
+    
+    // Update logs
+    updateProcessLogs(processId);
+}
+
+// Update the process logs display
+function updateProcessLogs(processId) {
+    const logsContainer = document.getElementById('processLogs');
+    if (!logsContainer) return;
+    
+    const process = activeProcesses.find(p => p.id === processId);
+    if (!process) {
+        logsContainer.innerHTML = `
+            <div class="text-center text-muted p-5">
+                <i class="bi bi-terminal-x fs-1"></i>
+                <p class="mt-3">No process selected</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Update the logs title
+    const logsTitle = document.getElementById('logsTitle');
+    if (logsTitle) {
+        logsTitle.innerHTML = `Process Logs: <code>${process.command}</code>`;
+    }
+    
+    // Generate log entries
+    const logHtml = process.logs.map(log => {
+        const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+        // Use a compact display format with optional timestamps
+        return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+    }).join('');
+    
+    logsContainer.innerHTML = logHtml;
+    
+    // Scroll to bottom of logs
+    logsContainer.scrollTop = logsContainer.scrollHeight;
+}
+
+// Format timestamp for logs
+function formatLogTime(timestamp) {
+    if (!(timestamp instanceof Date)) {
+        timestamp = new Date(timestamp);
+    }
+    
+    const hours = timestamp.getHours().toString().padStart(2, '0');
+    const minutes = timestamp.getMinutes().toString().padStart(2, '0');
+    const seconds = timestamp.getSeconds().toString().padStart(2, '0');
+    const milliseconds = timestamp.getMilliseconds().toString().padStart(3, '0');
+    return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
+
+// Clear logs for the current process
+function clearLogs() {
+    const logsContainer = document.getElementById('processLogs');
+    if (logsContainer) {
+        logsContainer.innerHTML = `
+            <div class="log-entry log-info">
+                <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                <span class="log-message">Logs cleared</span>
+            </div>
+        `;
+    }
+}
+
+// Download logs for the current process
+function downloadLogs() {
+    if (currentProcessId) {
+        const process = activeProcesses.find(p => p.id === currentProcessId);
+        if (process) {
+            const logText = process.logs.map(log => {
+                const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                return `[${formattedTime}] ${log.message}`;
+            }).join('\n');
+            
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `process-${process.id}-logs.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    }
+}
 
 // Initialize charts for the selected experiment
 function initializeCharts() {
@@ -406,12 +950,12 @@ function updateAnalyticsDisplay(analytics) {
     updateTagAccuracyDisplay(analytics.tagStats);
 }
 
-// Helper function to format date in 24-hour format
+// Helper function to format date in 24-hour format with seconds
 function formatDate(timestamp) {
     if (!timestamp) return 'N/A';
     
     const date = new Date(timestamp * 1000);
-    return date.toISOString().slice(0, 10) + ' ' + date.toTimeString().slice(0, 5);
+    return date.toISOString().slice(0, 10) + ' ' + date.toTimeString().slice(0, 8);
 }
 
 // Format date for display in the experiment table

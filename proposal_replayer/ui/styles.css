@@ -26,7 +26,7 @@ body {
 
 /* Header styles */
 header {
-    background: linear-gradient(135deg, #2c3e50, #3498db);
+    background-color: #ec5b54;
     color: white;
     padding: calc(var(--spacing-base) * 1.5) 0;
     margin-bottom: calc(var(--spacing-base) * 2);
@@ -37,6 +37,7 @@ header h1 {
     margin: 0;
     font-size: 2rem;
     font-weight: 600;
+    color: white;
 }
 
 header .bi {
@@ -1033,4 +1034,205 @@ select[multiple] {
     background-color: #f8f9fa;
     padding: 15px;
     border-radius: 4px;
+}
+
+/* Add styles for the main navigation tabs */
+.main-tabs {
+    margin-top: 15px;
+    margin-bottom: -1px;
+}
+
+.main-tabs .nav-link {
+    padding: 12px 20px;
+    border: 1px solid transparent;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    font-weight: 500;
+    color: #2c3e50;
+    transition: all 0.2s ease;
+}
+
+.main-tabs .nav-link:hover {
+    color: white;
+    border-color: #e9ecef #e9ecef #dee2e6;
+}
+
+.main-tabs .nav-link.active {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+
+.main-tabs .nav-link i {
+    margin-right: 8px;
+}
+
+/* Experiment Runner Styles */
+.experiment-runner-container {
+    margin-bottom: 30px;
+}
+
+/* Make the command input wider */
+.command-input {
+    font-family: 'Courier New', Courier, monospace;
+    width: 100%;
+    flex: 1;
+}
+
+/* Command form styling */
+#experimentForm {
+    width: 100%;
+    display: flex;
+}
+
+#experimentForm .input-group {
+    width: 100%;
+    flex: 1;
+}
+
+/* Command history table */
+#historyTable th:nth-child(1), 
+#historyTable td:nth-child(1) { /* Date */
+    width: 180px;
+}
+
+#historyTable th:nth-child(2), 
+#historyTable td:nth-child(2) { /* Command */
+    width: auto;
+    min-width: 450px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#historyTable th:nth-child(3), 
+#historyTable td:nth-child(3) { /* Status */
+    width: 120px;
+}
+
+#historyTable th:nth-child(4), 
+#historyTable td:nth-child(4) { /* Actions */
+    width: 150px;
+}
+
+/* Add a pointer cursor to history items */
+.history-command {
+    cursor: pointer;
+}
+
+.process-logs {
+    height: 600px;
+    overflow-y: auto;
+    background-color: #1e1e1e;
+    color: #f8f8f8;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 6px 10px;
+    line-height: 1.2;
+    white-space: pre-wrap;
+    font-size: 13px;
+}
+
+.log-entry {
+    margin-bottom: 0;
+    padding: 0;
+    display: block;
+}
+
+.log-timestamp {
+    color: #666;
+    margin-right: 6px;
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+.log-message {
+    display: inline;
+}
+
+.log-info {
+    color: #6a9fff;
+}
+
+.log-error {
+    color: #ff6a6a;
+}
+
+.log-warning {
+    color: #ffcc6a;
+}
+
+/* Process status styles */
+.status-running {
+    color: #28a745;
+}
+
+.status-completed {
+    color: #17a2b8;
+}
+
+.status-failed {
+    color: #dc3545;
+}
+
+.status-pending {
+    color: #ffc107;
+}
+
+/* Action buttons in process table */
+.process-action-btn {
+    padding: 2px 8px;
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+/* Styles for hiding timestamps */
+.hide-timestamps .log-timestamp {
+    display: none;
+}
+
+/* Form switch (timestamp toggle) styling */
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* Process table column widths */
+#processesTable th:nth-child(1), 
+#processesTable td:nth-child(1) { /* Started */
+    width: 180px;
+}
+
+#processesTable th:nth-child(2), 
+#processesTable td:nth-child(2) { /* Command */
+    width: auto;
+    min-width: 450px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#processesTable th:nth-child(3), 
+#processesTable td:nth-child(3) { /* Status */
+    width: 120px;
+}
+
+#processesTable th:nth-child(4), 
+#processesTable td:nth-child(4) { /* Actions */
+    width: 150px;
+}
+
+.command-cell {
+    max-width: 500px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.command-cell code {
+    white-space: nowrap;
+    background-color: transparent;
+    padding: 2px 4px;
+    font-size: 0.9em;
+    word-break: keep-all;
 } 
