@@ -163,6 +163,42 @@ def extract_recommendation(response_text):
     return None
 
 
+def get_question_id_short_from_prompt(user_prompt):
+    """
+    Extract the question ID from a user prompt for logging purposes.
+
+    Args:
+        user_prompt (str): The user prompt that might contain question ID information
+
+    Returns:
+        str: Short question ID if found, otherwise "unknown"
+    """
+    # Try to find query ID patterns in the prompt - common formats include:
+    # 1. Hex format: 0x84db9689...
+    # 2. Just the ID: 84db9689...
+    # 3. In a questionId_ format: questionId_84db9689
+
+    # Try hex format first
+    hex_pattern = r"0x([0-9a-f]{8})[0-9a-f]*"
+    match = re.search(hex_pattern, user_prompt, re.IGNORECASE)
+    if match:
+        return match.group(1)
+
+    # Try questionId_ format
+    id_pattern = r"questionId_([0-9a-f]{8})[0-9a-f]*"
+    match = re.search(id_pattern, user_prompt, re.IGNORECASE)
+    if match:
+        return match.group(1)
+
+    # Try finding any 8+ hex digits
+    generic_hex = r"[^0-9a-f]([0-9a-f]{8})[0-9a-f]*"
+    match = re.search(generic_hex, user_prompt, re.IGNORECASE)
+    if match:
+        return match.group(1)
+
+    return "unknown"
+
+
 def extract_prompt_update(overseer_response):
     """
     Extract updated system prompt from ChatGPT overseer response.
@@ -551,6 +587,7 @@ def enhanced_perplexity_chatgpt_loop(
             if attempts == max_attempts:
                 stop_spinner.set()
                 spinner_thread.join()
+                logger.info(f"Reached maximum attempts ({max_attempts})")
                 break
 
             # Query ChatGPT as the overseer
@@ -561,7 +598,10 @@ def enhanced_perplexity_chatgpt_loop(
             stop_spinner = threading.Event()
             spinner_thread = threading.Thread(
                 target=spinner_animation,
-                args=(stop_spinner, "Consulting ChatGPT overseer for validation"),
+                args=(
+                    stop_spinner,
+                    "Consulting ChatGPT overseer for validation",
+                ),
                 daemon=True,
             )
             spinner_thread.start()
@@ -639,6 +679,8 @@ def enhanced_perplexity_chatgpt_loop(
                     "Overseer is satisfied with the response - accepting without question"
                 )
                 overseer_data["satisfaction_level"] = "satisfied"
+                # Ensure system_prompt_after is set when satisfied
+                overseer_data["system_prompt_after"] = system_prompt
                 responses.append(overseer_data)
                 stop_spinner.set()
                 spinner_thread.join()
@@ -653,11 +695,14 @@ def enhanced_perplexity_chatgpt_loop(
                     overseer_data["system_prompt_after"] = prompt_update
                     system_prompt = prompt_update
                     logger.info("Using prompt update from overseer decision")
+                else:
+                    # Ensure system_prompt_after is set even when no update
+                    overseer_data["system_prompt_after"] = system_prompt
 
                 # Set satisfaction level based on decision
                 if decision == "default_p4" and attempts >= min_attempts:
                     logger.info(
-                        f"Overseer recommends defaulting to p4 but first running again"
+                        "Overseer recommends defaulting to p4 but first running again"
                     )
                     overseer_data["satisfaction_level"] = "uncertain_retry_requested"
                 elif decision == "default_p4":
@@ -666,7 +711,7 @@ def enhanced_perplexity_chatgpt_loop(
                     )
                     overseer_data["satisfaction_level"] = "forced_retry"
                 else:  # retry
-                    logger.info(f"Overseer requested retry with improvements")
+                    logger.info("Overseer requested retry with improvements")
                     overseer_data["satisfaction_level"] = "retry_requested"
 
                 responses.append(overseer_data)
@@ -710,13 +755,15 @@ def enhanced_perplexity_chatgpt_loop(
 
                 # The decision is default_p4 and we're ok with that
                 logger.info(
-                    f"Overseer recommends defaulting to p4 - accepting this decision"
+                    "Overseer recommends defaulting to p4 - accepting this decision"
                 )
                 # Override the recommendation to p4
                 response_data["recommendation"] = "p4"
                 response_data["recommendation_overridden"] = True
                 overseer_data["satisfaction_level"] = "defaulted_to_p4"
                 overseer_data["override_action"] = "recommendation_changed_to_p4"
+                # Ensure system_prompt_after is set
+                overseer_data["system_prompt_after"] = system_prompt
                 responses.append(overseer_data)
                 stop_spinner.set()
                 spinner_thread.join()
