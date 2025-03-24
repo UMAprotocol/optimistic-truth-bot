@@ -926,9 +926,12 @@ async function startProcess(command) {
                 
                 // If we have more logs than before, append them immediately
                 if (activeProcess.logs.length > processedLogLines) {
-                    // Check content difference using a hash to avoid unnecessary DOM updates
-                    const newContent = activeProcess.logs.map(log => log.message).join('\n');
-                    if (newContent !== lastContent) {
+                    // Check content difference using a unique identifier to avoid unnecessary DOM updates
+                    const logFingerprint = activeProcess.logs.map(log => 
+                        `${log.timestamp}-${log.message.substring(0, 40)}`
+                    ).join('|');
+                    
+                    if (logFingerprint !== lastContent) {
                         // Get only the new logs
                         const newLogs = activeProcess.logs.slice(processedLogLines);
                         
@@ -937,7 +940,7 @@ async function startProcess(command) {
                         
                         // Update the processed line count
                         processedLogLines = activeProcess.logs.length;
-                        lastContent = newContent;
+                        lastContent = logFingerprint;
                     }
                 }
                 
@@ -1030,13 +1033,31 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
     // Was the container scrolled to the bottom before adding content?
     const wasAtBottom = logsContainer.scrollHeight - logsContainer.scrollTop <= logsContainer.clientHeight + 50;
     
-    // Loop through each log entry and add it to the display
+    // Track existing log entries to avoid duplicates
+    const existingLogEntries = new Set();
+    logsContainer.querySelectorAll('.log-entry').forEach(entry => {
+        const timestamp = entry.querySelector('.log-timestamp')?.textContent || '';
+        const message = entry.querySelector('.log-message')?.textContent || '';
+        existingLogEntries.add(`${timestamp}${message}`);
+    });
+    
+    // Loop through each log entry and add it to the display if unique
     logs.forEach((log, index) => {
+        if (index < startIndex) return; // Skip logs we've already processed
+        
         const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
-        const logEntry = document.createElement('div');
-        logEntry.className = `log-entry log-${log.type || 'info'}`;
-        logEntry.innerHTML = `<span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span>`;
-        logsContainer.appendChild(logEntry);
+        const timestampText = `[${formattedTime}]`;
+        const messageText = log.message;
+        
+        // Check if this log entry is already displayed
+        const logKey = `${timestampText}${messageText}`;
+        if (!existingLogEntries.has(logKey)) {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${log.type || 'info'}`;
+            logEntry.innerHTML = `<span class="log-timestamp">${timestampText}</span><span class="log-message">${messageText}</span>`;
+            logsContainer.appendChild(logEntry);
+            existingLogEntries.add(logKey);
+        }
     });
     
     // Scroll to bottom if we were already at the bottom
