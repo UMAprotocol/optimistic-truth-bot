@@ -9859,3 +9859,9 @@
 2025-03-24 10:27:53,276 - proposal_fetcher - INFO - Skipping market for 0x98c0470b4afbc6045f596400cf3df748a5c2dd38c161c91e6e414acaebaae7a0
 2025-03-24 10:27:53,276 - proposal_fetcher - INFO - ProposePrice Event: 62f6fa8a07de8edd6c556bd14bb2aaf184dc3ce1a362cfb4f1a4eba6d668c5b6 - Block: 69340525
 2025-03-24 10:27:53,277 - proposal_fetcher - INFO - QuestionID: 0x1ae6d635d2e1c60f3c7576d583ecb4bc7dd3760bf43e422be5f3e803715adbe0
+2025-03-24 12:06:13,477 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-24 12:06:14,016 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-24 12:06:14,159 - proposal_fetcher - INFO - Starting from block 69439307 (current: 69439336)
+2025-03-24 12:06:14,294 - proposal_fetcher - INFO - Checking blocks 69439307 to 69439336...
+2025-03-24 12:06:14,430 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-24 12:06:37,331 - proposal_fetcher - INFO - Event listener stopped by user.

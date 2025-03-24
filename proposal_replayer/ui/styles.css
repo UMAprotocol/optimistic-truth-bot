@@ -1344,4 +1344,92 @@ select[multiple] {
 
 .logout-btn i {
     margin-right: 5px;
+}
+
+/* Source filter styles */
+.source-filter-group {
+    width: 100%;
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.source-filter-btn {
+    flex: 1;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    padding: 4px 8px;
+}
+
+.source-filter-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Additional styles for metadata formatting */
+.small-object {
+    background-color: #f8f9fa;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.small-object div {
+    margin-bottom: 4px;
+}
+
+.small-object div:last-child {
+    margin-bottom: 0;
+}
+
+.object-data {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+.metadata-section ul {
+    margin-bottom: 0;
+}
+
+.metadata-section ul li {
+    margin-bottom: 4px;
+}
+
+.metadata-section ul li:last-child {
+    margin-bottom: 0;
+}
+
+/* Improve table styling for setup/modifications */
+.metadata-section .card {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
+.metadata-section .table-sm th,
+.metadata-section .table-sm td {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    border-top: none;
+}
+
+.metadata-section .table-sm tr:first-child th,
+.metadata-section .table-sm tr:first-child td {
+    border-top: none;
+}
+
+.metadata-section .table-sm tr:not(:first-child) th,
+.metadata-section .table-sm tr:not(:first-child) td {
+    border-top: 1px solid #dee2e6;
+}
+
+.metadata-section .table-sm th {
+    background-color: #f8f9fa;
+    font-weight: 600;
 } 
