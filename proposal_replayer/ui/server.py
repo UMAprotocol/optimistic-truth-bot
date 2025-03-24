@@ -458,6 +458,32 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests."""
         try:
+            # Login page and essential static resources should be accessible without auth
+            is_login_page = self.path == "/login"
+            is_login_api = self.path == "/api/login"
+            is_static_asset = self.path.endswith(
+                (
+                    ".css",
+                    ".js",
+                    ".png",
+                    ".jpg",
+                    ".jpeg",
+                    ".ico",
+                    ".svg",
+                    ".woff",
+                    ".woff2",
+                )
+            )
+
+            # If not authenticated and not requesting login resources, redirect to login
+            if not self.is_authenticated() and not (
+                is_login_page or is_login_api or is_static_asset
+            ):
+                self.send_response(302)
+                self.send_header("Location", "/login")
+                self.end_headers()
+                return
+
             # Static file handling
             if self.path == "/" or self.path == "":
                 self.path = "/index.html"
@@ -862,77 +888,6 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
                 except Exception as e:
                     logger.error(f"Error fetching experiment from MongoDB: {e}")
-                    self.send_response(500)
-                    self.send_header("Content-Type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": str(e)}).encode())
-                    return
-
-            # Redirect to login page if not authenticated
-            if (
-                not self.is_authenticated()
-                and self.path != "/api/login"
-                and not self.path.endswith(
-                    (".css", ".js", ".png", ".jpg", ".jpeg", ".ico")
-                )
-            ):
-                if self.path == "/login":
-                    self.serve_login_page()
-                    return
-                else:
-                    self.send_response(302)
-                    self.send_header("Location", "/login")
-                    self.end_headers()
-                    return
-
-            # Special handling for results directory files
-            if self.path.startswith("/results/"):
-                # Remap the path to the actual results directory
-                file_path = PARENT_DIR / self.path[1:]  # Remove leading slash
-                logger.info(f"Accessing result file: {self.path}")
-                logger.info(f"Mapped to: {file_path}")
-                logger.info(f"File exists: {file_path.exists()}")
-
-                try:
-                    if file_path.exists() and file_path.is_file():
-                        logger.info(f"Serving file: {file_path}")
-                        self.send_response(200)
-                        # Set the appropriate content type
-                        if file_path.suffix == ".json":
-                            self.send_header("Content-Type", "application/json")
-                        elif file_path.suffix == ".txt":
-                            self.send_header("Content-Type", "text/plain")
-                        else:
-                            self.send_header("Content-Type", "application/octet-stream")
-
-                        # Set content length
-                        self.send_header(
-                            "Content-Length", str(file_path.stat().st_size)
-                        )
-                        self.end_headers()
-
-                        # Send the file contents
-                        with open(file_path, "rb") as f:
-                            self.wfile.write(f.read())
-                        return
-                    else:
-                        logger.error(f"File not found: {file_path}")
-                        # Check if directory exists but file doesn't
-                        if file_path.parent.exists():
-                            logger.info(f"Directory exists: {file_path.parent}")
-                            logger.info(
-                                f"Directory contents: {list(file_path.parent.iterdir())}"
-                            )
-
-                        self.send_response(404)
-                        self.send_header("Content-Type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(
-                            json.dumps({"error": "File not found"}).encode()
-                        )
-                        return
-                except Exception as e:
-                    logger.error(f"Error serving file {file_path}: {e}")
                     self.send_response(500)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
