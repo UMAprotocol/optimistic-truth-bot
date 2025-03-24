@@ -105,9 +105,6 @@ function initializeExperimentRunner() {
             if (command) {
                 // Start a new process via the API
                 startProcess(command);
-                // Don't add to history here - it's now handled in startProcess
-                // addToCommandHistory(command);
-                // We're clearing the input field in startProcess now
             }
         });
     }
@@ -126,46 +123,14 @@ function initializeExperimentRunner() {
     if (timestampToggle) {
         timestampToggle.addEventListener('change', () => {
             document.body.classList.toggle('hide-timestamps', !timestampToggle.checked);
-            // If we have a selected process, update its logs display
-            if (currentProcessId) {
-                updateProcessLogs(currentProcessId);
-            }
         });
     }
     
     // Initialize process list
     loadActiveProcesses();
     
-    // Set up polling for process updates - more frequent updates for better real-time logs
-    setInterval(loadActiveProcesses, 500); // Poll twice a second for overall process status
-
-    // Set up separate, more frequent polling for logs of the current selected process
-    setInterval(async () => {
-        if (currentProcessId) {
-            // Get the current status of this process
-            const activeProcess = activeProcesses.find(p => p.id === currentProcessId);
-            if (activeProcess && activeProcess.status === 'running') {
-                // If process is running, make a direct API call for fresh logs
-                try {
-                    const response = await fetch(`/api/process/${currentProcessId}?t=${Date.now()}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.logs && data.logs.length > 0) {
-                            // Find the process in our active processes and update its logs
-                            const processIndex = activeProcesses.findIndex(p => p.id === currentProcessId);
-                            if (processIndex !== -1) {
-                                activeProcesses[processIndex].logs = data.logs;
-                                // Immediately update the logs display
-                                updateProcessLogs(currentProcessId);
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Error fetching real-time logs:', error);
-                }
-            }
-        }
-    }, 200); // Poll 5 times per second for more responsive log updates
+    // Set up polling for process updates - but at a slower rate since logs are handled separately
+    setInterval(loadActiveProcesses, 1000); // Once per second is enough for the list
 }
 
 // Load command history from storage
@@ -819,7 +784,6 @@ function showFailedProcessLogs(processId, command) {
 async function startProcess(command) {
     try {
         // Add to command history but don't update the table yet
-        // We'll create a history entry without a process ID for now
         const historyEntry = addToCommandHistory(command);
         
         // Show the console logs area immediately with "Starting process" message
@@ -832,12 +796,8 @@ async function startProcess(command) {
                     <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
                     <span class="log-message">Starting process: ${command}</span>
                 </div>
-                <div class="text-center mt-3">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Running command...</span>
-                    </div>
-                </div>
             `;
+            logsContainer.scrollTop = logsContainer.scrollHeight;
         }
         
         if (logsTitle) {
@@ -872,28 +832,133 @@ async function startProcess(command) {
         
         // Update the history entry with the process ID
         if (historyEntry && processId) {
-            // Find index of the history entry we created earlier
             const entryIndex = commandHistory.findIndex(h => h.id === historyEntry.id);
             if (entryIndex !== -1) {
-                // Update with server-provided ID
                 commandHistory[entryIndex].id = processId;
-                // Save updated history to localStorage
                 localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
             }
         }
         
-        // Set current process ID and select it to show logs
+        // Set current process ID
         currentProcessId = processId;
+        
+        // Add spinner to show we're still loading logs
+        const spinner = document.createElement('div');
+        spinner.className = 'text-center mt-3';
+        spinner.innerHTML = `
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Running command...</span>
+            </div>
+        `;
+        logsContainer.appendChild(spinner);
         
         // Force an immediate refresh of active processes to get the new process
         await loadActiveProcesses();
         
-        // Update both the processes table and history table
+        // Update tables
         updateProcessesTable();
         updateCommandHistoryTable();
         
-        // Select the new process to show its logs
-        selectProcess(processId);
+        // Start a more aggressive polling for logs
+        let processedLogLines = 0;
+        let lastContent = "";
+        
+        // Start the log polling interval
+        const logPollingInterval = setInterval(async () => {
+            try {
+                // Get the latest process status
+                const activeProcess = activeProcesses.find(p => p.id === processId);
+                if (!activeProcess) {
+                    // Process isn't in the active list anymore, might have completed
+                    const response = await fetch(`/api/process/${processId}?t=${Date.now()}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.logs && data.logs.length > 0) {
+                            // Stream ALL logs at once for completed processes
+                            appendLogsToDisplay(logsContainer, data.logs, 0);
+                            
+                            // Update tables
+                            await loadActiveProcesses();
+                            updateProcessesTable();
+                            updateCommandHistoryTable();
+                            
+                            // Remove spinner
+                            const existingSpinner = logsContainer.querySelector('.spinner-border');
+                            if (existingSpinner) {
+                                existingSpinner.parentElement.remove();
+                            }
+                            
+                            // Update log title with status
+                            if (logsTitle) {
+                                const statusBadge = data.status ? 
+                                    `<span class="badge ${
+                                        data.status === 'completed' ? 'bg-success' : 
+                                        data.status === 'failed' ? 'bg-danger' : 
+                                        data.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                                    }">${data.status}</span>` : '';
+                                
+                                logsTitle.innerHTML = `Process Logs: <code>${command}</code> ${statusBadge}`;
+                            }
+                        }
+                    }
+                    clearInterval(logPollingInterval);
+                    return;
+                }
+                
+                // Skip if no logs
+                if (!activeProcess.logs || activeProcess.logs.length === 0) {
+                    return;
+                }
+                
+                // If we have more logs than before, append them immediately
+                if (activeProcess.logs.length > processedLogLines) {
+                    // Check content difference using a hash to avoid unnecessary DOM updates
+                    const newContent = activeProcess.logs.map(log => log.message).join('\n');
+                    if (newContent !== lastContent) {
+                        // Get only the new logs
+                        const newLogs = activeProcess.logs.slice(processedLogLines);
+                        
+                        // Append each new log line individually
+                        appendLogsToDisplay(logsContainer, newLogs, processedLogLines);
+                        
+                        // Update the processed line count
+                        processedLogLines = activeProcess.logs.length;
+                        lastContent = newContent;
+                    }
+                }
+                
+                // If process is completed, update UI and stop polling
+                if (activeProcess.status !== 'running') {
+                    // Remove spinner
+                    const existingSpinner = logsContainer.querySelector('.spinner-border');
+                    if (existingSpinner) {
+                        existingSpinner.parentElement.remove();
+                    }
+                    
+                    // Update log title with final status
+                    if (logsTitle) {
+                        const statusBadge = activeProcess.status ? 
+                            `<span class="badge ${
+                                activeProcess.status === 'completed' ? 'bg-success' : 
+                                activeProcess.status === 'failed' ? 'bg-danger' : 
+                                activeProcess.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                            }">${activeProcess.status}</span>` : '';
+                        
+                        logsTitle.innerHTML = `Process Logs: <code>${command}</code> ${statusBadge}`;
+                    }
+                    
+                    // Stop polling
+                    clearInterval(logPollingInterval);
+                    
+                    // Do one final update of tables
+                    await loadActiveProcesses();
+                    updateProcessesTable();
+                    updateCommandHistoryTable();
+                }
+            } catch (error) {
+                console.warn('Error in log polling:', error);
+            }
+        }, 100); // Poll 10 times per second for more responsive logs
         
         // Clear command input
         const commandInput = document.getElementById('commandInput');
@@ -935,6 +1000,34 @@ async function startProcess(command) {
         }
         
         return null;
+    }
+}
+
+// Function to append logs to the display
+function appendLogsToDisplay(logsContainer, logs, startIndex) {
+    if (!logsContainer || !logs || logs.length === 0) return;
+    
+    // Remove any spinner
+    const existingSpinner = logsContainer.querySelector('.spinner-border');
+    if (existingSpinner && existingSpinner.parentElement) {
+        existingSpinner.parentElement.remove();
+    }
+    
+    // Was the container scrolled to the bottom before adding content?
+    const wasAtBottom = logsContainer.scrollHeight - logsContainer.scrollTop <= logsContainer.clientHeight + 50;
+    
+    // Loop through each log entry and add it to the display
+    logs.forEach((log, index) => {
+        const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-entry log-${log.type || 'info'}`;
+        logEntry.innerHTML = `<span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span>`;
+        logsContainer.appendChild(logEntry);
+    });
+    
+    // Scroll to bottom if we were already at the bottom
+    if (wasAtBottom) {
+        logsContainer.scrollTop = logsContainer.scrollHeight;
     }
 }
 
@@ -1188,37 +1281,9 @@ function updateProcessLogs(processId) {
         return;
     }
     
-    // Check if we're already at the bottom (for auto-scrolling)
-    const isScrolledToBottom = logsContainer.scrollHeight - logsContainer.scrollTop <= logsContainer.clientHeight + 50;
-    
-    // Count existing log entries to see if we need to append or replace
-    const currentLogEntries = logsContainer.querySelectorAll('.log-entry');
-    
-    // Check if we're starting fresh or appending
-    if (currentLogEntries.length === 0 || currentLogEntries.length > process.logs.length) {
-        // Generate all log entries (full replacement)
-        const logHtml = process.logs.map(log => {
-            const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
-            return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
-        }).join('');
-        
-        logsContainer.innerHTML = logHtml;
-    } else if (currentLogEntries.length < process.logs.length) {
-        // We have new logs to append - only append the new entries
-        const newLogs = process.logs.slice(currentLogEntries.length);
-        const newLogHtml = newLogs.map(log => {
-            const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
-            return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
-        }).join('');
-        
-        // Append new logs to the container
-        logsContainer.insertAdjacentHTML('beforeend', newLogHtml);
-    }
-    
-    // Auto-scroll to bottom only if we were already at the bottom or this is a running process
-    if (isScrolledToBottom || process.status === 'running') {
-        logsContainer.scrollTop = logsContainer.scrollHeight;
-    }
+    // Clear container and show all logs
+    logsContainer.innerHTML = '';
+    appendLogsToDisplay(logsContainer, process.logs, 0);
 }
 
 // Format timestamp for logs
