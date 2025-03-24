@@ -7,7 +7,7 @@
   "response": "<think>\nOkay, let's tackle this query step by step. The user is asking whether the newly released JFK assassination-related documents between March 17 and March 31, 2025, contain any redactions. The resolution depends on verifying if any text in these documents is obscured. \n\nFirst, I need to check the search results provided. The key sources here are the recent articles from CBS News, Fox News, and others. From the search results, President Trump announced the release of approximately 80,000 pages of JFK files on March 18, 2025. He mentioned that there would be no redactions, but a Fox News source indicated that some redactions would still occur, specifically for personal details like Social Security numbers and information about live assets in Cuba. \n\nThe critical point here is the conflict between Trump's statement of no redactions and the Fox News report mentioning redactions. According to the ancillary data, the market resolves based on the actual documents released. Even if the intention was to release without redactions, if the documents have any obscured parts, the answer should be \"Yes\". \n\nThe release happened on March 18, which is within the specified timeframe. The Fox News article explicitly states that despite Trump's comments, there were redactions. Therefore, based on the primary source (the released documents) as per the resolution conditions, the market should resolve to \"Yes\" (p2).\n</think>\n\nThe JFK assassination-related documents released on March 18, 2025, contain redactions despite President Trump's public statements about releasing them unredacted. While Trump claimed \"no redactions,\" a Fox News source familiar with the release process confirmed that personal information (e.g., Social Security numbers) and details about \"live assets in Cuba\" were redacted[10]. This aligns with the market's definition of redactions as \"visibly blacked out, whited out, or otherwise obscured\" text.\n\nThe release occurred within the specified timeframe (March 17-31, 2025), and the first batch of documents serves as the primary resolution source. Though the majority of the 80,000 pages were released without redactions, the presence of **any** redactions in the newly released documents triggers a \"Yes\" resolution under the market's binary conditions[1][5][10]. \n\nrecommendation: p2",
   "recommendation": "p2",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "timestamp": 1742341575.7628422,
   "processed_file": "questionId_44326cae.json",
   "response_metadata": {
@@ -51,5 +51,5 @@
   "proposed_price_outcome": "p2",
   "disputed": true,
   "disputer_address": "0x891dA613d26ef051ECA35ea337428c514D271c98",
-  "resolved_price_outcome": null
+  "resolved_price_outcome": "p2"
 }

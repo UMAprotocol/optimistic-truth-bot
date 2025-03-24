@@ -4612,3 +4612,179 @@
 2025-03-21 15:38:39,410 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
 2025-03-21 15:38:39,434 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 1, Errors: 0, Skipped: 98
 2025-03-21 15:38:39,434 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-22 12:14:56,813 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-22 12:14:57,529 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-22 12:14:57,541 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-22 12:14:57,541 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-22 12:14:57,543 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-22 12:14:57,563 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:14:57,563 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-22 12:14:57,564 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-22 12:14:57,972 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:14:57,972 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-22 12:14:57,972 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:14:57,973 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-22 12:14:57,979 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 1, Errors: 0, Skipped: 27
+2025-03-22 12:14:57,980 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-22 12:14:57,995 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:14:57,995 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-22 12:14:58,003 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:14:58,003 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-22 12:14:58,013 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-22 12:14:58,013 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-22 12:14:58,015 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-22 12:14:58,421 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:14:58,422 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-22 12:14:58,422 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:14:58,425 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-22 12:14:58,456 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 1, Errors: 0, Skipped: 98
+2025-03-22 12:14:58,456 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-22 12:29:05,387 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-22 12:29:06,090 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-22 12:29:06,102 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-22 12:29:06,102 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-22 12:29:06,103 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-22 12:29:06,113 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:29:06,114 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-22 12:29:06,115 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-22 12:29:06,528 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:29:06,528 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-22 12:29:06,528 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:29:06,529 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-22 12:29:06,533 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 1, Errors: 0, Skipped: 27
+2025-03-22 12:29:06,534 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-22 12:29:06,543 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:29:06,543 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-22 12:29:06,552 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:29:06,552 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-22 12:29:06,559 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-22 12:29:06,559 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-22 12:29:06,560 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-22 12:29:06,968 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:29:06,968 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-22 12:29:06,969 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:29:06,970 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-22 12:29:06,987 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 1, Errors: 0, Skipped: 98
+2025-03-22 12:29:06,987 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-22 12:35:20,603 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-22 12:35:21,281 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-22 12:35:21,296 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-22 12:35:21,296 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-22 12:35:21,297 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-22 12:35:21,315 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:35:21,315 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-22 12:35:21,317 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-22 12:35:21,704 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:35:21,704 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-22 12:35:21,705 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:35:21,708 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-22 12:35:21,718 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 1, Errors: 0, Skipped: 27
+2025-03-22 12:35:21,718 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-22 12:35:21,736 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:35:21,737 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-22 12:35:21,746 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-22 12:35:21,746 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-22 12:35:21,757 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-22 12:35:21,757 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-22 12:35:21,759 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-22 12:35:22,157 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:35:22,157 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 not settled yet
+2025-03-22 12:35:22,157 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-22 12:35:22,159 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-22 12:35:22,189 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 1, Errors: 0, Skipped: 98
+2025-03-22 12:35:22,189 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-24 10:33:25,443 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-24 10:33:26,148 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-24 10:33:26,160 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-24 10:33:26,160 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-24 10:33:26,161 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-24 10:33:26,169 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:33:26,169 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-24 10:33:26,170 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-24 10:33:26,590 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-24 10:33:26,590 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 resolved with price: 1000000000000000000
+2025-03-24 10:33:26,590 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-24 10:33:26,593 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-24 10:33:26,606 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 1, Errors: 0, Skipped: 27
+2025-03-24 10:33:26,606 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-24 10:33:26,611 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:33:26,611 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-24 10:33:26,618 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:33:26,618 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-24 10:33:26,623 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-24 10:33:26,623 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-24 10:33:26,625 - proposal_finalizer - INFO - Checking resolution for query ID: 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676
+2025-03-24 10:33:27,075 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 disputer address: 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-24 10:33:27,075 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 resolved with price: 1000000000000000000
+2025-03-24 10:33:27,076 - proposal_finalizer - INFO - Market 0x44326caea852a261aad03883dcfa1926af1ad43326882788d1f3eb1e8078f676 was disputed by 0x891dA613d26ef051ECA35ea337428c514D271c98
+2025-03-24 10:33:27,078 - proposal_finalizer - INFO - Updated 44326cae.json with additional information
+2025-03-24 10:33:27,100 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 1, Errors: 0, Skipped: 98
+2025-03-24 10:33:27,100 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-24 10:35:08,069 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-24 10:35:08,733 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-24 10:35:08,747 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-24 10:35:08,747 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-24 10:35:08,748 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-24 10:35:08,758 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:35:08,758 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-24 10:35:08,761 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 0, Errors: 0, Skipped: 28
+2025-03-24 10:35:08,761 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-24 10:35:08,766 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:35:08,766 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-24 10:35:08,769 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:35:08,769 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-24 10:35:08,772 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-24 10:35:08,772 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-24 10:35:08,778 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 0, Errors: 0, Skipped: 99
+2025-03-24 10:35:08,778 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-24 10:42:39,870 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-24 10:42:40,575 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-24 10:42:40,589 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-24 10:42:40,589 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-24 10:42:40,590 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-24 10:42:40,600 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:42:40,600 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-24 10:42:40,603 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 0, Errors: 0, Skipped: 28
+2025-03-24 10:42:40,603 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-24 10:42:40,609 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:42:40,609 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-24 10:42:40,614 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 10:42:40,614 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-24 10:42:40,620 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-24 10:42:40,620 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-24 10:42:40,628 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 0, Errors: 0, Skipped: 99
+2025-03-24 10:42:40,628 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-24 11:23:14,745 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-24 11:23:15,448 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-24 11:23:15,462 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-24 11:23:15,462 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-24 11:23:15,463 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-24 11:23:15,472 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 11:23:15,472 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-24 11:23:15,476 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 0, Errors: 0, Skipped: 28
+2025-03-24 11:23:15,476 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-24 11:23:15,483 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 11:23:15,483 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-24 11:23:15,488 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 11:23:15,489 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-24 11:23:15,494 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-24 11:23:15,494 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-24 11:23:15,503 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 0, Errors: 0, Skipped: 99
+2025-03-24 11:23:15,503 - proposal_finalizer - INFO - ✅ Proposal finalizer completed
+2025-03-24 11:32:55,297 - proposal_finalizer - INFO - Outputs directory: /Users/chris/uma/large-language-oracle/proposal_replayer/outputs
+2025-03-24 11:32:56,021 - proposal_finalizer - INFO - Connected to Polygon network: True
+2025-03-24 11:32:56,030 - proposal_finalizer - INFO - Contracts initialized successfully
+2025-03-24 11:32:56,030 - proposal_finalizer - INFO - 🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄
+2025-03-24 11:32:56,031 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/13032025-post-run-replay/outputs
+2025-03-24 11:32:56,042 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 11:32:56,042 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-realtime-follower/outputs
+2025-03-24 11:32:56,045 - proposal_finalizer - INFO - outputs processing complete. Processed: 28, Updated: 0, Errors: 0, Skipped: 28
+2025-03-24 11:32:56,045 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/18032025-gpt-refined-prompt-v2-replay/outputs
+2025-03-24 11:32:56,053 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 11:32:56,053 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/14032025-gpt-refined-prompt-replay/outputs
+2025-03-24 11:32:56,059 - proposal_finalizer - INFO - outputs processing complete. Processed: 71, Updated: 0, Errors: 0, Skipped: 71
+2025-03-24 11:32:56,059 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/12032025-realtime-follower/outputs
+2025-03-24 11:32:56,065 - proposal_finalizer - INFO - outputs processing complete. Processed: 73, Updated: 0, Errors: 0, Skipped: 73
+2025-03-24 11:32:56,065 - proposal_finalizer - INFO - Starting to process outputs files in /Users/chris/uma/large-language-oracle/proposal_replayer/results/19032025-perplexity-chatgpt-overseer-replay/outputs
+2025-03-24 11:32:56,075 - proposal_finalizer - INFO - outputs processing complete. Processed: 99, Updated: 0, Errors: 0, Skipped: 99
+2025-03-24 11:32:56,075 - proposal_finalizer - INFO - ✅ Proposal finalizer completed

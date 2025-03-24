@@ -9561,3 +9561,301 @@
 2025-03-21 15:48:56,245 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
 2025-03-21 15:49:26,412 - proposal_fetcher - INFO - Checking blocks 69324309 to 69324322...
 2025-03-21 15:49:26,570 - proposal_fetcher - INFO - Found no new events. Checking again in 30 seconds.
+2025-03-24 10:27:05,364 - proposal_fetcher - INFO - Starting ProposePrice event subscriber...
+2025-03-24 10:27:05,958 - proposal_fetcher - INFO - Connected to chain: True
+2025-03-24 10:27:06,105 - proposal_fetcher - INFO - Starting from block 69318626 (current: 69436691)
+2025-03-24 10:27:06,254 - proposal_fetcher - INFO - Checking blocks 69318626 to 69436691...
+2025-03-24 10:27:06,813 - proposal_fetcher - INFO - ProposePrice Event: 604f2936b27b1972541566c71664e3e9d63318c5630405a21277909a3ab9a9e8 - Block: 69318626
+2025-03-24 10:27:06,815 - proposal_fetcher - INFO - QuestionID: 0x1c7f2f13441fd2fc564ffd171e0154bd0ea24f80f295da13988f086e8ac43a65
+2025-03-24 10:27:07,221 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x1c7f2f13441fd2fc564ffd171e0154bd0ea24f80f295da13988f086e8ac43a65
+2025-03-24 10:27:07,221 - proposal_fetcher - INFO - Skipping market for 0x1c7f2f13441fd2fc564ffd171e0154bd0ea24f80f295da13988f086e8ac43a65
+2025-03-24 10:27:07,221 - proposal_fetcher - INFO - ProposePrice Event: 2aa47955a626f3f228b1b0d727c323bcc08da1ba5bee7936d9833662c8ab004f - Block: 69326310
+2025-03-24 10:27:07,221 - proposal_fetcher - INFO - QuestionID: 0x16f4ab1007e959357c12ad6e5da8a4cd123731b0816e620dbeda58dd273ab4e8
+2025-03-24 10:27:07,656 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x16f4ab1007e959357c12ad6e5da8a4cd123731b0816e620dbeda58dd273ab4e8
+2025-03-24 10:27:07,656 - proposal_fetcher - INFO - Skipping market for 0x16f4ab1007e959357c12ad6e5da8a4cd123731b0816e620dbeda58dd273ab4e8
+2025-03-24 10:27:07,656 - proposal_fetcher - INFO - ProposePrice Event: 32edcbfa8030e61ed5a8fc1a17e1b755ab3a49430827aa6b276e10a9d1421216 - Block: 69326310
+2025-03-24 10:27:07,656 - proposal_fetcher - INFO - QuestionID: 0xba1632eb3647a926e41f304fb3143b277c2117824c09f3fd08db30c799728a6b
+2025-03-24 10:27:08,077 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xba1632eb3647a926e41f304fb3143b277c2117824c09f3fd08db30c799728a6b
+2025-03-24 10:27:08,077 - proposal_fetcher - INFO - Skipping market for 0xba1632eb3647a926e41f304fb3143b277c2117824c09f3fd08db30c799728a6b
+2025-03-24 10:27:08,077 - proposal_fetcher - INFO - ProposePrice Event: 17a1d73793ecda6cd9d17e1dcfbd58b8e2097a596f4c6a6e43ecf39a50551441 - Block: 69326310
+2025-03-24 10:27:08,077 - proposal_fetcher - INFO - QuestionID: 0xe55139ab7f709edefe2b8ef9ccd2fd3d72d94d4587df1072fcb5eb97ffb5420a
+2025-03-24 10:27:08,520 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe55139ab7f709edefe2b8ef9ccd2fd3d72d94d4587df1072fcb5eb97ffb5420a
+2025-03-24 10:27:08,521 - proposal_fetcher - INFO - Skipping market for 0xe55139ab7f709edefe2b8ef9ccd2fd3d72d94d4587df1072fcb5eb97ffb5420a
+2025-03-24 10:27:08,521 - proposal_fetcher - INFO - ProposePrice Event: 9915569616c93cedb8216550375df6bcb0b59a90ffd857ae321d27808cb1d47d - Block: 69326310
+2025-03-24 10:27:08,521 - proposal_fetcher - INFO - QuestionID: 0x05cbf4efba3002993ca79d082c2e6379b5a44789d09ad3eb66cb75de55a3337a
+2025-03-24 10:27:08,980 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x05cbf4efba3002993ca79d082c2e6379b5a44789d09ad3eb66cb75de55a3337a
+2025-03-24 10:27:08,980 - proposal_fetcher - INFO - Skipping market for 0x05cbf4efba3002993ca79d082c2e6379b5a44789d09ad3eb66cb75de55a3337a
+2025-03-24 10:27:08,980 - proposal_fetcher - INFO - ProposePrice Event: 66f49010f6a1c43f8f84ec01f68d452fe542df1be3ac63be7fb4ca4959ad841a - Block: 69326310
+2025-03-24 10:27:08,981 - proposal_fetcher - INFO - QuestionID: 0x3c68fdd86d4d0215d37f8f9867679ff1eb8278094775cc821cbe6f0c5bc35788
+2025-03-24 10:27:09,401 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x3c68fdd86d4d0215d37f8f9867679ff1eb8278094775cc821cbe6f0c5bc35788
+2025-03-24 10:27:09,401 - proposal_fetcher - INFO - Skipping market for 0x3c68fdd86d4d0215d37f8f9867679ff1eb8278094775cc821cbe6f0c5bc35788
+2025-03-24 10:27:09,401 - proposal_fetcher - INFO - ProposePrice Event: 3e9d8ebeac0cab27026515db49df148447bca8adcf55200be7e0dc1412112af2 - Block: 69326310
+2025-03-24 10:27:09,401 - proposal_fetcher - INFO - QuestionID: 0xfef93eaf77c3e887c6b5c2c89210b1dfad8dfb5edb0edd978269958cbb4bfe2e
+2025-03-24 10:27:09,822 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xfef93eaf77c3e887c6b5c2c89210b1dfad8dfb5edb0edd978269958cbb4bfe2e
+2025-03-24 10:27:09,822 - proposal_fetcher - INFO - Skipping market for 0xfef93eaf77c3e887c6b5c2c89210b1dfad8dfb5edb0edd978269958cbb4bfe2e
+2025-03-24 10:27:09,822 - proposal_fetcher - INFO - ProposePrice Event: a054f872842491dd7826fd888fbdcd9c6945fcd5074265fd05a20f071ba73aa1 - Block: 69326310
+2025-03-24 10:27:09,823 - proposal_fetcher - INFO - QuestionID: 0x1eb015735c37f5b93cae2c9e9d6d95cb982fa4dddb64f49daf52b2e763f63746
+2025-03-24 10:27:10,241 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x1eb015735c37f5b93cae2c9e9d6d95cb982fa4dddb64f49daf52b2e763f63746
+2025-03-24 10:27:10,241 - proposal_fetcher - INFO - Skipping market for 0x1eb015735c37f5b93cae2c9e9d6d95cb982fa4dddb64f49daf52b2e763f63746
+2025-03-24 10:27:10,242 - proposal_fetcher - INFO - ProposePrice Event: 15b4e21a1d612cd008b23ddee8348d911053ced458cf1e6374676c1d60cb3b47 - Block: 69326310
+2025-03-24 10:27:10,242 - proposal_fetcher - INFO - QuestionID: 0x8ce0147791ed8f46006030cd87ae5da7133e8a57f4ab336e6077841214741234
+2025-03-24 10:27:10,651 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x8ce0147791ed8f46006030cd87ae5da7133e8a57f4ab336e6077841214741234
+2025-03-24 10:27:10,651 - proposal_fetcher - INFO - Skipping market for 0x8ce0147791ed8f46006030cd87ae5da7133e8a57f4ab336e6077841214741234
+2025-03-24 10:27:10,651 - proposal_fetcher - INFO - ProposePrice Event: 379cc7a47881f22bf7bb131ea487281d80efd321f3efbbb9f2bee5669042a383 - Block: 69326310
+2025-03-24 10:27:10,651 - proposal_fetcher - INFO - QuestionID: 0x104e26d308b3ac5a813cc16f9ab33efa8316f60c4c1bde06ef6a7e0345c5a097
+2025-03-24 10:27:11,075 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x104e26d308b3ac5a813cc16f9ab33efa8316f60c4c1bde06ef6a7e0345c5a097
+2025-03-24 10:27:11,075 - proposal_fetcher - INFO - Skipping market for 0x104e26d308b3ac5a813cc16f9ab33efa8316f60c4c1bde06ef6a7e0345c5a097
+2025-03-24 10:27:11,075 - proposal_fetcher - INFO - ProposePrice Event: 72f3d3068b210fc155467d767d9ce59ad95115b20823eb9063f781c36441ddc4 - Block: 69326310
+2025-03-24 10:27:11,075 - proposal_fetcher - INFO - QuestionID: 0x74c295d5ef246a90300504dce4322e3262a0735c13997242f46893992a176069
+2025-03-24 10:27:11,494 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x74c295d5ef246a90300504dce4322e3262a0735c13997242f46893992a176069
+2025-03-24 10:27:11,494 - proposal_fetcher - INFO - Skipping market for 0x74c295d5ef246a90300504dce4322e3262a0735c13997242f46893992a176069
+2025-03-24 10:27:11,494 - proposal_fetcher - INFO - ProposePrice Event: 1e125bbd7a68efd80aa27b8363783874a7fb46c2f48b8a1929552d2c994be464 - Block: 69326310
+2025-03-24 10:27:11,494 - proposal_fetcher - INFO - QuestionID: 0x719c0b4378e9b113d7d65cd3d0e187451e599d07e73cd870e8b7f5c88fe554d6
+2025-03-24 10:27:12,020 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x719c0b4378e9b113d7d65cd3d0e187451e599d07e73cd870e8b7f5c88fe554d6
+2025-03-24 10:27:12,020 - proposal_fetcher - INFO - Skipping market for 0x719c0b4378e9b113d7d65cd3d0e187451e599d07e73cd870e8b7f5c88fe554d6
+2025-03-24 10:27:12,020 - proposal_fetcher - INFO - ProposePrice Event: 767c303400368ef7d46a64e1b9b92d00e34b3d384f91451643e72e801ddcc9bd - Block: 69326310
+2025-03-24 10:27:12,021 - proposal_fetcher - INFO - QuestionID: 0xadac4fcacdbde6ce7635c9a6fd76e818b7b2969338e30cc0717c9572b68cb81f
+2025-03-24 10:27:12,438 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xadac4fcacdbde6ce7635c9a6fd76e818b7b2969338e30cc0717c9572b68cb81f
+2025-03-24 10:27:12,439 - proposal_fetcher - INFO - Skipping market for 0xadac4fcacdbde6ce7635c9a6fd76e818b7b2969338e30cc0717c9572b68cb81f
+2025-03-24 10:27:12,439 - proposal_fetcher - INFO - ProposePrice Event: c043d7924559d15c30ee5c3bef395893d6f39e9803267108f792f6edb2afa8d7 - Block: 69326310
+2025-03-24 10:27:12,439 - proposal_fetcher - INFO - QuestionID: 0x132572d1a52df70237e4ec4c706116601cf5a9bfc5bbf850c3b43b9926518e8c
+2025-03-24 10:27:12,864 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x132572d1a52df70237e4ec4c706116601cf5a9bfc5bbf850c3b43b9926518e8c
+2025-03-24 10:27:12,865 - proposal_fetcher - INFO - Skipping market for 0x132572d1a52df70237e4ec4c706116601cf5a9bfc5bbf850c3b43b9926518e8c
+2025-03-24 10:27:12,865 - proposal_fetcher - INFO - ProposePrice Event: 17ab8191943321af99e088018ffdc1347037f1527b0a148dc0d04ccd39c5ed1c - Block: 69326310
+2025-03-24 10:27:12,865 - proposal_fetcher - INFO - QuestionID: 0x2bf916dac1eb3360f6036db1b32325edf4f8eba73918c27b1f9708501f96b2cf
+2025-03-24 10:27:13,284 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x2bf916dac1eb3360f6036db1b32325edf4f8eba73918c27b1f9708501f96b2cf
+2025-03-24 10:27:13,284 - proposal_fetcher - INFO - Skipping market for 0x2bf916dac1eb3360f6036db1b32325edf4f8eba73918c27b1f9708501f96b2cf
+2025-03-24 10:27:13,284 - proposal_fetcher - INFO - ProposePrice Event: 9a9a79de257568fddf5d99f8c72ae024f7ece7316bb6a391c395faa1a1fbe59e - Block: 69326310
+2025-03-24 10:27:13,285 - proposal_fetcher - INFO - QuestionID: 0x810821394001e72f1e24f84a11f7ec46735c0a0f2cae40c9f13d52320dbe4d35
+2025-03-24 10:27:13,721 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x810821394001e72f1e24f84a11f7ec46735c0a0f2cae40c9f13d52320dbe4d35
+2025-03-24 10:27:13,721 - proposal_fetcher - INFO - Skipping market for 0x810821394001e72f1e24f84a11f7ec46735c0a0f2cae40c9f13d52320dbe4d35
+2025-03-24 10:27:13,721 - proposal_fetcher - INFO - ProposePrice Event: 3167010cde8f87e92194d1a4be8f3f67684d38064d700fe821a13f8bb2e54571 - Block: 69326310
+2025-03-24 10:27:13,721 - proposal_fetcher - INFO - QuestionID: 0xe22de50d3827413edcff14cd953023d197d384f1ec35f6a1c2fb033adbd33b08
+2025-03-24 10:27:14,160 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe22de50d3827413edcff14cd953023d197d384f1ec35f6a1c2fb033adbd33b08
+2025-03-24 10:27:14,160 - proposal_fetcher - INFO - Skipping market for 0xe22de50d3827413edcff14cd953023d197d384f1ec35f6a1c2fb033adbd33b08
+2025-03-24 10:27:14,160 - proposal_fetcher - INFO - ProposePrice Event: d2d99f4c243c9298764470b1301edfacdd4fb2fd97454fd4a6be504e33cb8bdd - Block: 69326310
+2025-03-24 10:27:14,160 - proposal_fetcher - INFO - QuestionID: 0xe28067fe048f3ccc119ee352376b348fbdc8496c191f10a7ef43dffc01884b9d
+2025-03-24 10:27:14,581 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe28067fe048f3ccc119ee352376b348fbdc8496c191f10a7ef43dffc01884b9d
+2025-03-24 10:27:14,581 - proposal_fetcher - INFO - Skipping market for 0xe28067fe048f3ccc119ee352376b348fbdc8496c191f10a7ef43dffc01884b9d
+2025-03-24 10:27:14,581 - proposal_fetcher - INFO - ProposePrice Event: b0d3cb9992949b4d9841bd5c57e57183e60bb7781ab6241d5fe9319849f4a9a7 - Block: 69326310
+2025-03-24 10:27:14,582 - proposal_fetcher - INFO - QuestionID: 0xf6534f2aa4f71788a799f642b5174a65d04fb2d67faffb03086ec3c503b28033
+2025-03-24 10:27:15,003 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xf6534f2aa4f71788a799f642b5174a65d04fb2d67faffb03086ec3c503b28033
+2025-03-24 10:27:15,003 - proposal_fetcher - INFO - Skipping market for 0xf6534f2aa4f71788a799f642b5174a65d04fb2d67faffb03086ec3c503b28033
+2025-03-24 10:27:15,003 - proposal_fetcher - INFO - ProposePrice Event: 76483523d0bd367aa1d1b6609a22adb892b9918d866c685995cf3b090b68b644 - Block: 69326338
+2025-03-24 10:27:15,004 - proposal_fetcher - INFO - QuestionID: 0xc6bdc6f372e4e8eb4ab9697e8f9855aed723b453b18d5c64b4385383060df6ee
+2025-03-24 10:27:15,420 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc6bdc6f372e4e8eb4ab9697e8f9855aed723b453b18d5c64b4385383060df6ee
+2025-03-24 10:27:15,420 - proposal_fetcher - INFO - Skipping market for 0xc6bdc6f372e4e8eb4ab9697e8f9855aed723b453b18d5c64b4385383060df6ee
+2025-03-24 10:27:15,420 - proposal_fetcher - INFO - ProposePrice Event: 13b9764f8b835fb7ffa2ca6df601084bc689959b8987365487eb822588d5554e - Block: 69326338
+2025-03-24 10:27:15,420 - proposal_fetcher - INFO - QuestionID: 0x23dc2ccc602ab1a17d7a5fbe9416dad15abe9f530fb1d4bb2e18165bf2a51186
+2025-03-24 10:27:15,840 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x23dc2ccc602ab1a17d7a5fbe9416dad15abe9f530fb1d4bb2e18165bf2a51186
+2025-03-24 10:27:15,840 - proposal_fetcher - INFO - Skipping market for 0x23dc2ccc602ab1a17d7a5fbe9416dad15abe9f530fb1d4bb2e18165bf2a51186
+2025-03-24 10:27:15,840 - proposal_fetcher - INFO - ProposePrice Event: 2f96df2ad2677c2ba423949b5952448fa20f99d6ea8fd804c614b82edfd7ce65 - Block: 69326338
+2025-03-24 10:27:15,841 - proposal_fetcher - INFO - QuestionID: 0xef4320f497cb7b297ad27bafc06a5adc5eac7b2393b455d8e81d61b4013d18f1
+2025-03-24 10:27:16,257 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xef4320f497cb7b297ad27bafc06a5adc5eac7b2393b455d8e81d61b4013d18f1
+2025-03-24 10:27:16,258 - proposal_fetcher - INFO - Skipping market for 0xef4320f497cb7b297ad27bafc06a5adc5eac7b2393b455d8e81d61b4013d18f1
+2025-03-24 10:27:16,258 - proposal_fetcher - INFO - ProposePrice Event: 98efd85a34cf69c38e82886494215132c2b779ea868e920ef7f5fc40c781a817 - Block: 69326338
+2025-03-24 10:27:16,258 - proposal_fetcher - INFO - QuestionID: 0x189945799c30339e8766933f0b1546b755f463af9ccaf02dd54bd68d4c5a1bed
+2025-03-24 10:27:17,093 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x05c42d0760ce58828ff324e7faa0042db562391419e15fd21f0efb889b505290
+2025-03-24 10:27:17,767 - proposal_fetcher - INFO - Added Polymarket data for 0x189945799c30339e8766933f0b1546b755f463af9ccaf02dd54bd68d4c5a1bed: tags=['Crypto', 'Crypto Prices', 'Memecoins', 'Dogecoin', 'Recurring']
+2025-03-24 10:27:17,768 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_18994579.json
+2025-03-24 10:27:17,768 - proposal_fetcher - INFO - ProposePrice Event: 3b9b0863b77e07d6feb9c427189fba54fb335f334c563dd8821a6442e8a7979f - Block: 69326338
+2025-03-24 10:27:17,768 - proposal_fetcher - INFO - QuestionID: 0xc9f2f44815671c944a57265d30b9111ff39aedc1f2a797d370e95cf3e1f7a073
+2025-03-24 10:27:18,194 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc9f2f44815671c944a57265d30b9111ff39aedc1f2a797d370e95cf3e1f7a073
+2025-03-24 10:27:18,195 - proposal_fetcher - INFO - Skipping market for 0xc9f2f44815671c944a57265d30b9111ff39aedc1f2a797d370e95cf3e1f7a073
+2025-03-24 10:27:18,196 - proposal_fetcher - INFO - ProposePrice Event: 08eebb8ffec2b3e523aac6895d475106c82e2b9c91425e40bf52c01688f90f2f - Block: 69326338
+2025-03-24 10:27:18,196 - proposal_fetcher - INFO - QuestionID: 0x296756d90e3d9935d945fd14376d78f609b4941e22049f4a0f56791011269e2f
+2025-03-24 10:27:19,021 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x2723f888e88366e63e6d5521443edef497eab5e24e6bcbfb7e5d6720b784964d
+2025-03-24 10:27:19,658 - proposal_fetcher - INFO - Added Polymarket data for 0x296756d90e3d9935d945fd14376d78f609b4941e22049f4a0f56791011269e2f: tags=['Crypto', 'Crypto Prices', 'XRP', 'ripple', 'Recurring']
+2025-03-24 10:27:19,660 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_296756d9.json
+2025-03-24 10:27:19,660 - proposal_fetcher - INFO - ProposePrice Event: 1b6798d2cef68a16c7d1b44fa2bc2207162aed60c157ccf1442a0744f1d4abfd - Block: 69326338
+2025-03-24 10:27:19,661 - proposal_fetcher - INFO - QuestionID: 0xd17c049a93abb4f0b9ef587329c8a735e2c1bc7fa55215d3d29a64dba3bb002c
+2025-03-24 10:27:20,507 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x294f1339088cc8920b3708941b72e5768cf650186b02a7b9c9055e05c2b83819
+2025-03-24 10:27:21,138 - proposal_fetcher - INFO - Added Polymarket data for 0xd17c049a93abb4f0b9ef587329c8a735e2c1bc7fa55215d3d29a64dba3bb002c: tags=['Crypto', 'Solana', 'Crypto Prices', 'Recurring']
+2025-03-24 10:27:21,139 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_d17c049a.json
+2025-03-24 10:27:21,139 - proposal_fetcher - INFO - ProposePrice Event: 37f11161991a015cbbc318b20c9834cb0cfcaac95bc068417dcf0e2f25e4c9ed - Block: 69326338
+2025-03-24 10:27:21,140 - proposal_fetcher - INFO - QuestionID: 0x7fcc97588d16a742982ab161c9e4b3ec7853af3a1d526c4fd26d25fcb5a1feed
+2025-03-24 10:27:21,574 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x7fcc97588d16a742982ab161c9e4b3ec7853af3a1d526c4fd26d25fcb5a1feed
+2025-03-24 10:27:21,574 - proposal_fetcher - INFO - Skipping market for 0x7fcc97588d16a742982ab161c9e4b3ec7853af3a1d526c4fd26d25fcb5a1feed
+2025-03-24 10:27:21,574 - proposal_fetcher - INFO - ProposePrice Event: 4ce86bea4b6a97ddb2972eea42b5c4786d502e5fcc3b8b89766e84f365a58bc9 - Block: 69326338
+2025-03-24 10:27:21,575 - proposal_fetcher - INFO - QuestionID: 0x0f54c487cc2e019c9a0803c944c713a777c6cc2b81d93c9b65b07d038fc91326
+2025-03-24 10:27:21,992 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x0f54c487cc2e019c9a0803c944c713a777c6cc2b81d93c9b65b07d038fc91326
+2025-03-24 10:27:21,992 - proposal_fetcher - INFO - Skipping market for 0x0f54c487cc2e019c9a0803c944c713a777c6cc2b81d93c9b65b07d038fc91326
+2025-03-24 10:27:21,992 - proposal_fetcher - INFO - ProposePrice Event: f054fec5ae6acd16c34095fb3cb94f1c82c3e9aa937ee1584652465fc9e5ac62 - Block: 69326338
+2025-03-24 10:27:21,992 - proposal_fetcher - INFO - QuestionID: 0xd660f5065dc6942fa8e6b6671a27ce8f873c41a115e674051166541e5b60fbe7
+2025-03-24 10:27:22,845 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0xdb82b5f5f89f2f7ab8bc749089eb438fe8a46c8c2b19a6e42415d5f0d2a009ac
+2025-03-24 10:27:23,476 - proposal_fetcher - INFO - Added Polymarket data for 0xd660f5065dc6942fa8e6b6671a27ce8f873c41a115e674051166541e5b60fbe7: tags=['Crypto', 'Bitcoin', 'Crypto Prices', 'Recurring']
+2025-03-24 10:27:23,477 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_d660f506.json
+2025-03-24 10:27:23,477 - proposal_fetcher - INFO - ProposePrice Event: 7c127341bb90bce14be9e1feecb49694731a27f112cf44d95f07d0a8513e62aa - Block: 69326338
+2025-03-24 10:27:23,478 - proposal_fetcher - INFO - QuestionID: 0x5027f52a84364bf6aad4a274cd59c23df2f3e453af9d485d057db0e329a796fd
+2025-03-24 10:27:24,367 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0xb988db8c5d3d2c211cc897d4455575daa49ef0999bc5fc3bdb2bd3f9b50815d8
+2025-03-24 10:27:25,012 - proposal_fetcher - INFO - Added Polymarket data for 0x5027f52a84364bf6aad4a274cd59c23df2f3e453af9d485d057db0e329a796fd: tags=['Crypto', 'Ethereum', 'Crypto Prices', 'Recurring']
+2025-03-24 10:27:25,013 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_5027f52a.json
+2025-03-24 10:27:25,013 - proposal_fetcher - INFO - ProposePrice Event: e0a8881623864a3ee32d586506f101e5c54bb6870222ae1329f6f04dbecff908 - Block: 69326338
+2025-03-24 10:27:25,013 - proposal_fetcher - INFO - QuestionID: 0xd04a26531a8aa8feee606705f5f30fdb270ab6ad79cc7793e4b1f54a7db34ec6
+2025-03-24 10:27:25,456 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xd04a26531a8aa8feee606705f5f30fdb270ab6ad79cc7793e4b1f54a7db34ec6
+2025-03-24 10:27:25,456 - proposal_fetcher - INFO - Skipping market for 0xd04a26531a8aa8feee606705f5f30fdb270ab6ad79cc7793e4b1f54a7db34ec6
+2025-03-24 10:27:25,457 - proposal_fetcher - INFO - ProposePrice Event: 30376a06bf010d44c9ab1164157f6a624ce78590a1924494a3b8ebd36bfba00f - Block: 69326338
+2025-03-24 10:27:25,457 - proposal_fetcher - INFO - QuestionID: 0xd27539561ab10455fc98cb834ed88742e598244db3fe2b881d18fb91c092eef9
+2025-03-24 10:27:26,281 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x9af057ac89b3d587d5e42ed95496a039bc464e99b0fa2e58f5d36f0361445cbf
+2025-03-24 10:27:26,907 - proposal_fetcher - INFO - Added Polymarket data for 0xd27539561ab10455fc98cb834ed88742e598244db3fe2b881d18fb91c092eef9: tags=['Crypto', 'Bitcoin', 'Crypto Prices', 'Recurring']
+2025-03-24 10:27:26,908 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_d2753956.json
+2025-03-24 10:27:26,908 - proposal_fetcher - INFO - ProposePrice Event: 08227ca8ee6c09b381fe1d0dc2026f0dbc40d547bb977cfe9a7e2fa8fe5034b7 - Block: 69326338
+2025-03-24 10:27:26,908 - proposal_fetcher - INFO - QuestionID: 0x4e6b0423c474b3f7bae47b911ea4141b3bd2aab8764d9e054223e3bb6567508d
+2025-03-24 10:27:27,768 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x2710d02abfbd1132cb161b95acedbf300386bacef0617a186e34eecd19d2922d
+2025-03-24 10:27:28,401 - proposal_fetcher - INFO - Added Polymarket data for 0x4e6b0423c474b3f7bae47b911ea4141b3bd2aab8764d9e054223e3bb6567508d: tags=['Crypto', 'Ethereum', 'Crypto Prices', 'Recurring']
+2025-03-24 10:27:28,402 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_4e6b0423.json
+2025-03-24 10:27:28,402 - proposal_fetcher - INFO - ProposePrice Event: f796b33f77eadd9e90b12a5750f9adec88171d1a06228a32febd1888275931b3 - Block: 69328817
+2025-03-24 10:27:28,402 - proposal_fetcher - INFO - QuestionID: 0xe916df56d9e7b2f18b5a90b00e5bab3e3e908f313372cf13fb6ce95b97965416
+2025-03-24 10:27:28,861 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe916df56d9e7b2f18b5a90b00e5bab3e3e908f313372cf13fb6ce95b97965416
+2025-03-24 10:27:28,861 - proposal_fetcher - INFO - Skipping market for 0xe916df56d9e7b2f18b5a90b00e5bab3e3e908f313372cf13fb6ce95b97965416
+2025-03-24 10:27:28,861 - proposal_fetcher - INFO - ProposePrice Event: d7bae93dc05b0c178e212f764cefd9ebc80cdab72ad12e5f8fb419376ec20567 - Block: 69329006
+2025-03-24 10:27:28,862 - proposal_fetcher - INFO - QuestionID: 0xf9e4e05c41fc35ceb250418abb7c9e390ff077201ef6452cc2472869ae0fc64b
+2025-03-24 10:27:29,304 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xf9e4e05c41fc35ceb250418abb7c9e390ff077201ef6452cc2472869ae0fc64b
+2025-03-24 10:27:29,304 - proposal_fetcher - INFO - Skipping market for 0xf9e4e05c41fc35ceb250418abb7c9e390ff077201ef6452cc2472869ae0fc64b
+2025-03-24 10:27:29,304 - proposal_fetcher - INFO - ProposePrice Event: a04e58856e8b21f43a703c58fd2c30fa67ad51f095affe631f0cd7fc8a9a02a4 - Block: 69330721
+2025-03-24 10:27:29,304 - proposal_fetcher - INFO - QuestionID: 0xfa704561dbdeea36483df7677c31e1de24f0276016b2dad7316967beabfc369c
+2025-03-24 10:27:29,728 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xfa704561dbdeea36483df7677c31e1de24f0276016b2dad7316967beabfc369c
+2025-03-24 10:27:29,728 - proposal_fetcher - INFO - Skipping market for 0xfa704561dbdeea36483df7677c31e1de24f0276016b2dad7316967beabfc369c
+2025-03-24 10:27:29,728 - proposal_fetcher - INFO - ProposePrice Event: 7dd0abe149cb13f749103057861c17b648d30740a7ebc49d34c64621af45329c - Block: 69330722
+2025-03-24 10:27:29,728 - proposal_fetcher - INFO - QuestionID: 0x4f13081fc9c4c639b35b8539f668878278659f29a769c64298c5e9bad132caea
+2025-03-24 10:27:30,148 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x4f13081fc9c4c639b35b8539f668878278659f29a769c64298c5e9bad132caea
+2025-03-24 10:27:30,148 - proposal_fetcher - INFO - Skipping market for 0x4f13081fc9c4c639b35b8539f668878278659f29a769c64298c5e9bad132caea
+2025-03-24 10:27:30,148 - proposal_fetcher - INFO - ProposePrice Event: fbd6357180409ddcb8c289d5d24b5f53c43b2c0d176d9de3c419c3f68383b60f - Block: 69330728
+2025-03-24 10:27:30,148 - proposal_fetcher - INFO - QuestionID: 0x0898ee866d011afdd9e322211e12cd01c017fed2fd3a8500c95db8fb189c614d
+2025-03-24 10:27:30,978 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x2ec4b1a3c4d5447ed8c3de505f831ef751a59c5c3b65a898582ea0a5e141277b
+2025-03-24 10:27:31,679 - proposal_fetcher - INFO - Added Polymarket data for 0x0898ee866d011afdd9e322211e12cd01c017fed2fd3a8500c95db8fb189c614d: tags=['Sports', 'March Madness', 'Games', 'CBB']
+2025-03-24 10:27:31,680 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_0898ee86.json
+2025-03-24 10:27:31,680 - proposal_fetcher - INFO - ProposePrice Event: 6b323a6659a6ee5c1d855fc0b737a1d01b1c6e66e00e7c99d202d1a66ab0a9d1 - Block: 69330735
+2025-03-24 10:27:31,681 - proposal_fetcher - INFO - QuestionID: 0x5ca57058d9bf7482df66f249b6c3e86cad89d54a2e888dce8a05b497b1d862ce
+2025-03-24 10:27:32,119 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x5ca57058d9bf7482df66f249b6c3e86cad89d54a2e888dce8a05b497b1d862ce
+2025-03-24 10:27:32,120 - proposal_fetcher - INFO - Skipping market for 0x5ca57058d9bf7482df66f249b6c3e86cad89d54a2e888dce8a05b497b1d862ce
+2025-03-24 10:27:32,120 - proposal_fetcher - INFO - ProposePrice Event: 0deff7d74a56e627cbd777039c196209582af87beea884f0f13ac969cd998abc - Block: 69331401
+2025-03-24 10:27:32,120 - proposal_fetcher - INFO - QuestionID: 0xeb705765083f359095b4df5ecf6dc1f831a0ebb5815efaab19d3600b6eddf3df
+2025-03-24 10:27:32,542 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xeb705765083f359095b4df5ecf6dc1f831a0ebb5815efaab19d3600b6eddf3df
+2025-03-24 10:27:32,542 - proposal_fetcher - INFO - Skipping market for 0xeb705765083f359095b4df5ecf6dc1f831a0ebb5815efaab19d3600b6eddf3df
+2025-03-24 10:27:32,542 - proposal_fetcher - INFO - ProposePrice Event: a314d455380b93c1b594cde2a8526cb1e998f16365a2dc03b341c286c21b06b3 - Block: 69331408
+2025-03-24 10:27:32,542 - proposal_fetcher - INFO - QuestionID: 0x796891865ca0708768ca1bd869be276648a88679a10c98028a964cbed4016263
+2025-03-24 10:27:32,955 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x796891865ca0708768ca1bd869be276648a88679a10c98028a964cbed4016263
+2025-03-24 10:27:32,956 - proposal_fetcher - INFO - Skipping market for 0x796891865ca0708768ca1bd869be276648a88679a10c98028a964cbed4016263
+2025-03-24 10:27:32,956 - proposal_fetcher - INFO - ProposePrice Event: 58e14ffaf06a74011903f7aef278ec69c9161b22672816ad36d49c694cab484d - Block: 69331410
+2025-03-24 10:27:32,956 - proposal_fetcher - INFO - QuestionID: 0x052f9ab0ba9d4505b0df1a2b2b6f62cec626f2f270d9b1787d9d01a17ae98408
+2025-03-24 10:27:33,805 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x88b819206cef4d3d9dc2271bc16dc62f2393abb3abcbe9efc7ccd04467aefe0b
+2025-03-24 10:27:34,434 - proposal_fetcher - INFO - Added Polymarket data for 0x052f9ab0ba9d4505b0df1a2b2b6f62cec626f2f270d9b1787d9d01a17ae98408: tags=['Sports', 'March Madness', 'Games', 'CBB']
+2025-03-24 10:27:34,435 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_052f9ab0.json
+2025-03-24 10:27:34,435 - proposal_fetcher - INFO - ProposePrice Event: 2f64ba5ae324d357a81716d97035429925f95582836bf0d09159b89a7ca7011f - Block: 69332074
+2025-03-24 10:27:34,436 - proposal_fetcher - INFO - QuestionID: 0x992ee6612e19af73e791668d561ab023a2ee8d222070a86e2fb542fb68164f09
+2025-03-24 10:27:34,858 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x992ee6612e19af73e791668d561ab023a2ee8d222070a86e2fb542fb68164f09
+2025-03-24 10:27:34,858 - proposal_fetcher - INFO - Skipping market for 0x992ee6612e19af73e791668d561ab023a2ee8d222070a86e2fb542fb68164f09
+2025-03-24 10:27:34,858 - proposal_fetcher - INFO - ProposePrice Event: 71e64af4259fcd525a75c820a5b8b73760d310e23d6d3c8c8d011c00b358aa74 - Block: 69332082
+2025-03-24 10:27:34,858 - proposal_fetcher - INFO - QuestionID: 0x178a50a631e5c874293671430948551a39617322cf79e87d19edb73d6f48dedb
+2025-03-24 10:27:35,685 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0xd7705bbb05b2343ad8181d52b3f8417bbe982ca51afc81fb5ae9bf398c759270
+2025-03-24 10:27:36,307 - proposal_fetcher - INFO - Added Polymarket data for 0x178a50a631e5c874293671430948551a39617322cf79e87d19edb73d6f48dedb: tags=['Sports', 'March Madness', 'Games', 'CBB']
+2025-03-24 10:27:36,308 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_178a50a6.json
+2025-03-24 10:27:36,308 - proposal_fetcher - INFO - ProposePrice Event: 09da4c78d29f4309efc7c3acea45eeec2ce1c13c4c185bb7dc84332806d494f4 - Block: 69332082
+2025-03-24 10:27:36,309 - proposal_fetcher - INFO - QuestionID: 0x5cf314fb560809a1f16d70f97d468a5ea48c34fc58a0136b247f18bf2185d57e
+2025-03-24 10:27:36,748 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x5cf314fb560809a1f16d70f97d468a5ea48c34fc58a0136b247f18bf2185d57e
+2025-03-24 10:27:36,749 - proposal_fetcher - INFO - Skipping market for 0x5cf314fb560809a1f16d70f97d468a5ea48c34fc58a0136b247f18bf2185d57e
+2025-03-24 10:27:36,749 - proposal_fetcher - INFO - ProposePrice Event: 503b12a0d38d47f011c943c2852c75f6f8b3f326882bb0424cc4b0f48c671e6c - Block: 69332974
+2025-03-24 10:27:36,749 - proposal_fetcher - INFO - QuestionID: 0x9d6984cdd540e026c2df26b8d8a6b81369b406489b0f5e79997bb3fa2938de88
+2025-03-24 10:27:37,160 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9d6984cdd540e026c2df26b8d8a6b81369b406489b0f5e79997bb3fa2938de88
+2025-03-24 10:27:37,160 - proposal_fetcher - INFO - Skipping market for 0x9d6984cdd540e026c2df26b8d8a6b81369b406489b0f5e79997bb3fa2938de88
+2025-03-24 10:27:37,160 - proposal_fetcher - INFO - ProposePrice Event: a38d1a66027e29a97736854cf824678a62f12a2628f576f17b40d0fc9928cd0b - Block: 69333420
+2025-03-24 10:27:37,160 - proposal_fetcher - INFO - QuestionID: 0x4018970f885fc85ea985b5f1e772640382a08597fe66ed8fb50ad68f3149e153
+2025-03-24 10:27:37,579 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x4018970f885fc85ea985b5f1e772640382a08597fe66ed8fb50ad68f3149e153
+2025-03-24 10:27:37,579 - proposal_fetcher - INFO - Skipping market for 0x4018970f885fc85ea985b5f1e772640382a08597fe66ed8fb50ad68f3149e153
+2025-03-24 10:27:37,579 - proposal_fetcher - INFO - ProposePrice Event: 71d1a83e0c545e51825a06e31a240fc11a6d432ef0cce43196abb68d77a672b7 - Block: 69333422
+2025-03-24 10:27:37,580 - proposal_fetcher - INFO - QuestionID: 0xf79e787588d5ca11a1a53c9c1c531efd15eea7666fd5d4b610a7bd4427a27390
+2025-03-24 10:27:38,442 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x5cc7be1ee079ab3238226373b4dbf5ad0cd6d7db4c21c1bf76a1454b39f053f1
+2025-03-24 10:27:39,058 - proposal_fetcher - INFO - Added Polymarket data for 0xf79e787588d5ca11a1a53c9c1c531efd15eea7666fd5d4b610a7bd4427a27390: tags=['Sports', 'March Madness', 'Games', 'CBB']
+2025-03-24 10:27:39,058 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_f79e7875.json
+2025-03-24 10:27:39,059 - proposal_fetcher - INFO - ProposePrice Event: d1304963084bb230851ba72c1219399f9a4914573a17e714b9cc7750f08903c7 - Block: 69333422
+2025-03-24 10:27:39,059 - proposal_fetcher - INFO - QuestionID: 0x9d5516d610b06524916267dbcbb94d0582984ba3b249b59453e47cec72ef58fb
+2025-03-24 10:27:39,474 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9d5516d610b06524916267dbcbb94d0582984ba3b249b59453e47cec72ef58fb
+2025-03-24 10:27:39,475 - proposal_fetcher - INFO - Skipping market for 0x9d5516d610b06524916267dbcbb94d0582984ba3b249b59453e47cec72ef58fb
+2025-03-24 10:27:39,475 - proposal_fetcher - INFO - ProposePrice Event: 5814224a8f1136153ef692e1005a4ed0d0d540061cc5f08e0549553a49dc25d6 - Block: 69333424
+2025-03-24 10:27:39,475 - proposal_fetcher - INFO - QuestionID: 0xc545a1af98f646af488dd620dae5155372e55e44ca6d8c811f30b37f559ca163
+2025-03-24 10:27:39,886 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xc545a1af98f646af488dd620dae5155372e55e44ca6d8c811f30b37f559ca163
+2025-03-24 10:27:39,886 - proposal_fetcher - INFO - Skipping market for 0xc545a1af98f646af488dd620dae5155372e55e44ca6d8c811f30b37f559ca163
+2025-03-24 10:27:39,886 - proposal_fetcher - INFO - ProposePrice Event: 0340b51e2ccfe8292ba83fb8bb8e1781d1a795a77acff4b870dfe17963d17af0 - Block: 69334967
+2025-03-24 10:27:39,886 - proposal_fetcher - INFO - QuestionID: 0xe63d464a9a74ca454ebbda69a6a0c8632a21ce97177c169d1aa0d8d87862dbb2
+2025-03-24 10:27:40,307 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xe63d464a9a74ca454ebbda69a6a0c8632a21ce97177c169d1aa0d8d87862dbb2
+2025-03-24 10:27:40,307 - proposal_fetcher - INFO - Skipping market for 0xe63d464a9a74ca454ebbda69a6a0c8632a21ce97177c169d1aa0d8d87862dbb2
+2025-03-24 10:27:40,307 - proposal_fetcher - INFO - ProposePrice Event: b23961c2121db41bc63a67d7c7e39698e1dea23f07710ec4b2ee703f6974bb16 - Block: 69334968
+2025-03-24 10:27:40,307 - proposal_fetcher - INFO - QuestionID: 0x8155befd9dcf555134efea85307f6c966463134acdbf94c84de28c2987bf3839
+2025-03-24 10:27:41,152 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x90d1ed598fb389d174c24d96e7ec82085f0d3cda497dc1bf797e4cb9a6553e75
+2025-03-24 10:27:41,790 - proposal_fetcher - INFO - Added Polymarket data for 0x8155befd9dcf555134efea85307f6c966463134acdbf94c84de28c2987bf3839: tags=['Sports', 'March Madness', 'Games', 'CBB', 'March Madness Games 2025']
+2025-03-24 10:27:41,790 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_8155befd.json
+2025-03-24 10:27:41,791 - proposal_fetcher - INFO - ProposePrice Event: 2ca86a8f258b49163fc2728365596a555a2bc9f1fb226298e7d727aec664417a - Block: 69334968
+2025-03-24 10:27:41,791 - proposal_fetcher - INFO - QuestionID: 0x80e79cc9d7f1a9cb88b62c21013b856b2716b6d5ea3b1821b0ba7cb4350f519c
+2025-03-24 10:27:42,210 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x80e79cc9d7f1a9cb88b62c21013b856b2716b6d5ea3b1821b0ba7cb4350f519c
+2025-03-24 10:27:42,210 - proposal_fetcher - INFO - Skipping market for 0x80e79cc9d7f1a9cb88b62c21013b856b2716b6d5ea3b1821b0ba7cb4350f519c
+2025-03-24 10:27:42,210 - proposal_fetcher - INFO - ProposePrice Event: f6e7340bd1ee971f049c213893cff3437eea2be3ae53305a6d6eba53b80c80cb - Block: 69334982
+2025-03-24 10:27:42,211 - proposal_fetcher - INFO - QuestionID: 0x8a8b9f1e31c9f365bb3a89dd68442f03b6cbdb4f7aeef1b49d9c33c465a85631
+2025-03-24 10:27:43,065 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x10ccb14a18f45f8a5dd9e18bcbbbd9e19364473a7dcad28b5e287a67e277faaf
+2025-03-24 10:27:43,689 - proposal_fetcher - INFO - Added Polymarket data for 0x8a8b9f1e31c9f365bb3a89dd68442f03b6cbdb4f7aeef1b49d9c33c465a85631: tags=['Politics', 'Breaking News', 'London', 'fire', 'plane']
+2025-03-24 10:27:43,690 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_8a8b9f1e.json
+2025-03-24 10:27:43,690 - proposal_fetcher - INFO - ProposePrice Event: 4165687eef16ec44f23b0264df7664053c2879d93be42a8b250a5c6926f06897 - Block: 69335836
+2025-03-24 10:27:43,690 - proposal_fetcher - INFO - QuestionID: 0x48af1eaf04c3dbc508ea5f3a7837dd881f4789a18bde800c4605f4690800b0ac
+2025-03-24 10:27:44,528 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0xadf93d0268a376cd3ebe3eab06f7c1306fc919464ae793220a417001ec1a5825
+2025-03-24 10:27:45,156 - proposal_fetcher - INFO - Added Polymarket data for 0x48af1eaf04c3dbc508ea5f3a7837dd881f4789a18bde800c4605f4690800b0ac: tags=['Sports', 'March Madness', 'Games', 'CBB']
+2025-03-24 10:27:45,157 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_48af1eaf.json
+2025-03-24 10:27:45,157 - proposal_fetcher - INFO - ProposePrice Event: d065b0bec8cf89eba7eb96b25fa30cbb6cc1156a5d854bbdc8dbeb96328e29a7 - Block: 69335837
+2025-03-24 10:27:45,157 - proposal_fetcher - INFO - QuestionID: 0xaafbd82751d32c8c118a643d6b969d75ba44f45c2acc7f67e8a531f465c949f3
+2025-03-24 10:27:45,586 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xaafbd82751d32c8c118a643d6b969d75ba44f45c2acc7f67e8a531f465c949f3
+2025-03-24 10:27:45,586 - proposal_fetcher - INFO - Skipping market for 0xaafbd82751d32c8c118a643d6b969d75ba44f45c2acc7f67e8a531f465c949f3
+2025-03-24 10:27:45,586 - proposal_fetcher - INFO - ProposePrice Event: 55839f64e447b15a9ecd3d46470cf3692f9e251fe52166449d8f2cbf0fca27ab - Block: 69335837
+2025-03-24 10:27:45,587 - proposal_fetcher - INFO - QuestionID: 0x3783d1e29daabc0cf9c269fbee428399fe41df4fff3f5056407102e62ef81c63
+2025-03-24 10:27:46,008 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x3783d1e29daabc0cf9c269fbee428399fe41df4fff3f5056407102e62ef81c63
+2025-03-24 10:27:46,008 - proposal_fetcher - INFO - Skipping market for 0x3783d1e29daabc0cf9c269fbee428399fe41df4fff3f5056407102e62ef81c63
+2025-03-24 10:27:46,008 - proposal_fetcher - INFO - ProposePrice Event: 85980c9eff85a44aae2c6ca5528ad3295c81783aef87f6a257faefc9f97e682a - Block: 69335879
+2025-03-24 10:27:46,008 - proposal_fetcher - INFO - QuestionID: 0x9e3ce0815429fcd9539d28fcbca04a10ca5fb589e7d3fb82620791fc0684b4c2
+2025-03-24 10:27:46,429 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x9e3ce0815429fcd9539d28fcbca04a10ca5fb589e7d3fb82620791fc0684b4c2
+2025-03-24 10:27:46,429 - proposal_fetcher - INFO - Skipping market for 0x9e3ce0815429fcd9539d28fcbca04a10ca5fb589e7d3fb82620791fc0684b4c2
+2025-03-24 10:27:46,429 - proposal_fetcher - INFO - ProposePrice Event: d71e0c375a73d5f5b6c84bb9299358569ec1644530320d27293d9bd1ef1a6ff1 - Block: 69335883
+2025-03-24 10:27:46,429 - proposal_fetcher - INFO - QuestionID: 0xf40c346322661767aeeaa144c9097d0730826d3d313d57e997deeb69e4e07750
+2025-03-24 10:27:46,959 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xf40c346322661767aeeaa144c9097d0730826d3d313d57e997deeb69e4e07750
+2025-03-24 10:27:46,959 - proposal_fetcher - INFO - Skipping market for 0xf40c346322661767aeeaa144c9097d0730826d3d313d57e997deeb69e4e07750
+2025-03-24 10:27:46,959 - proposal_fetcher - INFO - ProposePrice Event: 1ce2cd6d48a4d6f82d22e0b7b1c912c5ebe12a927f326672dc4a6cdcb5ad8dd0 - Block: 69335887
+2025-03-24 10:27:46,959 - proposal_fetcher - INFO - QuestionID: 0x8a4082bd88bef62257df947887a952017085f11eb0ebe5c90116763e0b6a9b9a
+2025-03-24 10:27:47,391 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x8a4082bd88bef62257df947887a952017085f11eb0ebe5c90116763e0b6a9b9a
+2025-03-24 10:27:47,391 - proposal_fetcher - INFO - Skipping market for 0x8a4082bd88bef62257df947887a952017085f11eb0ebe5c90116763e0b6a9b9a
+2025-03-24 10:27:47,391 - proposal_fetcher - INFO - ProposePrice Event: aeb72616466c5f3eda0637fc1366c973977fd26bb912f44d505e419887e51183 - Block: 69336995
+2025-03-24 10:27:47,391 - proposal_fetcher - INFO - QuestionID: 0xd0427d1497b133fdbd40300c2a6bf0582baeb9d05ce82c19e7cd2470008265ce
+2025-03-24 10:27:48,219 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0x49a9f5218dde2067640f369d72ffd8260e6105b3ed7cab92eae0d75998096116
+2025-03-24 10:27:48,838 - proposal_fetcher - INFO - Added Polymarket data for 0xd0427d1497b133fdbd40300c2a6bf0582baeb9d05ce82c19e7cd2470008265ce: tags=['Sports', 'March Madness', 'Games', 'CBB', 'March Madness Games 2025']
+2025-03-24 10:27:48,839 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_d0427d14.json
+2025-03-24 10:27:48,839 - proposal_fetcher - INFO - ProposePrice Event: d77cb504ed6c854efe4aaf5e1827e31c9f84256eedd9ec704a82ad6002bd6366 - Block: 69336995
+2025-03-24 10:27:48,840 - proposal_fetcher - INFO - QuestionID: 0x88aa872223fbac19755a7faf6f35e1ae2a818871b26a9c2f8657e91b915c3ab0
+2025-03-24 10:27:49,262 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x88aa872223fbac19755a7faf6f35e1ae2a818871b26a9c2f8657e91b915c3ab0
+2025-03-24 10:27:49,262 - proposal_fetcher - INFO - Skipping market for 0x88aa872223fbac19755a7faf6f35e1ae2a818871b26a9c2f8657e91b915c3ab0
+2025-03-24 10:27:49,262 - proposal_fetcher - INFO - ProposePrice Event: fabee6e7290e122c41722f181365c128f183f539db520a6b887f3786d57a48d4 - Block: 69336995
+2025-03-24 10:27:49,263 - proposal_fetcher - INFO - QuestionID: 0x454b0c1bc0e24d5672a71d0dbec70c1edfd17bbd83deca7d44e2bcfe9da09566
+2025-03-24 10:27:49,698 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x454b0c1bc0e24d5672a71d0dbec70c1edfd17bbd83deca7d44e2bcfe9da09566
+2025-03-24 10:27:49,699 - proposal_fetcher - INFO - Skipping market for 0x454b0c1bc0e24d5672a71d0dbec70c1edfd17bbd83deca7d44e2bcfe9da09566
+2025-03-24 10:27:49,699 - proposal_fetcher - INFO - ProposePrice Event: 0a3ae0f2b6b43ccee29f4211da415207906ba261a68152b95a1171743fc14a99 - Block: 69337873
+2025-03-24 10:27:49,699 - proposal_fetcher - INFO - QuestionID: 0xeaf6d5f2e469dd8e19fedc9052c22a203dadf490b4d62aa6e1d2c251a8b10d1a
+2025-03-24 10:27:50,108 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xeaf6d5f2e469dd8e19fedc9052c22a203dadf490b4d62aa6e1d2c251a8b10d1a
+2025-03-24 10:27:50,108 - proposal_fetcher - INFO - Skipping market for 0xeaf6d5f2e469dd8e19fedc9052c22a203dadf490b4d62aa6e1d2c251a8b10d1a
+2025-03-24 10:27:50,109 - proposal_fetcher - INFO - ProposePrice Event: 96fa504d9512acc81366c5295ff660a9c82ef86e736fe307f58de540d49f5f7b - Block: 69337878
+2025-03-24 10:27:50,109 - proposal_fetcher - INFO - QuestionID: 0xdd31623325fa1e0f36e8971788dfda7161eef32015d070caa5568099f1f23d80
+2025-03-24 10:27:50,533 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xdd31623325fa1e0f36e8971788dfda7161eef32015d070caa5568099f1f23d80
+2025-03-24 10:27:50,533 - proposal_fetcher - INFO - Skipping market for 0xdd31623325fa1e0f36e8971788dfda7161eef32015d070caa5568099f1f23d80
+2025-03-24 10:27:50,533 - proposal_fetcher - INFO - ProposePrice Event: 4845503a06074457a3fa86959d0c909c5871ec1738bc37a3a255848bfce81787 - Block: 69337880
+2025-03-24 10:27:50,534 - proposal_fetcher - INFO - QuestionID: 0x9afed20d0e4960928cd222a307b1e8d1d2d60261c28e33abae79bd75f443ffc9
+2025-03-24 10:27:51,374 - proposal_fetcher - INFO - Querying Polymarket API for condition_id: 0xf5aa6762def3856d8663bcffcf1476aed5ac35b1e5365e1a16ddb1e8c32af01d
+2025-03-24 10:27:51,990 - proposal_fetcher - INFO - Added Polymarket data for 0x9afed20d0e4960928cd222a307b1e8d1d2d60261c28e33abae79bd75f443ffc9: tags=['Sports', 'March Madness', 'Games', 'CBB']
+2025-03-24 10:27:51,990 - proposal_fetcher - INFO - Saved proposal to /Users/chris/uma/large-language-oracle/proposal_replayer/proposals/questionId_9afed20d.json
+2025-03-24 10:27:51,991 - proposal_fetcher - INFO - ProposePrice Event: 7be41ec8d072f455f787e290e96069eee81ac75ab948ff0a5a6f87da53dd530e - Block: 69338048
+2025-03-24 10:27:51,991 - proposal_fetcher - INFO - QuestionID: 0xbc5e294b1f60d69a42c2ad38bcb45cfb8f1c2193a1ea070e9d82c27dac6b3e1d
+2025-03-24 10:27:52,428 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0xbc5e294b1f60d69a42c2ad38bcb45cfb8f1c2193a1ea070e9d82c27dac6b3e1d
+2025-03-24 10:27:52,428 - proposal_fetcher - INFO - Skipping market for 0xbc5e294b1f60d69a42c2ad38bcb45cfb8f1c2193a1ea070e9d82c27dac6b3e1d
+2025-03-24 10:27:52,428 - proposal_fetcher - INFO - ProposePrice Event: 39baed3b9f1731ada3ead902faececea7c0e05fb288f6edff393cd10afb64155 - Block: 69338049
+2025-03-24 10:27:52,429 - proposal_fetcher - INFO - QuestionID: 0x6699783876708ed5c093b0bf06c114109af3076af0631f5f31761dc76733c974
+2025-03-24 10:27:52,861 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x6699783876708ed5c093b0bf06c114109af3076af0631f5f31761dc76733c974
+2025-03-24 10:27:52,862 - proposal_fetcher - INFO - Skipping market for 0x6699783876708ed5c093b0bf06c114109af3076af0631f5f31761dc76733c974
+2025-03-24 10:27:52,862 - proposal_fetcher - INFO - ProposePrice Event: b418dfe2fd870acd0a2549affe30b85610baaf512b3bfecba78853dce17eacd3 - Block: 69338049
+2025-03-24 10:27:52,862 - proposal_fetcher - INFO - QuestionID: 0x98c0470b4afbc6045f596400cf3df748a5c2dd38c161c91e6e414acaebaae7a0
+2025-03-24 10:27:53,276 - proposal_fetcher - INFO - IGNORE: Found neg risk market for question_id 0x98c0470b4afbc6045f596400cf3df748a5c2dd38c161c91e6e414acaebaae7a0
+2025-03-24 10:27:53,276 - proposal_fetcher - INFO - Skipping market for 0x98c0470b4afbc6045f596400cf3df748a5c2dd38c161c91e6e414acaebaae7a0
+2025-03-24 10:27:53,276 - proposal_fetcher - INFO - ProposePrice Event: 62f6fa8a07de8edd6c556bd14bb2aaf184dc3ce1a362cfb4f1a4eba6d668c5b6 - Block: 69340525
+2025-03-24 10:27:53,277 - proposal_fetcher - INFO - QuestionID: 0x1ae6d635d2e1c60f3c7576d583ecb4bc7dd3760bf43e422be5f3e803715adbe0

@@ -13,6 +13,9 @@
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <h1><i class="bi bi-play-circle-fill"></i> Large Language Oracle</h1>
+                <button id="logoutBtn" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
             </div>
             <!-- Main Navigation Tabs -->
             <ul class="nav nav-tabs main-tabs" id="mainNavTabs" role="tablist">
@@ -34,6 +37,10 @@
         <div class="tab-content" id="mainTabContent">
             <!-- Analytics Tab Content -->
             <div class="tab-pane fade show active" id="analytics-content" role="tabpanel" aria-labelledby="analytics-tab">
+                <div class="alert alert-info alert-dismissible fade show mt-2 mb-3">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <p class="mb-0"><strong>Analytics Dashboard</strong> - View and analyze experiment results from previous runs. Select an experiment from the left to see statistics and detailed outcomes.</p>
+                </div>
                 <div class="row">
                     <div class="col-md-4">
                         <div class="card">
@@ -221,20 +228,25 @@
             
             <!-- Experiment Runner Tab Content -->
             <div class="tab-pane fade" id="experiment-content" role="tabpanel" aria-labelledby="experiment-tab">
-                <div class="experiment-runner-container mt-4">
-                    <h2 class="mb-4">Experiment Runner</h2>
-                    
+                <div class="alert alert-info alert-dismissible fade show mt-2 mb-3">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <p class="mb-0"><strong>Experiment Runner</strong> - Run Python commands and manage experiments from this interface. Your command history is saved for quick re-use and all outputs are captured in real-time.</p>
+                </div>
+                
+                <div class="experiment-runner-container">
                     <!-- Command Form -->
                     <div class="card mb-4">
                         <div class="card-header">
                             <h3>Run Experiment</h3>
                         </div>
-                        <div class="card-body d-flex w-100 p-3">
-                            <form id="experimentForm" class="d-flex w-100">
-                                <div class="input-group w-100">
-                                    <span class="input-group-text"><i class="bi bi-terminal"></i></span>
-                                    <input type="text" class="form-control command-input" id="commandInput" placeholder="Enter command to run">
-                                    <button class="btn btn-primary" type="submit" id="runCommandBtn">
+                        <div class="card-body command-card-body">
+                            <form id="experimentForm">
+                                <div class="command-container">
+                                    <div class="command-icon">
+                                        <i class="bi bi-terminal"></i>
+                                    </div>
+                                    <input type="text" class="command-input" id="commandInput" placeholder="Enter command to run">
+                                    <button class="btn btn-primary run-btn" type="submit" id="runCommandBtn">
                                         <i class="bi bi-play-fill"></i> Run
                                     </button>
                                 </div>
@@ -252,7 +264,7 @@
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-content" type="button" role="tab" aria-controls="history-content" aria-selected="false">
+                                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-tab-pane" type="button" role="tab" aria-controls="history-tab-pane" aria-selected="false">
                                         Command History
                                     </button>
                                 </li>
@@ -280,11 +292,11 @@
                                 </div>
                                 
                                 <!-- Command History -->
-                                <div class="tab-pane fade" id="history-content" role="tabpanel" aria-labelledby="history-tab">
-                                    <table class="table table-hover" id="historyTable">
+                                <div class="tab-pane fade" id="history-tab-pane" role="tabpanel" aria-labelledby="history-tab" tabindex="0">
+                                    <table class="table table-hover" id="commandHistoryTable">
                                         <thead>
                                             <tr>
-                                                <th>Date</th>
+                                                <th>Timestamp</th>
                                                 <th>Command</th>
                                                 <th>Status</th>
                                                 <th>Actions</th>
@@ -296,6 +308,7 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                    <div id="historyPagination" class="mt-2"></div>
                                 </div>
                             </div>
                         </div>

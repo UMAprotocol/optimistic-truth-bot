@@ -28,8 +28,8 @@ body {
 header {
     background-color: #ec5b54;
     color: white;
-    padding: calc(var(--spacing-base) * 1.5) 0;
-    margin-bottom: calc(var(--spacing-base) * 2);
+    padding: calc(var(--spacing-base) * 0.8) 0;
+    margin-bottom: calc(var(--spacing-base) * 1);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -89,6 +89,7 @@ header .bi {
     padding: calc(var(--spacing-base) * 0.6) var(--spacing-base);
     border-bottom: 2px solid #dee2e6;
     text-align: left;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .table td {
@@ -1069,35 +1070,60 @@ select[multiple] {
 
 /* Experiment Runner Styles */
 .experiment-runner-container {
-    margin-bottom: 30px;
+    margin-top: 0.5rem;
 }
 
-/* Make the command input wider */
-.command-input {
-    font-family: 'Courier New', Courier, monospace;
-    width: 100%;
-    flex: 1;
+/* Command form styling - complete rebuild */
+.command-card-body {
+    padding: 8px;
 }
 
-/* Command form styling */
 #experimentForm {
     width: 100%;
-    display: flex;
+    margin: 0;
 }
 
-#experimentForm .input-group {
+.command-container {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     width: 100%;
-    flex: 1;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.command-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #ced4da;
+    color: #495057;
+}
+
+.command-input {
+    border: none;
+    padding: 10px 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    outline: none;
+    width: 100%;
+}
+
+.run-btn {
+    margin: 0;
+    border-radius: 0;
 }
 
 /* Command history table */
-#historyTable th:nth-child(1), 
-#historyTable td:nth-child(1) { /* Date */
+#commandHistoryTable th:nth-child(1), 
+#commandHistoryTable td:nth-child(1) { /* Timestamp */
     width: 180px;
 }
 
-#historyTable th:nth-child(2), 
-#historyTable td:nth-child(2) { /* Command */
+#commandHistoryTable th:nth-child(2), 
+#commandHistoryTable td:nth-child(2) { /* Command */
     width: auto;
     min-width: 450px;
     white-space: nowrap;
@@ -1106,14 +1132,66 @@ select[multiple] {
     font-family: 'Courier New', Courier, monospace;
 }
 
-#historyTable th:nth-child(3), 
-#historyTable td:nth-child(3) { /* Status */
+#commandHistoryTable th:nth-child(3), 
+#commandHistoryTable td:nth-child(3) { /* Status */
     width: 120px;
 }
 
-#historyTable th:nth-child(4), 
-#historyTable td:nth-child(4) { /* Actions */
+#commandHistoryTable th:nth-child(4), 
+#commandHistoryTable td:nth-child(4) { /* Actions */
     width: 150px;
+}
+
+/* Fix for table header consistency */
+#processesTable th,
+#commandHistoryTable th {
+    background-color: #f8f9fa;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: calc(var(--spacing-base) * 0.6) var(--spacing-base);
+    border-bottom: 2px solid #dee2e6;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Improve button styling in the history table */
+#commandHistoryTable .btn-group {
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+.history-actions {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 4px;
+}
+
+#commandHistoryTable .btn {
+    white-space: nowrap;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#commandHistoryTable .btn i {
+    margin-right: 0.2rem;
+    font-size: 0.85rem;
+}
+
+#commandHistoryTable td:nth-child(4) {
+    min-width: 150px;
+    padding: 5px 10px;
+    white-space: nowrap;
+}
+
+/* Ensure the command action buttons don't wrap */
+.history-row .btn-group {
+    display: flex;
+    flex-wrap: nowrap;
 }
 
 /* Add a pointer cursor to history items */
@@ -1235,4 +1313,35 @@ select[multiple] {
     padding: 2px 4px;
     font-size: 0.9em;
     word-break: keep-all;
+}
+
+/* Reduce padding in card bodies */
+.experiment-runner-container .card-body {
+    padding: 0.75rem;
+}
+
+/* Ensure form takes full width */
+.experiment-runner-container form {
+    width: 100%;
+}
+
+/* Logout button styles */
+.logout-btn {
+    color: white;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.logout-btn i {
+    margin-right: 5px;
 } 
