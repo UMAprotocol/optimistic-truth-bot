@@ -5,6 +5,7 @@ let experimentsData = [];
 let modal = null;
 let currentFilter = 'all'; // Track current filter state
 let currentSearch = ''; // Track current search term
+let currentSourceFilter = 'all'; // Track current source filter
 
 // Chart variables
 let recommendationChart = null;
@@ -62,6 +63,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('filterIncorrectIgnoringP4')?.addEventListener('click', () => {
         applyFilter('incorrectIgnoringP4');
+    });
+    
+    // Set up source filter buttons
+    document.getElementById('filterSourceAll')?.addEventListener('click', () => {
+        applySourceFilter('all');
+    });
+    
+    document.getElementById('filterSourceFilesystem')?.addEventListener('click', () => {
+        applySourceFilter('filesystem');
+    });
+    
+    document.getElementById('filterSourceMongoDB')?.addEventListener('click', () => {
+        applySourceFilter('mongodb');
     });
     
     // Set up clear tag filter button
@@ -1468,15 +1482,20 @@ function calculateAnalytics(dataArray) {
     
     // Calculate counts for each entry
     resolvedEntries.forEach(entry => {
+        // Standardize recommendation value
+        const rec = (entry.recommendation || entry.proposed_price_outcome || '').toLowerCase();
+        
         // Count recommendations
-        const rec = entry.recommendation?.toLowerCase();
         if (rec === 'p1') p1Count++;
         else if (rec === 'p2') p2Count++;
         else if (rec === 'p3') p3Count++;
         else if (rec === 'p4') p4Count++;
         
         // Count resolutions - using only resolved_price_outcome
-        const resolution = entry.resolved_price_outcome.toString().toLowerCase();
+        // Ensure we have a string for comparison
+        const resolution = (entry.resolved_price_outcome !== null && 
+                           entry.resolved_price_outcome !== undefined) ? 
+                           entry.resolved_price_outcome.toString().toLowerCase() : '';
                            
         if (resolution === '1' || resolution === 'p1') resolution1Count++;
         else if (resolution === '0' || resolution === 'p2') resolution0Count++;
@@ -1552,10 +1571,13 @@ function calculateAnalytics(dataArray) {
 
 // Helper function to check if a recommendation is correct
 function isRecommendationCorrect(entry) {
-    // Only compare if resolved_price_outcome is available
+    // Only compare if resolved_price_outcome is available and not null
     if (entry.resolved_price_outcome !== undefined && entry.resolved_price_outcome !== null) {
-        const rec = entry.recommendation?.toLowerCase();
+        const rec = entry.recommendation?.toLowerCase() || '';
         const resolved = entry.resolved_price_outcome.toString().toLowerCase();
+        
+        // Handle empty or missing recommendation
+        if (!rec) return null;
         
         // Direct match (p1 = p1, p2 = p2, etc)
         if (rec === resolved) return true;
@@ -1685,8 +1707,42 @@ function updateAnalyticsDisplay(analytics) {
 function formatDate(timestamp) {
     if (!timestamp) return 'N/A';
     
-    const date = new Date(timestamp * 1000);
-    return date.toISOString().slice(0, 10) + ' ' + date.toTimeString().slice(0, 8);
+    try {
+        // Handle string timestamps that are in ISO format
+        if (typeof timestamp === 'string') {
+            // Try parsing as ISO format first
+            if (timestamp.includes('T') || timestamp.includes('-')) {
+                const date = new Date(timestamp);
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString().slice(0, 10) + ' ' + date.toTimeString().slice(0, 8);
+                }
+            }
+            
+            // Try parsing as numeric string
+            if (!isNaN(parseInt(timestamp, 10))) {
+                timestamp = parseInt(timestamp, 10);
+            } else {
+                return timestamp; // Return the string as-is if we can't parse it
+            }
+        }
+        
+        // For numeric timestamps, assume Unix timestamp (seconds since epoch)
+        if (typeof timestamp === 'number') {
+            // If timestamp is in milliseconds (> year 2001), convert to seconds
+            if (timestamp > 1000000000000) {
+                timestamp = Math.floor(timestamp / 1000);
+            }
+            
+            const date = new Date(timestamp * 1000);
+            return date.toISOString().slice(0, 10) + ' ' + date.toTimeString().slice(0, 8);
+        }
+        
+        // Fallback for unknown formats
+        return String(timestamp);
+    } catch (error) {
+        console.warn('Error formatting date:', error, timestamp);
+        return String(timestamp);
+    }
 }
 
 // Format date for display in the experiment table
@@ -1789,32 +1845,65 @@ function displayExperimentsTable() {
         return;
     }
     
+    // Filter experiments based on source
+    let filteredExperiments = [...experimentsData];
+    if (currentSourceFilter !== 'all') {
+        filteredExperiments = filteredExperiments.filter(exp => {
+            const isMongoDBSource = exp.source === 'mongodb' || exp.path?.startsWith('mongodb/');
+            return (currentSourceFilter === 'mongodb' && isMongoDBSource) || 
+                   (currentSourceFilter === 'filesystem' && !isMongoDBSource);
+        });
+    }
+    
     // Sort experiments by timestamp (newest first - descending order)
-    const sortedExperiments = [...experimentsData].sort((a, b) => {
+    const sortedExperiments = filteredExperiments.sort((a, b) => {
         // Try to compare timestamps
         const dateA = a.timestamp ? new Date(a.timestamp.replace(/(\d+)[\/\-](\d+)[\/\-](\d+)/, '$3-$2-$1')) : new Date(0);
         const dateB = b.timestamp ? new Date(b.timestamp.replace(/(\d+)[\/\-](\d+)[\/\-](\d+)/, '$3-$2-$1')) : new Date(0);
         return dateB - dateA; // Changed to sort in descending order (newest first)
     });
     
+    if (sortedExperiments.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td class="text-center">No experiments found for the selected filter.</td>
+            </tr>
+        `;
+        return;
+    }
+    
     // Generate table rows with full-width format
-    tableBody.innerHTML = sortedExperiments.map(experiment => `
-        <tr class="experiment-row" data-directory="${experiment.directory}">
+    tableBody.innerHTML = sortedExperiments.map(experiment => {
+        const isMongoDBSource = experiment.source === 'mongodb' || experiment.path?.startsWith('mongodb/');
+        const sourceIcon = isMongoDBSource ? 
+            '<i class="bi bi-database-fill me-1" title="MongoDB Data Source"></i>' : 
+            '<i class="bi bi-folder-fill me-1" title="Filesystem Data Source"></i>';
+        
+        // Get proper formatted date using the timestamp
+        let formattedDate = formatDisplayDate(experiment.timestamp);
+        
+        // For MongoDB sources, make sure we're using the experiment metadata
+        const experimentGoal = experiment.goal || (experiment.metadata && experiment.metadata.experiment?.goal) || '';
+        
+        return `
+        <tr class="experiment-row" data-directory="${experiment.directory}" data-source="${isMongoDBSource ? 'mongodb' : 'filesystem'}">
             <td>
                 <div>
-                    <span class="experiment-date">${formatDisplayDate(experiment.timestamp)}</span>
+                    <span class="experiment-date">${sourceIcon}${formattedDate}</span>
                     <span class="experiment-title">${experiment.title || experiment.directory}</span>
                 </div>
-                ${experiment.goal ? `<div class="experiment-description">${experiment.goal}</div>` : ''}
+                ${experimentGoal ? `<div class="experiment-description">${experimentGoal}</div>` : ''}
+                ${experiment.count ? `<div class="badge bg-primary ms-2">${experiment.count} items</div>` : ''}
             </td>
         </tr>
-    `).join('');
+    `}).join('');
     
     // Add click event to rows
     document.querySelectorAll('.experiment-row').forEach(row => {
         row.addEventListener('click', () => {
             const directory = row.getAttribute('data-directory');
-            loadExperimentData(directory);
+            const source = row.getAttribute('data-source');
+            loadExperimentData(directory, source);
             
             // Highlight the selected row
             document.querySelectorAll('.experiment-row').forEach(r => {
@@ -1824,18 +1913,20 @@ function displayExperimentsTable() {
         });
     });
     
-    // Load the first experiment by default
-    if (sortedExperiments.length > 0) {
+    // Load the first experiment by default if none is selected yet
+    if (sortedExperiments.length > 0 && !document.querySelector('.experiment-row.table-active')) {
         const firstRow = document.querySelector('.experiment-row');
         if (firstRow) {
             firstRow.classList.add('table-active');
-            loadExperimentData(sortedExperiments[0].directory);
+            const directory = firstRow.getAttribute('data-directory');
+            const source = firstRow.getAttribute('data-source');
+            loadExperimentData(directory, source);
         }
     }
 }
 
 // Load data for a specific experiment
-async function loadExperimentData(directory) {
+async function loadExperimentData(directory, source) {
     try {
         // Reset current data to prevent showing old data
         currentData = [];
@@ -1844,6 +1935,11 @@ async function loadExperimentData(directory) {
         currentExperiment = experimentsData.find(exp => exp.directory === directory);
         if (!currentExperiment) {
             throw new Error(`Experiment directory ${directory} not found`);
+        }
+        
+        // Save the explicit source as part of the experiment data for precise tracking
+        if (source) {
+            currentExperiment.explicitSource = source;
         }
         
         // Display the experiment metadata
@@ -1870,9 +1966,10 @@ async function loadExperimentData(directory) {
         // Initialize charts for this experiment
         initializeCharts();
         
-        // Load data from the experiment's outputs directory
-        const outputsPath = `/results/${directory}/outputs/`;
-        console.log(`Loading data from ${outputsPath}`);
+        // Check the source of the experiment data
+        const isMongoDBSource = source === 'mongodb' || 
+                               currentExperiment.source === 'mongodb' || 
+                               currentExperiment.path?.startsWith('mongodb/');
         
         // Show loading indicator
         document.getElementById('resultsTableBody').innerHTML = `
@@ -1881,86 +1978,100 @@ async function loadExperimentData(directory) {
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2">Loading results from ${outputsPath}...</p>
+                    <p class="mt-2">Loading results from ${isMongoDBSource ? 'MongoDB' : currentExperiment.path}...</p>
                 </td>
             </tr>
         `;
         
-        // Try to load data from all JSON files in the outputs directory
-        let fileErrors = [];
-        
-        try {
-            // Load specific files from the outputs directory since directory browsing might not work
-            const response = await fetch(`/api/results-directories`);
-            if (response.ok) {
-                // Get the list of files to load for this directory
-                const allDirectories = await response.json();
-                const targetDir = allDirectories.find(dir => dir.directory === directory);
+        // Different data loading based on source
+        if (isMongoDBSource) {
+            try {
+                // Extract experiment ID from the path
+                const experimentId = directory;
                 
-                if (targetDir && targetDir.path) {
-                    const outputsDir = `${targetDir.path}/outputs`;
+                // Fetch data from MongoDB API
+                const response = await fetch(`/api/mongodb/experiment/${experimentId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch MongoDB data: ${response.status}`);
+                }
+                
+                const jsonData = await response.json();
+                
+                if (Array.isArray(jsonData)) {
+                    currentData = jsonData;
+                    console.log(`Successfully loaded ${currentData.length} result items from MongoDB`);
+                } else {
+                    // Convert single object to array if necessary
+                    currentData = [jsonData];
+                    console.log(`Loaded single result from MongoDB`);
+                }
+                
+                if (currentData.length === 0) {
+                    throw new Error(`No data found for experiment ${experimentId} in MongoDB`);
+                }
+            } catch (error) {
+                console.error('Error loading MongoDB data:', error);
+                // Handle display of error below
+                throw error;
+            }
+        } else {
+            // Original filesystem loading logic
+            try {
+                // Load specific files from the outputs directory since directory browsing might not work
+                const response = await fetch(`/api/results-directories`);
+                if (response.ok) {
+                    // Get the list of files to load for this directory
+                    const allDirectories = await response.json();
+                    const targetDir = allDirectories.find(dir => dir.directory === directory);
                     
-                    // Try to fetch specific JSON files directly
-                    // Since we can't browse directories, we'll try loading common JSON files
-                    // that might be there, or add API endpoints to list files
-                    const sampleFileNames = await fetchFileList(outputsDir);
-                    
-                    if (sampleFileNames && sampleFileNames.length > 0) {
-                        // Load each found file
-                        for (const filename of sampleFileNames) {
-                            try {
-                                const fileUrl = `/${outputsDir}/${filename}`;
-                                const fileResponse = await fetch(fileUrl);
-                                
-                                if (fileResponse.ok) {
-                                    const jsonData = await fileResponse.json();
-                                    if (jsonData && typeof jsonData === 'object') {
-                                        currentData.push(jsonData);
+                    if (targetDir && targetDir.path) {
+                        const outputsDir = `${targetDir.path}/outputs`;
+                        
+                        // Try to fetch specific JSON files directly
+                        const sampleFileNames = await fetchFileList(outputsDir);
+                        
+                        if (sampleFileNames && sampleFileNames.length > 0) {
+                            // Load each found file
+                            for (const filename of sampleFileNames) {
+                                try {
+                                    const fileUrl = `/${outputsDir}/${filename}`;
+                                    const fileResponse = await fetch(fileUrl);
+                                    
+                                    if (fileResponse.ok) {
+                                        const jsonData = await fileResponse.json();
+                                        if (jsonData && typeof jsonData === 'object') {
+                                            currentData.push(jsonData);
+                                        }
+                                    } else {
+                                        console.error(`Error loading ${filename}: ${fileResponse.status}`);
                                     }
-                                } else {
-                                    fileErrors.push(`Error loading ${filename}: ${fileResponse.status}`);
+                                } catch (fileError) {
+                                    console.error(`Error loading ${filename}: ${fileError.message}`);
                                 }
-                            } catch (fileError) {
-                                fileErrors.push(`Error loading ${filename}: ${fileError.message}`);
                             }
+                        } else {
+                            throw new Error(`No JSON files found in ${outputsDir}`);
                         }
                     } else {
-                        throw new Error(`No JSON files found in ${outputsDir}`);
+                        throw new Error(`Could not find path information for directory ${directory}`);
                     }
                 } else {
-                    throw new Error(`Could not find path information for directory ${directory}`);
+                    throw new Error(`Failed to fetch directory information: ${response.status}`);
                 }
-            } else {
-                throw new Error(`Failed to fetch directory information: ${response.status}`);
+                
+                // Log what we loaded
+                console.log(`Successfully loaded ${currentData.length} result items from filesystem`);
+                
+                // If we didn't load any data, show error
+                if (currentData.length === 0) {
+                    throw new Error(`No valid data files found in ${currentExperiment.path}`);
+                }
+            } catch (error) {
+                console.error('Error loading output files:', error);
+                // Handle display of error below
+                throw error;
             }
-            
-            // Log what we loaded
-            console.log(`Successfully loaded ${currentData.length} result items`);
-            
-            // If we didn't load any data, show error
-            if (currentData.length === 0) {
-                throw new Error(`No valid data files found in ${outputsPath}. Errors: ${fileErrors.join(', ')}`);
-            }
-        } catch (error) {
-            console.error('Error loading output files:', error);
-            
-            // Hide analytics, filter, and tag filter when there's an error loading files
-            document.getElementById('analyticsDashboard').style.display = 'none';
-            document.getElementById('filterControls').style.display = 'none';
-            const tagFilterCard = document.getElementById('tagFilterCard');
-            if (tagFilterCard) {
-                tagFilterCard.style.display = 'none';
-            }
-            
-            // Show error message
-            document.getElementById('resultsTableBody').innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center text-danger">
-                        Error loading output files: ${error.message}
-                    </td>
-                </tr>
-            `;
-            return;
         }
         
         // Display results if we have data
@@ -2112,74 +2223,249 @@ async function fetchFileList(dirPath) {
 
 // Display the metadata for the current experiment
 function displayExperimentMetadata() {
+    if (!currentExperiment) return;
+    
     const metadataCard = document.getElementById('experimentMetadataCard');
     const metadataContent = document.getElementById('experimentMetadataContent');
     
-    if (!metadataCard || !metadataContent || !currentExperiment) {
-        if (metadataCard) metadataCard.style.display = 'none';
-        return;
-    }
+    if (!metadataCard || !metadataContent) return;
     
-    metadataCard.style.display = 'block';
+    // Determine data source - use explicit source if available, otherwise infer
+    const isMongoDBSource = currentExperiment.explicitSource === 'mongodb' || 
+                           currentExperiment.source === 'mongodb' || 
+                           currentExperiment.path?.startsWith('mongodb/');
+    
+    const sourceType = isMongoDBSource ? 'MongoDB' : 'Filesystem';
+    const sourceIcon = isMongoDBSource ? 
+        '<i class="bi bi-database-fill" title="MongoDB Data Source"></i>' : 
+        '<i class="bi bi-folder-fill" title="Filesystem Data Source"></i>';
     
     // Extract the experiment info from metadata
     const experimentInfo = currentExperiment.metadata?.experiment || {};
     
-    // Create a formatted display of the metadata
-    let content = '';
+    // Get system prompt from metadata or modifications
+    const systemPrompt = experimentInfo.system_prompt || 
+                       (currentExperiment.metadata?.modifications?.system_prompt);
     
-    // Title and timestamp
-    content += `<h4>${experimentInfo.title || currentExperiment.title || currentExperiment.directory}</h4>`;
-    if (experimentInfo.timestamp || currentExperiment.timestamp) {
-        content += `<p><strong>Date:</strong> ${experimentInfo.timestamp || currentExperiment.timestamp}</p>`;
+    // Basic metadata display
+    let metadata = `
+        <div class="metadata-section">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>Title:</strong>
+                </div>
+                <div class="col-md-8">
+                    ${currentExperiment.title || currentExperiment.directory}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>Directory:</strong>
+                </div>
+                <div class="col-md-8">
+                    <span class="code-font">${currentExperiment.directory}</span>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>Data Source:</strong>
+                </div>
+                <div class="col-md-8">
+                    ${sourceIcon} ${sourceType}
+                    ${isMongoDBSource && currentExperiment.count ? `<span class="badge bg-primary ms-2">${currentExperiment.count} items</span>` : ''}
+                </div>
+            </div>
+            
+            ${currentExperiment.timestamp ? `
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>Date:</strong>
+                </div>
+                <div class="col-md-8">
+                    ${formatDisplayDate(currentExperiment.timestamp)}
+                </div>
+            </div>
+            ` : ''}
+            
+            ${currentExperiment.goal ? `
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>Goal:</strong>
+                </div>
+                <div class="col-md-8">
+                    ${currentExperiment.goal}
+                </div>
+            </div>
+            ` : ''}
+        </div>
+    `;
+    
+    // Add system prompt toggle with improved styling if system prompt exists
+    if (systemPrompt) {
+        metadata += `<div class="mt-3 mb-2">
+            <a href="#" id="toggleSystemPrompt" class="d-inline-flex align-items-center">
+                <strong>System Prompt</strong> <i class="bi bi-chevron-down ms-1"></i>
+            </a>
+        </div>`;
     }
     
-    // Goal
-    if (experimentInfo.goal || currentExperiment.goal) {
-        content += `<p><strong>Goal:</strong> ${experimentInfo.goal || currentExperiment.goal}</p>`;
-    }
-    
-    // Previous experiment reference
-    if (experimentInfo.previous_experiment) {
-        content += `<p><strong>Previous Experiment:</strong> ${experimentInfo.previous_experiment}</p>`;
-    }
-    
-    // Prompt version
-    if (experimentInfo.prompt_version) {
-        content += `<p><strong>Prompt Version:</strong> ${experimentInfo.prompt_version}</p>`;
-    }
-    
-    // Modifications
-    if (experimentInfo.modifications) {
-        content += `<div><strong>Modifications:</strong><ul>`;
-        for (const [key, value] of Object.entries(experimentInfo.modifications)) {
-            content += `<li><strong>${formatKeyName(key)}:</strong> ${value}</li>`;
+    // Show detailed metadata if available
+    if (currentExperiment.metadata) {
+        // Format and append the structured metadata
+        if (Object.keys(experimentInfo).length > 0) {
+            metadata += '<hr>';
+            metadata += '<h4>Experiment Details</h4>';
+            metadata += '<div class="metadata-section">';
+            
+            // Loop through experiment metadata
+            for (const [key, value] of Object.entries(experimentInfo)) {
+                // Skip already displayed fields and system_prompt (handled separately)
+                if (['title', 'timestamp', 'goal', 'system_prompt'].includes(key)) continue;
+                
+                if (key === 'setup' && typeof value === 'object') {
+                    // Render setup as a card with a table
+                    metadata += `
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>${formatKeyName(key)}:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body p-0">
+                                    <table class="table table-sm mb-0">
+                                        <tbody>
+                    `;
+                    
+                    // Loop through setup properties
+                    for (const [setupKey, setupValue] of Object.entries(value)) {
+                        metadata += `
+                        <tr>
+                            <th style="width: 40%">${formatKeyName(setupKey)}</th>
+                            <td>${formatValue(setupValue)}</td>
+                        </tr>
+                        `;
+                    }
+                    
+                    metadata += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                } else if (key === 'modifications' && typeof value === 'object') {
+                    // Render modifications as a card with a table
+                    metadata += `
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>${formatKeyName(key)}:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body p-0">
+                                    <table class="table table-sm mb-0">
+                                        <tbody>
+                    `;
+                    
+                    // Loop through modifications
+                    for (const [modKey, modValue] of Object.entries(value)) {
+                        // Skip system_prompt as it's handled separately
+                        if (modKey === 'system_prompt') continue;
+                        
+                        metadata += `
+                        <tr>
+                            <th style="width: 40%">${formatKeyName(modKey)}</th>
+                            <td>${formatValue(modValue)}</td>
+                        </tr>
+                        `;
+                    }
+                    
+                    metadata += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                } else {
+                    // Regular fields
+                    metadata += `
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <strong>${formatKeyName(key)}:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            ${formatValue(value)}
+                        </div>
+                    </div>
+                    `;
+                }
+            }
+            
+            metadata += '</div>';
         }
-        content += `</ul></div>`;
-    }
-    
-    // Setup details
-    if (experimentInfo.setup) {
-        content += `<div><strong>Setup:</strong><ul>`;
-        for (const [key, value] of Object.entries(experimentInfo.setup)) {
-            content += `<li><strong>${formatKeyName(key)}:</strong> ${value}</li>`;
+        
+        // Add modifications section if it exists at the root metadata level
+        if (currentExperiment.metadata.modifications && !experimentInfo.modifications) {
+            metadata += '<hr>';
+            metadata += '<h4>Modifications</h4>';
+            metadata += '<div class="metadata-section">';
+            
+            const modifications = currentExperiment.metadata.modifications;
+            for (const [key, value] of Object.entries(modifications)) {
+                // Skip system_prompt as it's handled separately
+                if (key === 'system_prompt') continue;
+                
+                metadata += `
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <strong>${formatKeyName(key)}:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        ${formatValue(value)}
+                    </div>
+                </div>
+                `;
+            }
+            
+            metadata += '</div>';
         }
-        content += `</ul></div>`;
+        
+        // Add setup section if it exists at the root metadata level
+        if (currentExperiment.metadata.setup && !experimentInfo.setup) {
+            metadata += '<hr>';
+            metadata += '<h4>Setup</h4>';
+            metadata += '<div class="metadata-section">';
+            
+            const setup = currentExperiment.metadata.setup;
+            for (const [key, value] of Object.entries(setup)) {
+                metadata += `
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <strong>${formatKeyName(key)}:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        ${formatValue(value)}
+                    </div>
+                </div>
+                `;
+            }
+            
+            metadata += '</div>';
+        }
     }
     
-    // Add system prompt toggle with improved styling
-    content += `<div class="mt-3 mb-2">
-        <a href="#" id="toggleSystemPrompt" class="d-inline-flex align-items-center">
-            <strong>System Prompt</strong> <i class="bi bi-chevron-down ms-1"></i>
-        </a>
-    </div>`;
-    
-    // Set the content
-    metadataContent.innerHTML = content;
+    // Set the content and show the card
+    metadataContent.innerHTML = metadata;
+    metadataCard.style.display = 'block';
     
     // Check if overlay container exists, create if not
     let overlayContainer = document.getElementById('systemPromptOverlay');
-    if (!overlayContainer) {
+    if (!overlayContainer && systemPrompt) {
         overlayContainer = document.createElement('div');
         overlayContainer.id = 'systemPromptOverlay';
         overlayContainer.className = 'system-prompt-overlay';
@@ -2198,18 +2484,66 @@ function displayExperimentMetadata() {
         const contentDiv = document.createElement('div');
         contentDiv.className = 'overlay-content';
         contentDiv.id = 'systemPromptContent';
+        contentDiv.innerHTML = `
+            <h3>System Prompt</h3>
+            <pre class="system-prompt-pre">${systemPrompt}</pre>
+        `;
         
         overlayContainer.appendChild(closeButton);
         overlayContainer.appendChild(contentDiv);
         document.body.appendChild(overlayContainer);
-    }
-    
-    // Add system prompt content
-    if (experimentInfo.system_prompt) {
-        document.getElementById('systemPromptContent').innerHTML = `
-            <h3>System Prompt</h3>
-            <pre class="system-prompt-pre">${experimentInfo.system_prompt}</pre>
-        `;
+        
+        // Add custom styles for the overlay if not already added
+        if (!document.getElementById('systemPromptStyles')) {
+            const styleElement = document.createElement('style');
+            styleElement.id = 'systemPromptStyles';
+            styleElement.innerHTML = `
+                .system-prompt-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.8);
+                    z-index: 1050;
+                    overflow-y: auto;
+                    padding: 20px;
+                }
+                
+                .overlay-close-btn {
+                    position: fixed;
+                    top: 20px;
+                    right: 30px;
+                    font-size: 30px;
+                    color: white;
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                }
+                
+                .overlay-content {
+                    background-color: white;
+                    margin: 30px auto;
+                    padding: 25px;
+                    width: 80%;
+                    max-width: 1000px;
+                    border-radius: 10px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                }
+                
+                .system-prompt-pre {
+                    white-space: pre-wrap;
+                    font-size: 15px;
+                    line-height: 1.5;
+                    background-color: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin-top: 15px;
+                    overflow-x: auto;
+                }
+            `;
+            document.head.appendChild(styleElement);
+        }
         
         // Add toggle logic
         document.getElementById('toggleSystemPrompt').addEventListener('click', function(e) {
@@ -2217,67 +2551,68 @@ function displayExperimentMetadata() {
             overlayContainer.style.display = 'block';
             document.body.style.overflow = 'hidden';
         });
-    } else {
-        // If no system prompt available
-        document.getElementById('toggleSystemPrompt').style.display = 'none';
-    }
-    
-    // Add custom styles for the overlay if not already added
-    if (!document.getElementById('systemPromptStyles')) {
-        const styleElement = document.createElement('style');
-        styleElement.id = 'systemPromptStyles';
-        styleElement.innerHTML = `
-            .system-prompt-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.8);
-                z-index: 1050;
-                overflow-y: auto;
-                padding: 20px;
-            }
-            
-            .overlay-close-btn {
-                position: fixed;
-                top: 20px;
-                right: 30px;
-                font-size: 30px;
-                color: white;
-                background: transparent;
-                border: none;
-                cursor: pointer;
-            }
-            
-            .overlay-content {
-                background-color: white;
-                margin: 30px auto;
-                padding: 25px;
-                width: 80%;
-                max-width: 1000px;
-                border-radius: 10px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            }
-            
-            .system-prompt-pre {
-                white-space: pre-wrap;
-                font-size: 15px;
-                line-height: 1.5;
-                background-color: #f8f9fa;
-                padding: 15px;
-                border-radius: 5px;
-                margin-top: 15px;
-                overflow-x: auto;
-            }
+    } else if (systemPrompt) {
+        // Update system prompt content if it already exists
+        document.getElementById('systemPromptContent').innerHTML = `
+            <h3>System Prompt</h3>
+            <pre class="system-prompt-pre">${systemPrompt}</pre>
         `;
-        document.head.appendChild(styleElement);
+        
+        // Add toggle logic
+        document.getElementById('toggleSystemPrompt').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('systemPromptOverlay').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        });
     }
 }
 
 // Display the results data in the table
 function displayResultsData() {
-    updateTableWithData(currentData);
+    const tableBody = document.getElementById('resultsTableBody');
+    if (!tableBody) return;
+    
+    if (!currentData || currentData.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center">No data available</td>
+            </tr>
+        `;
+        document.getElementById('displayingCount').textContent = '0';
+        document.getElementById('totalEntriesCount').textContent = '0';
+        return;
+    }
+    
+    // Ensure all required fields are available
+    const processedData = currentData.map(item => {
+        // Make a shallow copy to avoid modifying the original
+        const processed = {...item};
+        
+        // Ensure we have consistent field names
+        processed.recommendation = 
+            item.recommendation || 
+            item.proposed_price_outcome || 
+            'N/A';
+            
+        processed.resolved_price_outcome = 
+            item.resolved_price_outcome !== undefined ? item.resolved_price_outcome : 
+            item.resolved_price !== undefined ? item.resolved_price : 
+            null;
+            
+        // Ensure we have a title field for display
+        processed.title = extractTitle(item);
+        
+        // Ensure we have a query_id field
+        processed.query_id = item.query_id || item.id || '';
+        
+        // Ensure we have a timestamp field
+        processed.timestamp = item.timestamp || item.unix_timestamp || 0;
+        
+        return processed;
+    });
+    
+    // Now proceed with normal display logic
+    updateTableWithData(processedData);
 }
 
 // Update the table with the provided data
@@ -2298,8 +2633,18 @@ function updateTableWithData(dataArray) {
     
     // Sort the data by timestamp (newest first)
     const sortedData = [...dataArray].sort((a, b) => {
-        const timestampA = a.timestamp || a.unix_timestamp || 0;
-        const timestampB = b.timestamp || b.unix_timestamp || 0;
+        // Ensure timestamps are numbers for comparison
+        let timestampA = a.timestamp || a.unix_timestamp || 0;
+        let timestampB = b.timestamp || b.unix_timestamp || 0;
+        
+        // Convert string timestamps to numbers if needed
+        if (typeof timestampA === 'string') {
+            timestampA = parseInt(timestampA, 10) || 0;
+        }
+        if (typeof timestampB === 'string') {
+            timestampB = parseInt(timestampB, 10) || 0;
+        }
+        
         return timestampB - timestampA; // Descending order (newest first)
     });
     
@@ -2337,18 +2682,33 @@ function updateTableWithData(dataArray) {
         const title = extractTitle(item);
         
         // Use short ID instead of truncated long ID
-        const queryId = item.question_id_short || (item.query_id ? item.query_id.substring(0, 10) : 'N/A');
-        const recommendation = item.recommendation || item.proposed_price_outcome || 'N/A';
-        const resolution = item.resolved_price_outcome !== undefined && item.resolved_price_outcome !== null ? 
+        const queryId = item.question_id_short || 
+                       (item.query_id ? item.query_id.substring(0, 10) : 
+                       (item._id ? item._id.toString().substring(0, 10) : 'N/A'));
+        
+        // Use standardized recommendation field, with fallbacks
+        const recommendation = item.recommendation || 
+                              item.proposed_price_outcome || 
+                              'N/A';
+        
+        // Use standardized resolution field
+        const resolution = item.resolved_price_outcome !== undefined && 
+                          item.resolved_price_outcome !== null ? 
                           item.resolved_price_outcome : 'Unresolved';
         
-        const formattedDate = formatDate(item.timestamp || item.unix_timestamp);
+        // Format the timestamp - handle both string and numeric timestamps
+        let timestamp = item.timestamp || item.unix_timestamp;
+        if (typeof timestamp === 'string' && !isNaN(parseInt(timestamp, 10))) {
+            timestamp = parseInt(timestamp, 10);
+        }
+        
+        const formattedDate = formatDate(timestamp);
         
         // Store the actual data index as a data attribute
         const originalDataIndex = dataArray === currentData ? index : currentData.indexOf(item);
         
         return `
-            <tr class="result-row ${item.recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">
+            <tr class="result-row ${recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">
                 <td>${formattedDate}</td>
                 <td><code class="code-font">${queryId}</code></td>
                 <td>${title}</td>
@@ -2896,13 +3256,41 @@ function showDetails(data, index) {
     modal.show();
 }
 
-// Extracts a title from user_prompt or ancillary data
+// Extracts a title from all potential sources
 function extractTitle(item) {
-    // Try to extract from user_prompt first
+    // First try the explicit title field
+    if (item.title && typeof item.title === 'string') {
+        return item.title;
+    }
+    
+    // Try experiment metadata fields (for MongoDB)
+    if (item.experiment_title) {
+        return item.experiment_title;
+    }
+    
+    // Try metadata.experiment.title (for MongoDB)
+    if (item.metadata?.experiment?.title) {
+        return item.metadata.experiment.title;
+    }
+    
+    // Try to extract from question_id_short (often the most reliable for MongoDB)
+    if (item.question_id_short) {
+        return `Question ${item.question_id_short}`;
+    }
+    
+    // Try to extract from user_prompt next
     if (item.user_prompt) {
         const titleMatch = item.user_prompt.match(/title:\s*([^,\n]+)/i);
         if (titleMatch && titleMatch[1]) {
             return titleMatch[1].trim();
+        }
+    }
+    
+    // Try to extract from prompt field
+    if (item.prompt && typeof item.prompt === 'string') {
+        const promptTitleMatch = item.prompt.match(/title:\s*([^,\n]+)/i);
+        if (promptTitleMatch && promptTitleMatch[1]) {
+            return promptTitleMatch[1].trim();
         }
     }
     
@@ -2920,6 +3308,20 @@ function extractTitle(item) {
         return firstLine.substring(0, 50) + (firstLine.length > 50 ? '...' : '');
     }
     
+    // Last resort: use query_id or filename
+    if (item.query_id) {
+        return `Query ${item.query_id.substring(0, 10)}`;
+    }
+    
+    if (item.filename) {
+        return item.filename;
+    }
+    
+    // For MongoDB experiment ID as last resort
+    if (item.experiment_id) {
+        return `Experiment ${item.experiment_id}`;
+    }
+    
     return 'No title';
 }
 
@@ -2932,9 +3334,34 @@ function formatKeyName(key) {
 function formatValue(value) {
     if (value === null || value === undefined) return 'N/A';
     
+    if (Array.isArray(value)) {
+        if (value.length === 0) return 'Empty Array';
+        
+        // For short arrays of primitive values, format as comma-separated list
+        if (value.length <= 5 && value.every(item => 
+            typeof item !== 'object' || item === null)) {
+            return value.map(formatValue).join(', ');
+        }
+        
+        // For longer arrays or arrays of objects, format as a list
+        return `<ul class="mb-0 ps-3">${value.map(item => 
+            `<li>${formatValue(item)}</li>`).join('')}</ul>`;
+    }
+    
     if (typeof value === 'object') {
+        // For small objects, format as a simple table
+        if (Object.keys(value).length <= 3) {
+            let html = '<div class="metadata-section small-object">';
+            for (const [key, val] of Object.entries(value)) {
+                html += `<div><strong>${formatKeyName(key)}:</strong> ${formatValue(val)}</div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+        
+        // For larger objects, format as a table
         try {
-            return `<pre class="mb-0">${JSON.stringify(value, null, 2)}</pre>`;
+            return `<pre class="mb-0 object-data">${JSON.stringify(value, null, 2)}</pre>`;
         } catch (e) {
             return String(value);
         }
@@ -3205,4 +3632,27 @@ function handleLogout() {
     
     // Redirect to login page
     window.location.href = '/login';
+}
+
+// Apply a source filter
+function applySourceFilter(source) {
+    // Update current source filter
+    currentSourceFilter = source;
+    
+    // Reset active class on source filter buttons
+    document.querySelectorAll('.source-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Set active class on the clicked button - fix the capitalization issue
+    if (source === 'all') {
+        document.getElementById('filterSourceAll')?.classList.add('active');
+    } else if (source === 'filesystem') {
+        document.getElementById('filterSourceFilesystem')?.classList.add('active');
+    } else if (source === 'mongodb') {
+        document.getElementById('filterSourceMongoDB')?.classList.add('active');
+    }
+    
+    // Update the experiment list
+    displayExperimentsTable();
 }

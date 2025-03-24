@@ -25,6 +25,8 @@ import errno
 import urllib.parse
 import re
 import sys
+import pymongo
+from pymongo import MongoClient
 
 # Load environment variables from .env file
 try:
@@ -59,6 +61,11 @@ RERUNS_DIR = PARENT_DIR / "reruns"
 # Base repository directory (one level up from proposal_replayer)
 BASE_REPO_DIR = PARENT_DIR.parent
 
+# MongoDB configuration
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+MONGODB_DB = os.environ.get("MONGODB_DB", "uma_analytics")
+MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "prompts")
+
 # Authentication settings - Change these!
 AUTH_ENABLED = os.environ.get("AUTH_ENABLED", "true").lower() == "true"
 AUTH_USERNAME = os.environ.get("AUTH_USERNAME", "admin")
@@ -80,6 +87,28 @@ restart_event = threading.Event()
 active_processes = {}
 process_logs = {}
 process_lock = threading.Lock()
+
+# MongoDB connection
+mongodb_client = None
+mongodb_db = None
+
+
+def get_mongodb_connection():
+    """Get or create the MongoDB connection"""
+    global mongodb_client, mongodb_db
+
+    if mongodb_client is None:
+        try:
+            logger.info(f"Connecting to MongoDB at {MONGO_URI}")
+            mongodb_client = MongoClient(MONGO_URI)
+            mongodb_db = mongodb_client[MONGODB_DB]
+            logger.info(f"Connected to MongoDB, database: {MONGODB_DB}")
+        except Exception as e:
+            logger.error(f"Error connecting to MongoDB: {e}")
+            mongodb_client = None
+            mongodb_db = None
+
+    return mongodb_db
 
 
 # Process output reader thread
@@ -669,6 +698,169 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps({"error": str(e)}).encode())
                     return
 
+            # MongoDB API endpoint for analytics
+            elif self.path == "/api/mongodb/analytics":
+                if not self.is_authenticated():
+                    self.send_response(401)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                    return
+
+                try:
+                    db = get_mongodb_connection()
+                    if db is None:
+                        self.send_response(500)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "MongoDB connection failed"}).encode()
+                        )
+                        return
+
+                    # Parse query parameters
+                    parsed_url = urllib.parse.urlparse(self.path)
+                    params = urllib.parse.parse_qs(parsed_url.query)
+
+                    # Set up query filters
+                    query = {}
+
+                    # Fetch all analytics from MongoDB
+                    collection = db[MONGODB_COLLECTION]
+                    results = list(collection.find(query, {"_id": 0}))
+
+                    # Group analytics by experiment or other criteria
+                    experiments = {}
+                    for result in results:
+                        experiment_id = result.get("experiment_id", "unknown")
+                        if experiment_id not in experiments:
+                            experiments[experiment_id] = {
+                                "directory": experiment_id,
+                                "path": f"mongodb/{experiment_id}",
+                                "title": result.get("experiment_title", experiment_id),
+                                "timestamp": result.get("timestamp", ""),
+                                "goal": result.get("experiment_goal", ""),
+                                "count": 0,
+                                "items": [],
+                            }
+
+                        experiments[experiment_id]["count"] += 1
+                        experiments[experiment_id]["items"].append(result)
+
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(list(experiments.values())).encode())
+                    return
+
+                except Exception as e:
+                    logger.error(f"Error fetching from MongoDB: {e}")
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    return
+
+            # MongoDB API endpoint for a specific experiment
+            elif self.path.startswith("/api/mongodb/experiment/"):
+                if not self.is_authenticated():
+                    self.send_response(401)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                    return
+
+                try:
+                    # Extract experiment ID from the URL
+                    experiment_id = self.path.split("/")[-1]
+                    parsed_url = urllib.parse.urlparse(self.path)
+                    params = urllib.parse.parse_qs(parsed_url.query)
+
+                    db = get_mongodb_connection()
+                    if db is None:
+                        self.send_response(500)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "MongoDB connection failed"}).encode()
+                        )
+                        return
+
+                    # Query MongoDB for all entries matching this experiment ID
+                    collection = db[MONGODB_COLLECTION]
+                    results = list(
+                        collection.find({"experiment_id": experiment_id}, {"_id": 0})
+                    )
+
+                    # Process results to handle nested structure
+                    processed_results = []
+
+                    for result in results:
+                        # Get base experiment metadata
+                        experiment_metadata = result.get("metadata", {}).get(
+                            "experiment", {}
+                        )
+
+                        # Extract outputs - each key is a short ID with all the output data
+                        outputs = result.get("outputs", {})
+
+                        # If we have outputs, process each one as a separate item
+                        if outputs and isinstance(outputs, dict):
+                            for short_id, output_data in outputs.items():
+                                if not isinstance(output_data, dict):
+                                    continue
+
+                                # Create processed item with experiment metadata and output data
+                                processed_item = {
+                                    # Add experiment metadata
+                                    "experiment_id": result.get("experiment_id", ""),
+                                    "experiment_title": experiment_metadata.get(
+                                        "title", ""
+                                    ),
+                                    "experiment_goal": experiment_metadata.get(
+                                        "goal", ""
+                                    ),
+                                    "timestamp": output_data.get(
+                                        "timestamp",
+                                        experiment_metadata.get("timestamp", ""),
+                                    ),
+                                    # Add all output data fields
+                                    **output_data,
+                                    # Add metadata for reference
+                                    "metadata": {
+                                        "experiment": experiment_metadata,
+                                        "setup": result.get("metadata", {}).get(
+                                            "setup", {}
+                                        ),
+                                        "modifications": result.get("metadata", {}).get(
+                                            "modifications", {}
+                                        ),
+                                    },
+                                }
+                                processed_results.append(processed_item)
+                        else:
+                            # If no outputs, just add the document as is
+                            processed_results.append(result)
+
+                    # Log the processed results
+                    logger.info(
+                        f"MongoDB experiment {experiment_id} processed {len(processed_results)} results"
+                    )
+
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(processed_results).encode())
+                    return
+
+                except Exception as e:
+                    logger.error(f"Error fetching experiment from MongoDB: {e}")
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    return
+
             # Redirect to login page if not authenticated
             if (
                 not self.is_authenticated()
@@ -740,10 +932,12 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps({"error": str(e)}).encode())
                     return
 
-            # API endpoint for results directories
-            if self.path == "/api/results-directories":
+            # API endpoint for results directories (both filesystem and MongoDB)
+            elif self.path == "/api/results-directories":
                 try:
                     results = []
+
+                    # First get results from filesystem
                     for dir_path in RESULTS_DIR.iterdir():
                         if dir_path.is_dir():
                             metadata_file = dir_path / "metadata.json"
@@ -764,6 +958,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                         "goal", ""
                                     ),
                                     "metadata": metadata,
+                                    "source": "filesystem",
                                 }
                                 results.append(result)
                             else:
@@ -775,8 +970,56 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                         "title": dir_path.name,
                                         "timestamp": "",
                                         "goal": "",
+                                        "source": "filesystem",
                                     }
                                 )
+
+                    # Then try to get results from MongoDB
+                    try:
+                        db = get_mongodb_connection()
+                        if db is not None:
+                            collection = db[MONGODB_COLLECTION]
+
+                            # Get experiments by using distinct on experiment_id
+                            experiments = collection.find(
+                                {},
+                                {
+                                    "experiment_id": 1,
+                                    "metadata.experiment": 1,
+                                    "_id": 0,
+                                },
+                            )
+
+                            # Process each unique experiment
+                            for exp in experiments:
+                                experiment_id = exp.get("experiment_id")
+                                if not experiment_id:
+                                    continue
+
+                                # Get experiment metadata
+                                metadata = exp.get("metadata", {}).get("experiment", {})
+
+                                # Count outputs for this experiment
+                                output_count = 0
+                                if "outputs" in exp:
+                                    output_count = len(exp.get("outputs", {}))
+
+                                results.append(
+                                    {
+                                        "directory": experiment_id,
+                                        "path": f"mongodb/{experiment_id}",
+                                        "title": metadata.get("title", experiment_id),
+                                        "timestamp": metadata.get("timestamp", ""),
+                                        "goal": metadata.get("goal", ""),
+                                        "count": output_count,
+                                        "source": "mongodb",
+                                    }
+                                )
+                    except Exception as mongo_error:
+                        logger.error(
+                            f"Error getting MongoDB experiments: {mongo_error}"
+                        )
+                        # Continue with filesystem results even if MongoDB fails
 
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")

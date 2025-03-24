@@ -46,6 +46,16 @@
                         <div class="card">
                             <div class="card-header">
                                 <h3>Experiment Results</h3>
+                                <!-- Add source filter buttons -->
+                                <div class="btn-group source-filter-group mt-2" role="group" aria-label="Data Source Filter">
+                                    <button id="filterSourceAll" class="btn btn-sm btn-outline-primary source-filter-btn active" data-source="all">All Sources</button>
+                                    <button id="filterSourceFilesystem" class="btn btn-sm btn-outline-primary source-filter-btn" data-source="filesystem">
+                                        <i class="bi bi-folder-fill me-1"></i> Filesystem
+                                    </button>
+                                    <button id="filterSourceMongoDB" class="btn btn-sm btn-outline-primary source-filter-btn" data-source="mongodb">
+                                        <i class="bi bi-database-fill me-1"></i> MongoDB
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
