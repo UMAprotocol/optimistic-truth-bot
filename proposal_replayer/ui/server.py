@@ -458,8 +458,12 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests."""
         try:
-            # Login page and essential static resources should be accessible without auth
-            is_login_page = self.path == "/login"
+            # First handle the login page specially to avoid redirect loops
+            if self.path == "/login":
+                self.serve_login_page()
+                return
+
+            # Handle static assets that should be accessible without auth
             is_login_api = self.path == "/api/login"
             is_static_asset = self.path.endswith(
                 (
@@ -475,10 +479,11 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 )
             )
 
-            # If not authenticated and not requesting login resources, redirect to login
-            if not self.is_authenticated() and not (
-                is_login_page or is_login_api or is_static_asset
-            ):
+            # If not authenticated and not requesting login-related resources, redirect to login
+            if not self.is_authenticated() and not (is_login_api or is_static_asset):
+                logger.info(
+                    f"Redirecting unauthenticated request to login: {self.path}"
+                )
                 self.send_response(302)
                 self.send_header("Location", "/login")
                 self.end_headers()
@@ -490,28 +495,23 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
             # Serve static files
             if not self.path.startswith("/api/"):
-                if self.path.startswith("/results/"):
-                    # Allow access to results directory for browsing experiment results
-                    file_path = os.path.join(os.getcwd(), self.path.lstrip("/"))
-                    if os.path.isfile(file_path):
-                        self.send_static_file(file_path)
-                        return
+                # Adjust to find files in ui directory
+                if self.path.startswith("/"):
+                    path_without_prefix = self.path[1:]
                 else:
-                    # Normal static file request
-                    if self.path.startswith("/"):
-                        self.path = self.path[1:]
+                    path_without_prefix = self.path
 
-                    # Adjust to find files in ui directory
-                    file_path = os.path.join(os.path.dirname(__file__), self.path)
-                    if os.path.isfile(file_path):
-                        self.send_static_file(file_path)
-                        return
+                # Try ui directory first
+                file_path = os.path.join(os.path.dirname(__file__), path_without_prefix)
+                if os.path.isfile(file_path):
+                    self.send_static_file(file_path)
+                    return
 
-                    # If not found in ui directory, try working directory
-                    file_path = os.path.join(os.getcwd(), self.path)
-                    if os.path.isfile(file_path):
-                        self.send_static_file(file_path)
-                        return
+                # If not found in ui directory, try working directory
+                file_path = os.path.join(os.getcwd(), path_without_prefix)
+                if os.path.isfile(file_path):
+                    self.send_static_file(file_path)
+                    return
 
             # API endpoints
             if self.path == "/api/processes":
@@ -888,6 +888,60 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
                 except Exception as e:
                     logger.error(f"Error fetching experiment from MongoDB: {e}")
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    return
+
+            # Special handling for results directory files
+            if self.path.startswith("/results/"):
+                # Remap the path to the actual results directory
+                file_path = PARENT_DIR / self.path[1:]  # Remove leading slash
+                logger.info(f"Accessing result file: {self.path}")
+                logger.info(f"Mapped to: {file_path}")
+                logger.info(f"File exists: {file_path.exists()}")
+
+                try:
+                    if file_path.exists() and file_path.is_file():
+                        logger.info(f"Serving file: {file_path}")
+                        self.send_response(200)
+                        # Set the appropriate content type
+                        if file_path.suffix == ".json":
+                            self.send_header("Content-Type", "application/json")
+                        elif file_path.suffix == ".txt":
+                            self.send_header("Content-Type", "text/plain")
+                        else:
+                            self.send_header("Content-Type", "application/octet-stream")
+
+                        # Set content length
+                        self.send_header(
+                            "Content-Length", str(file_path.stat().st_size)
+                        )
+                        self.end_headers()
+
+                        # Send the file contents
+                        with open(file_path, "rb") as f:
+                            self.wfile.write(f.read())
+                        return
+                    else:
+                        logger.error(f"File not found: {file_path}")
+                        # Check if directory exists but file doesn't
+                        if file_path.parent.exists():
+                            logger.info(f"Directory exists: {file_path.parent}")
+                            logger.info(
+                                f"Directory contents: {list(file_path.parent.iterdir())}"
+                            )
+
+                        self.send_response(404)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "File not found"}).encode()
+                        )
+                        return
+                except Exception as e:
+                    logger.error(f"Error serving file {file_path}: {e}")
                     self.send_response(500)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
