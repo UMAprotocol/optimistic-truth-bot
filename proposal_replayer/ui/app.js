@@ -2764,15 +2764,8 @@ function showDetails(data, index) {
     
     if (!modalTitle || !modalBody) return;
     
-    // Get the title from the table row
-    const tableRow = document.querySelector(`.result-row[data-item-id="${index}"]`);
-    let title = 'Details';
-    if (tableRow) {
-        const titleCell = tableRow.querySelector('td:nth-child(3)');
-        if (titleCell) {
-            title = titleCell.textContent.trim();
-        }
-    }
+    // Get title directly from the data using our extraction function
+    const title = extractTitle(data) || 'Details';
     
     // Set the modal title
     modalTitle.textContent = title;
@@ -3258,24 +3251,12 @@ function showDetails(data, index) {
 
 // Extracts a title from all potential sources
 function extractTitle(item) {
-    // First try the explicit title field
-    if (item.title && typeof item.title === 'string') {
-        return item.title;
-    }
-    
-    // Try experiment metadata fields (for MongoDB)
-    if (item.experiment_title) {
-        return item.experiment_title;
-    }
-    
-    // Try metadata.experiment.title (for MongoDB)
-    if (item.metadata?.experiment?.title) {
-        return item.metadata.experiment.title;
-    }
-    
-    // Try to extract from question_id_short (often the most reliable for MongoDB)
-    if (item.question_id_short) {
-        return `Question ${item.question_id_short}`;
+    // First try to extract from ancillary_data as it's the preferred source
+    if (item.ancillary_data) {
+        const ancillaryMatch = item.ancillary_data.match(/title:\s*([^,\n]+)/i);
+        if (ancillaryMatch && ancillaryMatch[1]) {
+            return ancillaryMatch[1].trim();
+        }
     }
     
     // Try to extract from user_prompt next
@@ -3294,18 +3275,30 @@ function extractTitle(item) {
         }
     }
     
-    // Try to extract from ancillary_data as fallback
-    if (item.ancillary_data) {
-        const ancillaryMatch = item.ancillary_data.match(/title:\s*([^,\n]+)/i);
-        if (ancillaryMatch && ancillaryMatch[1]) {
-            return ancillaryMatch[1].trim();
-        }
+    // Check title field
+    if (item.title && typeof item.title === 'string') {
+        return item.title;
+    }
+    
+    // Try experiment metadata fields (for MongoDB)
+    if (item.experiment_title) {
+        return item.experiment_title;
+    }
+    
+    // Try metadata.experiment.title (for MongoDB)
+    if (item.metadata?.experiment?.title) {
+        return item.metadata.experiment.title;
     }
     
     // Fallback to proposal_data.prompt first line
     if (item.proposal_data?.prompt) {
         const firstLine = item.proposal_data.prompt.split('\n')[0] || '';
         return firstLine.substring(0, 50) + (firstLine.length > 50 ? '...' : '');
+    }
+    
+    // Use question_id_short
+    if (item.question_id_short) {
+        return `Question ${item.question_id_short}`;
     }
     
     // Last resort: use query_id or filename

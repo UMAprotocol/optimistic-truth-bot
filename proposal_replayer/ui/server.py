@@ -824,6 +824,13 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                         "timestamp",
                                         experiment_metadata.get("timestamp", ""),
                                     ),
+                                    # Ensure critical fields for title extraction are present
+                                    "ancillary_data": output_data.get(
+                                        "ancillary_data", ""
+                                    ),
+                                    "question_id_short": output_data.get(
+                                        "question_id_short", short_id
+                                    ),
                                     # Add all output data fields
                                     **output_data,
                                     # Add metadata for reference
