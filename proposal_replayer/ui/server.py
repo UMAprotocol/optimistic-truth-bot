@@ -23,6 +23,8 @@ import select
 import fcntl
 import errno
 import urllib.parse
+import re
+import sys
 
 # Load environment variables from .env file
 try:
@@ -329,6 +331,52 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         # Custom log formatting
         logger.info(f"{self.address_string()} - {format % args}")
 
+    def send_static_file(self, file_path):
+        """Send a static file to the client with appropriate headers"""
+        try:
+            # Determine content type based on file extension
+            content_type = "application/octet-stream"  # Default
+            if file_path.endswith(".html"):
+                content_type = "text/html"
+            elif file_path.endswith(".css"):
+                content_type = "text/css"
+            elif file_path.endswith(".js"):
+                content_type = "application/javascript"
+            elif file_path.endswith(".json"):
+                content_type = "application/json"
+            elif file_path.endswith(".png"):
+                content_type = "image/png"
+            elif file_path.endswith(".jpg") or file_path.endswith(".jpeg"):
+                content_type = "image/jpeg"
+            elif file_path.endswith(".svg"):
+                content_type = "image/svg+xml"
+            elif file_path.endswith(".ico"):
+                content_type = "image/x-icon"
+            elif file_path.endswith(".txt"):
+                content_type = "text/plain"
+
+            # Get file size
+            file_size = os.path.getsize(file_path)
+
+            # Send headers
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(file_size))
+            self.end_headers()
+
+            # Send file content
+            with open(file_path, "rb") as f:
+                self.wfile.write(f.read())
+
+        except Exception as e:
+            logger.error(f"Error sending static file {file_path}: {e}")
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(
+                json.dumps({"error": f"Error serving file: {str(e)}"}).encode()
+            )
+
     def is_authenticated(self):
         """Check if the request is authenticated"""
         if not AUTH_ENABLED:
@@ -463,231 +511,51 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(login_html.encode())
 
     def do_GET(self):
-        # Redirect to login page if not authenticated
-        if (
-            not self.is_authenticated()
-            and self.path != "/api/login"
-            and not self.path.endswith((".css", ".js", ".png", ".jpg", ".jpeg", ".ico"))
-        ):
-            if self.path == "/login":
-                self.serve_login_page()
-                return
-            else:
-                self.send_response(302)
-                self.send_header("Location", "/login")
-                self.end_headers()
-                return
+        """Handle GET requests."""
+        try:
+            # Static file handling
+            if self.path == "/" or self.path == "":
+                self.path = "/index.html"
 
-        # Special handling for results directory files
-        if self.path.startswith("/results/"):
-            # Remap the path to the actual results directory
-            file_path = PARENT_DIR / self.path[1:]  # Remove leading slash
-            logger.info(f"Accessing result file: {self.path}")
-            logger.info(f"Mapped to: {file_path}")
-            logger.info(f"File exists: {file_path.exists()}")
-
-            try:
-                if file_path.exists() and file_path.is_file():
-                    logger.info(f"Serving file: {file_path}")
-                    self.send_response(200)
-                    # Set the appropriate content type
-                    if file_path.suffix == ".json":
-                        self.send_header("Content-Type", "application/json")
-                    elif file_path.suffix == ".txt":
-                        self.send_header("Content-Type", "text/plain")
-                    else:
-                        self.send_header("Content-Type", "application/octet-stream")
-
-                    # Set content length
-                    self.send_header("Content-Length", str(file_path.stat().st_size))
-                    self.end_headers()
-
-                    # Send the file contents
-                    with open(file_path, "rb") as f:
-                        self.wfile.write(f.read())
-                    return
+            # Serve static files
+            if not self.path.startswith("/api/"):
+                if self.path.startswith("/results/"):
+                    # Allow access to results directory for browsing experiment results
+                    file_path = os.path.join(os.getcwd(), self.path.lstrip("/"))
+                    if os.path.isfile(file_path):
+                        self.send_static_file(file_path)
+                        return
                 else:
-                    logger.error(f"File not found: {file_path}")
-                    # Check if directory exists but file doesn't
-                    if file_path.parent.exists():
-                        logger.info(f"Directory exists: {file_path.parent}")
-                        logger.info(
-                            f"Directory contents: {list(file_path.parent.iterdir())}"
-                        )
+                    # Normal static file request
+                    if self.path.startswith("/"):
+                        self.path = self.path[1:]
 
-                    self.send_response(404)
-                    self.send_header("Content-Type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": "File not found"}).encode())
-                    return
-            except Exception as e:
-                logger.error(f"Error serving file {file_path}: {e}")
-                self.send_response(500)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
-                return
+                    # Adjust to find files in ui directory
+                    file_path = os.path.join(os.path.dirname(__file__), self.path)
+                    if os.path.isfile(file_path):
+                        self.send_static_file(file_path)
+                        return
 
-        # If authenticated, serve content based on the path
+                    # If not found in ui directory, try working directory
+                    file_path = os.path.join(os.getcwd(), self.path)
+                    if os.path.isfile(file_path):
+                        self.send_static_file(file_path)
+                        return
 
-        # API endpoint for results directories
-        if self.path == "/api/results-directories":
-            try:
-                results = []
-                for dir_path in RESULTS_DIR.iterdir():
-                    if dir_path.is_dir():
-                        metadata_file = dir_path / "metadata.json"
-                        if metadata_file.exists():
-                            with open(metadata_file, "r") as f:
-                                metadata = json.load(f)
-
-                            result = {
-                                "directory": dir_path.name,
-                                "path": f"results/{dir_path.name}",
-                                "title": metadata.get("experiment", {}).get(
-                                    "title", dir_path.name
-                                ),
-                                "timestamp": metadata.get("experiment", {}).get(
-                                    "timestamp", ""
-                                ),
-                                "goal": metadata.get("experiment", {}).get("goal", ""),
-                                "metadata": metadata,
-                            }
-                            results.append(result)
-                        else:
-                            # If no metadata file exists, use directory name
-                            results.append(
-                                {
-                                    "directory": dir_path.name,
-                                    "path": f"results/{dir_path.name}",
-                                    "title": dir_path.name,
-                                    "timestamp": "",
-                                    "goal": "",
-                                }
-                            )
-
+            # API endpoints
+            if self.path == "/api/processes":
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(json.dumps(results).encode())
-                return
-            except Exception as e:
-                self.send_response(500)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                error_message = f"Error processing results directories: {str(e)}"
-                logger.error(error_message)
-                import traceback
-
-                logger.error(traceback.format_exc())
-                self.wfile.write(json.dumps({"error": error_message}).encode())
-                return
-
-        # API endpoint for active processes
-        elif self.path == "/api/processes":
-            try:
-                # Convert process data to JSON-serializable format
-                process_list = []
-                with process_lock:
-                    for pid, process in active_processes.items():
-                        if pid in process_logs:
-                            process_logs_data = process_logs[pid]
-                        else:
-                            process_logs_data = []
-
-                        process_list.append(
-                            {
-                                "id": pid,
-                                "command": process.get("command", ""),
-                                "start_time": process.get("start_time", 0),
-                                "status": process.get("status", "unknown"),
-                                "logs": process_logs_data,
-                            }
-                        )
-
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps(process_list).encode())
-                return
-            except Exception as e:
-                self.send_response(500)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
-                return
-
-        # API endpoint to list files in an outputs directory
-        elif self.path.startswith("/api/outputs-directory"):
-            try:
-                # Parse the query parameter
-                query = urllib.parse.urlparse(self.path).query
-                params = urllib.parse.parse_qs(query)
-                dir_path = params.get("path", [""])[0]
-
-                if not dir_path:
-                    self.send_response(400)
-                    self.send_header("Content-Type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(
-                        json.dumps({"error": "path parameter is required"}).encode()
-                    )
-                    return
-
-                # Construct the full path to the directory
-                full_path = PARENT_DIR / dir_path.lstrip("/")
-                logger.info(f"Listing files in directory: {full_path}")
-
-                # Check if the directory exists
-                if not full_path.exists() or not full_path.is_dir():
-                    logger.error(f"Directory not found: {full_path}")
-                    self.send_response(404)
-                    self.send_header("Content-Type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(
-                        json.dumps({"error": "Directory not found"}).encode()
-                    )
-                    return
-
-                # List all JSON files in the directory
-                files = [
-                    f.name
-                    for f in full_path.iterdir()
-                    if f.is_file() and f.suffix == ".json"
-                ]
-                logger.info(f"Found {len(files)} JSON files in {full_path}")
-                logger.info(f"Files: {files}")
-
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({"files": files}).encode())
-                return
-            except Exception as e:
-                logger.error(f"Error listing directory: {e}")
-                self.send_response(500)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
-                return
-
-        # API endpoint for specific process logs
-        elif self.path.startswith("/api/process/"):
-            try:
-                # Extract process ID from the URL
-                process_id = self.path.split("/")[-1]
 
                 with process_lock:
-                    if process_id in active_processes:
+                    processes_list = []
+                    for process_id, process_info in active_processes.items():
                         process_data = {
                             "id": process_id,
-                            "command": active_processes[process_id].get("command", ""),
-                            "start_time": active_processes[process_id].get(
-                                "start_time", 0
-                            ),
-                            "status": active_processes[process_id].get(
-                                "status", "unknown"
-                            ),
+                            "command": process_info.get("command", ""),
+                            "start_time": process_info.get("start_time", 0),
+                            "status": process_info.get("status", "unknown"),
                         }
 
                         if process_id in process_logs:
@@ -695,27 +563,386 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         else:
                             process_data["logs"] = []
 
+                        processes_list.append(process_data)
+
+                self.wfile.write(json.dumps(processes_list).encode())
+                return
+
+            # API endpoint for specific process logs
+            elif self.path.startswith("/api/process/"):
+                try:
+                    # Extract process ID from the URL
+                    process_id = self.path.split("/")[-1]
+
+                    with process_lock:
+                        # First check if it's an active process
+                        if process_id in active_processes:
+                            process_data = {
+                                "id": process_id,
+                                "command": active_processes[process_id].get(
+                                    "command", ""
+                                ),
+                                "start_time": active_processes[process_id].get(
+                                    "start_time", 0
+                                ),
+                                "status": active_processes[process_id].get(
+                                    "status", "unknown"
+                                ),
+                            }
+
+                            if process_id in process_logs:
+                                process_data["logs"] = process_logs[process_id]
+                            else:
+                                process_data["logs"] = []
+
+                            self.send_response(200)
+                            self.send_header("Content-Type", "application/json")
+                            self.end_headers()
+                            self.wfile.write(json.dumps(process_data).encode())
+                            return
+
+                    # If not an active process, try to find logs in the log file
+                    log_file = LOG_DIR / f"{process_id}.log"
+                    if not log_file.exists():
+                        # Try alternative format with process_ prefix
+                        log_file = LOG_DIR / f"process_{process_id}.log"
+
+                    if log_file.exists():
+                        # Parse the log file into log entries
+                        logs = []
+                        command = None
+                        start_time = 0
+                        status = "completed"  # Default status for historical logs
+
+                        try:
+                            with open(log_file, "r") as f:
+                                for line in f:
+                                    try:
+                                        # Try to parse the timestamp from the line
+                                        timestamp_match = re.match(
+                                            r"\[(.*?)\] (.*)", line
+                                        )
+                                        if timestamp_match:
+                                            timestamp_str = timestamp_match.group(1)
+                                            message = timestamp_match.group(2)
+
+                                            # Try different timestamp formats
+                                            timestamp = 0
+                                            try:
+                                                # Try standard format "2023-01-01 12:34:56"
+                                                timestamp = int(
+                                                    datetime.strptime(
+                                                        timestamp_str,
+                                                        "%Y-%m-%d %H:%M:%S",
+                                                    ).timestamp()
+                                                )
+                                            except ValueError:
+                                                try:
+                                                    # Try time-only format "12:34:56.789"
+                                                    current_date = (
+                                                        datetime.now().strftime(
+                                                            "%Y-%m-%d"
+                                                        )
+                                                    )
+                                                    timestamp = int(
+                                                        datetime.strptime(
+                                                            f"{current_date} {timestamp_str.split('.')[0]}",
+                                                            "%Y-%m-%d %H:%M:%S",
+                                                        ).timestamp()
+                                                    )
+                                                except ValueError:
+                                                    # Use current timestamp as fallback
+                                                    timestamp = int(time.time())
+
+                                            # Determine the log type based on content
+                                            log_type = "info"
+                                            if (
+                                                "ERROR" in line
+                                                or "failed" in line.lower()
+                                                or "error" in line.lower()
+                                            ):
+                                                log_type = "error"
+                                                if "Process failed" in message:
+                                                    status = "failed"
+                                            elif (
+                                                "WARNING" in line
+                                                or "stopped" in line.lower()
+                                            ):
+                                                log_type = "warning"
+                                                if "Process stopped" in message:
+                                                    status = "stopped"
+
+                                            # Extract command from the first line if it's a "Starting process" line
+                                            if not command and (
+                                                "Starting process" in message
+                                                or "Running command" in message
+                                            ):
+                                                command_match = re.search(
+                                                    r"(Starting process|Running command): (.*)",
+                                                    message,
+                                                )
+                                                if command_match:
+                                                    command = command_match.group(2)
+                                                    if not start_time:
+                                                        start_time = timestamp
+
+                                            logs.append(
+                                                {
+                                                    "timestamp": timestamp,
+                                                    "message": message,
+                                                    "type": log_type,
+                                                }
+                                            )
+                                        else:
+                                            # If line doesn't match timestamp format, add it as-is
+                                            logs.append(
+                                                {
+                                                    "timestamp": int(time.time()),
+                                                    "message": line.strip(),
+                                                    "type": "info",
+                                                }
+                                            )
+                                    except Exception as parse_error:
+                                        logger.error(
+                                            f"Error parsing log line: {parse_error}"
+                                        )
+                                        # Still include the line even if parsing fails
+                                        logs.append(
+                                            {
+                                                "timestamp": int(time.time()),
+                                                "message": line.strip(),
+                                                "type": "info",
+                                            }
+                                        )
+                        except Exception as file_error:
+                            logger.error(f"Error reading log file: {file_error}")
+
+                        # If we couldn't extract a command from the logs, use the process ID
+                        if not command:
+                            command = f"Process {process_id}"
+
+                        # Create a process data object from the parsed logs
+                        process_data = {
+                            "id": process_id,
+                            "command": command,
+                            "start_time": start_time
+                            or int(time.time()) - 3600,  # Default to 1 hour ago
+                            "status": status,
+                            "logs": logs,
+                        }
+
                         self.send_response(200)
                         self.send_header("Content-Type", "application/json")
                         self.end_headers()
                         self.wfile.write(json.dumps(process_data).encode())
+                        return
+
+                    # If we get here, the process was not found
+                    self.send_response(404)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps({"error": "Process not found"}).encode()
+                    )
+                    return
+                except Exception as e:
+                    logger.error(f"Error fetching process logs: {e}")
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    return
+
+            # Redirect to login page if not authenticated
+            if (
+                not self.is_authenticated()
+                and self.path != "/api/login"
+                and not self.path.endswith(
+                    (".css", ".js", ".png", ".jpg", ".jpeg", ".ico")
+                )
+            ):
+                if self.path == "/login":
+                    self.serve_login_page()
+                    return
+                else:
+                    self.send_response(302)
+                    self.send_header("Location", "/login")
+                    self.end_headers()
+                    return
+
+            # Special handling for results directory files
+            if self.path.startswith("/results/"):
+                # Remap the path to the actual results directory
+                file_path = PARENT_DIR / self.path[1:]  # Remove leading slash
+                logger.info(f"Accessing result file: {self.path}")
+                logger.info(f"Mapped to: {file_path}")
+                logger.info(f"File exists: {file_path.exists()}")
+
+                try:
+                    if file_path.exists() and file_path.is_file():
+                        logger.info(f"Serving file: {file_path}")
+                        self.send_response(200)
+                        # Set the appropriate content type
+                        if file_path.suffix == ".json":
+                            self.send_header("Content-Type", "application/json")
+                        elif file_path.suffix == ".txt":
+                            self.send_header("Content-Type", "text/plain")
+                        else:
+                            self.send_header("Content-Type", "application/octet-stream")
+
+                        # Set content length
+                        self.send_header(
+                            "Content-Length", str(file_path.stat().st_size)
+                        )
+                        self.end_headers()
+
+                        # Send the file contents
+                        with open(file_path, "rb") as f:
+                            self.wfile.write(f.read())
+                        return
                     else:
+                        logger.error(f"File not found: {file_path}")
+                        # Check if directory exists but file doesn't
+                        if file_path.parent.exists():
+                            logger.info(f"Directory exists: {file_path.parent}")
+                            logger.info(
+                                f"Directory contents: {list(file_path.parent.iterdir())}"
+                            )
+
                         self.send_response(404)
                         self.send_header("Content-Type", "application/json")
                         self.end_headers()
                         self.wfile.write(
-                            json.dumps({"error": "Process not found"}).encode()
+                            json.dumps({"error": "File not found"}).encode()
                         )
-                return
-            except Exception as e:
-                self.send_response(500)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
-                return
+                        return
+                except Exception as e:
+                    logger.error(f"Error serving file {file_path}: {e}")
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    return
 
-        # If not API request, handle as normal file request
-        return super().do_GET()
+            # API endpoint for results directories
+            if self.path == "/api/results-directories":
+                try:
+                    results = []
+                    for dir_path in RESULTS_DIR.iterdir():
+                        if dir_path.is_dir():
+                            metadata_file = dir_path / "metadata.json"
+                            if metadata_file.exists():
+                                with open(metadata_file, "r") as f:
+                                    metadata = json.load(f)
+
+                                result = {
+                                    "directory": dir_path.name,
+                                    "path": f"results/{dir_path.name}",
+                                    "title": metadata.get("experiment", {}).get(
+                                        "title", dir_path.name
+                                    ),
+                                    "timestamp": metadata.get("experiment", {}).get(
+                                        "timestamp", ""
+                                    ),
+                                    "goal": metadata.get("experiment", {}).get(
+                                        "goal", ""
+                                    ),
+                                    "metadata": metadata,
+                                }
+                                results.append(result)
+                            else:
+                                # If no metadata file exists, use directory name
+                                results.append(
+                                    {
+                                        "directory": dir_path.name,
+                                        "path": f"results/{dir_path.name}",
+                                        "title": dir_path.name,
+                                        "timestamp": "",
+                                        "goal": "",
+                                    }
+                                )
+
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(results).encode())
+                    return
+                except Exception as e:
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    error_message = f"Error processing results directories: {str(e)}"
+                    logger.error(error_message)
+                    import traceback
+
+                    logger.error(traceback.format_exc())
+                    self.wfile.write(json.dumps({"error": error_message}).encode())
+                    return
+
+            # API endpoint to list files in an outputs directory
+            elif self.path.startswith("/api/outputs-directory"):
+                try:
+                    # Parse the query parameter
+                    query = urllib.parse.urlparse(self.path).query
+                    params = urllib.parse.parse_qs(query)
+                    dir_path = params.get("path", [""])[0]
+
+                    if not dir_path:
+                        self.send_response(400)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "path parameter is required"}).encode()
+                        )
+                        return
+
+                    # Construct the full path to the directory
+                    full_path = PARENT_DIR / dir_path.lstrip("/")
+                    logger.info(f"Listing files in directory: {full_path}")
+
+                    # Check if the directory exists
+                    if not full_path.exists() or not full_path.is_dir():
+                        logger.error(f"Directory not found: {full_path}")
+                        self.send_response(404)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "Directory not found"}).encode()
+                        )
+                        return
+
+                    # List all JSON files in the directory
+                    files = [
+                        f.name
+                        for f in full_path.iterdir()
+                        if f.is_file() and f.suffix == ".json"
+                    ]
+                    logger.info(f"Found {len(files)} JSON files in {full_path}")
+                    logger.info(f"Files: {files}")
+
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"files": files}).encode())
+                    return
+                except Exception as e:
+                    logger.error(f"Error listing directory: {e}")
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    return
+
+            # If not API request, handle as normal file request
+            return super().do_GET()
+
+        except Exception as e:
+            logger.error(f"Error handling GET request: {e}")
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
 
     def do_POST(self):
         # API endpoint for login
@@ -996,17 +1223,27 @@ def start_server():
     global server
     handler = CustomHandler
 
+    # Track restart attempts for backoff
+    restart_attempts = 0
+    max_restart_attempts = 5
+
     while True:
         try:
             # Reset the restart event
             restart_event.clear()
 
+            # Configure socket to allow reuse
+            socketserver.TCPServer.allow_reuse_address = True
+
             # Create and start the server
             server = socketserver.TCPServer(("", PORT), handler)
-            logger.info(f"🌐 Server running at: http://localhost:{PORT}/ui/")
+            logger.info(f"🌐 Server running at: http://localhost:{PORT}/")
             logger.info(f"📊 Large Language Oracle Results Analyzer")
             logger.info(f"📂 Serving files from: {PARENT_DIR}")
             logger.info("🔄 Auto-reload enabled (Ctrl+C to stop)")
+
+            # Reset restart attempts on successful start
+            restart_attempts = 0
 
             # Start the server in a separate thread
             server_thread = threading.Thread(target=server.serve_forever)
@@ -1018,18 +1255,88 @@ def start_server():
 
             # Shut down the server
             logger.info("🔄 Restarting server...")
-            server.shutdown()
-            server.server_close()
+            try:
+                server.shutdown()
+                server.server_close()
+                # Add small delay to allow OS to fully release the socket
+                time.sleep(0.5)
+            except Exception as shutdown_error:
+                logger.error(f"Error during shutdown: {shutdown_error}")
+                # Force a longer delay if shutdown failed
+                time.sleep(2)
 
         except KeyboardInterrupt:
             if server:
-                server.shutdown()
-                server.server_close()
+                try:
+                    server.shutdown()
+                    server.server_close()
+                except Exception:
+                    pass
             logger.info("👋 Server stopped")
             break
+        except OSError as e:
+            # Handle address already in use error specifically
+            if e.errno == 48 or e.errno == 98:  # 48 on macOS, 98 on Linux
+                restart_attempts += 1
+                backoff_time = min(
+                    1 * restart_attempts, 15
+                )  # Exponential backoff, max 15 seconds
+
+                logger.error(
+                    f"❌ Address already in use (attempt {restart_attempts}/{max_restart_attempts})"
+                )
+                logger.info(f"Waiting {backoff_time} seconds before retry...")
+
+                if restart_attempts >= max_restart_attempts:
+                    logger.error(
+                        "Maximum restart attempts reached. Trying to force kill existing process..."
+                    )
+                    try:
+                        # Try to find and kill process using the port
+                        kill_process_using_port(PORT)
+                        # Reset counter after kill attempt
+                        restart_attempts = 0
+                        # Wait a bit longer after kill attempt
+                        time.sleep(2)
+                    except Exception as kill_error:
+                        logger.error(f"Failed to kill process: {kill_error}")
+                        time.sleep(5)
+                else:
+                    time.sleep(backoff_time)
+            else:
+                # Other OS errors
+                logger.error(f"❌ Server error: {e}")
+                time.sleep(2)
         except Exception as e:
             logger.error(f"❌ Server error: {e}")
-            time.sleep(1)  # Wait a bit before restarting
+            time.sleep(2)  # Longer wait time for general errors
+
+
+# Helper function to find and kill a process using a specific port
+def kill_process_using_port(port):
+    """Find and kill process using the specified port"""
+    try:
+        if sys.platform.startswith("darwin"):  # macOS
+            cmd = f"lsof -i :{port} -sTCP:LISTEN -t"
+            pid = subprocess.check_output(cmd, shell=True).decode().strip()
+            if pid:
+                logger.info(
+                    f"Found process {pid} using port {port}, attempting to terminate..."
+                )
+                subprocess.call(f"kill -9 {pid}", shell=True)
+                return True
+        elif sys.platform.startswith("linux"):  # Linux
+            cmd = f"fuser -k {port}/tcp"
+            subprocess.call(cmd, shell=True)
+            return True
+        elif sys.platform.startswith("win"):  # Windows
+            cmd = f"FOR /F \"tokens=5\" %P IN ('netstat -ano ^| findstr :{port} ^| findstr LISTENING') DO taskkill /F /PID %P"
+            subprocess.call(cmd, shell=True)
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"Error finding or killing process: {e}")
+        return False
 
 
 def setup_file_watcher():

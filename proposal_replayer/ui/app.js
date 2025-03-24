@@ -67,6 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up clear tag filter button
     document.getElementById('clearTagFilter')?.addEventListener('click', clearTagFilter);
     
+    // Set up logout button
+    document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
+    
     // Set up experiment runner events
     initializeExperimentRunner();
 });
@@ -102,9 +105,9 @@ function initializeExperimentRunner() {
             if (command) {
                 // Start a new process via the API
                 startProcess(command);
-                // Add to command history
-                addToCommandHistory(command);
-                commandInput.value = '';
+                // Don't add to history here - it's now handled in startProcess
+                // addToCommandHistory(command);
+                // We're clearing the input field in startProcess now
             }
         });
     }
@@ -133,17 +136,59 @@ function initializeExperimentRunner() {
     // Initialize process list
     loadActiveProcesses();
     
-    // Set up polling for process updates
-    setInterval(loadActiveProcesses, 1000);
+    // Set up polling for process updates - more frequent updates for better real-time logs
+    setInterval(loadActiveProcesses, 500); // Poll twice a second for overall process status
+
+    // Set up separate, more frequent polling for logs of the current selected process
+    setInterval(async () => {
+        if (currentProcessId) {
+            // Get the current status of this process
+            const activeProcess = activeProcesses.find(p => p.id === currentProcessId);
+            if (activeProcess && activeProcess.status === 'running') {
+                // If process is running, make a direct API call for fresh logs
+                try {
+                    const response = await fetch(`/api/process/${currentProcessId}?t=${Date.now()}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.logs && data.logs.length > 0) {
+                            // Find the process in our active processes and update its logs
+                            const processIndex = activeProcesses.findIndex(p => p.id === currentProcessId);
+                            if (processIndex !== -1) {
+                                activeProcesses[processIndex].logs = data.logs;
+                                // Immediately update the logs display
+                                updateProcessLogs(currentProcessId);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Error fetching real-time logs:', error);
+                }
+            }
+        }
+    }, 200); // Poll 5 times per second for more responsive log updates
 }
 
-// Load command history from localStorage
+// Load command history from storage
 function loadCommandHistory() {
     try {
-        const savedHistory = localStorage.getItem('commandHistory');
-        if (savedHistory) {
-            commandHistory = JSON.parse(savedHistory);
-            updateCommandHistoryTable();
+        const storedHistory = localStorage.getItem('commandHistory');
+        if (storedHistory) {
+            commandHistory = JSON.parse(storedHistory);
+            
+            // Ensure each entry has a valid ID
+            commandHistory.forEach((entry, index) => {
+                if (!entry.id) {
+                    entry.id = `history_${index}_${Date.now()}`;
+                }
+                
+                // Initialize logs array if not present
+                if (!entry.logs) {
+                    entry.logs = [];
+                }
+            });
+            
+            // Sort by timestamp (newest first)
+            commandHistory.sort((a, b) => b.timestamp - a.timestamp);
         }
     } catch (error) {
         console.error('Error loading command history:', error);
@@ -151,14 +196,54 @@ function loadCommandHistory() {
     }
 }
 
-// Add a command to history and save to localStorage
-function addToCommandHistory(command) {
-    // Create a new history entry
+// Add a command to history
+function addToCommandHistory(command, processId = null) {
+    // Don't add empty commands
+    if (!command.trim()) {
+        return null;
+    }
+    
+    // First, check if we already have an EXACT match for this command with processId
+    if (processId) {
+        const existingEntryWithId = commandHistory.find(h => h.id === processId);
+        if (existingEntryWithId) {
+            // Ensure status is up to date
+            existingEntryWithId.status = 'running';
+            // Save to localStorage
+            localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+            return existingEntryWithId;
+        }
+    }
+    
+    // Check if we have a recent similar command (last 15 seconds)
+    const recentSimilarEntry = commandHistory.find(h => 
+        h.command === command && Date.now() - h.timestamp < 15000);
+    
+    if (recentSimilarEntry) {
+        // If process ID is provided, update the existing entry
+        if (processId) {
+            recentSimilarEntry.id = processId;
+            recentSimilarEntry.status = 'running';
+        }
+        // Save to localStorage
+        localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+        return recentSimilarEntry;
+    }
+    
+    // Remove any exact command duplicates before adding new entry
+    // This ensures we don't have multiple entries with the same command
+    const duplicateIndex = commandHistory.findIndex(h => h.command === command);
+    if (duplicateIndex !== -1) {
+        commandHistory.splice(duplicateIndex, 1);
+    }
+    
+    // Create new history entry
     const historyEntry = {
-        id: Date.now().toString(), // Use timestamp as ID
+        id: processId || `history_${Date.now()}`,
         command: command,
         timestamp: Date.now(),
-        status: 'running'
+        status: processId ? 'running' : 'completed',
+        logs: []
     };
     
     // Add to beginning of history array
@@ -170,14 +255,9 @@ function addToCommandHistory(command) {
     }
     
     // Save to localStorage
-    try {
-        localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
-    } catch (error) {
-        console.error('Error saving command history:', error);
-    }
+    localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
     
-    // Update history table
-    updateCommandHistoryTable();
+    return historyEntry;
 }
 
 // Update the history status for a command
@@ -206,46 +286,231 @@ function updateCommandHistoryStatus(processId, status) {
 // Update the command history table
 function updateCommandHistoryTable() {
     const tableBody = document.getElementById('historyTableBody');
+    const paginationContainer = document.getElementById('historyPagination');
     if (!tableBody) return;
     
-    if (commandHistory.length === 0) {
+    // COMPLETE REWORK: Create a single source of truth for history items
+    // A Set of all process IDs already seen to avoid duplicates
+    const seenIds = new Set();
+    // Also track commands to avoid duplicates with different IDs
+    const seenCommands = new Set();
+    
+    // Make a fresh combined history array with unique items
+    let combinedHistory = [];
+    
+    // First add active processes since they have the most up-to-date info
+    activeProcesses.forEach(process => {
+        // Add each active process once
+        if (!seenIds.has(process.id)) {
+            seenIds.add(process.id);
+            seenCommands.add(process.command);
+            combinedHistory.push({
+                id: process.id,
+                command: process.command,
+                timestamp: process.start_time * 1000, // Convert to milliseconds
+                status: process.status,
+                logs: process.logs || []
+            });
+        }
+    });
+    
+    // Then add localStorage history items that aren't already included
+    // Sort by timestamp first so we get the newest version of each command
+    const sortedHistory = [...commandHistory].sort((a, b) => b.timestamp - a.timestamp);
+    
+    sortedHistory.forEach(entry => {
+        // Skip entries for commands we've already seen, unless this one is failed and we have a not-failed one
+        if (seenCommands.has(entry.command)) {
+            // Only add a failed/completed entry to replace a running entry
+            const existingEntry = combinedHistory.find(h => h.command === entry.command);
+            if (existingEntry && existingEntry.status === 'running' && 
+                (entry.status === 'failed' || entry.status === 'completed')) {
+                // Replace the running entry with this completed/failed one
+                const index = combinedHistory.indexOf(existingEntry);
+                combinedHistory[index] = entry;
+            }
+            return;
+        }
+        
+        // Only add if we haven't seen this ID yet
+        if (!seenIds.has(entry.id)) {
+            seenIds.add(entry.id);
+            seenCommands.add(entry.command);
+            combinedHistory.push(entry);
+        }
+    });
+    
+    // If no items, show empty state
+    if (combinedHistory.length === 0) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center">No command history</td>
             </tr>
         `;
+        if (paginationContainer) paginationContainer.innerHTML = '';
         return;
     }
     
-    tableBody.innerHTML = commandHistory.map(entry => {
+    // Sort by timestamp (newest first)
+    combinedHistory.sort((a, b) => b.timestamp - a.timestamp);
+    
+    // Pagination settings
+    const itemsPerPage = 10;
+    const currentPage = parseInt(tableBody.getAttribute('data-current-page') || '1');
+    const totalPages = Math.ceil(combinedHistory.length / itemsPerPage);
+    
+    // Calculate start and end index for the current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, combinedHistory.length);
+    
+    // Get the items for the current page
+    const currentPageItems = combinedHistory.slice(startIndex, endIndex);
+    
+    // Generate table rows
+    tableBody.innerHTML = currentPageItems.map(entry => {
         const formattedTime = formatDate(Math.floor(entry.timestamp / 1000));
         let statusClass = '';
         let statusText = entry.status;
         
         if (entry.status === 'running') {
             statusClass = 'status-running';
-            statusText = `<i class="bi bi-play-fill"></i> Running`;
+            statusText = `<i class="bi bi-play-fill"></i>Running`;
         } else if (entry.status === 'completed') {
             statusClass = 'status-completed';
-            statusText = `<i class="bi bi-check-circle"></i> Completed`;
+            statusText = `<i class="bi bi-check-circle"></i>Completed`;
         } else if (entry.status === 'failed' || entry.status === 'stopped') {
             statusClass = 'status-failed';
-            statusText = `<i class="bi bi-x-circle"></i> ${entry.status === 'failed' ? 'Failed' : 'Stopped'}`;
+            statusText = `<i class="bi bi-x-circle"></i>${entry.status === 'failed' ? 'Failed' : 'Stopped'}`;
+        } else if (entry.status === 'pending') {
+            statusClass = 'status-pending';
+            statusText = `<i class="bi bi-hourglass"></i>Pending`;
         }
         
         return `
             <tr class="history-row" data-entry-id="${entry.id}">
                 <td>${formattedTime}</td>
-                <td class="command-cell history-command" title="${entry.command}"><code>${entry.command}</code></td>
+                <td class="command-cell" title="${entry.command}"><code>${entry.command}</code></td>
                 <td class="${statusClass}">${statusText}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary use-command-btn">
-                        <i class="bi bi-arrow-up-square"></i> Use
-                    </button>
+                    <div class="btn-group history-actions" role="group">
+                        <button class="btn btn-sm btn-outline-primary use-command-btn" title="Use this command">
+                            <i class="bi bi-arrow-up-square"></i> Use
+                        </button>
+                        <button class="btn btn-sm btn-outline-info view-history-logs-btn" title="View logs">
+                            <i class="bi bi-file-text"></i> Logs
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
     }).join('');
+    
+    // Store the current page in the table
+    tableBody.setAttribute('data-current-page', currentPage);
+    
+    // Update pagination controls
+    if (paginationContainer) {
+        // Only show pagination if we have more than one page
+        if (totalPages > 1) {
+            let paginationHTML = `
+                <nav aria-label="History pagination">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="prev" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+            `;
+            
+            // Display up to 5 page numbers, centered around the current page
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // Adjust if we're near the end
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            // Add first page if we're not starting from page 1
+            if (startPage > 1) {
+                paginationHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="1">1</a>
+                    </li>
+                `;
+                if (startPage > 2) {
+                    paginationHTML += `
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    `;
+                }
+            }
+            
+            // Add page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+            
+            // Add last page if we're not ending at the last page
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    `;
+                }
+                paginationHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
+                    </li>
+                `;
+            }
+            
+            paginationHTML += `
+                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="next" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            `;
+            
+            paginationContainer.innerHTML = paginationHTML;
+            
+            // Add pagination click event
+            document.querySelectorAll('#historyPagination .page-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const page = this.getAttribute('data-page');
+                    let newPage = currentPage;
+                    
+                    if (page === 'prev') {
+                        newPage = Math.max(1, currentPage - 1);
+                    } else if (page === 'next') {
+                        newPage = Math.min(totalPages, currentPage + 1);
+                    } else {
+                        newPage = parseInt(page);
+                    }
+                    
+                    if (newPage !== currentPage) {
+                        tableBody.setAttribute('data-current-page', newPage);
+                        updateCommandHistoryTable();
+                    }
+                });
+            });
+        } else {
+            paginationContainer.innerHTML = '';
+        }
+    }
     
     // Add click event for command reuse
     document.querySelectorAll('.use-command-btn').forEach(btn => {
@@ -254,7 +519,7 @@ function updateCommandHistoryTable() {
             const row = event.target.closest('.history-row');
             if (row) {
                 const entryId = row.getAttribute('data-entry-id');
-                const historyEntry = commandHistory.find(h => h.id === entryId);
+                const historyEntry = combinedHistory.find(h => h.id === entryId);
                 if (historyEntry) {
                     document.getElementById('commandInput').value = historyEntry.command;
                     document.getElementById('commandInput').focus();
@@ -263,32 +528,330 @@ function updateCommandHistoryTable() {
         });
     });
     
-    // Also allow clicking on the command itself to reuse it
-    document.querySelectorAll('.history-command').forEach(cell => {
-        cell.addEventListener('click', (event) => {
+    // Add click event for viewing logs of history entries
+    document.querySelectorAll('.view-history-logs-btn').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
             const row = event.target.closest('.history-row');
             if (row) {
                 const entryId = row.getAttribute('data-entry-id');
-                const historyEntry = commandHistory.find(h => h.id === entryId);
+                const historyEntry = combinedHistory.find(h => h.id === entryId);
                 if (historyEntry) {
-                    document.getElementById('commandInput').value = historyEntry.command;
-                    document.getElementById('commandInput').focus();
+                    showHistoryLogs(historyEntry);
                 }
+            }
+        });
+    });
+    
+    // Add click event to rows for viewing logs
+    document.querySelectorAll('.history-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const entryId = row.getAttribute('data-entry-id');
+            const historyEntry = combinedHistory.find(h => h.id === entryId);
+            if (historyEntry) {
+                showHistoryLogs(historyEntry);
             }
         });
     });
 }
 
-// Start a new process via API
+// Show logs for a history entry
+async function showHistoryLogs(historyEntry) {
+    try {
+        // Update the logs title first to provide immediate feedback
+        const logsTitle = document.getElementById('logsTitle');
+        if (logsTitle) {
+            logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> <span class="loading-indicator"><i class="bi bi-hourglass"></i> Loading...</span>`;
+        }
+        
+        // Clear current logs to show we're loading new ones
+        const logsContainer = document.getElementById('processLogs');
+        if (logsContainer) {
+            logsContainer.innerHTML = `
+                <div class="text-center p-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading logs...</span>
+                    </div>
+                    <p class="mt-2">Loading logs for: ${historyEntry.command}</p>
+                </div>
+            `;
+        }
+        
+        // Check if this is an active process
+        const activeProcess = activeProcesses.find(p => p.id === historyEntry.id);
+        if (activeProcess) {
+            // If it's an active process, just select it and show current logs
+            currentProcessId = historyEntry.id;
+            updateProcessLogs(historyEntry.id);
+        } else {
+            console.log(`Fetching historical logs for process ID: ${historyEntry.id}`);
+            
+            // First check if we have logs in the history entry
+            if (historyEntry.logs && historyEntry.logs.length > 0) {
+                console.log(`Using cached logs for process: ${historyEntry.command}`);
+                
+                // Generate log entries from the cached logs
+                const logHtml = historyEntry.logs.map(log => {
+                    const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                    return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+                }).join('');
+                
+                logsContainer.innerHTML = logHtml;
+                
+                // Scroll to bottom to show the most recent logs
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+                
+                // Update the logs title
+                if (logsTitle) {
+                    const statusBadge = historyEntry.status ? 
+                        `<span class="badge ${
+                            historyEntry.status === 'completed' ? 'bg-success' : 
+                            historyEntry.status === 'failed' ? 'bg-danger' : 
+                            historyEntry.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                        }">${historyEntry.status}</span>` : '';
+                    
+                    logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> ${statusBadge}`;
+                }
+                
+                return;
+            }
+            
+            // Check if we have another entry with the same command that might have more info
+            const matchingEntry = commandHistory.find(h => 
+                h.id !== historyEntry.id && 
+                h.command === historyEntry.command && 
+                h.status !== 'running');
+                
+            if (matchingEntry && matchingEntry.logs && matchingEntry.logs.length > 0) {
+                // Use logs from the matching entry
+                console.log(`Using logs from matching entry for the same command`);
+                
+                // Generate log entries from the matched entry's logs
+                const logHtml = matchingEntry.logs.map(log => {
+                    const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                    return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+                }).join('');
+                
+                logsContainer.innerHTML = logHtml;
+                
+                // Scroll to bottom to show the most recent logs
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+                
+                // Update the logs title
+                if (logsTitle) {
+                    const statusBadge = matchingEntry.status ? 
+                        `<span class="badge ${
+                            matchingEntry.status === 'completed' ? 'bg-success' : 
+                            matchingEntry.status === 'failed' ? 'bg-danger' : 
+                            matchingEntry.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                        }">${matchingEntry.status}</span>` : '';
+                    
+                    logsTitle.innerHTML = `Process Logs: <code>${matchingEntry.command}</code> ${statusBadge}`;
+                }
+                
+                return;
+            }
+            
+            // Make the API request if we don't have cached logs
+            const response = await fetch(`/api/process/${historyEntry.id}`);
+            
+            if (response.ok) {
+                const processData = await response.json();
+                console.log(`Retrieved logs for process: ${processData.command}, status: ${processData.status}`);
+                
+                // Update logs container
+                if (logsContainer && processData.logs) {
+                    // Generate log entries
+                    if (processData.logs.length > 0) {
+                        const logHtml = processData.logs.map(log => {
+                            const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                            return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+                        }).join('');
+                        
+                        logsContainer.innerHTML = logHtml;
+                        
+                        // Scroll to bottom to show the most recent logs
+                        logsContainer.scrollTop = logsContainer.scrollHeight;
+                        
+                        // Also update our history entry with these logs for future reference
+                        historyEntry.logs = processData.logs;
+                        historyEntry.status = processData.status;
+                        
+                        // Save updated history to localStorage
+                        localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+                    } else {
+                        // No logs found in the response
+                        logsContainer.innerHTML = `
+                            <div class="text-center p-3">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    No logs available for this command
+                                </div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    logsContainer.innerHTML = `
+                        <div class="text-center p-3">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                No logs container found or logs missing from response
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Update the logs title
+                if (logsTitle) {
+                    const statusBadge = processData.status ? 
+                        `<span class="badge ${
+                            processData.status === 'completed' ? 'bg-success' : 
+                            processData.status === 'failed' ? 'bg-danger' : 
+                            processData.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                        }">${processData.status}</span>` : '';
+                    
+                    logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> ${statusBadge}`;
+                }
+            } else {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Failed to fetch logs:', errorData.error || response.statusText);
+                throw new Error(`Failed to fetch logs: ${errorData.error || response.statusText}`);
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching logs:', error);
+        // Show error message
+        const logsContainer = document.getElementById('processLogs');
+        if (logsContainer) {
+            logsContainer.innerHTML = `
+                <div class="text-center p-3">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Could not retrieve logs for the command: <code>${historyEntry.command}</code>
+                    </div>
+                    <p>Error: ${error.message}</p>
+                    <p>Logs for completed processes may not be available if they were run in a previous session.</p>
+                </div>
+            `;
+        }
+        
+        // Update the logs title
+        const logsTitle = document.getElementById('logsTitle');
+        if (logsTitle) {
+            logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> <span class="badge bg-warning text-dark">Not Available</span>`;
+        }
+    } finally {
+        // Switch to the Experiment Runner tab to show logs/error messages
+        const experimentTab = document.getElementById('experiment-tab');
+        if (experimentTab) {
+            const tabInstance = new bootstrap.Tab(experimentTab);
+            tabInstance.show();
+        }
+    }
+}
+
+// Fetch logs for a process that may not be active anymore
+async function fetchProcessLogs(processId, command) {
+    try {
+        // Update current process ID
+        currentProcessId = processId;
+        
+        // First try to fetch the logs directly
+        const response = await fetch(`/api/process/${processId}`);
+        
+        if (response.ok) {
+            const processData = await response.json();
+            
+            // Temporarily add to activeProcesses if it's not already there
+            if (!activeProcesses.find(p => p.id === processId)) {
+                activeProcesses.push(processData);
+            }
+            
+            // Show the logs
+            updateProcessLogs(processId);
+            
+            // Switch to the Experiment Runner tab to see the logs
+            const experimentTab = document.getElementById('experiment-tab');
+            if (experimentTab) {
+                const tabInstance = new bootstrap.Tab(experimentTab);
+                tabInstance.show();
+            }
+        } else {
+            // If the specific process API failed, try to find logs in a log file
+            showFailedProcessLogs(processId, command);
+        }
+    } catch (error) {
+        console.error('Error fetching process logs:', error);
+        showFailedProcessLogs(processId, command);
+    }
+}
+
+// Show a message when logs can't be found
+function showFailedProcessLogs(processId, command) {
+    const logsContainer = document.getElementById('processLogs');
+    if (logsContainer) {
+        logsContainer.innerHTML = `
+            <div class="text-center p-3">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Could not retrieve logs for the command: <code>${command}</code>
+                </div>
+                <p>Logs for completed processes may not be available if they were run in a previous session.</p>
+            </div>
+        `;
+        
+        // Update the logs title
+        const logsTitle = document.getElementById('logsTitle');
+        if (logsTitle) {
+            logsTitle.innerHTML = `Process Logs: <code>${command}</code> <span class="badge bg-warning text-dark">Not Available</span>`;
+        }
+        
+        // Switch to the Experiment Runner tab to see the message
+        const experimentTab = document.getElementById('experiment-tab');
+        if (experimentTab) {
+            const tabInstance = new bootstrap.Tab(experimentTab);
+            tabInstance.show();
+        }
+    }
+}
+
+// Start a new process
 async function startProcess(command) {
     try {
-        // Disable the form during submission
-        const runBtn = document.getElementById('runCommandBtn');
-        const commandInput = document.getElementById('commandInput');
-        if (runBtn) runBtn.disabled = true;
-        if (commandInput) commandInput.disabled = true;
+        // Add to command history but don't update the table yet
+        // We'll create a history entry without a process ID for now
+        const historyEntry = addToCommandHistory(command);
         
-        // Call the API to start the process
+        // Show the console logs area immediately with "Starting process" message
+        const logsContainer = document.getElementById('processLogs');
+        const logsTitle = document.getElementById('logsTitle');
+        
+        if (logsContainer) {
+            logsContainer.innerHTML = `
+                <div class="log-entry log-info">
+                    <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                    <span class="log-message">Starting process: ${command}</span>
+                </div>
+                <div class="text-center mt-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Running command...</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (logsTitle) {
+            logsTitle.innerHTML = `Process Logs: <code>${command}</code> <span class="loading-indicator"><i class="bi bi-hourglass"></i> Starting...</span>`;
+        }
+        
+        // Switch to the Experiment Runner tab to show logs
+        const experimentTab = document.getElementById('experiment-tab');
+        if (experimentTab) {
+            const tabInstance = new bootstrap.Tab(experimentTab);
+            tabInstance.show();
+        }
+        
+        // Make API request to start the process
         const response = await fetch('/api/process/start', {
             method: 'POST',
             headers: {
@@ -297,47 +860,81 @@ async function startProcess(command) {
             body: JSON.stringify({ command })
         });
         
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Process started:', data.process_id);
-            
-            // Immediately load the updated process list
-            await loadActiveProcesses();
-            
-            // Select the new process
-            if (data.process_id) {
-                selectProcess(data.process_id);
-            }
-        } else {
-            const error = await response.json();
-            console.error('Failed to start process:', error.error);
-            
-            // Update history status
-            const historyEntry = commandHistory.find(h => h.command === command && h.status === 'running');
-            if (historyEntry) {
-                historyEntry.status = 'failed';
+        if (!response.ok) {
+            throw new Error(`Failed to start process: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Process started:', data);
+        
+        // IMPORTANT: The server sends process_id not id
+        const processId = data.process_id;
+        
+        // Update the history entry with the process ID
+        if (historyEntry && processId) {
+            // Find index of the history entry we created earlier
+            const entryIndex = commandHistory.findIndex(h => h.id === historyEntry.id);
+            if (entryIndex !== -1) {
+                // Update with server-provided ID
+                commandHistory[entryIndex].id = processId;
+                // Save updated history to localStorage
                 localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
-                updateCommandHistoryTable();
-            }
-            
-            // Add an error notification
-            if (document.getElementById('processLogs')) {
-                document.getElementById('processLogs').innerHTML += `
-                    <div class="log-entry log-error">
-                        <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
-                        <span class="log-message">Failed to start process: ${error.error || 'Unknown error'}</span>
-                    </div>
-                `;
             }
         }
+        
+        // Set current process ID and select it to show logs
+        currentProcessId = processId;
+        
+        // Force an immediate refresh of active processes to get the new process
+        await loadActiveProcesses();
+        
+        // Update both the processes table and history table
+        updateProcessesTable();
+        updateCommandHistoryTable();
+        
+        // Select the new process to show its logs
+        selectProcess(processId);
+        
+        // Clear command input
+        const commandInput = document.getElementById('commandInput');
+        if (commandInput) {
+            commandInput.value = '';
+        }
+        
+        return data;
     } catch (error) {
         console.error('Error starting process:', error);
-    } finally {
-        // Re-enable the form
-        const runBtn = document.getElementById('runCommandBtn');
-        const commandInput = document.getElementById('commandInput');
-        if (runBtn) runBtn.disabled = false;
-        if (commandInput) commandInput.disabled = false;
+        
+        // Show error message in logs
+        const logsContainer = document.getElementById('processLogs');
+        if (logsContainer) {
+            logsContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Error running command: ${error.message}
+                </div>
+            `;
+        }
+        
+        // Update status in command history to failed
+        const historyEntries = commandHistory.filter(h => h.command === command && h.status === 'running');
+        historyEntries.forEach(entry => {
+            entry.status = 'failed';
+        });
+        
+        // Save updated history to localStorage
+        localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+        
+        // Update history table
+        updateCommandHistoryTable();
+        
+        // Update the logs title
+        const logsTitle = document.getElementById('logsTitle');
+        if (logsTitle) {
+            logsTitle.innerHTML = `Process Logs: <code>${command}</code> <span class="badge bg-danger">Failed</span>`;
+        }
+        
+        return null;
     }
 }
 
@@ -352,23 +949,42 @@ async function loadActiveProcesses() {
             const previousProcesses = [...activeProcesses];
             activeProcesses = processes;
             
+            let shouldUpdateProcessTable = false;
+            let shouldUpdateHistoryTable = false;
+            
             // Update history statuses if needed
             processes.forEach(process => {
                 const prevProcess = previousProcesses.find(p => p.id === process.id);
+                
+                // Check if status changed or it's a new process
                 if (!prevProcess || prevProcess.status !== process.status) {
+                    shouldUpdateProcessTable = true;
+                    shouldUpdateHistoryTable = true;
+                    
                     // Status changed or new process
                     if (process.status === 'completed' || process.status === 'failed' || process.status === 'stopped') {
                         updateCommandHistoryStatus(process.id, process.status);
                     }
                 }
+                
+                // Always check for log changes for the currently selected process
+                if (currentProcessId === process.id) {
+                    const prevLogs = prevProcess?.logs || [];
+                    const currentLogs = process.logs || [];
+                    
+                    // Update logs if we have more logs than before OR we're still running
+                    if (currentLogs.length !== prevLogs.length || process.status === 'running') {
+                        updateProcessLogs(process.id);
+                    }
+                }
             });
             
-            // Update the UI
-            updateProcessesTable();
-            
-            // If we have a currently selected process, update its logs
-            if (currentProcessId) {
-                updateProcessLogs(currentProcessId);
+            // Only update tables if needed to avoid excessive re-renders
+            if (shouldUpdateProcessTable) {
+                updateProcessesTable();
+            }
+            if (shouldUpdateHistoryTable) {
+                updateCommandHistoryTable();
             }
         } else {
             console.error('Failed to load processes');
@@ -406,22 +1022,25 @@ async function stopProcess(processId) {
     }
 }
 
-// Update the processes table based on the activeProcesses array
+// Update the processes table
 function updateProcessesTable() {
     const tableBody = document.getElementById('processesTableBody');
     if (!tableBody) return;
     
-    if (activeProcesses.length === 0) {
+    // Filter to only show active/running processes
+    const runningProcesses = activeProcesses.filter(p => p.status === 'running' || p.status === 'pending');
+    
+    if (runningProcesses.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="5" class="text-center">No active processes</td>
+                <td colspan="4" class="text-center">No active processes</td>
             </tr>
         `;
         return;
     }
     
     // Sort processes by start time (newest first)
-    const sortedProcesses = [...activeProcesses].sort((a, b) => {
+    const sortedProcesses = [...runningProcesses].sort((a, b) => {
         const timeA = a.start_time || 0;
         const timeB = b.start_time || 0;
         return timeB - timeA;
@@ -435,18 +1054,11 @@ function updateProcessesTable() {
         if (process.status === 'running') {
             statusClass = 'status-running';
             statusText = `<i class="bi bi-play-fill"></i> Running`;
-        } else if (process.status === 'completed') {
-            statusClass = 'status-completed';
-            statusText = `<i class="bi bi-check-circle"></i> Completed`;
-        } else if (process.status === 'failed' || process.status === 'stopped') {
-            statusClass = 'status-failed';
-            statusText = `<i class="bi bi-x-circle"></i> ${process.status === 'failed' ? 'Failed' : 'Stopped'}`;
         } else if (process.status === 'pending') {
             statusClass = 'status-pending';
             statusText = `<i class="bi bi-hourglass"></i> Pending`;
         }
         
-        const isRunning = process.status === 'running';
         const processId = process.id || '';
         
         return `
@@ -454,16 +1066,14 @@ function updateProcessesTable() {
                 <td>${formattedTime}</td>
                 <td class="command-cell" title="${process.command}"><code>${process.command}</code></td>
                 <td class="${statusClass}">${statusText}</td>
-                <td>
+                <td style="min-width: 160px;">
                     <div class="btn-group" role="group">
                         <button class="btn btn-sm btn-outline-primary process-action-btn view-logs-btn">
-                            <i class="bi bi-file-text"></i> Logs
+                            <i class="bi bi-file-text"></i>Logs
                         </button>
-                        ${isRunning ? `
-                            <button class="btn btn-sm btn-outline-danger process-action-btn stop-process-btn">
-                                <i class="bi bi-stop-fill"></i> Stop
-                            </button>
-                        ` : ''}
+                        <button class="btn btn-sm btn-outline-danger process-action-btn stop-process-btn">
+                            <i class="bi bi-stop-fill"></i>Stop
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -536,23 +1146,79 @@ function updateProcessLogs(processId) {
         return;
     }
     
-    // Update the logs title
+    // Update the logs title with process status
     const logsTitle = document.getElementById('logsTitle');
     if (logsTitle) {
-        logsTitle.innerHTML = `Process Logs: <code>${process.command}</code>`;
+        const statusBadge = process.status ? 
+            `<span class="badge ${
+                process.status === 'completed' ? 'bg-success' : 
+                process.status === 'failed' ? 'bg-danger' : 
+                process.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+            }">${process.status}</span>` : '';
+        
+        logsTitle.innerHTML = `Process Logs: <code>${process.command}</code> ${statusBadge}`;
     }
     
-    // Generate log entries
-    const logHtml = process.logs.map(log => {
-        const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
-        // Use a compact display format with optional timestamps
-        return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
-    }).join('');
+    // Check if we have logs
+    if (!process.logs || process.logs.length === 0) {
+        if (process.status === 'running') {
+            // If process is running but has no logs yet, show waiting message
+            logsContainer.innerHTML = `
+                <div class="log-entry log-info">
+                    <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                    <span class="log-message">Waiting for logs from process...</span>
+                </div>
+                <div class="text-center mt-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Waiting for logs...</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            // If process is done but has no logs, show error
+            logsContainer.innerHTML = `
+                <div class="text-center p-3">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        No logs available for this process
+                    </div>
+                </div>
+            `;
+        }
+        return;
+    }
     
-    logsContainer.innerHTML = logHtml;
+    // Check if we're already at the bottom (for auto-scrolling)
+    const isScrolledToBottom = logsContainer.scrollHeight - logsContainer.scrollTop <= logsContainer.clientHeight + 50;
     
-    // Scroll to bottom of logs
-    logsContainer.scrollTop = logsContainer.scrollHeight;
+    // Count existing log entries to see if we need to append or replace
+    const currentLogEntries = logsContainer.querySelectorAll('.log-entry');
+    
+    // Check if we're starting fresh or appending
+    if (currentLogEntries.length === 0 || currentLogEntries.length > process.logs.length) {
+        // Generate all log entries (full replacement)
+        const logHtml = process.logs.map(log => {
+            const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+            return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+        }).join('');
+        
+        logsContainer.innerHTML = logHtml;
+    } else if (currentLogEntries.length < process.logs.length) {
+        // We have new logs to append - only append the new entries
+        const newLogs = process.logs.slice(currentLogEntries.length);
+        const newLogHtml = newLogs.map(log => {
+            const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+            return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+        }).join('');
+        
+        // Append new logs to the container
+        logsContainer.insertAdjacentHTML('beforeend', newLogHtml);
+    }
+    
+    // Auto-scroll to bottom only if we were already at the bottom or this is a running process
+    if (isScrolledToBottom || process.status === 'running') {
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    }
 }
 
 // Format timestamp for logs
@@ -2438,7 +3104,7 @@ function updateTagAccuracyDisplay(tagStats) {
     }).join('');
 }
 
-// Format interaction stage names for better readability
+// Format stage names for better readability
 function formatStageName(stage) {
     if (!stage) return '';
     
@@ -2465,4 +3131,13 @@ function formatSatisfactionLevel(level) {
     }
     
     return `<span class="${cssClass}">${formatKeyName(level)}</span>`;
-} 
+}
+
+// Handle logout
+function handleLogout() {
+    // Clear the auth token cookie
+    document.cookie = 'auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    
+    // Redirect to login page
+    window.location.href = '/login';
+}
