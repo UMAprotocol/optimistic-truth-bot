@@ -1199,6 +1199,7 @@ select[multiple] {
     cursor: pointer;
 }
 
+/* Process logs styling */
 .process-logs {
     height: 600px;
     overflow-y: auto;
@@ -1228,16 +1229,41 @@ select[multiple] {
     display: inline;
 }
 
-.log-info {
+/* Terminal color overrides */
+.process-logs .log-entry.log-info {
     color: #6a9fff;
 }
 
-.log-error {
+.process-logs .log-entry.log-error {
     color: #ff6a6a;
 }
 
-.log-warning {
+.process-logs .log-entry.log-warning {
     color: #ffcc6a;
+}
+
+.process-logs .log-entry.log-input {
+    color: #007bff;
+    font-weight: bold;
+    background-color: rgba(0, 123, 255, 0.05);
+    border-radius: 2px;
+}
+
+.process-logs .log-entry.log-input .log-message {
+    font-style: italic;
+}
+
+/* Non-terminal log entry colors */
+.log-entry.log-info:not(.process-logs .log-entry) {
+    color: #333;
+}
+
+.log-entry.log-error:not(.process-logs .log-entry) {
+    color: #dc3545;
+}
+
+.log-entry.log-warning:not(.process-logs .log-entry) {
+    color: #f7b924;
 }
 
 /* Process status styles */
@@ -1432,4 +1458,59 @@ select[multiple] {
 .metadata-section .table-sm th {
     background-color: #f8f9fa;
     font-weight: 600;
+}
+
+/* Interactive Process Input */
+.interactive-input-container {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+#interactiveInputForm {
+    display: flex;
+    align-items: center;
+}
+
+#interactiveInput {
+    flex: 1;
+    border: 1px solid #ced4da;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Highlight the input form when waiting for input */
+.waiting-for-input #interactiveInputContainer {
+    background-color: #fff3cd;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { background-color: #fff3cd; }
+    50% { background-color: #ffeeba; }
+    100% { background-color: #fff3cd; }
+}
+
+/* Log entry types */
+.log-entry.log-info {
+    color: #333;
+}
+
+.log-entry.log-error {
+    color: #dc3545;
+}
+
+.log-entry.log-warning {
+    color: #f7b924;
+}
+
+.log-entry.log-input {
+    color: #007bff;
+    font-weight: bold;
+    background-color: rgba(0, 123, 255, 0.05);
+    border-radius: 2px;
+}
+
+.log-entry.log-input .log-message {
+    font-style: italic;
 } 

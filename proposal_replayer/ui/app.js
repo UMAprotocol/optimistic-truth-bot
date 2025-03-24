@@ -105,23 +105,61 @@ function initializeTabs() {
 
 // Initialize experiment runner components
 function initializeExperimentRunner() {
-    // Load command history from localStorage
-    loadCommandHistory();
-    
-    // Handle experiment form submission
-    const experimentForm = document.getElementById('experimentForm');
-    if (experimentForm) {
-        experimentForm.addEventListener('submit', (event) => {
-            event.preventDefault();
+    // Setup command form submission
+    const form = document.getElementById('experimentForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
             const commandInput = document.getElementById('commandInput');
             const command = commandInput.value.trim();
             
             if (command) {
-                // Start a new process via the API
+                commandInput.value = '';
                 startProcess(command);
             }
         });
     }
+    
+    // Setup Python script interactive runner
+    const runPythonBtn = document.getElementById('runPythonBtn');
+    if (runPythonBtn) {
+        runPythonBtn.addEventListener('click', function() {
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+            
+            if (command) {
+                // Check if it's a Python script
+                if (command.endsWith('.py') || command.includes('python')) {
+                    commandInput.value = '';
+                    // Run with shell=True to enable shell features and in interactive mode
+                    startProcess(`python -u ${command}`, true); // Pass true to indicate it's an interactive Python script
+                } else {
+                    alert('Please enter a Python script command (e.g., proposal_replayer/create_experiment.py)');
+                }
+            } else {
+                alert('Please enter a Python script path');
+            }
+        });
+    }
+    
+    // Setup interactive input form submission
+    const interactiveForm = document.getElementById('interactiveInputForm');
+    if (interactiveForm) {
+        interactiveForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputField = document.getElementById('interactiveInput');
+            const input = inputField.value;
+            
+            if (currentProcessId !== null) {
+                // Send input to process (allowing empty strings)
+                sendProcessInput(currentProcessId, input);
+                inputField.value = '';
+            }
+        });
+    }
+    
+    // Load command history from localStorage
+    loadCommandHistory();
     
     // Initialize buttons
     document.getElementById('clearLogsBtn')?.addEventListener('click', () => {
@@ -795,7 +833,7 @@ function showFailedProcessLogs(processId, command) {
 }
 
 // Start a new process
-async function startProcess(command) {
+async function startProcess(command, isInteractive = false) {
     try {
         // Add to command history but don't update the table yet
         const historyEntry = addToCommandHistory(command);
@@ -845,178 +883,45 @@ async function startProcess(command) {
         const processId = data.process_id;
         
         // Update the history entry with the process ID
-        if (historyEntry && processId) {
-            const entryIndex = commandHistory.findIndex(h => h.id === historyEntry.id);
-            if (entryIndex !== -1) {
-                commandHistory[entryIndex].id = processId;
-                localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
-            }
-        }
+        updateCommandHistoryStatus(processId, 'running');
         
-        // Set current process ID
+        // Set as the current process for displaying logs
         currentProcessId = processId;
         
-        // Add spinner to show we're still loading logs
-        const spinner = document.createElement('div');
-        spinner.className = 'text-center mt-3';
-        spinner.innerHTML = `
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Running command...</span>
-            </div>
-        `;
-        logsContainer.appendChild(spinner);
-        
-        // Force an immediate refresh of active processes to get the new process
+        // Update the process table
         await loadActiveProcesses();
         
-        // Update tables
-        updateProcessesTable();
-        updateCommandHistoryTable();
-        
-        // Start a more aggressive polling for logs
-        let processedLogLines = 0;
-        let lastContent = "";
-        
-        // Start the log polling interval
-        const logPollingInterval = setInterval(async () => {
-            try {
-                // Get the latest process status
-                const activeProcess = activeProcesses.find(p => p.id === processId);
-                if (!activeProcess) {
-                    // Process isn't in the active list anymore, might have completed
-                    const response = await fetch(`/api/process/${processId}?t=${Date.now()}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.logs && data.logs.length > 0) {
-                            // Stream ALL logs at once for completed processes
-                            appendLogsToDisplay(logsContainer, data.logs, 0);
-                            
-                            // Update tables
-                            await loadActiveProcesses();
-                            updateProcessesTable();
-                            updateCommandHistoryTable();
-                            
-                            // Remove spinner
-                            const existingSpinner = logsContainer.querySelector('.spinner-border');
-                            if (existingSpinner) {
-                                existingSpinner.parentElement.remove();
-                            }
-                            
-                            // Update log title with status
-                            if (logsTitle) {
-                                const statusBadge = data.status ? 
-                                    `<span class="badge ${
-                                        data.status === 'completed' ? 'bg-success' : 
-                                        data.status === 'failed' ? 'bg-danger' : 
-                                        data.status === 'stopped' ? 'bg-warning' : 'bg-primary'
-                                    }">${data.status}</span>` : '';
-                                
-                                logsTitle.innerHTML = `Process Logs: <code>${command}</code> ${statusBadge}`;
-                            }
-                        }
-                    }
-                    clearInterval(logPollingInterval);
-                    return;
-                }
-                
-                // Skip if no logs
-                if (!activeProcess.logs || activeProcess.logs.length === 0) {
-                    return;
-                }
-                
-                // If we have more logs than before, append them immediately
-                if (activeProcess.logs.length > processedLogLines) {
-                    // Check content difference using a unique identifier to avoid unnecessary DOM updates
-                    const logFingerprint = activeProcess.logs.map(log => 
-                        `${log.timestamp}-${log.message.substring(0, 40)}`
-                    ).join('|');
-                    
-                    if (logFingerprint !== lastContent) {
-                        // Get only the new logs
-                        const newLogs = activeProcess.logs.slice(processedLogLines);
-                        
-                        // Append each new log line individually
-                        appendLogsToDisplay(logsContainer, newLogs, processedLogLines);
-                        
-                        // Update the processed line count
-                        processedLogLines = activeProcess.logs.length;
-                        lastContent = logFingerprint;
-                    }
-                }
-                
-                // If process is completed, update UI and stop polling
-                if (activeProcess.status !== 'running') {
-                    // Remove spinner
-                    const existingSpinner = logsContainer.querySelector('.spinner-border');
-                    if (existingSpinner) {
-                        existingSpinner.parentElement.remove();
-                    }
-                    
-                    // Update log title with final status
-                    if (logsTitle) {
-                        const statusBadge = activeProcess.status ? 
-                            `<span class="badge ${
-                                activeProcess.status === 'completed' ? 'bg-success' : 
-                                activeProcess.status === 'failed' ? 'bg-danger' : 
-                                activeProcess.status === 'stopped' ? 'bg-warning' : 'bg-primary'
-                            }">${activeProcess.status}</span>` : '';
-                        
-                        logsTitle.innerHTML = `Process Logs: <code>${command}</code> ${statusBadge}`;
-                    }
-                    
-                    // Stop polling
-                    clearInterval(logPollingInterval);
-                    
-                    // Do one final update of tables
-                    await loadActiveProcesses();
-                    updateProcessesTable();
-                    updateCommandHistoryTable();
-                }
-            } catch (error) {
-                console.warn('Error in log polling:', error);
-            }
-        }, 100); // Poll 10 times per second for more responsive logs
-        
-        // Clear command input
-        const commandInput = document.getElementById('commandInput');
-        if (commandInput) {
-            commandInput.value = '';
+        // Start polling for logs
+        if (logPollingInterval) {
+            clearInterval(logPollingInterval);
         }
         
-        return data;
-    } catch (error) {
-        console.error('Error starting process:', error);
+        // Poll immediately first
+        await updateProcessLogs(processId);
         
-        // Show error message in logs
+        // For Python scripts, always show the interactive input initially
+        if (isInteractive) {
+            toggleInteractiveInput(processId, true);
+        }
+        
+        // Then set up interval polling
+        logPollingInterval = setInterval(async () => {
+            await updateProcessLogs(processId);
+        }, 1000); // Poll every second
+        
+    } catch (error) {
+        console.error('Failed to start process:', error);
+        
         const logsContainer = document.getElementById('processLogs');
         if (logsContainer) {
-            logsContainer.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    Error running command: ${error.message}
+            logsContainer.innerHTML += `
+                <div class="log-entry log-error">
+                    <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                    <span class="log-message">Error: ${error.message}</span>
                 </div>
             `;
+            logsContainer.scrollTop = logsContainer.scrollHeight;
         }
-        
-        // Update status in command history to failed
-        const historyEntries = commandHistory.filter(h => h.command === command && h.status === 'running');
-        historyEntries.forEach(entry => {
-            entry.status = 'failed';
-        });
-        
-        // Save updated history to localStorage
-        localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
-        
-        // Update history table
-        updateCommandHistoryTable();
-        
-        // Update the logs title
-        const logsTitle = document.getElementById('logsTitle');
-        if (logsTitle) {
-            logsTitle.innerHTML = `Process Logs: <code>${command}</code> <span class="badge bg-danger">Failed</span>`;
-        }
-        
-        return null;
     }
 }
 
@@ -1041,6 +946,10 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
         existingLogEntries.add(`${timestamp}${message}`);
     });
     
+    // Keep track of whether we've detected an input prompt
+    let waitingForInput = false;
+    let lastMessage = '';
+    
     // Loop through each log entry and add it to the display if unique
     logs.forEach((log, index) => {
         if (index < startIndex) return; // Skip logs we've already processed
@@ -1048,6 +957,7 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
         const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
         const timestampText = `[${formattedTime}]`;
         const messageText = log.message;
+        lastMessage = messageText; // Track last message for input prompt detection
         
         // Check if this log entry is already displayed
         const logKey = `${timestampText}${messageText}`;
@@ -1059,6 +969,12 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
             existingLogEntries.add(logKey);
         }
     });
+    
+    // Check if the last message appears to be waiting for input
+    if (lastMessage) {
+        waitingForInput = checkForInputPrompt(lastMessage);
+        toggleInteractiveInput(currentProcessId, waitingForInput);
+    }
     
     // Scroll to bottom if we were already at the bottom
     if (wasAtBottom) {
@@ -3669,4 +3585,101 @@ function applySourceFilter(source) {
     
     // Update the experiment list
     displayExperimentsTable();
+}
+
+// Send input to a running process
+async function sendProcessInput(processId, input) {
+    try {
+        // Show the input in the logs immediately (optimistic UI update)
+        const logsContainer = document.getElementById('processLogs');
+        if (logsContainer) {
+            // Create a new input log entry with user input
+            const inputLogEntry = document.createElement('div');
+            inputLogEntry.className = 'log-entry log-input';
+            inputLogEntry.innerHTML = `
+                <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                <span class="log-message">User input: ${input}</span>
+            `;
+            logsContainer.appendChild(inputLogEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+        
+        // Make API request to send input to the process
+        const response = await fetch(`/api/process/input/${processId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ input })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to send input: ${response.statusText}`);
+        }
+        
+        // The response is handled by the existing log polling mechanism
+    } catch (error) {
+        console.error('Error sending input:', error);
+        
+        // Show error message in logs
+        const logsContainer = document.getElementById('processLogs');
+        if (logsContainer) {
+            const errorLogEntry = document.createElement('div');
+            errorLogEntry.className = 'log-entry log-error';
+            errorLogEntry.innerHTML = `
+                <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                <span class="log-message">Error sending input: ${error.message}</span>
+            `;
+            logsContainer.appendChild(errorLogEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+    }
+}
+
+// Show or hide the interactive input form based on process status
+function toggleInteractiveInput(processId, show) {
+    const inputContainer = document.getElementById('interactiveInputContainer');
+    if (!inputContainer) return;
+    
+    if (show) {
+        inputContainer.style.display = 'block';
+        document.getElementById('interactiveInput')?.focus();
+        
+        // Add waiting-for-input class to highlight the form
+        document.body.classList.add('waiting-for-input');
+    } else {
+        inputContainer.style.display = 'none';
+        document.body.classList.remove('waiting-for-input');
+    }
+}
+
+// Check if process output is waiting for input
+function checkForInputPrompt(message) {
+    // Common input prompts in Python and shell scripts
+    const inputPrompts = [
+        'input', 'Enter ', 'Type ', '? ', 
+        'Your choice', 'response', 'Continue',
+        'Press', 'Select', 'Choose', 'name',
+        'goal', 'experiment', 'title', '[y/n]',
+        'password', 'username', 'Overwrite'
+    ];
+    
+    // Check if the message ends with any of these patterns
+    if (typeof message === 'string') {
+        const endsWithColon = message.trim().endsWith(':');
+        const endsWithQuestionMark = message.trim().endsWith('?');
+        
+        if (endsWithColon || endsWithQuestionMark) {
+            return true;
+        }
+        
+        // Check for common input prompts
+        for (const prompt of inputPrompts) {
+            if (message.toLowerCase().includes(prompt.toLowerCase())) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
 }

@@ -1214,22 +1214,22 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     # Start the process
                     logger.info(f"Starting process: {command}")
 
-                    # Parse the command into arguments
-                    args = shlex.split(command)
-
-                    # Create the subprocess
+                    # Create the subprocess environment
                     env = os.environ.copy()
                     # Disable output buffering for Python processes
                     env["PYTHONUNBUFFERED"] = "1"
 
+                    # Use shell=True to enable shell features like redirection
                     process = subprocess.Popen(
-                        args,
+                        command,  # Pass command as string instead of args list
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
+                        stdin=subprocess.PIPE,  # Add stdin pipe for interactive processes
                         bufsize=0,  # Completely unbuffered
                         universal_newlines=False,
                         cwd=str(BASE_REPO_DIR),
                         env=env,
+                        shell=True,  # Enable shell features like redirection
                     )
 
                     # Add process to active_processes
@@ -1367,11 +1367,107 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
                 return
 
+        # API endpoint to send input to a running process
+        elif self.path.startswith("/api/process/input/"):
+            try:
+                # Extract process ID from the URL
+                process_id = self.path.split("/")[-1]
+
+                # Read input data from request
+                content_length = int(self.headers.get("Content-Length", 0))
+                post_data = self.rfile.read(content_length).decode("utf-8")
+                payload = json.loads(post_data)
+
+                input_text = payload.get("input", "")
+
+                with process_lock:
+                    if (
+                        process_id in active_processes
+                        and active_processes[process_id]["status"] == "running"
+                        and "process" in active_processes[process_id]
+                    ):
+                        process_info = active_processes[process_id]
+                        process = process_info["process"]
+
+                        # Add input to log
+                        timestamp = int(time.time())
+                        if process_id in process_logs:
+                            process_logs[process_id].append(
+                                {
+                                    "timestamp": timestamp,
+                                    "message": f"User input: {input_text}",
+                                    "type": "input",
+                                }
+                            )
+
+                        # Log to file
+                        log_file = LOG_DIR / f"process_{process_id}.log"
+                        try:
+                            with open(log_file, "a") as f:
+                                f.write(
+                                    f"[{datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}] User input: {input_text}\n"
+                                )
+                        except Exception as e:
+                            logger.error(f"Error writing to log file: {e}")
+
+                        # Send input to process
+                        try:
+                            # Make sure input ends with newline
+                            if not input_text.endswith("\n"):
+                                input_text += "\n"
+
+                            # Send to stdin
+                            process.stdin.write(input_text.encode())
+                            process.stdin.flush()
+
+                            logger.info(
+                                f"Sent input to process {process_id}: {input_text.strip()}"
+                            )
+
+                            self.send_response(200)
+                            self.send_header("Content-Type", "application/json")
+                            self.end_headers()
+                            self.wfile.write(json.dumps({"success": True}).encode())
+                        except Exception as e:
+                            logger.error(f"Error sending input to process: {e}")
+                            self.send_response(500)
+                            self.send_header("Content-Type", "application/json")
+                            self.end_headers()
+                            self.wfile.write(
+                                json.dumps(
+                                    {"error": f"Error sending input: {str(e)}"}
+                                ).encode()
+                            )
+                    else:
+                        self.send_response(404)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps(
+                                {"error": "Process not found or not running"}
+                            ).encode()
+                        )
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                return
+
         # Handle other POST requests with a 404
         self.send_response(404)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
         self.wfile.write(json.dumps({"error": "Endpoint not found"}).encode())
+
+    def do_OPTIONS(self):
+        """Handle OPTIONS request"""
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
 
 
 class FileChangeHandler(FileSystemEventHandler):
