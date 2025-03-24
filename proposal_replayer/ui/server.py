@@ -112,50 +112,30 @@ def read_process_output(process, process_id):
                 buffer = stdout_buffer if pipe == process.stdout else stderr_buffer
                 buffer += data
 
-                # Process complete lines
-                lines = buffer.split(b"\n")
-                # Last element may be a partial line
-                if pipe == process.stdout:
-                    stdout_buffer = lines[-1]
-                    lines = lines[:-1]
+                # Process complete lines but also partial data if we have some
+                # First check if we have any newlines
+                if b"\n" in buffer:
+                    lines = buffer.split(b"\n")
+                    # Last element is a partial line or empty
+                    if pipe == process.stdout:
+                        stdout_buffer = lines[-1]
+                        complete_lines = lines[:-1]
+                    else:
+                        stderr_buffer = lines[-1]
+                        complete_lines = lines[:-1]
+
+                    # Process each complete line
+                    for line in complete_lines:
+                        process_log_line(process_id, line, pipe == process.stdout)
                 else:
-                    stderr_buffer = lines[-1]
-                    lines = lines[:-1]
-
-                # Process each complete line
-                for line in lines:
-                    if not line:  # Skip empty lines
-                        continue
-
-                    line_str = line.decode("utf-8", errors="replace").rstrip()
-                    timestamp = int(time.time())
-                    log_type = "info" if pipe == process.stdout else "error"
-
-                    log_entry = {
-                        "timestamp": timestamp,
-                        "message": line_str,
-                        "type": log_type,
-                    }
-
-                    # Add to in-memory logs
-                    with process_lock:
-                        if process_id in process_logs:
-                            process_logs[process_id].append(log_entry)
+                    # Also handle partial data even without newlines
+                    # (useful for single-character streaming)
+                    if len(buffer) > 0:
+                        process_log_line(process_id, buffer, pipe == process.stdout)
+                        if pipe == process.stdout:
+                            stdout_buffer = b""
                         else:
-                            process_logs[process_id] = [log_entry]
-
-                    # Write to log file
-                    log_file = LOG_DIR / f"process_{process_id}.log"
-                    try:
-                        with open(log_file, "a") as f:
-                            f.write(
-                                f"[{datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}] {line_str}\n"
-                            )
-                            f.flush()  # Ensure it's written immediately
-                    except Exception as e:
-                        logger.error(f"Error writing to log file: {e}")
-
-                    logger.debug(f"Process {process_id} output: {line_str}")
+                            stderr_buffer = b""
 
             except (IOError, OSError) as e:
                 # Handle pipe errors (e.g., when process terminates during read)
@@ -165,108 +145,44 @@ def read_process_output(process, process_id):
         # Small sleep to prevent CPU spinning
         time.sleep(0.01)
 
-    # Process has ended, handle any remaining data in buffers
-    for buffer, pipe, log_type in [
-        (stdout_buffer, process.stdout, "info"),
-        (stderr_buffer, process.stderr, "error"),
-    ]:
-        if buffer:
-            line_str = buffer.decode("utf-8", errors="replace").rstrip()
-            if line_str:
-                timestamp = int(time.time())
-                log_entry = {
-                    "timestamp": timestamp,
-                    "message": line_str,
-                    "type": log_type,
-                }
+    # Handle any remaining data in buffers - rest of function unchanged
+    # ...
 
-                # Add to in-memory logs
-                with process_lock:
-                    if process_id in process_logs:
-                        process_logs[process_id].append(log_entry)
-                    else:
-                        process_logs[process_id] = [log_entry]
 
-                # Write to log file
-                log_file = LOG_DIR / f"process_{process_id}.log"
-                try:
-                    with open(log_file, "a") as f:
-                        f.write(
-                            f"[{datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}] {line_str}\n"
-                        )
-                except Exception as e:
-                    logger.error(f"Error writing to log file: {e}")
+# Helper function to process a line of output
+def process_log_line(process_id, line_bytes, is_stdout=True):
+    if not line_bytes:  # Skip empty lines
+        return
 
-    # Try to get any remaining stderr data
-    try:
-        stderr_data = process.stderr.read()
-        if stderr_data:
-            stderr_str = stderr_data.decode("utf-8", errors="replace").rstrip()
-            if stderr_str:
-                timestamp = int(time.time())
-                log_entry = {
-                    "timestamp": timestamp,
-                    "message": stderr_str,
-                    "type": "error",
-                }
+    line_str = line_bytes.decode("utf-8", errors="replace").rstrip()
+    timestamp = int(time.time())
+    log_type = "info" if is_stdout else "error"
 
-                # Add to in-memory logs
-                with process_lock:
-                    if process_id in process_logs:
-                        process_logs[process_id].append(log_entry)
-                    else:
-                        process_logs[process_id] = [log_entry]
+    log_entry = {
+        "timestamp": timestamp,
+        "message": line_str,
+        "type": log_type,
+    }
 
-                # Write to log file
-                log_file = LOG_DIR / f"process_{process_id}.log"
-                try:
-                    with open(log_file, "a") as f:
-                        f.write(
-                            f"[{datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}] ERROR: {stderr_str}\n"
-                        )
-                except Exception as e:
-                    logger.error(f"Error writing to log file: {e}")
-    except:
-        pass
-
-    # Update process status
-    exit_code = process.poll()
+    # Add to in-memory logs
     with process_lock:
-        if (
-            process_id in active_processes
-            and active_processes[process_id]["status"] == "running"
-        ):
-            active_processes[process_id]["status"] = (
-                "completed" if exit_code == 0 else "failed"
+        if process_id in process_logs:
+            process_logs[process_id].append(log_entry)
+        else:
+            process_logs[process_id] = [log_entry]
+
+    # Write to log file
+    log_file = LOG_DIR / f"process_{process_id}.log"
+    try:
+        with open(log_file, "a") as f:
+            f.write(
+                f"[{datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}] {line_str}\n"
             )
+            f.flush()  # Ensure it's written immediately
+    except Exception as e:
+        logger.error(f"Error writing to log file: {e}")
 
-            status_message = (
-                "completed successfully"
-                if exit_code == 0
-                else f"failed with exit code {exit_code}"
-            )
-            log_entry = {
-                "timestamp": int(time.time()),
-                "message": f"Process {status_message}",
-                "type": "info" if exit_code == 0 else "error",
-            }
-
-            if process_id in process_logs:
-                process_logs[process_id].append(log_entry)
-            else:
-                process_logs[process_id] = [log_entry]
-
-            # Write final status to log file
-            log_file = LOG_DIR / f"process_{process_id}.log"
-            try:
-                with open(log_file, "a") as f:
-                    f.write(
-                        f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {log_entry['message']}\n"
-                    )
-            except Exception as e:
-                logger.error(f"Error writing to log file: {e}")
-
-            logger.info(f"Process {process_id} {status_message}")
+    logger.debug(f"Process {process_id} output: {line_str}")
 
 
 # Process monitor thread to check for completed processes

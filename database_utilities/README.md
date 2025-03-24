@@ -93,6 +93,29 @@ The prompts are stored in a collection called `prompts` with the following struc
 }
 ```
 
+### Output Watcher
+
+The `output_watcher.py` script monitors the outputs directory for new files and automatically imports them into MongoDB:
+
+```bash
+python ./database_utilities/output_watcher.py [--watch-dir path] [--database name] [--collection name] [--refresh-interval seconds]
+```
+
+Options:
+- `--watch-dir`: Directory to watch for new experiment outputs (default: ../proposal_replayer/results)
+- `--database`: MongoDB database name (default: uma_oracle)
+- `--collection`: MongoDB collection name (default: experiments)
+- `--refresh-interval`: Refresh interval in seconds for checking new experiment directories (default: 10)
+
+The script:
+1. Performs an initial import of all existing output files
+2. Sets up file system watchers on all experiment output directories
+3. Continuously monitors for new or modified files
+4. Automatically imports new experiment directories as they're created
+5. Updates MongoDB in real-time as new results are generated
+
+This allows the Oracle system to write output files to disk normally, while the watcher handles MongoDB integration separately.
+
 ## Data Structure
 
 The imported data follows this structure in MongoDB:
