@@ -51,6 +51,11 @@ parser.add_argument(
     default=2,
     help="Minimum number of attempts before defaulting to p4",
 )
+parser.add_argument(
+    "--verbose",
+    action="store_true",
+    help="Enable verbose output with progress updates",
+)
 args = parser.parse_args()
 
 print(
@@ -63,7 +68,6 @@ from prompt import get_system_prompt
 # Import locally defined modules
 from proposal_overseer.common import (
     setup_logging,
-    spinner_animation,
     extract_recommendation,
     query_perplexity,
     query_chatgpt,
@@ -108,6 +112,7 @@ START_BLOCK_NUMBER = args.start_block
 MAX_ATTEMPTS = args.max_attempts
 MIN_ATTEMPTS = args.min_attempts
 MAX_CONCURRENT = args.max_concurrent
+VERBOSE = args.verbose
 
 logger.info(f"Using starting block number: {START_BLOCK_NUMBER}")
 logger.info(f"Proposals directory set to: {PROPOSALS_DIR}")
@@ -115,6 +120,101 @@ logger.info(f"Output directory set to: {OUTPUTS_DIR}")
 logger.info(f"Maximum attempts set to: {MAX_ATTEMPTS}")
 logger.info(f"Minimum attempts before defaulting to p4: {MIN_ATTEMPTS}")
 logger.info(f"Maximum concurrent requests set to: {MAX_CONCURRENT}")
+logger.info(f"Verbose logging: {'Enabled' if VERBOSE else 'Disabled'}")
+
+
+# Progress tracking class
+class ProgressTracker:
+    """Tracks progress of proposal processing with periodic updates."""
+
+    def __init__(self, total_items, update_interval=5):
+        self.total = total_items
+        self.processed = 0
+        self.api_calls = 0
+        self.skipped = 0
+        self.start_time = time.time()
+        self.last_update_time = time.time()
+        self.update_interval = update_interval
+        self.lock = threading.Lock()
+        self.stop_event = threading.Event()
+        self.update_thread = None
+        self.current_file = ""
+
+    def start(self):
+        """Start the progress tracker with periodic updates."""
+        # Always start the update thread, but will show different levels of detail based on verbosity
+        self.update_thread = threading.Thread(target=self._periodic_update)
+        self.update_thread.daemon = True
+        self.update_thread.start()
+
+    def stop(self):
+        """Stop the progress tracker."""
+        if self.update_thread:
+            self.stop_event.set()
+            self.update_thread.join(timeout=1)
+            self._print_progress(final=True)
+
+    def _periodic_update(self):
+        """Periodically print progress updates."""
+        while not self.stop_event.is_set():
+            if time.time() - self.last_update_time >= self.update_interval:
+                self._print_progress()
+                self.last_update_time = time.time()
+            time.sleep(0.5)
+
+    def set_current_file(self, filename):
+        """Set the current file being processed."""
+        with self.lock:
+            self.current_file = filename
+
+    def increment(self, processed=False, api_call=False, skipped=False):
+        """Increment counters based on provided flags."""
+        with self.lock:
+            if processed:
+                self.processed += 1
+            if api_call:
+                self.api_calls += 1
+            if skipped:
+                self.skipped += 1
+
+    def _print_progress(self, final=False):
+        """Print current progress."""
+        elapsed = time.time() - self.start_time
+        minutes = elapsed / 60
+
+        with self.lock:
+            percent = (self.processed / self.total) * 100 if self.total > 0 else 0
+
+            if VERBOSE:
+                # Detailed output for verbose mode
+                msg = (
+                    f"Progress: {self.processed}/{self.total} ({percent:.1f}%) - "
+                    f"API calls: {self.api_calls} - "
+                    f"Skipped: {self.skipped} - "
+                    f"Elapsed: {minutes:.1f} min"
+                )
+
+                if self.current_file:
+                    msg += f" - Current: {self.current_file}"
+
+                if not final and self.api_calls > 0 and minutes > 0:
+                    rate = self.api_calls / minutes
+                    msg += f" - Rate: {rate:.2f} calls/min"
+            else:
+                # Minimal output for non-verbose mode
+                msg = f"Processing: {self.processed}/{self.total} ({percent:.1f}%)"
+                if self.current_file:
+                    msg += f" - Current: {self.current_file}"
+
+            if final:
+                if VERBOSE:
+                    msg = f"Completed: {msg}"
+                else:
+                    msg = f"Completed: {self.processed}/{self.total} proposals - API calls: {self.api_calls} - Time: {minutes:.1f} min"
+
+            print(msg)
+            if final:
+                logger.info(msg)
 
 
 class RateLimiter:
@@ -228,8 +328,10 @@ def should_process_proposal(proposal_data):
     return block_number >= START_BLOCK_NUMBER
 
 
-def process_proposal_file(file_path):
+def process_proposal_file(file_path, progress_tracker):
     file_name = os.path.basename(file_path)
+    # Update current file in progress tracker
+    progress_tracker.set_current_file(file_name)
     logger.info(f"Processing proposal: {file_name}")
 
     try:
@@ -241,11 +343,13 @@ def process_proposal_file(file_path):
             logger.info(
                 f"Skipping proposal with block number below {START_BLOCK_NUMBER}"
             )
+            progress_tracker.increment(skipped=True)
             return True, False  # Processed (skipped), but no API call made
 
         query_id = get_query_id_from_proposal(proposal_data)
         if query_id and is_already_processed(query_id):
             logger.info(f"Proposal {query_id} already processed, skipping")
+            progress_tracker.increment(skipped=True)
             return True, False  # Processed (skipped), but no API call made
 
         user_prompt = format_prompt_from_json(proposal_data)
@@ -418,6 +522,8 @@ def process_proposal_file(file_path):
         logger.info(
             f"Output saved to {output_file} with final recommendation: {output_data['recommendation']}"
         )
+
+        progress_tracker.increment(processed=True, api_call=True)
         return True, True  # Processed and API call made
 
     except Exception as e:
@@ -427,6 +533,7 @@ def process_proposal_file(file_path):
             perplexity_rate_limiter.decrement_in_flight()
         except:
             pass
+        progress_tracker.increment(skipped=True)
         return False, False  # Not processed, no API call made
 
 
@@ -436,47 +543,41 @@ def process_all_proposals():
 
     # Collect all proposal files first
     proposal_files = list(Path(PROPOSALS_DIR).glob("*.json"))
-    logger.info(f"Found {len(proposal_files)} proposal files to process")
+    total_files = len(proposal_files)
+    logger.info(f"Found {total_files} proposal files to process")
 
-    # Setup counters
-    processed_count = 0
-    skipped_count = 0
-    api_calls_made = 0
-    start_time = time.time()
+    # Count already processed files
+    processed_files_count = len(list(Path(OUTPUTS_DIR).glob("*.json")))
+    if processed_files_count > 0:
+        logger.info(
+            f"Found {processed_files_count} already processed files in output directory"
+        )
+
+    # Create and start progress tracker
+    progress_tracker = ProgressTracker(total_files)
+    progress_tracker.start()
 
     # Process files with a thread pool
     with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
         # Submit all tasks
         future_to_file = {
-            executor.submit(process_proposal_file, file_path): file_path
+            executor.submit(
+                process_proposal_file, file_path, progress_tracker
+            ): file_path
             for file_path in proposal_files
         }
 
         # Process results as they complete
         for future in future_to_file:
-            file_path = future_to_file[future]
             try:
-                processed, api_call_made = future.result()
-                if processed:
-                    processed_count += 1
-                    if api_call_made:
-                        api_calls_made += 1
-                else:
-                    skipped_count += 1
+                future.result()  # Already increments progress in the function
             except Exception as e:
+                file_path = future_to_file[future]
                 logger.error(f"Error processing file {file_path}: {str(e)}")
-                skipped_count += 1
+                progress_tracker.increment(skipped=True)
 
-    elapsed_time = time.time() - start_time
-    runtime_minutes = elapsed_time / 60
-
-    logger.info(
-        f"Processing complete. Processed: {processed_count}, Skipped: {skipped_count}"
-    )
-    logger.info(
-        f"API usage summary: {api_calls_made} calls over {runtime_minutes:.2f} minutes "
-        f"(Average: {api_calls_made/max(1, runtime_minutes):.2f} calls/minute)"
-    )
+    # Stop the progress tracker to display final stats
+    progress_tracker.stop()
 
 
 def main():

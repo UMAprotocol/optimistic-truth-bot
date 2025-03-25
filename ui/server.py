@@ -1054,6 +1054,208 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps({"error": error_message}).encode())
                     return
 
+            # API endpoint to list files in a directory
+            elif self.path.startswith("/api/files"):
+                try:
+                    # Parse the query parameter
+                    query = urllib.parse.urlparse(self.path).query
+                    params = urllib.parse.parse_qs(query)
+                    dir_path = params.get("path", [""])[0]
+
+                    if not dir_path:
+                        self.send_response(400)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "path parameter is required"}).encode()
+                        )
+                        return
+
+                    # Sanitize path to prevent directory traversal
+                    safe_path = os.path.normpath(dir_path).lstrip("/")
+                    full_path = PARENT_DIR / safe_path
+                    logger.info(f"Listing files in directory: {full_path}")
+
+                    # Check if the directory exists
+                    if not full_path.exists():
+                        logger.error(f"Path not found: {full_path}")
+                        self.send_response(404)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps(
+                                {"error": "Path not found", "path": safe_path}
+                            ).encode()
+                        )
+                        return
+
+                    if full_path.is_dir():
+                        # List all files in the directory with metadata
+                        files = []
+                        for item in full_path.iterdir():
+                            file_info = {
+                                "name": item.name,
+                                "path": str(Path(safe_path) / item.name).replace(
+                                    "\\", "/"
+                                ),
+                                "type": "directory" if item.is_dir() else "file",
+                            }
+
+                            # Only get size for files, not directories
+                            if item.is_file():
+                                file_info["size"] = item.stat().st_size
+                                # For JSON files, include file type explicitly
+                                if item.suffix.lower() == ".json":
+                                    file_info["file_type"] = "json"
+
+                            files.append(file_info)
+
+                        logger.info(f"Found {len(files)} items in {full_path}")
+
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps(
+                                {"files": files, "path": safe_path, "count": len(files)}
+                            ).encode()
+                        )
+                    else:
+                        # If it's a file, return its metadata
+                        file_info = {
+                            "name": full_path.name,
+                            "path": safe_path,
+                            "type": "file",
+                            "size": full_path.stat().st_size,
+                        }
+                        if full_path.suffix.lower() == ".json":
+                            file_info["file_type"] = "json"
+
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"file": file_info, "path": safe_path}).encode()
+                        )
+
+                    return
+                except Exception as e:
+                    logger.error(f"Error listing files: {e}")
+                    import traceback
+
+                    logger.error(traceback.format_exc())
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    return
+
+            # API endpoint to retrieve multiple files in a batch
+            elif self.path.startswith("/api/batch-files"):
+                try:
+                    # Parse the query parameters
+                    query = urllib.parse.urlparse(self.path).query
+                    params = urllib.parse.parse_qs(query)
+
+                    # Get the base directory
+                    base_dir = params.get("dir", [""])[0]
+                    if not base_dir:
+                        self.send_response(400)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "dir parameter is required"}).encode()
+                        )
+                        return
+
+                    # Get the list of filenames
+                    files_param = params.get("files", [""])[0]
+                    if not files_param:
+                        self.send_response(400)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps(
+                                {"error": "files parameter is required"}
+                            ).encode()
+                        )
+                        return
+
+                    # Parse the comma-separated list of filenames
+                    filenames = files_param.split(",")
+                    if not filenames:
+                        self.send_response(400)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps(
+                                {"error": "No valid filenames provided"}
+                            ).encode()
+                        )
+                        return
+
+                    # Sanitize base directory path
+                    safe_base_dir = os.path.normpath(base_dir).lstrip("/")
+                    full_base_dir = PARENT_DIR / safe_base_dir
+
+                    # Check if the directory exists
+                    if not full_base_dir.exists() or not full_base_dir.is_dir():
+                        self.send_response(404)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps(
+                                {"error": "Directory not found", "path": safe_base_dir}
+                            ).encode()
+                        )
+                        return
+
+                    # Load all requested files
+                    result = {"files": {}, "errors": {}}
+
+                    for filename in filenames:
+                        # Sanitize filename to prevent directory traversal
+                        safe_filename = os.path.basename(filename)
+                        full_path = full_base_dir / safe_filename
+
+                        try:
+                            if full_path.exists() and full_path.is_file():
+                                # Read file content
+                                with open(full_path, "r") as f:
+                                    try:
+                                        # Try to parse as JSON
+                                        content = json.load(f)
+                                        result["files"][safe_filename] = content
+                                    except json.JSONDecodeError:
+                                        # If not valid JSON, read as text
+                                        f.seek(0)
+                                        text_content = f.read()
+                                        result["files"][safe_filename] = {
+                                            "_raw_text": text_content
+                                        }
+                            else:
+                                result["errors"][safe_filename] = "File not found"
+                        except Exception as e:
+                            logger.error(f"Error reading file {full_path}: {e}")
+                            result["errors"][safe_filename] = str(e)
+
+                    # Return the results
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(result).encode())
+                    return
+                except Exception as e:
+                    logger.error(f"Error processing batch file request: {e}")
+                    import traceback
+
+                    logger.error(traceback.format_exc())
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    return
+
             # API endpoint to list files in an outputs directory
             elif self.path.startswith("/api/outputs-directory"):
                 try:
@@ -1655,7 +1857,7 @@ class DummyObserver:
 def run_server():
     # Open browser
     threading.Timer(
-        1.0, lambda: webbrowser.open(f"http://localhost:{PORT}/ui/")
+        1.0, lambda: webbrowser.open(f"http://localhost:{PORT}")
     ).start()
 
     try:
