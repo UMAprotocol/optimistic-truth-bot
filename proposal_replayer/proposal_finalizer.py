@@ -36,11 +36,10 @@ load_dotenv(dotenv_path)
 # Setup logging
 logger = setup_logging("proposal_finalizer", "logs/proposal_finalizer.log")
 
-# Directory paths
-CURRENT_DIR = Path(__file__).parent
-OUTPUTS_DIR = CURRENT_DIR / "outputs"
+# Directory paths - using relative path from project root
+RESULTS_DIR = Path(PROJECT_ROOT) / "results"
 
-logger.info(f"Outputs directory: {OUTPUTS_DIR}")
+logger.info(f"Results directory: {RESULTS_DIR}")
 
 # Set up Web3 connection
 POLYGON_RPC_URL = os.getenv("POLYGON_RPC_URL")
@@ -238,7 +237,7 @@ def process_files(directory, file_type):
 
 def process_all_results_directories():
     """Process all experiment directories in the results folder."""
-    results_dir = Path(__file__).parent / "results"
+    results_dir = RESULTS_DIR
 
     if not results_dir.exists():
         print(f"Results directory not found: {results_dir}")

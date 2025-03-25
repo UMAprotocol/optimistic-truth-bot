@@ -27,8 +27,10 @@ def create_experiment():
     # Create directory name
     dir_name = f"{date_prefix}-{experiment_name.replace(' ', '-').lower()}"
 
-    # Use the direct path to results directory instead of relative to script
-    results_dir = Path("/Users/chris/uma/large-language-oracle/results")
+    # Get the project root directory
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent
+    results_dir = project_root / "results"
 
     # Ensure results directory exists
     if not results_dir.exists():
