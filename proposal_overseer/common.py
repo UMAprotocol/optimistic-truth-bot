@@ -16,18 +16,30 @@ from datetime import datetime
 from pathlib import Path
 
 
-def spinner_animation(stop_event, message="Processing"):
-    """Display a spinner animation in the console while a process is running."""
-    import itertools
+def spinner(message, verbose=False, interval=0.1):
+    """Display a spinner with a message if verbose mode is enabled,
+    otherwise only show updates every 5 seconds."""
+    spinner_chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+    i = 0
+    start_time = time.time()
+    last_update_time = time.time()
 
-    spinner = itertools.cycle(["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
-    while not stop_event.is_set():
-        sys.stdout.write(f"\r{message} {next(spinner)} ")
-        sys.stdout.flush()
-        time.sleep(0.1)
-    # Clear the spinner line when done
-    sys.stdout.write("\r" + " " * (len(message) + 10) + "\r")
-    sys.stdout.flush()
+    while True:
+        if verbose:
+            # In verbose mode, show spinning animation
+            sys.stdout.write(f"\r{message} {spinner_chars[i % len(spinner_chars)]}")
+            sys.stdout.flush()
+        else:
+            # In non-verbose mode, only update every 5 seconds
+            current_time = time.time()
+            if current_time - last_update_time >= 5:
+                sys.stdout.write(f"\r{message}")
+                sys.stdout.flush()
+                last_update_time = current_time
+
+        i += 1
+        time.sleep(interval)
+        yield
 
 
 def setup_logging(module_name, log_file):
@@ -468,6 +480,7 @@ def enhanced_perplexity_chatgpt_loop(
     logger,
     max_attempts=3,
     min_attempts=2,
+    verbose=False,
 ):
     """
     Enhanced version of perplexity_chatgpt_loop that ensures at least min_attempts
@@ -481,6 +494,7 @@ def enhanced_perplexity_chatgpt_loop(
         logger (logging.Logger): Logger instance
         max_attempts (int): Maximum number of retry attempts
         min_attempts (int): Minimum number of attempts before defaulting to p4
+        verbose (bool): Whether to output verbose logging
 
     Returns:
         dict: Result containing final response, recommendation, and metadata
@@ -543,10 +557,10 @@ def enhanced_perplexity_chatgpt_loop(
         # Query Perplexity
         stop_spinner = threading.Event()
         spinner_thread = threading.Thread(
-            target=spinner_animation,
+            target=spinner,
             args=(
-                stop_spinner,
                 f"Querying Perplexity API (attempt {attempts}/{max_attempts})",
+                True,
             ),
             daemon=True,
         )
@@ -555,7 +569,10 @@ def enhanced_perplexity_chatgpt_loop(
         try:
             start_time = time.time()
             perplexity_response = query_perplexity(
-                user_prompt, perplexity_api_key, system_prompt=system_prompt
+                user_prompt,
+                perplexity_api_key,
+                system_prompt=system_prompt,
+                verbose=verbose,
             )
             api_response_time = time.time() - start_time
 
@@ -612,10 +629,10 @@ def enhanced_perplexity_chatgpt_loop(
             # Create new spinner for ChatGPT query
             stop_spinner = threading.Event()
             spinner_thread = threading.Thread(
-                target=spinner_animation,
+                target=spinner,
                 args=(
-                    stop_spinner,
                     "Consulting ChatGPT overseer for validation",
+                    True,
                 ),
                 daemon=True,
             )
@@ -642,7 +659,9 @@ def enhanced_perplexity_chatgpt_loop(
                 enhanced_overseer_prompt += "\n\nIf you recommend a retry, please be very specific about what additional information or improvements you want to see in the next response."
 
             start_time = time.time()
-            overseer_response = query_chatgpt(enhanced_overseer_prompt, chatgpt_api_key)
+            overseer_response = query_chatgpt(
+                enhanced_overseer_prompt, chatgpt_api_key, verbose=verbose
+            )
             overseer_response_time = time.time() - start_time
 
             overseer_text = overseer_response.choices[0].message.content
@@ -886,6 +905,7 @@ def enhanced_perplexity_chatgpt_loop(
                 enhanced_overseer_prompt,
                 chatgpt_api_key,
                 model="gpt-4-turbo",
+                verbose=verbose,
             )
 
             overseer_text = overseer_response.choices[0].message.content
