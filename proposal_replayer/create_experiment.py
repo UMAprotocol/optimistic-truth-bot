@@ -27,12 +27,18 @@ def create_experiment():
     # Create directory name
     dir_name = f"{date_prefix}-{experiment_name.replace(' ', '-').lower()}"
 
-    # Get the base results path
-    script_dir = Path(__file__).parent
-    results_dir = script_dir / "results"
+    # Use the direct path to results directory instead of relative to script
+    results_dir = Path("/Users/chris/uma/large-language-oracle/results")
 
     # Ensure results directory exists
-    results_dir.mkdir(exist_ok=True)
+    if not results_dir.exists():
+        print(f"Warning: Results directory {results_dir} doesn't exist.")
+        create_dir = input("Create it? (y/n): ")
+        if create_dir.lower() == "y":
+            results_dir.mkdir(parents=True)
+        else:
+            print("Aborting.")
+            return
 
     # Create the experiment directory
     experiment_dir = results_dir / dir_name
