@@ -1,7 +1,7 @@
 {
-  "title": "UMA Polygon Proposals Backtest Dataset - March 2025",
-  "start_block": "x",
-  "end_block": "x",
-  "description": "Collection of UMA proposal data from Polygon network for backtesting",
+  "title": "Polymarket Proposals Backtest Dataset - March 2025",
+  "start_block": "68945516",
+  "end_block": "69478594",
+  "description": "Initial backtest dataset for Polymarket Proposals",
   "date_created": "2025-03-25"
 } 

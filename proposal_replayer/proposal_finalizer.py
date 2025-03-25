@@ -3,13 +3,15 @@
 UMA Proposal Finalizer - Checks unresolved proposals/outputs and updates them with
 the final resolution prices from the blockchain.
 
-Usage: python proposal_replayer/proposal_finalizer.py
+Usage: python proposal_replayer/proposal_finalizer.py [--continuous] [--interval SECONDS]
 """
 
 import os
 import json
 import sys
 import glob
+import time
+import argparse
 from pathlib import Path
 from web3 import Web3
 from dotenv import load_dotenv
@@ -270,14 +272,42 @@ def process_all_results_directories():
 
 
 def main():
+    parser = argparse.ArgumentParser(description="UMA Proposal Finalizer")
+    parser.add_argument(
+        "--continuous",
+        action="store_true",
+        help="Run in continuous mode, rechecking proposals periodically",
+    )
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=30,
+        help="Interval in seconds between rechecks (default: 30)",
+    )
+    args = parser.parse_args()
+
     logger.info(
         "🔍 Starting UMA Proposal Finalizer - Updating unresolved markets with blockchain data 🔄"
     )
 
-    # Process all results directories
-    process_all_results_directories()
-
-    logger.info("✅ Proposal finalizer completed")
+    try:
+        if args.continuous:
+            logger.info(
+                f"Running in continuous mode. Will recheck every {args.interval} seconds. Press Ctrl+C to exit."
+            )
+            while True:
+                # Process all results directories
+                process_all_results_directories()
+                logger.info(f"Waiting {args.interval} seconds before next check...")
+                time.sleep(args.interval)
+        else:
+            # Process all results directories once
+            process_all_results_directories()
+            logger.info("✅ Proposal finalizer completed")
+    except KeyboardInterrupt:
+        logger.info("🛑 Proposal finalizer stopped by user")
+    except Exception as e:
+        logger.error(f"Error in main execution: {str(e)}")
 
 
 if __name__ == "__main__":
