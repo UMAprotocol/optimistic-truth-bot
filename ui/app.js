@@ -3,9 +3,9 @@ let currentData = [];
 let currentExperiment = null;
 let experimentsData = [];
 let modal = null;
-let currentFilter = 'all'; // Track current filter state
+let currentFilter = 'all'; // Track current result filter
 let currentSearch = ''; // Track current search term
-let currentSourceFilter = 'all'; // Track current source filter
+let currentSourceFilter = 'filesystem'; // Track current source filter
 
 // Chart variables
 let recommendationChart = null;
@@ -66,10 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Set up source filter buttons
-    document.getElementById('filterSourceAll')?.addEventListener('click', () => {
-        applySourceFilter('all');
-    });
-    
     document.getElementById('filterSourceFilesystem')?.addEventListener('click', () => {
         applySourceFilter('filesystem');
     });
@@ -1784,13 +1780,19 @@ function displayExperimentsTable() {
     
     // Filter experiments based on source
     let filteredExperiments = [...experimentsData];
-    if (currentSourceFilter !== 'all') {
-        filteredExperiments = filteredExperiments.filter(exp => {
-            const isMongoDBSource = exp.source === 'mongodb' || exp.path?.startsWith('mongodb/');
-            return (currentSourceFilter === 'mongodb' && isMongoDBSource) || 
-                   (currentSourceFilter === 'filesystem' && !isMongoDBSource);
-        });
+    
+    // Default to filesystem if no source filter is set
+    if (!currentSourceFilter) {
+        currentSourceFilter = 'filesystem';
+        document.getElementById('filterSourceFilesystem')?.classList.add('active');
     }
+    
+    // Filter by selected source
+    filteredExperiments = filteredExperiments.filter(exp => {
+        const isMongoDBSource = exp.source === 'mongodb' || exp.path?.startsWith('mongodb/');
+        return (currentSourceFilter === 'mongodb' && isMongoDBSource) || 
+                (currentSourceFilter === 'filesystem' && !isMongoDBSource);
+    });
     
     // Sort experiments by timestamp (newest first - descending order)
     const sortedExperiments = filteredExperiments.sort((a, b) => {
@@ -1955,6 +1957,9 @@ async function loadExperimentData(directory, source) {
         } else {
             // Original filesystem loading logic
             try {
+                // Track loaded data to prevent duplicates
+                const loadedDataIds = new Set();
+                
                 // Load specific files from the outputs directory since directory browsing might not work
                 const response = await fetch(`/api/results-directories`);
                 if (response.ok) {
@@ -1978,7 +1983,15 @@ async function loadExperimentData(directory, source) {
                                     if (fileResponse.ok) {
                                         const jsonData = await fileResponse.json();
                                         if (jsonData && typeof jsonData === 'object') {
-                                            currentData.push(jsonData);
+                                            // Check for duplicate data by using ID or content hash
+                                            const dataId = jsonData.query_id || jsonData.id || 
+                                                         jsonData._id || JSON.stringify(jsonData);
+                                            
+                                            // Only add if not already added
+                                            if (!loadedDataIds.has(dataId)) {
+                                                loadedDataIds.add(dataId);
+                                                currentData.push(jsonData);
+                                            }
                                         }
                                     } else {
                                         console.error(`Error loading ${filename}: ${fileResponse.status}`);
@@ -2073,6 +2086,9 @@ async function fetchFileList(dirPath) {
     try {
         console.log('Attempting to fetch files from:', dirPath);
         
+        // Track loaded files to prevent duplicates
+        const loadedFiles = new Set();
+        
         // First try the directory listing API if it exists
         console.log('Trying directory listing API...');
         const response = await fetch(`/api/list-files?path=${dirPath}`);
@@ -2080,7 +2096,8 @@ async function fetchFileList(dirPath) {
         if (response.ok) {
             const data = await response.json();
             console.log('Files found via API:', data.files || []);
-            return data.files || [];
+            (data.files || []).forEach(file => loadedFiles.add(file));
+            return Array.from(loadedFiles);
         }
         
         // If that fails, try to scrape the directory listing
@@ -2097,7 +2114,8 @@ async function fetchFileList(dirPath) {
                 .map(a => a.href.split('/').pop());
             
             console.log('Files found via scraping:', links);
-            return links;
+            links.forEach(file => loadedFiles.add(file));
+            return Array.from(loadedFiles);
         }
         
         // If scraping doesn't work, check for specific known files directly
@@ -2108,7 +2126,6 @@ async function fetchFileList(dirPath) {
             'e9384a05.json', 'a5722f27.json', '3a4eb4fc.json', 'f409f21c.json'
         ];
         
-        const foundFiles = [];
         for (const filename of potentialFiles) {
             try {
                 const fileUrl = `/${dirPath}/${filename}`;
@@ -2116,16 +2133,16 @@ async function fetchFileList(dirPath) {
                 const testResponse = await fetch(fileUrl, { method: 'HEAD' });
                 if (testResponse.ok) {
                     console.log('Found file:', filename);
-                    foundFiles.push(filename);
+                    loadedFiles.add(filename);
                 }
             } catch (err) {
                 console.warn(`Error checking for ${filename}:`, err);
             }
         }
         
-        if (foundFiles.length > 0) {
-            console.log('Files found by direct check:', foundFiles);
-            return foundFiles;
+        if (loadedFiles.size > 0) {
+            console.log('Files found by direct check:', Array.from(loadedFiles));
+            return Array.from(loadedFiles);
         }
         
         // Try to list all files in the outputs directory if available
@@ -2135,7 +2152,8 @@ async function fetchFileList(dirPath) {
             if (outputsResponse.ok) {
                 const data = await outputsResponse.json();
                 console.log('Files from outputs directory:', data.files || []);
-                return data.files || [];
+                (data.files || []).forEach(file => loadedFiles.add(file));
+                return Array.from(loadedFiles);
             }
         } catch (err) {
             console.warn('Error checking outputs directory:', err);
@@ -2143,11 +2161,13 @@ async function fetchFileList(dirPath) {
         
         // As a fallback, use this hardcoded list of sample filenames that we've seen
         console.log('Using fallback file list');
-        return [
+        const fallbackFiles = [
             'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
             '51ddd061.json', 'd9d48807.json', '210e2087.json', '1e4d05a7.json',
             'e9384a05.json', 'a5722f27.json', '3a4eb4fc.json', 'f409f21c.json'
         ];
+        fallbackFiles.forEach(file => loadedFiles.add(file));
+        return Array.from(loadedFiles);
     } catch (error) {
         console.error('Error fetching file list:', error);
         // Return a fallback list of common filenames
@@ -3574,10 +3594,8 @@ function applySourceFilter(source) {
         btn.classList.remove('active');
     });
     
-    // Set active class on the clicked button - fix the capitalization issue
-    if (source === 'all') {
-        document.getElementById('filterSourceAll')?.classList.add('active');
-    } else if (source === 'filesystem') {
+    // Set active class on the clicked button
+    if (source === 'filesystem') {
         document.getElementById('filterSourceFilesystem')?.classList.add('active');
     } else if (source === 'mongodb') {
         document.getElementById('filterSourceMongoDB')?.classList.add('active');
