@@ -60,8 +60,3 @@ python query_utilities/fetch_market_resolution.py 0x0FC5D2B61B29D54D487ACBC27E96
 ```bash
 python query_utilities/fetch_open_market_Ids.py 68853567 output_file.json
 ```
-
-### Running Example Script
-```bash
-python example/example.py
-```
