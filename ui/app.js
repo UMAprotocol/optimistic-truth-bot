@@ -1974,30 +1974,100 @@ async function loadExperimentData(directory, source) {
                         const sampleFileNames = await fetchFileList(outputsDir);
                         
                         if (sampleFileNames && sampleFileNames.length > 0) {
-                            // Load each found file
-                            for (const filename of sampleFileNames) {
+                            console.log(`Loading ${sampleFileNames.length} JSON files from ${outputsDir}`);
+                            
+                            // Use batch API to load files in chunks
+                            const batchSize = 20; // Increased batch size for better performance
+                            
+                            for (let i = 0; i < sampleFileNames.length; i += batchSize) {
+                                // Get the current batch of files
+                                const batchFiles = sampleFileNames.slice(i, i + batchSize);
+                                
                                 try {
-                                    const fileUrl = `/${outputsDir}/${filename}`;
-                                    const fileResponse = await fetch(fileUrl);
+                                    // Show loading progress
+                                    const percentComplete = Math.min(100, Math.round(i / sampleFileNames.length * 100));
+                                    document.getElementById('resultsTableBody').innerHTML = `
+                                        <tr>
+                                            <td colspan="7" class="text-center">
+                                                <div class="progress mb-3" style="height: 20px;">
+                                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                                         role="progressbar" style="width: ${percentComplete}%" 
+                                                         aria-valuenow="${percentComplete}" aria-valuemin="0" aria-valuemax="100">
+                                                        ${percentComplete}%
+                                                    </div>
+                                                </div>
+                                                <p>Loading batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(sampleFileNames.length/batchSize)}...</p>
+                                            </td>
+                                        </tr>
+                                    `;
                                     
-                                    if (fileResponse.ok) {
-                                        const jsonData = await fileResponse.json();
-                                        if (jsonData && typeof jsonData === 'object') {
-                                            // Check for duplicate data by using ID or content hash
-                                            const dataId = jsonData.query_id || jsonData.id || 
-                                                         jsonData._id || JSON.stringify(jsonData);
-                                            
-                                            // Only add if not already added
-                                            if (!loadedDataIds.has(dataId)) {
-                                                loadedDataIds.add(dataId);
-                                                currentData.push(jsonData);
-                                            }
+                                    // Use batch API to load multiple files at once
+                                    const batchResponse = await fetch(`/api/batch-files?dir=${encodeURIComponent(outputsDir)}&files=${encodeURIComponent(batchFiles.join(','))}`);
+                                    
+                                    if (batchResponse.ok) {
+                                        const batchData = await batchResponse.json();
+                                        
+                                        // Process the returned files
+                                        if (batchData.files) {
+                                            Object.values(batchData.files).forEach(jsonData => {
+                                                if (jsonData && typeof jsonData === 'object') {
+                                                    // Check for duplicate data by using ID or content hash
+                                                    const dataId = jsonData.query_id || jsonData.id || 
+                                                                jsonData._id || JSON.stringify(jsonData);
+                                                    
+                                                    // Only add if not already added
+                                                    if (!loadedDataIds.has(dataId)) {
+                                                        loadedDataIds.add(dataId);
+                                                        currentData.push(jsonData);
+                                                    }
+                                                }
+                                            });
+                                        }
+                                        
+                                        // Log any errors
+                                        if (batchData.errors && Object.keys(batchData.errors).length > 0) {
+                                            console.warn('Errors loading some files:', batchData.errors);
                                         }
                                     } else {
-                                        console.error(`Error loading ${filename}: ${fileResponse.status}`);
+                                        console.warn(`Batch API error: ${batchResponse.status} ${batchResponse.statusText}`);
+                                        
+                                        // Fall back to loading files individually for this batch
+                                        await loadFilesIndividually(batchFiles, outputsDir, loadedDataIds);
                                     }
-                                } catch (fileError) {
-                                    console.error(`Error loading ${filename}: ${fileError.message}`);
+                                } catch (batchError) {
+                                    console.warn(`Error loading batch: ${batchError.message}`);
+                                    
+                                    // Fall back to loading files individually for this batch
+                                    await loadFilesIndividually(batchFiles, outputsDir, loadedDataIds);
+                                }
+                            }
+                            
+                            // Helper function to load files individually as fallback
+                            async function loadFilesIndividually(files, dir, loadedIds) {
+                                for (const filename of files) {
+                                    try {
+                                        const fileUrl = `/${dir}/${filename}`;
+                                        const fileResponse = await fetch(fileUrl);
+                                        
+                                        if (fileResponse.ok) {
+                                            const jsonData = await fileResponse.json();
+                                            if (jsonData && typeof jsonData === 'object') {
+                                                // Check for duplicate data by using ID or content hash
+                                                const dataId = jsonData.query_id || jsonData.id || 
+                                                             jsonData._id || JSON.stringify(jsonData);
+                                                
+                                                // Only add if not already added
+                                                if (!loadedIds.has(dataId)) {
+                                                    loadedIds.add(dataId);
+                                                    currentData.push(jsonData);
+                                                }
+                                            }
+                                        } else {
+                                            console.warn(`Error loading ${filename}: ${fileResponse.status}`);
+                                        }
+                                    } catch (fileError) {
+                                        console.warn(`Error loading ${filename}: ${fileError.message}`);
+                                    }
                                 }
                             }
                         } else {
@@ -2084,97 +2154,56 @@ async function loadExperimentData(directory, source) {
 // Helper function to fetch a list of files in a directory
 async function fetchFileList(dirPath) {
     try {
-        console.log('Attempting to fetch files from:', dirPath);
+        console.log('Fetching files from:', dirPath);
         
-        // Track loaded files to prevent duplicates
-        const loadedFiles = new Set();
+        // Use our new robust endpoint
+        const url = `/api/files?path=${encodeURIComponent(dirPath)}`;
+        console.log('Using file listing API:', url);
         
-        // First try the directory listing API if it exists
-        console.log('Trying directory listing API...');
-        const response = await fetch(`/api/list-files?path=${dirPath}`);
+        const response = await fetch(url);
         
         if (response.ok) {
             const data = await response.json();
-            console.log('Files found via API:', data.files || []);
-            (data.files || []).forEach(file => loadedFiles.add(file));
-            return Array.from(loadedFiles);
-        }
-        
-        // If that fails, try to scrape the directory listing
-        console.log('Trying directory scraping...');
-        const dirResponse = await fetch(`/${dirPath}/`);
-        if (dirResponse.ok) {
-            const html = await dirResponse.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
+            console.log(`Found ${data.count || 0} files in ${dirPath}`);
             
-            // Extract links to JSON files
-            const links = Array.from(doc.querySelectorAll('a'))
-                .filter(a => a.href.endsWith('.json'))
-                .map(a => a.href.split('/').pop());
+            // Filter for just JSON files
+            const jsonFiles = data.files
+                .filter(file => file.type === 'file' && (file.file_type === 'json' || file.name.endsWith('.json')))
+                .map(file => file.name);
             
-            console.log('Files found via scraping:', links);
-            links.forEach(file => loadedFiles.add(file));
-            return Array.from(loadedFiles);
-        }
-        
-        // If scraping doesn't work, check for specific known files directly
-        console.log('Trying direct file checks...');
-        const potentialFiles = [
-            'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
-            '51ddd061.json', 'd9d48807.json', '210e2087.json', '1e4d05a7.json',
-            'e9384a05.json', 'a5722f27.json', '3a4eb4fc.json', 'f409f21c.json'
-        ];
-        
-        for (const filename of potentialFiles) {
-            try {
-                const fileUrl = `/${dirPath}/${filename}`;
-                console.log('Checking for file:', fileUrl);
-                const testResponse = await fetch(fileUrl, { method: 'HEAD' });
-                if (testResponse.ok) {
-                    console.log('Found file:', filename);
-                    loadedFiles.add(filename);
-                }
-            } catch (err) {
-                console.warn(`Error checking for ${filename}:`, err);
+            if (jsonFiles.length > 0) {
+                return jsonFiles;
             }
+            
+            console.warn('No JSON files found via API');
+        } else {
+            console.warn(`API request failed: ${response.status} ${response.statusText}`);
         }
         
-        if (loadedFiles.size > 0) {
-            console.log('Files found by direct check:', Array.from(loadedFiles));
-            return Array.from(loadedFiles);
-        }
-        
-        // Try to list all files in the outputs directory if available
+        // Fallback to outputs-directory API for backward compatibility
         try {
-            console.log('Trying to check outputs directory content...');
-            const outputsResponse = await fetch(`/api/outputs-directory?path=${dirPath}`);
+            console.log('Trying outputs directory API as fallback...');
+            const outputsResponse = await fetch(`/api/outputs-directory?path=${encodeURIComponent(dirPath)}`);
             if (outputsResponse.ok) {
                 const data = await outputsResponse.json();
                 console.log('Files from outputs directory:', data.files || []);
-                (data.files || []).forEach(file => loadedFiles.add(file));
-                return Array.from(loadedFiles);
+                return data.files || [];
             }
         } catch (err) {
-            console.warn('Error checking outputs directory:', err);
+            console.warn('Error using outputs directory API:', err);
         }
         
-        // As a fallback, use this hardcoded list of sample filenames that we've seen
-        console.log('Using fallback file list');
-        const fallbackFiles = [
+        // Final fallback - hardcoded list of common filenames
+        console.warn('Using fallback file list as last resort');
+        return [
             'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
             '51ddd061.json', 'd9d48807.json', '210e2087.json', '1e4d05a7.json',
             'e9384a05.json', 'a5722f27.json', '3a4eb4fc.json', 'f409f21c.json'
         ];
-        fallbackFiles.forEach(file => loadedFiles.add(file));
-        return Array.from(loadedFiles);
     } catch (error) {
         console.error('Error fetching file list:', error);
-        // Return a fallback list of common filenames
-        return [
-            'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
-            '51ddd061.json', 'd9d48807.json', '210e2087.json', '1e4d05a7.json'
-        ];
+        // Return an empty array on error
+        return [];
     }
 }
 
