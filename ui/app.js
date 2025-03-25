@@ -3850,3 +3850,34 @@ async function fetchFileList(dirPath) {
         return [];
     }
 }
+
+// Modify the log display function to handle spinner outputs better
+function processLogEntry(logEntry) {
+    // Detect if this is a spinner update line
+    const isSpinnerLine = /Querying .* API \(attempt \d+\/\d+\) [⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/.test(logEntry.message);
+    
+    if (isSpinnerLine) {
+        // Replace the previous spinner line instead of adding a new one
+        const lastLogElement = document.querySelector('.log-line:last-child');
+        if (lastLogElement && lastLogElement.dataset.spinnerLine === 'true') {
+            lastLogElement.textContent = logEntry.message;
+            return; // Don't add a new line
+        }
+        
+        // If we're adding a new spinner line, mark it
+        const logElement = document.createElement('div');
+        logElement.className = 'log-line spinner-line';
+        logElement.dataset.spinnerLine = 'true';
+        logElement.textContent = logEntry.message;
+        logContainer.appendChild(logElement);
+    } else {
+        // Normal log line
+        const logElement = document.createElement('div');
+        logElement.className = 'log-line';
+        logElement.textContent = logEntry.message;
+        logContainer.appendChild(logElement);
+    }
+    
+    // Scroll to bottom
+    logContainer.scrollTop = logContainer.scrollHeight;
+}
