@@ -1157,6 +1157,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     query = urllib.parse.urlparse(self.path).query
                     params = urllib.parse.parse_qs(query)
 
+                    logger.info(f"Batch files request with params: {params}")
+
                     # Get the base directory
                     base_dir = params.get("dir", [""])[0]
                     if not base_dir:
@@ -1194,12 +1196,57 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         )
                         return
 
-                    # Sanitize base directory path
+                    # Sanitize base directory path and ensure it starts with 'results/'
                     safe_base_dir = os.path.normpath(base_dir).lstrip("/")
-                    full_base_dir = PARENT_DIR / safe_base_dir
+                    if not safe_base_dir.startswith("results/"):
+                        safe_base_dir = f"results/{safe_base_dir}"
+
+                    # Try different path combinations to find the right one
+                    possible_paths = [
+                        PARENT_DIR / safe_base_dir,
+                        PARENT_DIR / Path(safe_base_dir),
+                        (
+                            PARENT_DIR
+                            / "results"
+                            / Path(safe_base_dir).relative_to(Path("results"))
+                            if safe_base_dir.startswith("results/")
+                            else None
+                        ),
+                        Path(safe_base_dir),
+                        BASE_REPO_DIR / safe_base_dir,
+                    ]
+
+                    full_base_dir = None
+                    for path in possible_paths:
+                        if path and path.exists() and path.is_dir():
+                            full_base_dir = path
+                            logger.info(f"Found valid directory path: {full_base_dir}")
+                            break
+
+                    if not full_base_dir:
+                        # If no valid path found, use the original calculation
+                        full_base_dir = PARENT_DIR / safe_base_dir
+
+                    # Log all the paths we tried
+                    logger.info(f"Original dir parameter: {base_dir}")
+                    logger.info(f"Sanitized dir path: {safe_base_dir}")
+                    logger.info(f"Final full path: {full_base_dir}")
+                    logger.info(f"Path exists: {full_base_dir.exists()}")
+                    logger.info(
+                        f"Path is dir: {full_base_dir.is_dir() if full_base_dir.exists() else False}"
+                    )
+                    logger.info(f"Current working directory: {os.getcwd()}")
+                    logger.info(f"PARENT_DIR: {PARENT_DIR}")
+
+                    # List directory contents if it exists
+                    if full_base_dir.exists() and full_base_dir.is_dir():
+                        logger.info(
+                            f"Directory contents: {[f.name for f in full_base_dir.iterdir()]}"
+                        )
 
                     # Check if the directory exists
                     if not full_base_dir.exists() or not full_base_dir.is_dir():
+                        logger.error(f"Directory not found: {full_base_dir}")
                         self.send_response(404)
                         self.send_header("Content-Type", "application/json")
                         self.end_headers()
@@ -1213,10 +1260,14 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     # Load all requested files
                     result = {"files": {}, "errors": {}}
 
+                    logger.info(f"Attempting to load {len(filenames)} files")
+
                     for filename in filenames:
                         # Sanitize filename to prevent directory traversal
                         safe_filename = os.path.basename(filename)
                         full_path = full_base_dir / safe_filename
+
+                        logger.debug(f"Trying to read: {full_path}")
 
                         try:
                             if full_path.exists() and full_path.is_file():
@@ -1226,6 +1277,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                         # Try to parse as JSON
                                         content = json.load(f)
                                         result["files"][safe_filename] = content
+                                        logger.debug(
+                                            f"Successfully loaded file: {safe_filename}"
+                                        )
                                     except json.JSONDecodeError:
                                         # If not valid JSON, read as text
                                         f.seek(0)
@@ -1233,11 +1287,20 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                         result["files"][safe_filename] = {
                                             "_raw_text": text_content
                                         }
+                                        logger.debug(
+                                            f"Loaded as raw text: {safe_filename}"
+                                        )
                             else:
+                                logger.warning(f"File not found: {full_path}")
                                 result["errors"][safe_filename] = "File not found"
                         except Exception as e:
                             logger.error(f"Error reading file {full_path}: {e}")
                             result["errors"][safe_filename] = str(e)
+
+                    # Log summary
+                    logger.info(
+                        f"Batch loading complete. Loaded {len(result['files'])} files, {len(result['errors'])} errors"
+                    )
 
                     # Return the results
                     self.send_response(200)
@@ -1856,9 +1919,7 @@ class DummyObserver:
 
 def run_server():
     # Open browser
-    threading.Timer(
-        1.0, lambda: webbrowser.open(f"http://localhost:{PORT}")
-    ).start()
+    threading.Timer(1.0, lambda: webbrowser.open(f"http://localhost:{PORT}")).start()
 
     try:
         # Set up file watcher
