@@ -1,6 +1,6 @@
 # Large Language Oracle for UMA Protocol
 
-A system for using large language models (via Perplexity API) to resolve Optimistic Oracle proposals in the UMA protocol.
+A system for using large language models to resolve Optimistic Oracle proposals in the UMA protocol.
 
 ## Repository Structure
 
