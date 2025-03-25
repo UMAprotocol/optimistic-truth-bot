@@ -53,13 +53,13 @@ logger = logging.getLogger(__name__)
 # Configuration
 PORT = 8000
 PARENT_DIR = Path(__file__).parent.parent
-UI_DIR = PARENT_DIR / "ui"
+UI_DIR = Path(__file__).parent
 RESULTS_DIR = PARENT_DIR / "results"
 LOG_DIR = PARENT_DIR / "logs"
-OUTPUTS_DIR = PARENT_DIR / "outputs"
-RERUNS_DIR = PARENT_DIR / "reruns"
+OUTPUTS_DIR = PARENT_DIR / "proposal_overseer" / "outputs"
+RERUNS_DIR = PARENT_DIR / "proposal_overseer" / "reruns"
 # Base repository directory (one level up from proposal_replayer)
-BASE_REPO_DIR = PARENT_DIR.parent
+BASE_REPO_DIR = PARENT_DIR
 
 # MongoDB configuration
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")

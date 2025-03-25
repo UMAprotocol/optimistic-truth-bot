@@ -3,13 +3,14 @@
 UMA Proposal Fetcher - Listens for ProposePrice events, fetches on-chain data, saves to JSON.
 Ignores neg risk markets.
 
-Example: python proposal_replayer/proposal_fetcher.py --start-block 68945138
+Example: python proposal_replayer/proposal_fetcher.py --start-block 68945138 --proposals-dir proposals/dataset-name
 """
 
 from web3 import Web3
 from dotenv import load_dotenv
 import os, time, json, argparse, sys, codecs
 import requests
+from pathlib import Path
 
 print(
     "⛓️ Starting UMA Proposal Fetcher - Listening for blockchain events and processing proposals 🔍 📡"
@@ -28,7 +29,8 @@ from common import (
 
 logger = setup_logging("proposal_fetcher", "logs/proposal_fetcher.log")
 POLL_INTERVAL_SECONDS = 30
-PROPOSALS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "proposals")
+# Default proposals directory can be overridden with command line argument
+DEFAULT_PROPOSALS_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / "proposals"
 
 
 def clean_text(text):
@@ -146,10 +148,14 @@ def query_adapter_for_question(w3, adapter_address, question_id):
         return {"found": False, "error": str(e)}
 
 
-def listen_for_propose_price_events(start_block=None):
+def listen_for_propose_price_events(start_block=None, proposals_dir=None):
     load_dotenv()
     w3 = Web3(Web3.HTTPProvider(os.getenv("POLYGON_RPC_URL")))
     logger.info(f"Connected to chain: {w3.is_connected()}")
+
+    # Use provided proposals directory or default
+    proposals_dir = Path(proposals_dir) if proposals_dir else DEFAULT_PROPOSALS_DIR
+    logger.info(f"Using proposals directory: {proposals_dir}")
 
     oov2_contract = w3.eth.contract(
         address=OptimisticOracleV2, abi=load_abi("OptimisticOracleV2.json")
@@ -158,7 +164,7 @@ def listen_for_propose_price_events(start_block=None):
     latest_block = start_block if start_block is not None else current_block
 
     logger.info(f"Starting from block {latest_block} (current: {current_block})")
-    os.makedirs(PROPOSALS_DIR, exist_ok=True)
+    os.makedirs(proposals_dir, exist_ok=True)
 
     try:
         while True:
@@ -249,7 +255,7 @@ def listen_for_propose_price_events(start_block=None):
                 logger.debug(f"Unix timestamp: {result['unix_timestamp']}")
                 logger.debug(f"Proposal bond: {result['proposal_bond']}")
 
-                save_proposal(result, question_id)
+                save_proposal(result, question_id, proposals_dir)
 
             latest_block = current_block + 1
             time.sleep(POLL_INTERVAL_SECONDS)
@@ -287,10 +293,10 @@ def enrich_proposal_with_polymarket_data(result, question_id):
         return result
 
 
-def save_proposal(result, question_id):
+def save_proposal(result, question_id, proposals_dir):
     question_id_short = question_id[2:10]  # First 8 chars after 0x
     result_filename = os.path.join(
-        PROPOSALS_DIR, f"questionId_{question_id_short}.json"
+        proposals_dir, f"questionId_{question_id_short}.json"
     )
 
     # Enrich with Polymarket data
@@ -335,7 +341,12 @@ if __name__ == "__main__":
         type=int,
         help="Block number to start listening from (default: latest)",
     )
+    parser.add_argument(
+        "--proposals-dir",
+        type=str,
+        help="Directory to save proposal JSON files (default: proposal_replayer/proposals)",
+    )
     args = parser.parse_args()
 
     logger.info("Starting ProposePrice event subscriber...")
-    listen_for_propose_price_events(args.start_block)
+    listen_for_propose_price_events(args.start_block, args.proposals_dir)
