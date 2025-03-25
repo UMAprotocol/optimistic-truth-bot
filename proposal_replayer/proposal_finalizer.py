@@ -18,7 +18,8 @@ from dotenv import load_dotenv
 from typing import Dict, Any, List, Optional
 
 # Add the parent directory to the path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(PROJECT_ROOT)
 from common import (
     load_abi,
     OptimisticOracleV2,
@@ -28,9 +29,12 @@ from common import (
     price_to_outcome,
 )
 
+# Load .env file from project root
+dotenv_path = os.path.join(PROJECT_ROOT, ".env")
+load_dotenv(dotenv_path)
+
 # Setup logging
 logger = setup_logging("proposal_finalizer", "logs/proposal_finalizer.log")
-load_dotenv()
 
 # Directory paths
 CURRENT_DIR = Path(__file__).parent
@@ -43,6 +47,8 @@ POLYGON_RPC_URL = os.getenv("POLYGON_RPC_URL")
 if not POLYGON_RPC_URL:
     logger.error("POLYGON_RPC_URL not found in environment variables")
     sys.exit(1)
+
+logger.info(f"Using Polygon RPC URL: {POLYGON_RPC_URL}")
 
 w3 = Web3(Web3.HTTPProvider(POLYGON_RPC_URL))
 if not w3.is_connected():
