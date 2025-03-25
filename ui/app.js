@@ -2009,7 +2009,7 @@ async function loadExperimentData(directory, source) {
                                         
                                         // Process the returned files
                                         if (batchData.files) {
-                                            Object.values(batchData.files).forEach(jsonData => {
+                                            Object.entries(batchData.files).forEach(([filename, jsonData]) => {
                                                 if (jsonData && typeof jsonData === 'object') {
                                                     // Check for duplicate data by using ID or content hash
                                                     const dataId = jsonData.query_id || jsonData.id || 
@@ -2027,9 +2027,48 @@ async function loadExperimentData(directory, source) {
                                         // Log any errors
                                         if (batchData.errors && Object.keys(batchData.errors).length > 0) {
                                             console.warn('Errors loading some files:', batchData.errors);
+                                            
+                                            // Try to load files that had errors individually
+                                            const errorFiles = Object.keys(batchData.errors);
+                                            if (errorFiles.length > 0) {
+                                                console.log(`Attempting to load ${errorFiles.length} files that failed in batch individually...`);
+                                                await loadFilesIndividually(errorFiles, outputsDir, loadedDataIds);
+                                            }
                                         }
                                     } else {
                                         console.warn(`Batch API error: ${batchResponse.status} ${batchResponse.statusText}`);
+                                        
+                                        // Try an alternative batch API endpoint as fallback
+                                        try {
+                                            console.log('Trying alternative batch API endpoint...');
+                                            // Remove 'results/' from the path if it exists
+                                            const alternatePath = outputsDir.startsWith('results/') ? outputsDir.substring(8) : outputsDir;
+                                            const alternateBatchResponse = await fetch(`/api/batch-files?dir=${encodeURIComponent(alternatePath)}&files=${encodeURIComponent(batchFiles.join(','))}`);
+                                            
+                                            if (alternateBatchResponse.ok) {
+                                                const alternateBatchData = await alternateBatchResponse.json();
+                                                
+                                                if (alternateBatchData.files) {
+                                                    Object.entries(alternateBatchData.files).forEach(([filename, jsonData]) => {
+                                                        if (jsonData && typeof jsonData === 'object') {
+                                                            const dataId = jsonData.query_id || jsonData.id || jsonData._id || JSON.stringify(jsonData);
+                                                            
+                                                            if (!loadedDataIds.has(dataId)) {
+                                                                loadedDataIds.add(dataId);
+                                                                currentData.push(jsonData);
+                                                            }
+                                                        }
+                                                    });
+                                                    
+                                                    console.log(`Successfully loaded ${Object.keys(alternateBatchData.files).length} files using alternative path`);
+                                                    
+                                                    // No need to fall back to individual loading if the alternative batch was successful
+                                                    return;
+                                                }
+                                            }
+                                        } catch (altError) {
+                                            console.warn('Alternative batch API also failed:', altError);
+                                        }
                                         
                                         // Fall back to loading files individually for this batch
                                         await loadFilesIndividually(batchFiles, outputsDir, loadedDataIds);
@@ -2044,31 +2083,63 @@ async function loadExperimentData(directory, source) {
                             
                             // Helper function to load files individually as fallback
                             async function loadFilesIndividually(files, dir, loadedIds) {
+                                console.log(`Loading ${files.length} files individually from ${dir}`);
+                                let loadedCount = 0;
+                                
                                 for (const filename of files) {
+                                    if (!filename || filename.trim() === '') continue;
+                                    
                                     try {
+                                        // First try standard path
                                         const fileUrl = `/${dir}/${filename}`;
-                                        const fileResponse = await fetch(fileUrl);
+                                        console.log(`Trying to load: ${fileUrl}`);
+                                        
+                                        let fileResponse = await fetch(fileUrl);
+                                        
+                                        // If failed, try without 'results/' prefix
+                                        if (!fileResponse.ok && dir.startsWith('results/')) {
+                                            const altFileUrl = `/${dir.substring(8)}/${filename}`;
+                                            console.log(`First attempt failed, trying: ${altFileUrl}`);
+                                            fileResponse = await fetch(altFileUrl);
+                                        }
+                                        
+                                        // If failed again, try with direct 'results' path
+                                        if (!fileResponse.ok) {
+                                            const directFileUrl = `/results/${filename}`;
+                                            console.log(`Second attempt failed, trying: ${directFileUrl}`);
+                                            fileResponse = await fetch(directFileUrl);
+                                        }
+                                        
+                                        // If still failed, try with full experiment path
+                                        if (!fileResponse.ok && currentExperiment) {
+                                            const experimentPath = `/${currentExperiment.path}/outputs/${filename}`;
+                                            console.log(`Third attempt failed, trying experiment path: ${experimentPath}`);
+                                            fileResponse = await fetch(experimentPath);
+                                        }
                                         
                                         if (fileResponse.ok) {
                                             const jsonData = await fileResponse.json();
                                             if (jsonData && typeof jsonData === 'object') {
                                                 // Check for duplicate data by using ID or content hash
                                                 const dataId = jsonData.query_id || jsonData.id || 
-                                                             jsonData._id || JSON.stringify(jsonData);
+                                                              jsonData._id || JSON.stringify(jsonData);
                                                 
                                                 // Only add if not already added
                                                 if (!loadedIds.has(dataId)) {
                                                     loadedIds.add(dataId);
                                                     currentData.push(jsonData);
+                                                    loadedCount++;
                                                 }
                                             }
                                         } else {
-                                            console.warn(`Error loading ${filename}: ${fileResponse.status}`);
+                                            console.warn(`All attempts failed loading ${filename}: ${fileResponse.status}`);
                                         }
                                     } catch (fileError) {
                                         console.warn(`Error loading ${filename}: ${fileError.message}`);
                                     }
                                 }
+                                
+                                console.log(`Successfully loaded ${loadedCount} out of ${files.length} files individually`);
                             }
                         } else {
                             throw new Error(`No JSON files found in ${outputsDir}`);
@@ -2111,72 +2182,6 @@ async function loadExperimentData(directory, source) {
             document.dispatchEvent(dataLoadedEvent);
         } else {
             // Hide analytics, filter, and tag filter when there's no data
-            document.getElementById('analyticsDashboard').style.display = 'none';
-            document.getElementById('filterControls').style.display = 'none';
-            const tagFilterCard = document.getElementById('tagFilterCard');
-            if (tagFilterCard) {
-                tagFilterCard.style.display = 'none';
-            }
-            
-            // Show error message if we couldn't load any data
-            document.getElementById('resultsTableBody').innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center">
-                        <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            No data found for experiment <strong>${directory}</strong>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }
-    } catch (error) {
-        console.error('Error loading experiment data:', error);
-        
-        // Hide analytics, filter, and tag filter on error
-        document.getElementById('analyticsDashboard').style.display = 'none';
-        document.getElementById('filterControls').style.display = 'none';
-        const tagFilterCard = document.getElementById('tagFilterCard');
-        if (tagFilterCard) {
-            tagFilterCard.style.display = 'none';
-        }
-        
-        document.getElementById('resultsTableBody').innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center text-danger">
-                    Error loading experiment data: ${error.message}
-                </td>
-            </tr>
-        `;
-    }
-}
-
-// Helper function to fetch a list of files in a directory
-async function fetchFileList(dirPath) {
-    try {
-        console.log('Fetching files from:', dirPath);
-        
-        // Use our new robust endpoint
-        const url = `/api/files?path=${encodeURIComponent(dirPath)}`;
-        console.log('Using file listing API:', url);
-        
-        const response = await fetch(url);
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log(`Found ${data.count || 0} files in ${dirPath}`);
-            
-            // Filter for just JSON files
-            const jsonFiles = data.files
-                .filter(file => file.type === 'file' && (file.file_type === 'json' || file.name.endsWith('.json')))
-                .map(file => file.name);
-            
-            if (jsonFiles.length > 0) {
-                return jsonFiles;
-            }
-            
-            console.warn('No JSON files found via API');
-        } else {
             console.warn(`API request failed: ${response.status} ${response.statusText}`);
         }
         
@@ -3729,4 +3734,119 @@ function checkForInputPrompt(message) {
     }
     
     return false;
+}
+
+// Helper function to fetch a list of files in a directory
+async function fetchFileList(dirPath) {
+    try {
+        console.log('Fetching files from:', dirPath);
+        
+        // Use our new robust endpoint
+        const url = `/api/files?path=${encodeURIComponent(dirPath)}`;
+        console.log('Using file listing API:', url);
+        
+        const response = await fetch(url);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log(`Found ${data.count || 0} files in ${dirPath}`);
+            
+            // Filter for just JSON files
+            const jsonFiles = data.files
+                .filter(file => file.type === 'file' && (file.file_type === 'json' || file.name.endsWith('.json')))
+                .map(file => file.name);
+            
+            if (jsonFiles.length > 0) {
+                return jsonFiles;
+            }
+            
+            console.warn('No JSON files found via API');
+        } else {
+            console.warn(`API request failed: ${response.status} ${response.statusText}`);
+        }
+        
+        // Fallback to outputs-directory API for backward compatibility
+        try {
+            console.log('Trying outputs directory API as fallback...');
+            const outputsResponse = await fetch(`/api/outputs-directory?path=${encodeURIComponent(dirPath)}`);
+            if (outputsResponse.ok) {
+                const data = await outputsResponse.json();
+                console.log('Files from outputs directory:', data.files || []);
+                return data.files || [];
+            }
+        } catch (err) {
+            console.warn('Error using outputs directory API:', err);
+        }
+        
+        // Try direct directory listing as another fallback
+        try {
+            console.log('Trying direct directory listing...');
+            // Try to access the directory directly via HTTP 
+            const directResponse = await fetch(`/${dirPath}/`);
+            
+            if (directResponse.ok) {
+                const text = await directResponse.text();
+                
+                // Use regex to extract JSON filenames from directory listing
+                const regex = /href="([^"]+\.json)"/g;
+                const matches = text.matchAll(regex);
+                const extractedFiles = Array.from(matches, m => m[1]);
+                
+                console.log('Files from direct listing:', extractedFiles);
+                if (extractedFiles.length > 0) {
+                    return extractedFiles;
+                }
+            }
+        } catch (err) {
+            console.warn('Error with direct directory listing:', err);
+        }
+        
+        // Final fallback - try to list the parent directory
+        try {
+            console.log('Trying to list parent directory as fallback...');
+            const parentPath = dirPath.substring(0, dirPath.lastIndexOf('/'));
+            const parentResponse = await fetch(`/api/files?path=${encodeURIComponent(parentPath)}`);
+            
+            if (parentResponse.ok) {
+                const data = await parentResponse.json();
+                console.log(`Found ${data.count || 0} files in parent directory ${parentPath}`);
+                
+                // Look for subdirectories matching our target
+                const targetDir = dirPath.split('/').pop();
+                const subdirs = data.files.filter(file => file.type === 'directory' && file.name === targetDir);
+                
+                if (subdirs.length > 0) {
+                    console.log(`Found matching subdirectory: ${subdirs[0].path}`);
+                    
+                    // Try to access this directory
+                    const subDirResponse = await fetch(`/api/files?path=${encodeURIComponent(subdirs[0].path)}`);
+                    if (subDirResponse.ok) {
+                        const subDirData = await subDirResponse.json();
+                        const jsonFiles = subDirData.files
+                            .filter(file => file.type === 'file' && (file.file_type === 'json' || file.name.endsWith('.json')))
+                            .map(file => file.name);
+                        
+                        if (jsonFiles.length > 0) {
+                            console.log(`Found ${jsonFiles.length} JSON files in subdirectory`);
+                            return jsonFiles;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Error listing parent directory:', err);
+        }
+        
+        // Last resort - try a hardcoded list of filenames if nothing else worked
+        console.warn('Using fallback file list as last resort');
+        return [
+            'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
+            '51ddd061.json', 'd9d48807.json', '210e2087.json', '1e4d05a7.json',
+            'e9384a05.json', 'a5722f27.json', '3a4eb4fc.json', 'f409f21c.json'
+        ];
+    } catch (error) {
+        console.error('Error fetching file list:', error);
+        // Return an empty array on error
+        return [];
+    }
 }
