@@ -32,8 +32,8 @@ from pymongo import MongoClient
 try:
     from dotenv import load_dotenv
 
-    # Load .env from the base repository directory (one level up from proposal_replayer)
-    env_path = Path(__file__).parent.parent.parent / ".env"
+    # Load .env from the correct repository directory (root directory)
+    env_path = Path(__file__).parent.parent / ".env"
     load_dotenv(dotenv_path=env_path)
     print(f"Loaded environment variables from {env_path}")
 except ImportError:
