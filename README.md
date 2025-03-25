@@ -55,8 +55,3 @@ python proposal_replayer/proposal_replayer.py
 ```bash
 python query_utilities/fetch_market_resolution.py 0x0FC5D2B61B29D54D487ACBC27E9694CEF303A9891433925E282742B1DBA4F399
 ```
-
-### Generating Market Data
-```bash
-python query_utilities/fetch_open_market_Ids.py 68853567 output_file.json
-```
