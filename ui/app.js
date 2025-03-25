@@ -6,6 +6,7 @@ let modal = null;
 let currentFilter = 'all'; // Track current result filter
 let currentSearch = ''; // Track current search term
 let currentSourceFilter = 'filesystem'; // Track current source filter
+let autoScrollEnabled = true; // Auto-scroll preference
 
 // Chart variables
 let recommendationChart = null;
@@ -79,6 +80,22 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set up logout button
     document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
+    
+    // Set up auto-scroll toggle
+    const autoScrollToggle = document.getElementById('autoScrollToggle');
+    if (autoScrollToggle) {
+        // Initialize from localStorage if available
+        const savedAutoScrollPref = localStorage.getItem('autoScrollEnabled');
+        if (savedAutoScrollPref !== null) {
+            autoScrollEnabled = savedAutoScrollPref === 'true';
+        }
+        autoScrollToggle.checked = autoScrollEnabled;
+        
+        autoScrollToggle.addEventListener('change', () => {
+            autoScrollEnabled = autoScrollToggle.checked;
+            localStorage.setItem('autoScrollEnabled', autoScrollEnabled);
+        });
+    }
     
     // Set up experiment runner events
     initializeExperimentRunner();
@@ -568,168 +585,172 @@ function updateCommandHistoryTable() {
     });
 }
 
-// Show logs for a history entry
+// Fetch and display logs for a history entry
 async function showHistoryLogs(historyEntry) {
     try {
-        // Update the logs title first to provide immediate feedback
-        const logsTitle = document.getElementById('logsTitle');
-        if (logsTitle) {
-            logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> <span class="loading-indicator"><i class="bi bi-hourglass"></i> Loading...</span>`;
+        if (!historyEntry) {
+            console.error('No history entry provided');
+            return;
         }
         
-        // Clear current logs to show we're loading new ones
+        console.log(`Showing logs for history entry: ${historyEntry.id} (${historyEntry.command})`);
+        
+        // Update current process ID
+        currentProcessId = historyEntry.id || null;
+        
+        // Get the logs container
         const logsContainer = document.getElementById('processLogs');
-        if (logsContainer) {
-            logsContainer.innerHTML = `
-                <div class="text-center p-3">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading logs...</span>
-                    </div>
-                    <p class="mt-2">Loading logs for: ${historyEntry.command}</p>
-                </div>
-            `;
+        const logsTitle = document.getElementById('logsTitle');
+        
+        if (!logsContainer) {
+            console.error('No logs container found');
+            return;
         }
         
-        // Check if this is an active process
-        const activeProcess = activeProcesses.find(p => p.id === historyEntry.id);
-        if (activeProcess) {
-            // If it's an active process, just select it and show current logs
-            currentProcessId = historyEntry.id;
-            updateProcessLogs(historyEntry.id);
-        } else {
-            console.log(`Fetching historical logs for process ID: ${historyEntry.id}`);
+        // Show loading state
+        logsContainer.innerHTML = `
+            <div class="text-center mt-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading logs...</span>
+                </div>
+                <p class="mt-3">Loading logs for: ${historyEntry.command}</p>
+            </div>
+        `;
+        
+        // Check if we have cached logs in the history entry
+        if (historyEntry.logs && historyEntry.logs.length > 0) {
+            // Generate log entries from history
+            const logHtml = historyEntry.logs.map(log => {
+                const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+            }).join('');
             
-            // First check if we have logs in the history entry
-            if (historyEntry.logs && historyEntry.logs.length > 0) {
-                console.log(`Using cached logs for process: ${historyEntry.command}`);
-                
-                // Generate log entries from the cached logs
-                const logHtml = historyEntry.logs.map(log => {
-                    const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
-                    return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
-                }).join('');
-                
-                logsContainer.innerHTML = logHtml;
-                
-                // Scroll to bottom to show the most recent logs
+            logsContainer.innerHTML = logHtml;
+            
+            // Only scroll to bottom if auto-scroll is enabled
+            if (autoScrollEnabled) {
                 logsContainer.scrollTop = logsContainer.scrollHeight;
-                
-                // Update the logs title
-                if (logsTitle) {
-                    const statusBadge = historyEntry.status ? 
-                        `<span class="badge ${
-                            historyEntry.status === 'completed' ? 'bg-success' : 
-                            historyEntry.status === 'failed' ? 'bg-danger' : 
-                            historyEntry.status === 'stopped' ? 'bg-warning' : 'bg-primary'
-                        }">${historyEntry.status}</span>` : '';
-                    
-                    logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> ${statusBadge}`;
-                }
-                
-                return;
             }
             
-            // Check if we have another entry with the same command that might have more info
-            const matchingEntry = commandHistory.find(h => 
-                h.id !== historyEntry.id && 
-                h.command === historyEntry.command && 
-                h.status !== 'running');
+            // Update the logs title
+            if (logsTitle) {
+                const statusBadge = historyEntry.status ? 
+                    `<span class="badge ${
+                        historyEntry.status === 'completed' ? 'bg-success' : 
+                        historyEntry.status === 'failed' ? 'bg-danger' : 
+                        historyEntry.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                    }">${historyEntry.status}</span>` : '';
                 
-            if (matchingEntry && matchingEntry.logs && matchingEntry.logs.length > 0) {
-                // Use logs from the matching entry
-                console.log(`Using logs from matching entry for the same command`);
-                
-                // Generate log entries from the matched entry's logs
-                const logHtml = matchingEntry.logs.map(log => {
-                    const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
-                    return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
-                }).join('');
-                
-                logsContainer.innerHTML = logHtml;
-                
-                // Scroll to bottom to show the most recent logs
-                logsContainer.scrollTop = logsContainer.scrollHeight;
-                
-                // Update the logs title
-                if (logsTitle) {
-                    const statusBadge = matchingEntry.status ? 
-                        `<span class="badge ${
-                            matchingEntry.status === 'completed' ? 'bg-success' : 
-                            matchingEntry.status === 'failed' ? 'bg-danger' : 
-                            matchingEntry.status === 'stopped' ? 'bg-warning' : 'bg-primary'
-                        }">${matchingEntry.status}</span>` : '';
-                    
-                    logsTitle.innerHTML = `Process Logs: <code>${matchingEntry.command}</code> ${statusBadge}`;
-                }
-                
-                return;
+                logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> ${statusBadge}`;
             }
             
-            // Make the API request if we don't have cached logs
-            const response = await fetch(`/api/process/${historyEntry.id}`);
+            return;
+        }
+        
+        // Check if we have another entry with the same command that might have more info
+        const matchingEntry = commandHistory.find(h => 
+            h.id !== historyEntry.id && 
+            h.command === historyEntry.command && 
+            h.status !== 'running');
             
-            if (response.ok) {
-                const processData = await response.json();
-                console.log(`Retrieved logs for process: ${processData.command}, status: ${processData.status}`);
+        if (matchingEntry && matchingEntry.logs && matchingEntry.logs.length > 0) {
+            // Use logs from the matching entry
+            console.log(`Using logs from matching entry for the same command`);
+            
+            // Generate log entries from the matched entry's logs
+            const logHtml = matchingEntry.logs.map(log => {
+                const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+            }).join('');
+            
+            logsContainer.innerHTML = logHtml;
+            
+            // Only scroll to bottom if auto-scroll is enabled
+            if (autoScrollEnabled) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
+            
+            // Update the logs title
+            if (logsTitle) {
+                const statusBadge = matchingEntry.status ? 
+                    `<span class="badge ${
+                        matchingEntry.status === 'completed' ? 'bg-success' : 
+                        matchingEntry.status === 'failed' ? 'bg-danger' : 
+                        matchingEntry.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                    }">${matchingEntry.status}</span>` : '';
                 
-                // Update logs container
-                if (logsContainer && processData.logs) {
-                    // Generate log entries
-                    if (processData.logs.length > 0) {
-                        const logHtml = processData.logs.map(log => {
-                            const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
-                            return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
-                        }).join('');
-                        
-                        logsContainer.innerHTML = logHtml;
-                        
-                        // Scroll to bottom to show the most recent logs
+                logsTitle.innerHTML = `Process Logs: <code>${matchingEntry.command}</code> ${statusBadge}`;
+            }
+            
+            return;
+        }
+        
+        // Make the API request if we don't have cached logs
+        const response = await fetch(`/api/process/${historyEntry.id}`);
+        
+        if (response.ok) {
+            const processData = await response.json();
+            console.log(`Retrieved logs for process: ${processData.command}, status: ${processData.status}`);
+            
+            // Update logs container
+            if (logsContainer && processData.logs) {
+                // Generate log entries
+                if (processData.logs.length > 0) {
+                    const logHtml = processData.logs.map(log => {
+                        const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                        return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+                    }).join('');
+                    
+                    logsContainer.innerHTML = logHtml;
+                    
+                    // Only scroll to bottom if auto-scroll is enabled
+                    if (autoScrollEnabled) {
                         logsContainer.scrollTop = logsContainer.scrollHeight;
-                        
-                        // Also update our history entry with these logs for future reference
-                        historyEntry.logs = processData.logs;
-                        historyEntry.status = processData.status;
-                        
-                        // Save updated history to localStorage
-                        localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
-                    } else {
-                        // No logs found in the response
-                        logsContainer.innerHTML = `
-                            <div class="text-center p-3">
-                                <div class="alert alert-info">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    No logs available for this command
-                                </div>
-                            </div>
-                        `;
                     }
+                    
+                    // Also update our history entry with these logs for future reference
+                    historyEntry.logs = processData.logs;
+                    historyEntry.status = processData.status;
+                    
+                    // Save updated history to localStorage
+                    localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
                 } else {
+                    // No logs found in the response
                     logsContainer.innerHTML = `
                         <div class="text-center p-3">
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                No logs container found or logs missing from response
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                No logs available for this command
                             </div>
                         </div>
                     `;
                 }
-                
-                // Update the logs title
-                if (logsTitle) {
-                    const statusBadge = processData.status ? 
-                        `<span class="badge ${
-                            processData.status === 'completed' ? 'bg-success' : 
-                            processData.status === 'failed' ? 'bg-danger' : 
-                            processData.status === 'stopped' ? 'bg-warning' : 'bg-primary'
-                        }">${processData.status}</span>` : '';
-                    
-                    logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> ${statusBadge}`;
-                }
             } else {
-                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('Failed to fetch logs:', errorData.error || response.statusText);
-                throw new Error(`Failed to fetch logs: ${errorData.error || response.statusText}`);
+                logsContainer.innerHTML = `
+                    <div class="text-center p-3">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            No logs container found or logs missing from response
+                        </div>
+                    </div>
+                `;
             }
+            
+            // Update the logs title
+            if (logsTitle) {
+                const statusBadge = processData.status ? 
+                    `<span class="badge ${
+                        processData.status === 'completed' ? 'bg-success' : 
+                        processData.status === 'failed' ? 'bg-danger' : 
+                        processData.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                    }">${processData.status}</span>` : '';
+                
+                logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> ${statusBadge}`;
+            }
+        } else {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Failed to fetch logs:', errorData.error || response.statusText);
+            throw new Error(`Failed to fetch logs: ${errorData.error || response.statusText}`);
         }
     } catch (error) {
         console.error('Error fetching logs:', error);
@@ -845,7 +866,10 @@ async function startProcess(command, isInteractive = false) {
                     <span class="log-message">Starting process: ${command}</span>
                 </div>
             `;
-            logsContainer.scrollTop = logsContainer.scrollHeight;
+            // Respect auto-scroll preference
+            if (autoScrollEnabled) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
         }
         
         if (logsTitle) {
@@ -916,7 +940,10 @@ async function startProcess(command, isInteractive = false) {
                     <span class="log-message">Error: ${error.message}</span>
                 </div>
             `;
-            logsContainer.scrollTop = logsContainer.scrollHeight;
+            // Respect auto-scroll preference for errors too
+            if (autoScrollEnabled) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
         }
     }
 }
@@ -931,8 +958,15 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
         existingSpinner.parentElement.remove();
     }
     
-    // Was the container scrolled to the bottom before adding content?
-    const wasAtBottom = logsContainer.scrollHeight - logsContainer.scrollTop <= logsContainer.clientHeight + 50;
+    // Store current scroll position information
+    const scrollInfo = {
+        // More precise detection of manually scrolled position
+        atBottom: Math.abs(logsContainer.scrollHeight - logsContainer.scrollTop - logsContainer.clientHeight) < 10,
+        initialScrollHeight: logsContainer.scrollHeight,
+        initialScrollTop: logsContainer.scrollTop,
+        userScrolledUp: logsContainer.scrollHeight > 0 && 
+                       logsContainer.scrollTop < logsContainer.scrollHeight - logsContainer.clientHeight - 20
+    };
     
     // Track existing log entries to avoid duplicates
     const existingLogEntries = new Set();
@@ -945,6 +979,7 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
     // Keep track of whether we've detected an input prompt
     let waitingForInput = false;
     let lastMessage = '';
+    let newLogsAdded = false;
     
     // Loop through each log entry and add it to the display if unique
     logs.forEach((log, index) => {
@@ -963,6 +998,7 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
             logEntry.innerHTML = `<span class="log-timestamp">${timestampText}</span><span class="log-message">${messageText}</span>`;
             logsContainer.appendChild(logEntry);
             existingLogEntries.add(logKey);
+            newLogsAdded = true;
         }
     });
     
@@ -972,9 +1008,20 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
         toggleInteractiveInput(currentProcessId, waitingForInput);
     }
     
-    // Scroll to bottom if we were already at the bottom
-    if (wasAtBottom) {
+    // If no new logs were added, don't change scroll position at all
+    if (!newLogsAdded) {
+        return;
+    }
+    
+    // Only auto-scroll if enabled AND either:
+    // 1. User was already at the bottom OR
+    // 2. User prompt requires input
+    if ((autoScrollEnabled && scrollInfo.atBottom) || waitingForInput) {
         logsContainer.scrollTop = logsContainer.scrollHeight;
+    } else if (!scrollInfo.userScrolledUp) {
+        // If user hasn't explicitly scrolled up, maintain relative scroll position
+        logsContainer.scrollTop = scrollInfo.initialScrollTop + 
+                                 (logsContainer.scrollHeight - scrollInfo.initialScrollHeight);
     }
 }
 
@@ -1012,8 +1059,9 @@ async function loadActiveProcesses() {
                     const prevLogs = prevProcess?.logs || [];
                     const currentLogs = process.logs || [];
                     
-                    // Update logs if we have more logs than before OR we're still running
-                    if (currentLogs.length !== prevLogs.length || process.status === 'running') {
+                    // Only update logs if we have more logs than before
+                    // Do NOT update just because the process is running - this causes unwanted scroll resets
+                    if (currentLogs.length !== prevLogs.length) {
                         updateProcessLogs(process.id);
                     }
                 }
@@ -1170,7 +1218,7 @@ function selectProcess(processId) {
     updateProcessLogs(processId);
 }
 
-// Update the process logs display
+// Function to update process logs display
 function updateProcessLogs(processId) {
     const logsContainer = document.getElementById('processLogs');
     if (!logsContainer) return;
@@ -1199,6 +1247,26 @@ function updateProcessLogs(processId) {
         logsTitle.innerHTML = `Process Logs: <code>${process.command}</code> ${statusBadge}`;
     }
     
+    // Cache check: See if we have already rendered these exact logs
+    // by comparing log count and the last log message
+    const currentLogCount = process.logs?.length || 0;
+    
+    // Store this information as a data attribute on the container
+    const previousLogCount = parseInt(logsContainer.getAttribute('data-log-count') || '0');
+    const lastLogMessage = logsContainer.getAttribute('data-last-log') || '';
+    const currentLastLog = currentLogCount > 0 ? 
+        `${process.logs[currentLogCount-1].timestamp}_${process.logs[currentLogCount-1].message}` : '';
+    
+    // If log count and last message are the same, no need to re-render
+    const sameLogsAsLastTime = currentLogCount === previousLogCount && 
+                              lastLogMessage === currentLastLog && 
+                              currentLogCount > 0;
+                              
+    if (sameLogsAsLastTime) {
+        // No changes in logs, no need to re-render
+        return;
+    }
+    
     // Check if we have logs
     if (!process.logs || process.logs.length === 0) {
         if (process.status === 'running') {
@@ -1225,12 +1293,21 @@ function updateProcessLogs(processId) {
                 </div>
             `;
         }
+        
+        // Update cache attributes
+        logsContainer.setAttribute('data-log-count', '0');
+        logsContainer.setAttribute('data-last-log', '');
+        
         return;
     }
     
     // Clear container and show all logs
     logsContainer.innerHTML = '';
     appendLogsToDisplay(logsContainer, process.logs, 0);
+    
+    // Update cache attributes
+    logsContainer.setAttribute('data-log-count', currentLogCount.toString());
+    logsContainer.setAttribute('data-last-log', currentLastLog);
 }
 
 // Format timestamp for logs
@@ -3663,52 +3740,50 @@ function applySourceFilter(source) {
     displayExperimentsTable();
 }
 
-// Send input to a running process
+// Function to handle sending input to a running process
 async function sendProcessInput(processId, input) {
     try {
-        // Show the input in the logs immediately (optimistic UI update)
-        const logsContainer = document.getElementById('processLogs');
-        if (logsContainer) {
-            // Create a new input log entry with user input
-            const inputLogEntry = document.createElement('div');
-            inputLogEntry.className = 'log-entry log-input';
-            inputLogEntry.innerHTML = `
-                <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
-                <span class="log-message">User input: ${input}</span>
-            `;
-            logsContainer.appendChild(inputLogEntry);
-            logsContainer.scrollTop = logsContainer.scrollHeight;
-        }
-        
-        // Make API request to send input to the process
+        // Send the input to the API
         const response = await fetch(`/api/process/input/${processId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ input })
+            body: JSON.stringify({ input: input })
         });
         
-        if (!response.ok) {
-            throw new Error(`Failed to send input: ${response.statusText}`);
+        if (response.ok) {
+            // Add the input to the logs display with a different style
+            const logsContainer = document.getElementById('processLogs');
+            if (logsContainer) {
+                const formattedTime = formatLogTime(new Date());
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry log-input';
+                logEntry.innerHTML = `<span class="log-timestamp">[${formattedTime}]</span><span class="log-message">&gt; ${input}</span>`;
+                logsContainer.appendChild(logEntry);
+                
+                // Only scroll to bottom if auto-scroll is enabled
+                if (autoScrollEnabled) {
+                    logsContainer.scrollTop = logsContainer.scrollHeight;
+                }
+            }
+            
+            // For better UX, immediately fetch new logs to show the response
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Fetch updated logs
+            const process = activeProcesses.find(p => p.id === processId);
+            if (process) {
+                updateProcessLogs(processId);
+            }
+        } else {
+            console.error('Failed to send input to process');
+            const errorData = await response.json();
+            alert(`Error: ${errorData.error || 'Failed to send input'}`);
         }
-        
-        // The response is handled by the existing log polling mechanism
     } catch (error) {
-        console.error('Error sending input:', error);
-        
-        // Show error message in logs
-        const logsContainer = document.getElementById('processLogs');
-        if (logsContainer) {
-            const errorLogEntry = document.createElement('div');
-            errorLogEntry.className = 'log-entry log-error';
-            errorLogEntry.innerHTML = `
-                <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
-                <span class="log-message">Error sending input: ${error.message}</span>
-            `;
-            logsContainer.appendChild(errorLogEntry);
-            logsContainer.scrollTop = logsContainer.scrollHeight;
-        }
+        console.error('Error sending input to process:', error);
+        alert('Error: Could not send input to process');
     }
 }
 
@@ -3875,33 +3950,49 @@ async function fetchFileList(dirPath) {
     }
 }
 
-// Modify the log display function to handle spinner outputs better
+// Function to process log entry and apply special formatting if needed
 function processLogEntry(logEntry) {
-    // Detect if this is a spinner update line
-    const isSpinnerLine = /Querying .* API \(attempt \d+\/\d+\) [⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏]/.test(logEntry.message);
+    if (!logEntry || !logEntry.message) return logEntry;
     
-    if (isSpinnerLine) {
-        // Replace the previous spinner line instead of adding a new one
-        const lastLogElement = document.querySelector('.log-line:last-child');
-        if (lastLogElement && lastLogElement.dataset.spinnerLine === 'true') {
-            lastLogElement.textContent = logEntry.message;
-            return; // Don't add a new line
-        }
+    // Deep clone to avoid modifying the original
+    const processedEntry = JSON.parse(JSON.stringify(logEntry));
+    let message = processedEntry.message;
+    
+    // Handle ANSI color codes - replace with HTML
+    // Example: Replace \x1b[31m (red) with <span style="color:red">
+    message = message.replace(/\x1b\[(\d+)m/g, (match, colorCode) => {
+        const colorMap = {
+            '30': 'black',
+            '31': 'red',
+            '32': 'green',
+            '33': 'yellow',
+            '34': 'blue',
+            '35': 'magenta',
+            '36': 'cyan',
+            '37': 'white',
+            '90': '#888', // bright black (gray)
+            '91': '#f66', // bright red
+            '92': '#6f6', // bright green
+            '93': '#ff6', // bright yellow
+            '94': '#66f', // bright blue
+            '95': '#f6f', // bright magenta
+            '96': '#6ff', // bright cyan
+            '97': '#fff'  // bright white
+        };
         
-        // If we're adding a new spinner line, mark it
-        const logElement = document.createElement('div');
-        logElement.className = 'log-line spinner-line';
-        logElement.dataset.spinnerLine = 'true';
-        logElement.textContent = logEntry.message;
-        logContainer.appendChild(logElement);
-    } else {
-        // Normal log line
-        const logElement = document.createElement('div');
-        logElement.className = 'log-line';
-        logElement.textContent = logEntry.message;
-        logContainer.appendChild(logElement);
-    }
+        if (colorCode === '0') {
+            return '</span>'; // Reset
+        } else if (colorMap[colorCode]) {
+            return `<span style="color:${colorMap[colorCode]}">`;
+        }
+        return '';
+    });
     
-    // Scroll to bottom
-    logContainer.scrollTop = logContainer.scrollHeight;
+    // Replace newlines with <br> for proper display
+    message = message.replace(/\n/g, '<br>');
+    
+    // Save processed message
+    processedEntry.message = message;
+    
+    return processedEntry;
 }

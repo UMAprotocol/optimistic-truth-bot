@@ -125,7 +125,7 @@ logger.info(f"Verbose logging: {'Enabled' if VERBOSE else 'Disabled'}")
 
 # Progress tracking class
 class ProgressTracker:
-    """Simple tracker for progress of proposal processing that only logs when files are completed."""
+    """Thread-safe tracker for progress of proposal processing that logs when files are completed."""
 
     def __init__(self, total_items):
         self.total = total_items
@@ -134,6 +134,7 @@ class ProgressTracker:
         self.skipped = 0
         self.start_time = time.time()
         self.current_file = ""
+        self.lock = threading.Lock()  # Add lock for thread safety
 
     def start(self):
         """Start the progress tracker."""
@@ -147,23 +148,26 @@ class ProgressTracker:
 
     def set_current_file(self, filename):
         """Set the current file being processed."""
-        self.current_file = filename
-        if VERBOSE:
-            print(f"Processing: {filename}")
+        with self.lock:
+            self.current_file = filename
+            if VERBOSE:
+                print(f"Processing: {filename}")
 
     def increment(self, processed=False, api_call=False, skipped=False):
-        """Increment counters and log progress when a file is processed."""
-        if processed:
-            self.processed += 1
-            self._log_file_completion(is_skip=False)
-        if api_call:
-            self.api_calls += 1
-        if skipped:
-            self.skipped += 1
-            self._log_file_completion(is_skip=True)
+        """Thread-safe increment of counters and log progress when a file is processed."""
+        with self.lock:
+            if processed:
+                self.processed += 1
+                self._log_file_completion(is_skip=False)
+            if api_call:
+                self.api_calls += 1
+            if skipped:
+                self.skipped += 1
+                self._log_file_completion(is_skip=True)
 
     def _log_file_completion(self, is_skip=False):
         """Log progress when a file is completed."""
+        # This method is called within increment() which already has the lock
         elapsed = time.time() - self.start_time
         minutes = elapsed / 60
         percent = (self.processed / self.total) * 100 if self.total > 0 else 0
@@ -189,22 +193,26 @@ class ProgressTracker:
 
     def _print_final_stats(self):
         """Print final statistics."""
-        elapsed = time.time() - self.start_time
-        minutes = elapsed / 60
-        msg = f"Completed: {self.processed}/{self.total} proposals - API calls: {self.api_calls} - Skipped: {self.skipped} - Time: {minutes:.1f} min"
-        print(msg, flush=True)
-        logger.info(msg)
+        with self.lock:
+            elapsed = time.time() - self.start_time
+            minutes = elapsed / 60
+            msg = f"Completed: {self.processed}/{self.total} proposals - API calls: {self.api_calls} - Skipped: {self.skipped} - Time: {minutes:.1f} min"
+            print(msg, flush=True)
+            logger.info(msg)
 
 
 class RateLimiter:
-    """Rate limiter for API calls with a maximum of N requests per minute."""
+    """Rate limiter for API calls with a maximum of N requests per minute.
+    Enhanced to handle concurrent requests properly."""
 
-    def __init__(self, max_requests_per_minute=5):
+    def __init__(self, max_requests_per_minute=5, max_concurrent=5):
         self.max_requests = max_requests_per_minute
+        self.max_concurrent = max_concurrent
         self.request_timestamps = deque(maxlen=max_requests_per_minute)
-        self.lock = threading.Lock()
+        self.lock = threading.Lock()  # Lock for timestamps
         self.in_flight = 0
-        self.in_flight_lock = threading.Lock()
+        self.in_flight_lock = threading.Lock()  # Lock for tracking in-flight requests
+        self.concurrency_semaphore = threading.Semaphore(max_concurrent)  # Limit concurrent processing
 
     def wait_if_needed(self):
         """Wait if needed to comply with rate limits. Returns wait time in seconds."""
@@ -235,14 +243,50 @@ class RateLimiter:
 
             return max(0, 60 - time_since_oldest)
 
+    def acquire(self):
+        """Acquire permission to make an API request, handling both rate limiting and concurrency."""
+        # First, acquire the concurrency semaphore (blocks if max concurrent requests are in progress)
+        self.concurrency_semaphore.acquire()
+        
+        try:
+            # Then, wait if needed to respect rate limits
+            wait_time = self.wait_if_needed()
+            
+            # Track the in-flight request
+            with self.in_flight_lock:
+                self.in_flight += 1
+                current_in_flight = self.in_flight
+                
+            return wait_time, current_in_flight
+        except Exception as e:
+            # If anything goes wrong, release the semaphore
+            self.concurrency_semaphore.release()
+            raise e
+
+    def release(self):
+        """Release resources after an API request is complete."""
+        try:
+            # Update in-flight counter
+            with self.in_flight_lock:
+                self.in_flight -= 1
+                current_in_flight = self.in_flight
+                
+            # Release the concurrency semaphore
+            self.concurrency_semaphore.release()
+            
+            return current_in_flight
+        except Exception as e:
+            logger.error(f"Error releasing rate limiter: {e}")
+            return -1
+
     def increment_in_flight(self):
-        """Increment the count of in-flight requests."""
+        """Increment the count of in-flight requests (legacy method)."""
         with self.in_flight_lock:
             self.in_flight += 1
             return self.in_flight
 
     def decrement_in_flight(self):
-        """Decrement the count of in-flight requests."""
+        """Decrement the count of in-flight requests (legacy method)."""
         with self.in_flight_lock:
             self.in_flight -= 1
             return self.in_flight
@@ -254,7 +298,7 @@ class RateLimiter:
 
 
 # Create a global rate limiter instance
-perplexity_rate_limiter = RateLimiter(max_requests_per_minute=5)
+perplexity_rate_limiter = RateLimiter(max_requests_per_minute=5, max_concurrent=MAX_CONCURRENT)
 
 
 def format_prompt_from_json(proposal_data):
@@ -355,52 +399,59 @@ def process_proposal_file(file_path, progress_tracker):
             "proposed_price", None
         )
 
-        # Wait if needed to respect rate limits
-        wait_time = perplexity_rate_limiter.wait_if_needed()
-        if wait_time > 0:
-            logger.info(
-                f"Rate limit reached. Waiting {wait_time:.2f} seconds before querying for {get_question_id_short(query_id)}"
-            )
-            if VERBOSE:
-                print(f"Rate limited: waited {wait_time:.2f}s before querying")
-
-        # Track in-flight requests
-        in_flight = perplexity_rate_limiter.increment_in_flight()
-        api_msg = f"Starting Perplexity-ChatGPT loop for {get_question_id_short(query_id)} (in-flight: {in_flight})"
-        logger.info(api_msg)
-        if VERBOSE:
-            print(api_msg)
-
-        start_time = time.time()
-        result = None
-
-        # Make API calls
+        # Acquire permission to make API request (handles both rate limiting and concurrency)
         try:
-            result = enhanced_perplexity_chatgpt_loop(
-                user_prompt=user_prompt,
-                perplexity_api_key=PERPLEXITY_API_KEY,
-                chatgpt_api_key=OPENAI_API_KEY,
-                original_system_prompt=system_prompt,
-                logger=logger,
-                max_attempts=MAX_ATTEMPTS,
-                min_attempts=MIN_ATTEMPTS,
-                verbose=VERBOSE,
-            )
+            wait_time, in_flight = perplexity_rate_limiter.acquire()
+            
+            if wait_time > 0:
+                logger.info(
+                    f"Rate limit reached. Waiting {wait_time:.2f} seconds before querying for {get_question_id_short(query_id)}"
+                )
+                if VERBOSE:
+                    print(f"Rate limited: waited {wait_time:.2f}s before querying")
 
+            # Log the request start
+            api_msg = f"Starting Perplexity-ChatGPT loop for {get_question_id_short(query_id)} (in-flight: {in_flight})"
+            logger.info(api_msg)
             if VERBOSE:
-                print(f"API calls completed for {get_question_id_short(query_id)}")
+                print(api_msg)
 
-        except Exception as api_error:
-            error_msg = f"Error during API calls for {get_question_id_short(query_id)}: {str(api_error)}"
+            start_time = time.time()
+            result = None
+
+            # Make API calls
+            try:
+                result = enhanced_perplexity_chatgpt_loop(
+                    user_prompt=user_prompt,
+                    perplexity_api_key=PERPLEXITY_API_KEY,
+                    chatgpt_api_key=OPENAI_API_KEY,
+                    original_system_prompt=system_prompt,
+                    logger=logger,
+                    max_attempts=MAX_ATTEMPTS,
+                    min_attempts=MIN_ATTEMPTS,
+                    verbose=VERBOSE,
+                )
+
+                if VERBOSE:
+                    print(f"API calls completed for {get_question_id_short(query_id)}")
+
+            except Exception as api_error:
+                error_msg = f"Error during API calls for {get_question_id_short(query_id)}: {str(api_error)}"
+                logger.error(error_msg)
+                if VERBOSE:
+                    print(f"ERROR: {error_msg}")
+                raise
+            finally:
+                # Release resources when done
+                in_flight = perplexity_rate_limiter.release()
+                api_complete_msg = f"Completed Perplexity-ChatGPT loop for {get_question_id_short(query_id)} (in-flight: {in_flight})"
+                logger.info(api_complete_msg)
+        except Exception as acquire_error:
+            error_msg = f"Error acquiring permission for {get_question_id_short(query_id)}: {str(acquire_error)}"
             logger.error(error_msg)
             if VERBOSE:
                 print(f"ERROR: {error_msg}")
             raise
-        finally:
-            # Decrement in-flight counter
-            in_flight = perplexity_rate_limiter.decrement_in_flight()
-            api_complete_msg = f"Completed Perplexity-ChatGPT loop for {get_question_id_short(query_id)} (in-flight: {in_flight})"
-            logger.info(api_complete_msg)
 
         if not result:
             raise Exception(
@@ -545,9 +596,9 @@ def process_proposal_file(file_path, progress_tracker):
         logger.error(error_msg)
         if VERBOSE:
             print(f"ERROR: {error_msg}")
-        # Ensure we decrement in-flight counter even on error
+        # Ensure we release resources even on error
         try:
-            perplexity_rate_limiter.decrement_in_flight()
+            perplexity_rate_limiter.release()
         except:
             pass
         progress_tracker.increment(skipped=True)
@@ -556,7 +607,7 @@ def process_proposal_file(file_path, progress_tracker):
 
 def process_all_proposals():
     logger.info(f"Processing all proposals from {PROPOSALS_DIR}")
-    logger.info(f"Using sequential processing for reliability")
+    logger.info(f"Using concurrent processing with max_concurrent={MAX_CONCURRENT}")
 
     # Collect all proposal files first
     proposal_files = list(Path(PROPOSALS_DIR).glob("*.json"))
@@ -576,30 +627,48 @@ def process_all_proposals():
 
     # Log the start of file processing
     if VERBOSE:
-        print(f"Starting to process files sequentially")
-
-    # Process files one by one
-    completed_files = 0
-    for file_path in proposal_files:
+        print(f"Starting to process files with {MAX_CONCURRENT} concurrent workers")
+    
+    # Create a lock for the progress tracker to prevent concurrent access issues
+    progress_tracker_lock = threading.Lock()
+    
+    def process_file_with_lock(file_path):
+        """Process a file with thread-safe progress tracking"""
         try:
             # Process the file
-            processed, api_call_made = process_proposal_file(
-                file_path, progress_tracker
-            )
-
-            completed_files += 1
-            if (
-                VERBOSE
-                and completed_files % 10 == 0
-                and completed_files
-                != progress_tracker.processed + progress_tracker.skipped
-            ):
-                print(f"Completed {completed_files}/{total_files} files")
+            processed, api_call_made = process_proposal_file(file_path, progress_tracker)
+            
+            # Update progress stats in a thread-safe manner
+            with progress_tracker_lock:
+                if VERBOSE and processed:
+                    print(f"Completed processing {file_path.name}")
+                
+            return processed, api_call_made
         except Exception as e:
             error_msg = f"Error processing file {file_path}: {str(e)}"
             logger.error(error_msg)
             print(f"ERROR: {error_msg}")
-            progress_tracker.increment(skipped=True)
+            
+            # Update progress stats in a thread-safe manner
+            with progress_tracker_lock:
+                progress_tracker.increment(skipped=True)
+            
+            return False, False
+    
+    # Use ThreadPoolExecutor for parallel processing
+    with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
+        # Submit all tasks to the executor
+        future_to_file = {executor.submit(process_file_with_lock, file_path): file_path for file_path in proposal_files}
+        
+        # Process results as they complete
+        for future in future_to_file:
+            try:
+                future.result()  # Wait for the task to complete
+            except Exception as exc:
+                file_path = future_to_file[future]
+                logger.error(f"Task for {file_path} generated an exception: {exc}")
+                with progress_tracker_lock:
+                    progress_tracker.increment(skipped=True)
 
     # Stop the progress tracker to display final stats
     progress_tracker.stop()
