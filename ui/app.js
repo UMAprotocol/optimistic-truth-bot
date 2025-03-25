@@ -1881,13 +1881,19 @@ async function loadExperimentData(directory, source) {
             currentExperiment.explicitSource = source;
         }
         
-        // Display the experiment metadata
+        // Display the experiment metadata - Keep this visible during loading
         displayExperimentMetadata();
         
-        // Initially show sections - we'll hide analytics if needed
-        document.getElementById('analyticsDashboard').style.display = 'block';
-        document.getElementById('filterControls').style.display = 'flex';
-        document.getElementById('resultsTableCard').style.display = 'block';
+        // Make sure the metadata container is visible
+        const metadataContainer = document.getElementById('experimentMetadataCard');
+        if (metadataContainer) {
+            metadataContainer.style.display = 'block';
+        }
+        
+        // Hide analytics while keeping metadata visible
+        document.getElementById('analyticsDashboard').style.display = 'none';
+        document.getElementById('filterControls').style.display = 'none';
+        document.getElementById('resultsTableCard').style.display = 'block'; // Keep visible for loading indicator
         document.querySelector('.results-section').style.display = 'block';
         
         // Hide tag filter until we know if we have tags
@@ -1914,10 +1920,11 @@ async function loadExperimentData(directory, source) {
         document.getElementById('resultsTableBody').innerHTML = `
             <tr>
                 <td colspan="7" class="text-center">
-                    <div class="spinner-border text-primary" role="status">
+                    <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2">Loading results from ${isMongoDBSource ? 'MongoDB' : currentExperiment.path}...</p>
+                    <p class="mt-2 fw-bold">Loading results from ${isMongoDBSource ? 'MongoDB' : currentExperiment.path}...</p>
+                    <p>Analytics and data table will appear once loading is complete</p>
                 </td>
             </tr>
         `;
@@ -1988,15 +1995,18 @@ async function loadExperimentData(directory, source) {
                                     const percentComplete = Math.min(100, Math.round(i / sampleFileNames.length * 100));
                                     document.getElementById('resultsTableBody').innerHTML = `
                                         <tr>
-                                            <td colspan="7" class="text-center">
-                                                <div class="progress mb-3" style="height: 20px;">
+                                            <td colspan="7" class="text-center py-5">
+                                                <h4 class="mb-4">Loading Experiment Data</h4>
+                                                <div class="progress mb-3" style="height: 25px;">
                                                     <div class="progress-bar progress-bar-striped progress-bar-animated" 
                                                          role="progressbar" style="width: ${percentComplete}%" 
                                                          aria-valuenow="${percentComplete}" aria-valuemin="0" aria-valuemax="100">
                                                         ${percentComplete}%
                                                     </div>
                                                 </div>
-                                                <p>Loading batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(sampleFileNames.length/batchSize)}...</p>
+                                                <p class="mt-3 lead">Batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(sampleFileNames.length/batchSize)}</p>
+                                                <p class="text-muted">Loading files ${i+1} to ${Math.min(i+batchSize, sampleFileNames.length)} of ${sampleFileNames.length}</p>
+                                                <p class="small mt-3">Analytics and data tables will appear when loading is complete</p>
                                             </td>
                                         </tr>
                                     `;
@@ -2167,6 +2177,10 @@ async function loadExperimentData(directory, source) {
         
         // Display results if we have data
         if (currentData.length > 0) {
+            // Now show all the sections since data is loaded
+            document.getElementById('analyticsDashboard').style.display = 'block';
+            document.getElementById('filterControls').style.display = 'flex';
+            
             // Populate the table with data
             displayResultsData();
             
@@ -2181,34 +2195,44 @@ async function loadExperimentData(directory, source) {
             const dataLoadedEvent = new CustomEvent('dataLoaded');
             document.dispatchEvent(dataLoadedEvent);
         } else {
-            // Hide analytics, filter, and tag filter when there's no data
-            console.warn(`API request failed: ${response.status} ${response.statusText}`);
-        }
-        
-        // Fallback to outputs-directory API for backward compatibility
-        try {
-            console.log('Trying outputs directory API as fallback...');
-            const outputsResponse = await fetch(`/api/outputs-directory?path=${encodeURIComponent(dirPath)}`);
-            if (outputsResponse.ok) {
-                const data = await outputsResponse.json();
-                console.log('Files from outputs directory:', data.files || []);
-                return data.files || [];
+            // Keep analytics, filter, and tag filter hidden when there's no data
+            document.getElementById('analyticsDashboard').style.display = 'none';
+            document.getElementById('filterControls').style.display = 'none';
+            const tagFilterCard = document.getElementById('tagFilterCard');
+            if (tagFilterCard) {
+                tagFilterCard.style.display = 'none';
             }
-        } catch (err) {
-            console.warn('Error using outputs directory API:', err);
+            
+            // Show error message if we couldn't load any data
+            document.getElementById('resultsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            No data found for experiment <strong>${directory}</strong>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading experiment data:', error);
+        
+        // Keep analytics, filter, and tag filter hidden on error
+        document.getElementById('analyticsDashboard').style.display = 'none';
+        document.getElementById('filterControls').style.display = 'none';
+        const tagFilterCard = document.getElementById('tagFilterCard');
+        if (tagFilterCard) {
+            tagFilterCard.style.display = 'none';
         }
         
-        // Final fallback - hardcoded list of common filenames
-        console.warn('Using fallback file list as last resort');
-        return [
-            'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
-            '51ddd061.json', 'd9d48807.json', '210e2087.json', '1e4d05a7.json',
-            'e9384a05.json', 'a5722f27.json', '3a4eb4fc.json', 'f409f21c.json'
-        ];
-    } catch (error) {
-        console.error('Error fetching file list:', error);
-        // Return an empty array on error
-        return [];
+        document.getElementById('resultsTableBody').innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger">
+                    Error loading experiment data: ${error.message}
+                </td>
+            </tr>
+        `;
     }
 }
 
