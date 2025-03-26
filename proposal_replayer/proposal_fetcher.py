@@ -151,6 +151,7 @@ def query_adapter_for_question(w3, adapter_address, question_id):
 def listen_for_propose_price_events(start_block=None, proposals_dir=None):
     load_dotenv()
     w3 = Web3(Web3.HTTPProvider(os.getenv("POLYGON_RPC_URL")))
+    # Remove middleware injection as it's not available
     logger.info(f"Connected to chain: {w3.is_connected()}")
 
     # Use provided proposals directory or default
@@ -221,10 +222,24 @@ def listen_for_propose_price_events(start_block=None, proposals_dir=None):
                     logger.info(f"Skipping market for {question_id}")
                     continue
 
+                # Get block timestamp using a direct RPC call instead of middleware
+                try:
+                    # Use a direct RPC call to get the block
+                    block_data = w3.provider.make_request(
+                        "eth_getBlockByNumber", [hex(event.blockNumber), False]
+                    )
+                    block_timestamp = int(block_data["result"]["timestamp"], 16)
+                except Exception as e:
+                    logger.warning(
+                        f"Error getting block timestamp: {e}, using current time instead"
+                    )
+                    block_timestamp = int(time.time())
+
                 result = {
                     "query_id": question_id,
                     "transaction_hash": "0x" + event.transactionHash.hex(),
                     "block_number": event.blockNumber,
+                    "request_transaction_block_time": block_timestamp,
                     "ancillary_data": data_clean,
                     "ancillary_data_hex": data_hex,
                     "resolution_conditions": resolution,
@@ -234,16 +249,17 @@ def listen_for_propose_price_events(start_block=None, proposals_dir=None):
                     ),
                     "resolved_price": None,
                     "resolved_price_outcome": None,
-                    "unix_timestamp": event["args"].get("timestamp", 0),
+                    "request_timestamp": event["args"].get("timestamp", 0),
+                    "expiration_timestamp": event["args"].get("expirationTimestamp", 0),
                     "creator": event["args"].get("requester", ""),
+                    "proposer": event["args"].get("proposer", ""),
+                    "bond_currency": event["args"].get("currency", ""),
                     "proposal_bond": 0,
                     "reward_amount": 0,
                     "updates": [],
                 }
 
                 for key in [
-                    "unix_timestamp",
-                    "creator",
                     "proposal_bond",
                     "reward_amount",
                     "updates",
@@ -252,7 +268,9 @@ def listen_for_propose_price_events(start_block=None, proposals_dir=None):
                         result[key] = adapter_result[key]
 
                 logger.debug(f"Creator: {result['creator']}")
-                logger.debug(f"Unix timestamp: {result['unix_timestamp']}")
+                logger.debug(f"Proposer: {result['proposer']}")
+                logger.debug(f"Request timestamp: {result['request_timestamp']}")
+                logger.debug(f"Expiration timestamp: {result['expiration_timestamp']}")
                 logger.debug(f"Proposal bond: {result['proposal_bond']}")
 
                 save_proposal(result, question_id, proposals_dir)

@@ -8,6 +8,21 @@ let currentSearch = ''; // Track current search term
 let currentSourceFilter = 'filesystem'; // Track current source filter
 let autoScrollEnabled = true; // Auto-scroll preference
 
+// Add column preferences with defaults
+let columnPreferences = {
+    timestamp: true,
+    proposal_timestamp: true,
+    id: true,
+    title: true,
+    recommendation: true,
+    resolution: true,
+    disputed: true,
+    correct: true,
+    block_number: false,
+    proposal_bond: false,
+    tags: false
+};
+
 // Chart variables
 let recommendationChart = null;
 let resolutionChart = null;
@@ -36,6 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Setup tag filter when data is loaded
     document.addEventListener('dataLoaded', setupTagFilter);
+    
+    // Load saved column preferences
+    loadColumnPreferences();
+    
+    // Initialize column selector
+    initializeColumnSelector();
 
     // Set up search functionality
     document.getElementById('searchBtn')?.addEventListener('click', () => {
@@ -1837,6 +1858,214 @@ function applyFilter(filter) {
     applyAllFilters(filter, selectedTags);
 }
 
+// Load column preferences from localStorage
+function loadColumnPreferences() {
+    try {
+        const savedPreferences = localStorage.getItem('columnPreferences');
+        if (savedPreferences) {
+            columnPreferences = JSON.parse(savedPreferences);
+        }
+    } catch (error) {
+        console.error('Error loading column preferences:', error);
+    }
+}
+
+// Save column preferences to localStorage
+function saveColumnPreferences() {
+    try {
+        localStorage.setItem('columnPreferences', JSON.stringify(columnPreferences));
+    } catch (error) {
+        console.error('Error saving column preferences:', error);
+    }
+}
+
+// Initialize column selector UI
+function initializeColumnSelector() {
+    // Add column selector button to results table card header
+    const resultsTableHeader = document.querySelector('#resultsTableCard .card-header');
+    if (!resultsTableHeader) return;
+    
+    // Find or create the container for the column selector
+    let displayInfoContainer = resultsTableHeader.querySelector('p');
+    if (!displayInfoContainer) {
+        displayInfoContainer = document.createElement('p');
+        displayInfoContainer.className = 'mb-0';
+        displayInfoContainer.innerHTML = 'Displaying <span id="displayingCount">0</span> of <span id="totalEntriesCount">0</span> entries';
+        resultsTableHeader.appendChild(displayInfoContainer);
+    }
+    
+    // Make the display info container a flex container to align items
+    displayInfoContainer.style.display = 'flex';
+    displayInfoContainer.style.justifyContent = 'space-between';
+    displayInfoContainer.style.alignItems = 'center';
+    
+    // Split the existing content into its own span
+    const entriesInfoSpan = document.createElement('span');
+    entriesInfoSpan.innerHTML = displayInfoContainer.innerHTML;
+    displayInfoContainer.innerHTML = '';
+    displayInfoContainer.appendChild(entriesInfoSpan);
+    
+    // Create column selector dropdown
+    const columnSelector = document.createElement('div');
+    columnSelector.className = 'dropdown';
+    columnSelector.innerHTML = `
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="columnSelectorBtn" 
+            data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-columns-gap"></i> Columns
+        </button>
+        <div class="dropdown-menu p-2 dropdown-menu-end" id="columnSelectorMenu" aria-labelledby="columnSelectorBtn">
+            <h6 class="dropdown-header">Select Columns to Display</h6>
+            <div class="column-checkbox-container">
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-timestamp" 
+                        ${columnPreferences.timestamp ? 'checked' : ''} data-column="timestamp">
+                    <label class="form-check-label" for="col-timestamp">Date</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_timestamp" 
+                        ${columnPreferences.proposal_timestamp ? 'checked' : ''} data-column="proposal_timestamp">
+                    <label class="form-check-label" for="col-proposal_timestamp">Proposal Date</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-id" 
+                        ${columnPreferences.id ? 'checked' : ''} data-column="id">
+                    <label class="form-check-label" for="col-id">ID</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-title" 
+                        ${columnPreferences.title ? 'checked' : ''} data-column="title">
+                    <label class="form-check-label" for="col-title">Title</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-recommendation" 
+                        ${columnPreferences.recommendation ? 'checked' : ''} data-column="recommendation">
+                    <label class="form-check-label" for="col-recommendation">Recommendation</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-resolution" 
+                        ${columnPreferences.resolution ? 'checked' : ''} data-column="resolution">
+                    <label class="form-check-label" for="col-resolution">Resolution</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-disputed" 
+                        ${columnPreferences.disputed ? 'checked' : ''} data-column="disputed">
+                    <label class="form-check-label" for="col-disputed">Disputed</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-correct" 
+                        ${columnPreferences.correct ? 'checked' : ''} data-column="correct">
+                    <label class="form-check-label" for="col-correct">Correct</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-block_number" 
+                        ${columnPreferences.block_number ? 'checked' : ''} data-column="block_number">
+                    <label class="form-check-label" for="col-block_number">Block Number</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_bond" 
+                        ${columnPreferences.proposal_bond ? 'checked' : ''} data-column="proposal_bond">
+                    <label class="form-check-label" for="col-proposal_bond">Proposal Bond</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-tags" 
+                        ${columnPreferences.tags ? 'checked' : ''} data-column="tags">
+                    <label class="form-check-label" for="col-tags">Tags</label>
+                </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="d-flex justify-content-between px-2">
+                <button class="btn btn-sm btn-outline-secondary" id="resetColumnDefaults">
+                    Reset Defaults
+                </button>
+                <button class="btn btn-sm btn-primary" id="applyColumnSelection">
+                    Apply
+                </button>
+            </div>
+        </div>
+    `;
+    
+    displayInfoContainer.appendChild(columnSelector);
+    
+    // Add event listeners for column selection
+    document.querySelectorAll('.column-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const column = this.getAttribute('data-column');
+            columnPreferences[column] = this.checked;
+        });
+    });
+    
+    // Add event listener for apply button
+    document.getElementById('applyColumnSelection')?.addEventListener('click', function() {
+        saveColumnPreferences();
+        updateTableWithData(currentData);
+        
+        // Hide the dropdown
+        const dropdownEl = document.getElementById('columnSelectorMenu');
+        if (dropdownEl) {
+            const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('columnSelectorBtn'));
+            if (dropdown) dropdown.hide();
+        }
+    });
+    
+    // Add event listener for reset defaults button
+    document.getElementById('resetColumnDefaults')?.addEventListener('click', function() {
+        // Reset to defaults
+        columnPreferences = {
+            timestamp: true,
+            proposal_timestamp: true,
+            id: true,
+            title: true,
+            recommendation: true,
+            resolution: true,
+            disputed: true,
+            correct: true,
+            block_number: false,
+            proposal_bond: false,
+            tags: false
+        };
+        
+        // Update checkboxes
+        document.querySelectorAll('.column-checkbox').forEach(checkbox => {
+            const column = checkbox.getAttribute('data-column');
+            checkbox.checked = columnPreferences[column];
+        });
+        
+        // Save preferences and update the table automatically
+        saveColumnPreferences();
+        updateTableWithData(currentData);
+        
+        // Hide the dropdown
+        const dropdownEl = document.getElementById('columnSelectorMenu');
+        if (dropdownEl) {
+            const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('columnSelectorBtn'));
+            if (dropdown) dropdown.hide();
+        }
+    });
+    
+    // Add styles for column selector
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .column-checkbox-container {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0 10px;
+            margin-bottom: 10px;
+        }
+        
+        .column-checkbox-container .form-check {
+            margin-bottom: 6px;
+        }
+        
+        .tag-badge.small {
+            font-size: 0.75rem;
+            padding: 0.25em 0.6em;
+            margin-right: 2px;
+            white-space: nowrap;
+        }
+    `;
+    document.head.appendChild(styleElement);
+}
+
 // Load data about available experiment directories
 async function loadExperimentsData() {
     try {
@@ -2734,6 +2963,31 @@ function displayResultsData() {
     updateTableWithData(processedData);
 }
 
+// Function to update table header based on selected columns
+function updateTableHeader() {
+    const thead = document.querySelector('#resultsTable thead');
+    if (!thead) return;
+    
+    // Build the header row based on selected columns
+    let headerRow = '<tr>';
+    
+    // Add columns based on preferences
+    if (columnPreferences.timestamp) headerRow += '<th>Process Time</th>';
+    if (columnPreferences.proposal_timestamp) headerRow += '<th>Proposal Time</th>';
+    if (columnPreferences.id) headerRow += '<th>ID</th>';
+    if (columnPreferences.title) headerRow += '<th>Title</th>';
+    if (columnPreferences.recommendation) headerRow += '<th>AI Rec</th>';
+    if (columnPreferences.resolution) headerRow += '<th>Res</th>';
+    if (columnPreferences.disputed) headerRow += '<th>Disputed</th>';
+    if (columnPreferences.correct) headerRow += '<th>Correct</th>';
+    if (columnPreferences.block_number) headerRow += '<th>Block #</th>';
+    if (columnPreferences.proposal_bond) headerRow += '<th>Bond</th>';
+    if (columnPreferences.tags) headerRow += '<th>Tags</th>';
+    
+    headerRow += '</tr>';
+    thead.innerHTML = headerRow;
+}
+
 // Update the table with the provided data
 function updateTableWithData(dataArray) {
     const tableBody = document.getElementById('resultsTableBody');
@@ -2742,13 +2996,16 @@ function updateTableWithData(dataArray) {
     if (!dataArray || dataArray.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center">No data available</td>
+                <td colspan="12" class="text-center">No data available</td>
             </tr>
         `;
         document.getElementById('displayingCount').textContent = '0';
         document.getElementById('totalEntriesCount').textContent = '0';
         return;
     }
+    
+    // Update table header based on column preferences
+    updateTableHeader();
     
     // Sort the data based on current sort settings
     const sortedData = sortData([...dataArray], currentSort.column, currentSort.direction);
@@ -2837,30 +3094,49 @@ function updateTableWithData(dataArray) {
             formatDate(proposalTimestamp) : 
             (item.proposal_metadata && item.proposal_metadata.unix_timestamp ? 
                 formatDate(item.proposal_metadata.unix_timestamp) : 'N/A');
+                
+        // Extract block number from proposal_metadata if available
+        const blockNumber = item.proposal_metadata?.block_number || 'N/A';
+        
+        // Extract proposal bond from proposal_metadata if available
+        const proposalBond = item.proposal_metadata?.proposal_bond 
+            ? formatBond(item.proposal_metadata.proposal_bond) 
+            : 'N/A';
+            
+        // Format tags
+        const formattedTags = item.tags && Array.isArray(item.tags) && item.tags.length > 0
+            ? item.tags.map(tag => `<span class="tag-badge small">${tag}</span>`).join(' ')
+            : 'None';
         
         // Store the original data index as a data attribute for the full dataset
         // This ensures we have the correct index when clicking a row
         const originalDataIndex = dataArray === currentData ? 
             currentData.indexOf(item) : currentData.indexOf(item);
         
-        return `
-            <tr class="result-row ${recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">
-                <td>${formattedDate}</td>
-                <td>${formattedProposalDate}</td>
-                <td><code class="code-font">${queryId}</code></td>
-                <td>${title}</td>
-                <td class="recommendation">${recommendation}</td>
-                <td>${resolution}</td>
-                <td>
-                    <span class="${disputedClass}"><i class="bi ${disputedIcon}"></i> ${isDisputed ? 'Yes' : 'No'}</span>
-                </td>
-                <td>
-                    ${canCalculateCorrectness ? 
-                      `<span class="${correctnessClass}"><i class="bi ${correctnessIcon}"></i> ${isCorrect ? 'Yes' : 'No'}</span>` :
-                      'N/A'}
-                </td>
-            </tr>
-        `;
+        // Build the row based on selected columns
+        let row = `<tr class="result-row ${recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">`;
+        
+        // Add cells based on column preferences
+        if (columnPreferences.timestamp) row += `<td>${formattedDate}</td>`;
+        if (columnPreferences.proposal_timestamp) row += `<td>${formattedProposalDate}</td>`;
+        if (columnPreferences.id) row += `<td><code class="code-font">${queryId}</code></td>`;
+        if (columnPreferences.title) row += `<td>${title}</td>`;
+        if (columnPreferences.recommendation) row += `<td class="recommendation">${recommendation}</td>`;
+        if (columnPreferences.resolution) row += `<td>${resolution}</td>`;
+        if (columnPreferences.disputed) row += `<td>
+            <span class="${disputedClass}"><i class="bi ${disputedIcon}"></i> ${isDisputed ? 'Yes' : 'No'}</span>
+        </td>`;
+        if (columnPreferences.correct) row += `<td>
+            ${canCalculateCorrectness ? 
+              `<span class="${correctnessClass}"><i class="bi ${correctnessIcon}"></i> ${isCorrect ? 'Yes' : 'No'}</span>` :
+              'N/A'}
+        </td>`;
+        if (columnPreferences.block_number) row += `<td>${blockNumber}</td>`;
+        if (columnPreferences.proposal_bond) row += `<td>${proposalBond}</td>`;
+        if (columnPreferences.tags) row += `<td>${formattedTags}</td>`;
+        
+        row += '</tr>';
+        return row;
     }).join('');
     
     // Add click event to rows
@@ -2885,6 +3161,18 @@ function updateTableWithData(dataArray) {
     
     // Create pagination controls
     createPagination(currentPage, totalPages, 'resultsTable');
+    
+    // Re-initialize sortable headers after updating
+    initializeSortableHeaders();
+}
+
+// Helper function to format bond values
+function formatBond(bond) {
+    if (!bond) return 'N/A';
+    
+    // Format as number with commas
+    const formattedValue = parseInt(bond).toLocaleString();
+    return formattedValue;
 }
 
 // Apply filter and search to the table
@@ -4240,6 +4528,18 @@ function sortData(data, column, direction) {
                 valueA = isCorrectA === true ? 1 : isCorrectA === false ? 0 : -1;
                 valueB = isCorrectB === true ? 1 : isCorrectB === false ? 0 : -1;
                 break;
+            case 'block_number':
+                valueA = a.proposal_metadata?.block_number || 0;
+                valueB = b.proposal_metadata?.block_number || 0;
+                break;
+            case 'proposal_bond':
+                valueA = a.proposal_metadata?.proposal_bond || 0;
+                valueB = b.proposal_metadata?.proposal_bond || 0;
+                break;
+            case 'tags':
+                valueA = (a.tags && a.tags.length) ? a.tags.join(',').toLowerCase() : '';
+                valueB = (b.tags && b.tags.length) ? b.tags.join(',').toLowerCase() : '';
+                break;
             default:
                 valueA = a[column];
                 valueB = b[column];
@@ -4263,6 +4563,16 @@ function sortData(data, column, direction) {
             }
         }
         
+        // Convert string numbers to actual numbers for numeric columns
+        if (column === 'block_number' || column === 'proposal_bond') {
+            if (typeof valueA === 'string' && !isNaN(parseInt(valueA, 10))) {
+                valueA = parseInt(valueA, 10);
+            }
+            if (typeof valueB === 'string' && !isNaN(parseInt(valueB, 10))) {
+                valueB = parseInt(valueB, 10);
+            }
+        }
+        
         // Compare values based on direction
         if (direction === 'asc') {
             return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
@@ -4277,17 +4587,21 @@ function initializeSortableHeaders() {
     const headers = document.querySelectorAll('#resultsTable th');
     if (!headers.length) return;
     
-    // Define column mappings (position to column name)
-    const columnMap = [
-        'timestamp',           // Process Time
-        'proposal_timestamp',  // Proposal Time
-        'id',                  // ID
-        'title',               // Title
-        'recommendation',      // AI Rec
-        'resolution',          // Res
-        'disputed',            // Disputed
-        'correct'              // Correct
-    ];
+    // Define column mappings based on visible columns
+    const columnMap = [];
+    
+    // Add columns to map based on preferences (must match order in updateTableHeader)
+    if (columnPreferences.timestamp) columnMap.push('timestamp');
+    if (columnPreferences.proposal_timestamp) columnMap.push('proposal_timestamp');
+    if (columnPreferences.id) columnMap.push('id');
+    if (columnPreferences.title) columnMap.push('title');
+    if (columnPreferences.recommendation) columnMap.push('recommendation');
+    if (columnPreferences.resolution) columnMap.push('resolution');
+    if (columnPreferences.disputed) columnMap.push('disputed');
+    if (columnPreferences.correct) columnMap.push('correct');
+    if (columnPreferences.block_number) columnMap.push('block_number');
+    if (columnPreferences.proposal_bond) columnMap.push('proposal_bond');
+    if (columnPreferences.tags) columnMap.push('tags');
     
     // Add sort indicators and click handlers to headers
     headers.forEach((header, index) => {
@@ -4328,7 +4642,7 @@ function initializeSortableHeaders() {
             
             // Update all indicators
             document.querySelectorAll('#resultsTable th .sort-indicator').forEach((indicator, i) => {
-                if (columnMap[i] === currentSort.column) {
+                if (i < columnMap.length && columnMap[i] === currentSort.column) {
                     indicator.innerHTML = currentSort.direction === 'asc' ? '&#9650;' : '&#9660;';
                     indicator.style.opacity = '1';
                 } else {
