@@ -170,12 +170,16 @@ class ProgressTracker:
         # This method is called within increment() which already has the lock
         elapsed = time.time() - self.start_time
         minutes = elapsed / 60
-        percent = (self.processed / self.total) * 100 if self.total > 0 else 0
+
+        # Calculate progress including both processed and skipped files
+        completed_files = self.processed + self.skipped
+        percent = (completed_files / self.total) * 100 if self.total > 0 else 0
 
         if VERBOSE:
             # Detailed output for verbose mode
             msg = (
-                f"Progress: {self.processed}/{self.total} ({percent:.1f}%) - "
+                f"Progress: {completed_files}/{self.total} ({percent:.1f}%) - "
+                f"Processed: {self.processed} - "
                 f"API calls: {self.api_calls} - "
                 f"Skipped: {self.skipped} - "
                 f"Elapsed: {minutes:.1f} min - "
@@ -186,7 +190,7 @@ class ProgressTracker:
         else:
             # In non-verbose mode, only print for non-skipped files or every 10 skipped files
             if not is_skip or self.skipped % 10 == 0:
-                msg = f"Processing: {self.processed}/{self.total} ({percent:.1f}%) - Skipped: {self.skipped} - Completed: {self.current_file}"
+                msg = f"Processing: {completed_files}/{self.total} ({percent:.1f}%) - Processed: {self.processed} - Skipped: {self.skipped} - Completed: {self.current_file}"
                 print(msg, flush=True)
                 if not is_skip:  # Only log non-skipped files to avoid log spam
                     logger.info(msg)
@@ -196,7 +200,10 @@ class ProgressTracker:
         with self.lock:
             elapsed = time.time() - self.start_time
             minutes = elapsed / 60
-            msg = f"Completed: {self.processed}/{self.total} proposals - API calls: {self.api_calls} - Skipped: {self.skipped} - Time: {minutes:.1f} min"
+            completed_files = self.processed + self.skipped
+            percent = (completed_files / self.total) * 100 if self.total > 0 else 0
+
+            msg = f"Completed: {completed_files}/{self.total} files ({percent:.1f}%) - Processed with API: {self.processed} - Skipped: {self.skipped} - API calls: {self.api_calls} - Time: {minutes:.1f} min"
             print(msg, flush=True)
             logger.info(msg)
 
@@ -359,6 +366,31 @@ def should_process_proposal(proposal_data):
     return block_number >= START_BLOCK_NUMBER
 
 
+def is_valid_proposal_file(proposal_data):
+    """Check if the JSON data is a valid proposal file with required fields."""
+    # If it's a list, check the first item
+    if isinstance(proposal_data, list):
+        if not proposal_data:  # Empty list
+            return False
+        proposal_data = proposal_data[0]
+
+    # Check for required fields that all proposal files should have
+    required_fields = ["query_id", "ancillary_data"]
+    for field in required_fields:
+        if field not in proposal_data:
+            return False
+
+    # Additional validation: ensure it's not a metadata file
+    if (
+        proposal_data.get("title")
+        and proposal_data.get("description")
+        and "dataset" in proposal_data.get("description", "").lower()
+    ):
+        return False
+
+    return True
+
+
 def process_proposal_file(file_path, progress_tracker):
     file_name = os.path.basename(file_path)
     file_process_start_time = time.time()
@@ -376,6 +408,12 @@ def process_proposal_file(file_path, progress_tracker):
         # Open and parse the proposal file
         with open(file_path, "r") as f:
             proposal_data = json.load(f)
+
+        # Validate if this is a properly formatted proposal file
+        if not is_valid_proposal_file(proposal_data):
+            logger.info(f"Skipping {file_name} - not a valid proposal file format")
+            progress_tracker.increment(skipped=True)
+            return True, False  # Processed (skipped), but no API call made
 
         # Check if we should process this proposal based on block number
         if not should_process_proposal(proposal_data):
@@ -655,8 +693,14 @@ def process_all_proposals():
     logger.info(f"Processing all proposals from {PROPOSALS_DIR}")
     logger.info(f"Using concurrent processing with max_concurrent={MAX_CONCURRENT}")
 
-    # Collect all proposal files first
-    proposal_files = list(Path(PROPOSALS_DIR).glob("*.json"))
+    # Collect all proposal files first, excluding metadata.json
+    proposal_files = []
+    for file_path in Path(PROPOSALS_DIR).glob("*.json"):
+        if file_path.name.lower() == "metadata.json":
+            logger.info(f"Skipping metadata file: {file_path.name}")
+            continue
+        proposal_files.append(file_path)
+
     total_files = len(proposal_files)
 
     logger.info(f"Found {total_files} proposal files to process")
@@ -680,7 +724,12 @@ def process_all_proposals():
             "test query to verify API key",
             PERPLEXITY_API_KEY,
         )
-        if not test_result or not isinstance(test_result, dict):
+        # Check for a valid response object with expected attributes
+        if (
+            not test_result
+            or not hasattr(test_result, "choices")
+            or not test_result.choices
+        ):
             logger.error("Perplexity API test failed - invalid response format")
             print("ERROR: Perplexity API test failed - invalid response format")
             sys.exit(1)  # Exit with error code
