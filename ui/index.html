@@ -172,6 +172,19 @@
                 <div class="results-section" style="display: none;">
                     <h2 class="main-heading">Results</h2>
                     
+                    <!-- Tag Filter Section - Will be shown when tags are available -->
+                    <div class="card mb-4" id="tagFilterCard" style="display: none;">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Filter by Tags</h5>
+                            <button class="btn btn-sm btn-outline-secondary" id="clearTagFilter">Clear All</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="tag-grid" id="tagCheckboxContainer">
+                                <!-- Tag checkboxes will be generated here in 3 columns -->
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="row align-items-center mb-4" id="filterControls" style="display: none;">
                         <div class="col-md-6">
                             <div class="btn-group" role="group">
@@ -188,19 +201,6 @@
                                 <button class="btn btn-primary" type="button" id="searchBtn">
                                     <i class="bi bi-search"></i> Search
                                 </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Tag Filter Section - Will be shown when tags are available -->
-                    <div class="card mb-4" id="tagFilterCard" style="display: none;">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Filter by Tags</h5>
-                            <button class="btn btn-sm btn-outline-secondary" id="clearTagFilter">Clear All</button>
-                        </div>
-                        <div class="card-body">
-                            <div class="tag-grid" id="tagCheckboxContainer">
-                                <!-- Tag checkboxes will be generated here in 3 columns -->
                             </div>
                         </div>
                     </div>
