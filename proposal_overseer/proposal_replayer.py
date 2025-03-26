@@ -157,6 +157,31 @@ def should_process_proposal(proposal_data):
     return block_number >= START_BLOCK_NUMBER
 
 
+def is_valid_proposal_file(proposal_data):
+    """Check if the JSON data is a valid proposal file with required fields."""
+    # If it's a list, check the first item
+    if isinstance(proposal_data, list):
+        if not proposal_data:  # Empty list
+            return False
+        proposal_data = proposal_data[0]
+
+    # Check for required fields that all proposal files should have
+    required_fields = ["query_id", "ancillary_data"]
+    for field in required_fields:
+        if field not in proposal_data:
+            return False
+
+    # Additional validation: ensure it's not a metadata file
+    if (
+        proposal_data.get("title")
+        and proposal_data.get("description")
+        and "dataset" in proposal_data.get("description", "").lower()
+    ):
+        return False
+
+    return True
+
+
 def process_proposal_file(file_path):
     file_name = os.path.basename(file_path)
     logger.info(f"Processing proposal: {file_name}")
@@ -164,6 +189,11 @@ def process_proposal_file(file_path):
     try:
         with open(file_path, "r") as f:
             proposal_data = json.load(f)
+
+        # Validate if this is a properly formatted proposal file
+        if not is_valid_proposal_file(proposal_data):
+            logger.info(f"Skipping {file_name} - not a valid proposal file format")
+            return True
 
         # Check if we should process this proposal based on block number
         if not should_process_proposal(proposal_data):
@@ -372,6 +402,11 @@ def process_all_existing_files():
 
     for file_path in PROPOSALS_DIR.glob("*.json"):
         try:
+            # Skip metadata files
+            if file_path.name.lower() == "metadata.json":
+                logger.info(f"Skipping metadata file: {file_path.name}")
+                continue
+
             with open(file_path, "r") as f:
                 proposal_data = json.load(f)
 
@@ -396,7 +431,14 @@ def process_all_existing_files():
 class NewFileHandler(FileSystemEventHandler):
     def on_created(self, event):
         if not event.is_directory and event.src_path.endswith(".json"):
-            logger.info(f"New proposal detected: {os.path.basename(event.src_path)}")
+            file_name = os.path.basename(event.src_path)
+
+            # Skip metadata files
+            if file_name.lower() == "metadata.json":
+                logger.info(f"Skipping metadata file: {file_name}")
+                return
+
+            logger.info(f"New proposal detected: {file_name}")
             time.sleep(1)  # Small delay to ensure file is fully written
             process_proposal_file(event.src_path)
 
@@ -416,7 +458,12 @@ def main():
             "test query to verify API key",
             PERPLEXITY_API_KEY,
         )
-        if not test_result or not isinstance(test_result, dict):
+        # Check for a valid response object with expected attributes
+        if (
+            not test_result
+            or not hasattr(test_result, "choices")
+            or not test_result.choices
+        ):
             logger.error("Perplexity API test failed - invalid response format")
             print("ERROR: Perplexity API test failed - invalid response format")
             sys.exit(1)  # Exit with error code
@@ -443,8 +490,12 @@ def main():
             print(f"ERROR: Perplexity API test failed: {error_msg}")
 
         # Exit immediately on any API test failure
-        logger.error("Cannot proceed with invalid Perplexity API key or out of API credits")
-        print("ERROR: Cannot proceed with invalid Perplexity API key or out of API credits")
+        logger.error(
+            "Cannot proceed with invalid Perplexity API key or out of API credits"
+        )
+        print(
+            "ERROR: Cannot proceed with invalid Perplexity API key or out of API credits"
+        )
         sys.exit(1)  # Exit with error code
 
     process_all_existing_files()

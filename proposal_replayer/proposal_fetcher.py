@@ -273,6 +273,9 @@ def enrich_proposal_with_polymarket_data(result, question_id):
         condition_id = compute_condition_id(UmaCtfAdapter, question_id, 2)
         logger.info(f"Querying Polymarket API for condition_id: {condition_id}")
 
+        # Add condition_id to result
+        result["condition_id"] = condition_id
+
         # Fetch market data
         poly_data = get_polymarket_data(condition_id)
         if not poly_data:

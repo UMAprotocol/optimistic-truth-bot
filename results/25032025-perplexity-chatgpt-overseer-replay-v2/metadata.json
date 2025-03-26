@@ -1,7 +1,7 @@
 {
   "experiment": {
     "timestamp": "25-03-2025 12:13",
-    "title": "perplexity-chatgpt-overseer-replay-v2",
+    "title": "Overseer Replay v2",
     "goal": "Re-run of the perplexity chatgpt overseer with a refined prompt and larger data set. First run within the production env.",
     "previous_experiment": "19032025-perplexity-chatgpt-overseer-replay",
     "modifications": {

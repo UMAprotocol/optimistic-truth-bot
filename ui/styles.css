@@ -72,14 +72,13 @@ header .bi {
     margin-bottom: calc(var(--spacing-base) * 2);
 }
 
-/* Improved table styles */
+/* Tables */
 .table {
-    width: 100%;
     margin-bottom: 0;
+    width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     font-size: 14px;
-    table-layout: fixed;
 }
 
 .table th {
@@ -89,7 +88,6 @@ header .bi {
     padding: calc(var(--spacing-base) * 0.6) var(--spacing-base);
     border-bottom: 2px solid #dee2e6;
     text-align: left;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .table td {
@@ -98,16 +96,86 @@ header .bi {
     vertical-align: middle;
 }
 
-/* Remove thead from experiment directory table */
-#resultsDirectoryTable {
+/* Results table specific styles */
+#resultsTable {
     table-layout: fixed;
+    width: 100%;
+    white-space: nowrap;
+    border-collapse: collapse;
+    margin-bottom: 0;
 }
 
-#resultsDirectoryTable td {
+#resultsTable th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+#resultsTable th, 
+#resultsTable td {
+    padding: 0.5rem;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Process Time column */
+#resultsTable th:nth-child(1),
+#resultsTable td:nth-child(1) {
+    width: 140px;
+}
+
+/* Proposal Time column */
+#resultsTable th:nth-child(2),
+#resultsTable td:nth-child(2) {
+    width: 140px;
+}
+
+/* ID column */
+#resultsTable th:nth-child(3),
+#resultsTable td:nth-child(3) {
+    width: 110px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Title column */
+#resultsTable th:nth-child(4),
+#resultsTable td:nth-child(4) {
     white-space: normal;
     word-wrap: break-word;
-    border-radius: 0;
-    padding: 12px 15px;
+    min-width: 180px;
+}
+
+/* AI Rec column */
+#resultsTable th:nth-child(5),
+#resultsTable td:nth-child(5) {
+    width: 70px;
+    text-align: center;
+}
+
+/* Resolution column */
+#resultsTable th:nth-child(6),
+#resultsTable td:nth-child(6) {
+    width: 60px;
+    text-align: center;
+}
+
+/* Disputed column */
+#resultsTable th:nth-child(7),
+#resultsTable td:nth-child(7) {
+    width: 70px;
+    text-align: center;
+}
+
+/* Correct column */
+#resultsTable th:nth-child(8),
+#resultsTable td:nth-child(8) {
+    width: 70px;
+    text-align: center;
 }
 
 /* Full-width experiment row styling */
@@ -204,73 +272,6 @@ header .bi {
     padding: 2px 4px;
     border-radius: 3px;
     font-size: 0.9rem;
-}
-
-/* Results table optimization */
-#resultsTable {
-    table-layout: fixed;
-}
-
-#resultsTable th, 
-#resultsTable td {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-#resultsTable th {
-    font-weight: bold;
-}
-
-/* Allow title column to wrap text */
-#resultsTable th:nth-child(3), 
-#resultsTable td:nth-child(3) {
-    white-space: normal;
-    word-wrap: break-word;
-    min-width: 250px;
-}
-
-/* Optimize column widths */
-#resultsTable th:nth-child(1), 
-#resultsTable td:nth-child(1) { /* Time */
-    width: 160px;
-}
-
-#resultsTable th:nth-child(2), 
-#resultsTable td:nth-child(2) { /* ID */
-    width: 120px;
-}
-
-#resultsTable th:nth-child(3), 
-#resultsTable td:nth-child(3) { /* Title */
-    white-space: normal;
-    word-wrap: break-word;
-    min-width: 250px;
-}
-
-/* Optimize column widths for results table */
-#resultsTable th:nth-child(4), 
-#resultsTable td:nth-child(4) { /* AI Rec */
-    width: 90px;
-    white-space: nowrap;
-}
-
-#resultsTable th:nth-child(5), 
-#resultsTable td:nth-child(5) { /* Res */
-    width: 80px;
-}
-
-#resultsTable th:nth-child(6), 
-#resultsTable td:nth-child(6) { /* Disputed */
-    width: 110px;
-    text-align: center;
-    white-space: nowrap;
-}
-
-#resultsTable th:nth-child(7), 
-#resultsTable td:nth-child(7) { /* Correct */
-    width: 90px;
-    text-align: center;
 }
 
 /* Table hover effects */
@@ -588,27 +589,16 @@ header .bi {
     overflow-y: auto;
 }
 
-/* Experiment directory table styling */
+/* Results directory table */
 #resultsDirectoryTable {
-    margin-bottom: 0;
+    table-layout: fixed;
 }
 
 #resultsDirectoryTable td {
+    white-space: normal;
+    word-wrap: break-word;
+    border-radius: 0;
     padding: 12px 15px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-/* Enhanced styling for the results table */
-#resultsTable {
-    margin-bottom: 0;
-}
-
-#resultsTable th {
-    position: sticky;
-    top: 0;
-    background-color: #f8f9fa;
-    z-index: 1;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* Additional spacing for page elements */
@@ -1522,4 +1512,11 @@ select[multiple] {
 
 .log-entry.log-input .log-message {
     font-style: italic;
+}
+
+/* Make code font in ID column more compact */
+#resultsTable td:nth-child(3) code {
+    padding: 2px 3px;
+    font-size: 0.85rem;
+    white-space: nowrap;
 } 

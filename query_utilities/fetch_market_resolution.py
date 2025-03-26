@@ -11,10 +11,19 @@ from web3 import Web3
 from dotenv import load_dotenv
 import os
 import sys
+import requests
+import time
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import load_abi, OptimisticOracleV2, UmaCtfAdapter, yesOrNoIdentifier
+from common import (
+    load_abi,
+    OptimisticOracleV2,
+    UmaCtfAdapter,
+    yesOrNoIdentifier,
+    compute_condition_id,
+    get_polymarket_data,
+)
 
 
 def main(question_id):
@@ -76,6 +85,26 @@ def main(question_id):
     print(f"Expiration Time:               {request_data[7]}")
     print(f"Reward:                        {request_data[8]}")
     print(f"Final Fee:                     {request_data[9]}")
+    print("----------------------------------------")
+
+    # Get Polymarket data
+    print("\nPolymarket Information:")
+    print("----------------------------------------")
+    condition_id = compute_condition_id(UmaCtfAdapter, question_id, 2)
+    print(f"Condition ID:                  {condition_id}")
+
+    poly_data = get_polymarket_data(condition_id)
+    if poly_data:
+        tags = poly_data.get("tags", [])
+        print(f"Tags:                          {tags}")
+        print(
+            f"End Date:                      {poly_data.get('end_date_iso', 'Not available')}"
+        )
+        print(
+            f"Game Start Time:               {poly_data.get('game_start_time', 'Not available')}"
+        )
+    else:
+        print("No Polymarket data available for this condition ID")
     print("----------------------------------------")
 
     # Check if market has settled

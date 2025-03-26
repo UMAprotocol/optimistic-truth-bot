@@ -1735,7 +1735,8 @@ function updateAnalyticsDisplay(analytics) {
 
 // Helper function to format date in 24-hour format with seconds
 function formatDate(timestamp) {
-    if (!timestamp) return 'N/A';
+    // Only return N/A if timestamp is null or undefined, not if it's 0
+    if (timestamp === null || timestamp === undefined) return 'N/A';
     
     try {
         // Handle string timestamps that are in ISO format
@@ -2303,12 +2304,7 @@ async function loadExperimentData(directory, source) {
             // Show error message if we couldn't load any data
             document.getElementById('resultsTableBody').innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center">
-                        <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            No data found for experiment <strong>${directory}</strong>
-                        </div>
-                    </td>
+                    <td colspan="8" class="text-center">No data available</td>
                 </tr>
             `;
         }
@@ -2325,7 +2321,7 @@ async function loadExperimentData(directory, source) {
         
         document.getElementById('resultsTableBody').innerHTML = `
             <tr>
-                <td colspan="7" class="text-center text-danger">
+                <td colspan="8" class="text-center text-danger">
                     Error loading experiment data: ${error.message}
                 </td>
             </tr>
@@ -2687,7 +2683,7 @@ function displayResultsData() {
     if (!currentData || currentData.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center">No data available</td>
+                <td colspan="8" class="text-center">No data available</td>
             </tr>
         `;
         document.getElementById('displayingCount').textContent = '0';
@@ -2720,6 +2716,11 @@ function displayResultsData() {
         // Ensure we have a timestamp field
         processed.timestamp = item.timestamp || item.unix_timestamp || 0;
         
+        // Extract proposal timestamp from proposal_metadata if available
+        processed.proposal_timestamp = 
+            (item.proposal_metadata && item.proposal_metadata.unix_timestamp) ? 
+            item.proposal_metadata.unix_timestamp : 0;
+        
         return processed;
     });
     
@@ -2735,7 +2736,7 @@ function updateTableWithData(dataArray) {
     if (!dataArray || dataArray.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center">No data available</td>
+                <td colspan="8" class="text-center">No data available</td>
             </tr>
         `;
         document.getElementById('displayingCount').textContent = '0';
@@ -2816,12 +2817,28 @@ function updateTableWithData(dataArray) {
         
         const formattedDate = formatDate(timestamp);
         
+        // Format the proposal timestamp if available
+        let proposalTimestamp = item.proposal_timestamp || 0;
+        if (typeof proposalTimestamp === 'string' && !isNaN(parseInt(proposalTimestamp, 10))) {
+            proposalTimestamp = parseInt(proposalTimestamp, 10);
+        }
+        
+        // Access the proposal date directly from proposal_metadata as a fallback
+        const formattedProposalDate = proposalTimestamp ? 
+            formatDate(proposalTimestamp) : 
+            (item.proposal_metadata && item.proposal_metadata.unix_timestamp ? 
+                formatDate(item.proposal_metadata.unix_timestamp) : 'N/A');
+        
         // Store the actual data index as a data attribute
         const originalDataIndex = dataArray === currentData ? index : currentData.indexOf(item);
+        
+        // Get the original item from currentData for consistent access
+        const originalItem = currentData[originalDataIndex];
         
         return `
             <tr class="result-row ${recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">
                 <td>${formattedDate}</td>
+                <td>${formattedProposalDate}</td>
                 <td><code class="code-font">${queryId}</code></td>
                 <td>${title}</td>
                 <td class="recommendation">${recommendation}</td>
@@ -2948,8 +2965,12 @@ function showDetails(data, index) {
                             </td>
                         </tr>
                         <tr>
+                            <th>Process Time</th>
+                            <td>${formatDate(data.timestamp || 0)}</td>
+                        </tr>
+                        <tr>
                             <th>Proposal Time</th>
-                            <td>${formatDate(data.timestamp || data.unix_timestamp)}</td>
+                            <td>${data.proposal_metadata && data.proposal_metadata.unix_timestamp ? formatDate(data.proposal_metadata.unix_timestamp) : 'N/A'}</td>
                         </tr>
                         <tr>
                             <th>Disputed</th>
