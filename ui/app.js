@@ -8,6 +8,13 @@ let currentSearch = ''; // Track current search term
 let currentSourceFilter = 'filesystem'; // Track current source filter
 let autoScrollEnabled = true; // Auto-scroll preference
 
+// Date filter variables
+let currentDateFilters = {
+    expiration_timestamp: null,
+    request_timestamp: null,
+    request_transaction_block_time: null
+};
+
 // Add column preferences with defaults
 let columnPreferences = {
     timestamp: true,
@@ -20,7 +27,10 @@ let columnPreferences = {
     correct: true,
     block_number: false,
     proposal_bond: false,
-    tags: false
+    tags: false,
+    expiration_timestamp: false,
+    request_timestamp: false,
+    request_transaction_block_time: false
 };
 
 // Chart variables
@@ -104,6 +114,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set up clear tag filter button
     document.getElementById('clearTagFilter')?.addEventListener('click', clearTagFilter);
+    
+    // Set up date filter controls
+    document.getElementById('applyDateFilter')?.addEventListener('click', applyDateFilter);
+    document.getElementById('clearDateFilter')?.addEventListener('click', clearDateFilter);
     
     // Set up logout button
     document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
@@ -1927,6 +1941,21 @@ function initializeColumnSelector() {
                     <label class="form-check-label" for="col-proposal_timestamp">Proposal Date</label>
                 </div>
                 <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-expiration_timestamp" 
+                        ${columnPreferences.expiration_timestamp ? 'checked' : ''} data-column="expiration_timestamp">
+                    <label class="form-check-label" for="col-expiration_timestamp">Expiration Date</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_timestamp" 
+                        ${columnPreferences.request_timestamp ? 'checked' : ''} data-column="request_timestamp">
+                    <label class="form-check-label" for="col-request_timestamp">Request Date</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_transaction_block_time" 
+                        ${columnPreferences.request_transaction_block_time ? 'checked' : ''} data-column="request_transaction_block_time">
+                    <label class="form-check-label" for="col-request_transaction_block_time">Request Block Time</label>
+                </div>
+                <div class="form-check">
                     <input class="form-check-input column-checkbox" type="checkbox" id="col-id" 
                         ${columnPreferences.id ? 'checked' : ''} data-column="id">
                     <label class="form-check-label" for="col-id">ID</label>
@@ -2021,7 +2050,10 @@ function initializeColumnSelector() {
             correct: true,
             block_number: false,
             proposal_bond: false,
-            tags: false
+            tags: false,
+            expiration_timestamp: false,
+            request_timestamp: false,
+            request_transaction_block_time: false
         };
         
         // Update checkboxes
@@ -2912,55 +2944,30 @@ function displayExperimentMetadata() {
 
 // Display the results data in the table
 function displayResultsData() {
-    const tableBody = document.getElementById('resultsTableBody');
-    if (!tableBody) return;
+    // Show results section and filter controls
+    document.querySelector('.results-section').style.display = 'block';
+    document.getElementById('filterControls').style.display = 'flex';
+    document.getElementById('resultsTableCard').style.display = 'block';
+    document.getElementById('analyticsNote').style.display = 'block';
     
+    // Show the date filter card
+    document.getElementById('dateFilterCard').style.display = 'block';
+    
+    // Ensure we have data
     if (!currentData || currentData.length === 0) {
-        tableBody.innerHTML = `
+        document.getElementById('resultsTableBody').innerHTML = `
             <tr>
                 <td colspan="8" class="text-center">No data available</td>
             </tr>
         `;
-        document.getElementById('displayingCount').textContent = '0';
-        document.getElementById('totalEntriesCount').textContent = '0';
         return;
     }
     
-    // Ensure all required fields are available
-    const processedData = currentData.map(item => {
-        // Make a shallow copy to avoid modifying the original
-        const processed = {...item};
-        
-        // Ensure we have consistent field names
-        processed.recommendation = 
-            item.recommendation || 
-            item.proposed_price_outcome || 
-            'N/A';
-            
-        processed.resolved_price_outcome = 
-            item.resolved_price_outcome !== undefined ? item.resolved_price_outcome : 
-            item.resolved_price !== undefined ? item.resolved_price : 
-            null;
-            
-        // Ensure we have a title field for display
-        processed.title = extractTitle(item);
-        
-        // Ensure we have a query_id field
-        processed.query_id = item.query_id || item.id || '';
-        
-        // Ensure we have a timestamp field
-        processed.timestamp = item.timestamp || item.unix_timestamp || 0;
-        
-        // Extract proposal timestamp from proposal_metadata if available
-        processed.proposal_timestamp = 
-            (item.proposal_metadata && item.proposal_metadata.unix_timestamp) ? 
-            item.proposal_metadata.unix_timestamp : 0;
-        
-        return processed;
-    });
+    // Setup tag filter if there are tags
+    setupTagFilter();
     
-    // Now proceed with normal display logic
-    updateTableWithData(processedData);
+    // Apply the current filter
+    applyTableFilter(currentFilter);
 }
 
 // Function to update table header based on selected columns
@@ -2974,6 +2981,9 @@ function updateTableHeader() {
     // Add columns based on preferences
     if (columnPreferences.timestamp) headerRow += '<th>Process Time</th>';
     if (columnPreferences.proposal_timestamp) headerRow += '<th>Proposal Time</th>';
+    if (columnPreferences.expiration_timestamp) headerRow += '<th>Expiration Time</th>';
+    if (columnPreferences.request_timestamp) headerRow += '<th>Request Time</th>';
+    if (columnPreferences.request_transaction_block_time) headerRow += '<th>Block Time</th>';
     if (columnPreferences.id) headerRow += '<th>ID</th>';
     if (columnPreferences.title) headerRow += '<th>Title</th>';
     if (columnPreferences.recommendation) headerRow += '<th>AI Rec</th>';
@@ -3094,7 +3104,19 @@ function updateTableWithData(dataArray) {
             formatDate(proposalTimestamp) : 
             (item.proposal_metadata && item.proposal_metadata.unix_timestamp ? 
                 formatDate(item.proposal_metadata.unix_timestamp) : 'N/A');
-                
+        
+        // Format the expiration timestamp if available
+        const expirationTimestamp = item.proposal_metadata?.expiration_timestamp || 0;
+        const formattedExpirationDate = expirationTimestamp ? formatDate(expirationTimestamp) : 'N/A';
+        
+        // Format the request timestamp if available
+        const requestTimestamp = item.proposal_metadata?.request_timestamp || 0;
+        const formattedRequestDate = requestTimestamp ? formatDate(requestTimestamp) : 'N/A';
+        
+        // Format the request transaction block time if available
+        const blockTimestamp = item.proposal_metadata?.request_transaction_block_time || 0;
+        const formattedBlockTime = blockTimestamp ? formatDate(blockTimestamp) : 'N/A';
+        
         // Extract block number from proposal_metadata if available
         const blockNumber = item.proposal_metadata?.block_number || 'N/A';
         
@@ -3119,6 +3141,9 @@ function updateTableWithData(dataArray) {
         // Add cells based on column preferences
         if (columnPreferences.timestamp) row += `<td>${formattedDate}</td>`;
         if (columnPreferences.proposal_timestamp) row += `<td>${formattedProposalDate}</td>`;
+        if (columnPreferences.expiration_timestamp) row += `<td>${formattedExpirationDate}</td>`;
+        if (columnPreferences.request_timestamp) row += `<td>${formattedRequestDate}</td>`;
+        if (columnPreferences.request_transaction_block_time) row += `<td>${formattedBlockTime}</td>`;
         if (columnPreferences.id) row += `<td><code class="code-font">${queryId}</code></td>`;
         if (columnPreferences.title) row += `<td>${title}</td>`;
         if (columnPreferences.recommendation) row += `<td class="recommendation">${recommendation}</td>`;
@@ -3272,13 +3297,65 @@ function showDetails(data, index) {
                             <td>${data.proposal_metadata && data.proposal_metadata.unix_timestamp ? formatDate(data.proposal_metadata.unix_timestamp) : 'N/A'}</td>
                         </tr>
                         <tr>
+                            <th>Request Time</th>
+                            <td>${data.proposal_metadata && data.proposal_metadata.request_timestamp ? formatDate(data.proposal_metadata.request_timestamp) : 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <th>Request Block Time</th>
+                            <td>${data.proposal_metadata && data.proposal_metadata.request_transaction_block_time ? formatDate(data.proposal_metadata.request_transaction_block_time) : 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <th>Expiration Time</th>
+                            <td>${data.proposal_metadata && data.proposal_metadata.expiration_timestamp ? formatDate(data.proposal_metadata.expiration_timestamp) : 'N/A'}</td>
+                        </tr>
+                        <tr>
                             <th>Disputed</th>
                             <td>${isDisputed ? '<span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Yes</span>' : 'No'}</td>
                         </tr>
                         <tr>
                             <th>Proposal Transaction</th>
-                            <td>${createTxLink(data.proposal_data?.transaction_hash || data.transaction_hash)}</td>
+                            <td>${createTxLink(data.proposal_metadata?.transaction_hash || data.proposal_data?.transaction_hash || data.transaction_hash)}</td>
                         </tr>
+                        ${data.proposal_metadata?.proposer ? `
+                        <tr>
+                            <th>Proposer</th>
+                            <td>${createAddressLink(data.proposal_metadata.proposer)}</td>
+                        </tr>
+                        ` : ''}
+                        ${data.proposal_metadata?.bond_currency ? `
+                        <tr>
+                            <th>Bond Currency</th>
+                            <td>${createAddressLink(data.proposal_metadata.bond_currency)}</td>
+                        </tr>
+                        ` : ''}
+                        ${data.proposal_metadata?.condition_id ? `
+                        <tr>
+                            <th>Condition ID</th>
+                            <td>
+                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${data.proposal_metadata.condition_id}">
+                                    ${data.proposal_metadata.condition_id}
+                                </code>
+                            </td>
+                        </tr>
+                        ` : ''}
+                        ${data.game_start_time ? `
+                        <tr>
+                            <th>Game Start Time</th>
+                            <td>${formatDate(new Date(data.game_start_time).getTime() / 1000)}</td>
+                        </tr>
+                        ` : ''}
+                        ${data.end_date_iso ? `
+                        <tr>
+                            <th>End Date</th>
+                            <td>${formatDate(new Date(data.end_date_iso).getTime() / 1000)}</td>
+                        </tr>
+                        ` : ''}
+                        ${data.icon ? `
+                        <tr>
+                            <th>Icon</th>
+                            <td><img src="${data.icon}" alt="Question Icon" class="question-icon" style="max-width: 100px; max-height: 100px;"></td>
+                        </tr>
+                        ` : ''}
                     </table>
                 </div>
             </div>
@@ -3946,6 +4023,37 @@ function applyAllFilters(correctnessFilter, tagFilters = []) {
             
             // Check if item has ALL selected tags (AND logic)
             return tagFilters.every(tag => item.tags.includes(tag));
+        });
+    }
+    
+    // Apply date filters
+    if (currentDateFilters.expiration_timestamp) {
+        filteredData = filteredData.filter(item => {
+            const expiration = item.proposal_metadata?.expiration_timestamp;
+            if (!expiration) return false;
+            
+            // Filter for items with expiration date on or after the selected date
+            return expiration >= currentDateFilters.expiration_timestamp;
+        });
+    }
+    
+    if (currentDateFilters.request_timestamp) {
+        filteredData = filteredData.filter(item => {
+            const request = item.proposal_metadata?.request_timestamp;
+            if (!request) return false;
+            
+            // Filter for items with request date on or after the selected date
+            return request >= currentDateFilters.request_timestamp;
+        });
+    }
+    
+    if (currentDateFilters.request_transaction_block_time) {
+        filteredData = filteredData.filter(item => {
+            const blockTime = item.proposal_metadata?.request_transaction_block_time;
+            if (!blockTime) return false;
+            
+            // Filter for items with block time on or after the selected date
+            return blockTime >= currentDateFilters.request_transaction_block_time;
         });
     }
     
@@ -4711,4 +4819,45 @@ function displayResultsData() {
     
     // Initialize sortable headers after displaying data
     initializeSortableHeaders();
+}
+
+// Function to apply date filters
+function applyDateFilter() {
+    // Get all date inputs
+    const dateInputs = document.querySelectorAll('.date-filter');
+    
+    // Update current date filters
+    dateInputs.forEach(input => {
+        const filterType = input.getAttribute('data-filter-type');
+        const dateValue = input.value;
+        
+        if (dateValue) {
+            // Convert the date input value (YYYY-MM-DD) to Unix timestamp (seconds)
+            const dateObj = new Date(dateValue);
+            currentDateFilters[filterType] = Math.floor(dateObj.getTime() / 1000);
+        } else {
+            currentDateFilters[filterType] = null;
+        }
+    });
+    
+    // Apply all filters with the current date filters
+    applyAllFilters(currentFilter);
+}
+
+// Function to clear date filters
+function clearDateFilter() {
+    // Reset all date inputs
+    document.querySelectorAll('.date-filter').forEach(input => {
+        input.value = '';
+    });
+    
+    // Reset current date filters
+    currentDateFilters = {
+        expiration_timestamp: null,
+        request_timestamp: null,
+        request_transaction_block_time: null
+    };
+    
+    // Apply all filters with the cleared date filters
+    applyAllFilters(currentFilter);
 }

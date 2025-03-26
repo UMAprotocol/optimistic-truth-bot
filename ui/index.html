@@ -172,6 +172,39 @@
                 <div class="results-section" style="display: none;">
                     <h2 class="main-heading">Results</h2>
                     
+                    <!-- Date Filter Section -->
+                    <div class="card mb-4" id="dateFilterCard" style="display: none;">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Filter by Date</h5>
+                            <button class="btn btn-sm btn-outline-secondary" id="clearDateFilter">Clear</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="expirationDateFilter" class="form-label">Expiration Date</label>
+                                        <input type="date" class="form-control date-filter" id="expirationDateFilter" data-filter-type="expiration_timestamp">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="requestDateFilter" class="form-label">Request Date</label>
+                                        <input type="date" class="form-control date-filter" id="requestDateFilter" data-filter-type="request_timestamp">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="blockTimeFilter" class="form-label">Block Time</label>
+                                        <input type="date" class="form-control date-filter" id="blockTimeFilter" data-filter-type="request_transaction_block_time">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button class="btn btn-primary" id="applyDateFilter">Apply Filter</button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Tag Filter Section - Will be shown when tags are available -->
                     <div class="card mb-4" id="tagFilterCard" style="display: none;">
                         <div class="card-header d-flex justify-content-between align-items-center">

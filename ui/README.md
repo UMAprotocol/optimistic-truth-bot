@@ -77,6 +77,19 @@ Your MongoDB collection should have documents with the following structure:
 
 The UI will automatically group documents by `experiment_id` and display them as separate experiments.
 
+### Extended JSON Metadata Support
+
+The UI now supports additional metadata fields from the JSON files:
+
+- `expiration_timestamp`: Expiration time of the proposal
+- `request_timestamp`: Request timestamp
+- `request_transaction_block_time`: Block time of the request transaction
+- `game_start_time`: Start time of the event/game
+- `end_date_iso`: End date in ISO format
+- `icon`: URL to the question icon
+
+These fields are displayed in the details modal and can be filtered using the date filter controls. They can also be shown as columns in the results table via the column selector.
+
 ### Environment Variables
 
 Configure the MongoDB connection using the following environment variables:
