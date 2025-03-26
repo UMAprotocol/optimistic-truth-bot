@@ -17,6 +17,12 @@ let activeProcesses = [];
 let commandHistory = [];
 let currentProcessId = null;
 
+// Global variable to track current sort state
+let currentSort = {
+    column: 'timestamp', // Default sort column is timestamp
+    direction: 'desc'    // Default direction is descending (newest first)
+};
+
 // Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize modal
@@ -2744,25 +2750,28 @@ function updateTableWithData(dataArray) {
         return;
     }
     
-    // Sort the data by timestamp (newest first)
-    const sortedData = [...dataArray].sort((a, b) => {
-        // Ensure timestamps are numbers for comparison
-        let timestampA = a.timestamp || a.unix_timestamp || 0;
-        let timestampB = b.timestamp || b.unix_timestamp || 0;
-        
-        // Convert string timestamps to numbers if needed
-        if (typeof timestampA === 'string') {
-            timestampA = parseInt(timestampA, 10) || 0;
-        }
-        if (typeof timestampB === 'string') {
-            timestampB = parseInt(timestampB, 10) || 0;
-        }
-        
-        return timestampB - timestampA; // Descending order (newest first)
-    });
+    // Sort the data based on current sort settings
+    const sortedData = sortData([...dataArray], currentSort.column, currentSort.direction);
     
-    // Generate table rows
-    tableBody.innerHTML = sortedData.map((item, index) => {
+    // Pagination handling
+    const itemsPerPage = 100;
+    const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+    let currentPage = parseInt(localStorage.getItem('currentResultsPage') || '1');
+    
+    // Make sure current page is valid
+    if (currentPage < 1 || currentPage > totalPages) {
+        currentPage = 1;
+    }
+    
+    // Calculate start and end indices for the current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, sortedData.length);
+    
+    // Get items for the current page
+    const currentPageItems = sortedData.slice(startIndex, endIndex);
+    
+    // Generate table rows for the current page
+    tableBody.innerHTML = currentPageItems.map((item, index) => {
         // Safety check for null/undefined items
         if (!item) return '';
         
@@ -2829,11 +2838,10 @@ function updateTableWithData(dataArray) {
             (item.proposal_metadata && item.proposal_metadata.unix_timestamp ? 
                 formatDate(item.proposal_metadata.unix_timestamp) : 'N/A');
         
-        // Store the actual data index as a data attribute
-        const originalDataIndex = dataArray === currentData ? index : currentData.indexOf(item);
-        
-        // Get the original item from currentData for consistent access
-        const originalItem = currentData[originalDataIndex];
+        // Store the original data index as a data attribute for the full dataset
+        // This ensures we have the correct index when clicking a row
+        const originalDataIndex = dataArray === currentData ? 
+            currentData.indexOf(item) : currentData.indexOf(item);
         
         return `
             <tr class="result-row ${recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">
@@ -2872,8 +2880,11 @@ function updateTableWithData(dataArray) {
     });
     
     // Update the count display
-    document.getElementById('displayingCount').textContent = sortedData.length;
-    document.getElementById('totalEntriesCount').textContent = currentData.length;
+    document.getElementById('displayingCount').textContent = currentPageItems.length;
+    document.getElementById('totalEntriesCount').textContent = sortedData.length;
+    
+    // Create pagination controls
+    createPagination(currentPage, totalPages, 'resultsTable');
 }
 
 // Apply filter and search to the table
@@ -3053,7 +3064,7 @@ function showDetails(data, index) {
                             ${Object.entries(data.response_metadata).map(([key, value]) => `
                                 <tr>
                                     <th>${formatKeyName(key)}</th>
-                                    <td>${formatValue(value)}</td>
+                                    <td>${formatValue(value, key)}</td>
                                 </tr>
                             `).join('')}
                         </table>
@@ -3136,7 +3147,7 @@ function showDetails(data, index) {
                                                     ${Object.entries(interaction.response_metadata || {}).map(([key, value]) => `
                                                         <tr>
                                                             <th>${formatKeyName(key)}</th>
-                                                            <td>${formatValue(value)}</td>
+                                                            <td>${formatValue(value, key)}</td>
                                                         </tr>
                                                     `).join('')}
                                                 </table>
@@ -3198,7 +3209,7 @@ function showDetails(data, index) {
                                                     ${Object.entries(interaction.metadata || {}).map(([key, value]) => `
                                                         <tr>
                                                             <th>${formatKeyName(key)}</th>
-                                                            <td>${formatValue(value)}</td>
+                                                            <td>${formatValue(value, key)}</td>
                                                         </tr>
                                                     `).join('')}
                                                 </table>
@@ -3219,7 +3230,7 @@ function showDetails(data, index) {
                                 ${Object.entries(data.overseer_data.final_response_metadata).map(([key, value]) => `
                                     <tr>
                                         <th>${formatKeyName(key)}</th>
-                                        <td>${formatValue(value)}</td>
+                                        <td>${formatValue(value, key)}</td>
                                     </tr>
                                 `).join('')}
                             </table>
@@ -3308,7 +3319,7 @@ function showDetails(data, index) {
                             ${Object.entries(data.proposal_metadata).map(([key, value]) => `
                                 <tr>
                                     <th>${formatKeyName(key)}</th>
-                                    <td>${formatValue(value)}</td>
+                                    <td>${formatValue(value, key)}</td>
                                 </tr>
                             `).join('')}
                         </table>
@@ -3339,7 +3350,7 @@ function showDetails(data, index) {
                             ${remainingEntries.map(([key, value]) => `
                                 <tr>
                                     <th>${formatKeyName(key)}</th>
-                                    <td>${formatValue(value)}</td>
+                                    <td>${formatValue(value, key)}</td>
                                 </tr>
                             `).join('')}
                         </table>
@@ -3457,8 +3468,13 @@ function formatKeyName(key) {
 }
 
 // Format a value for display
-function formatValue(value) {
+function formatValue(value, key) {
     if (value === null || value === undefined) return 'N/A';
+    
+    // Special handling for ancillary_data_hex which is very long
+    if (key === 'ancillary_data_hex' && typeof value === 'string') {
+        return `<pre class="mb-0 hex-data" style="white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto;">${value}</pre>`;
+    }
     
     if (Array.isArray(value)) {
         if (value.length === 0) return 'Empty Array';
@@ -3466,7 +3482,7 @@ function formatValue(value) {
         // For short arrays of primitive values, format as comma-separated list
         if (value.length <= 5 && value.every(item => 
             typeof item !== 'object' || item === null)) {
-            return value.map(formatValue).join(', ');
+            return value.map(item => formatValue(item)).join(', ');
         }
         
         // For longer arrays or arrays of objects, format as a list
@@ -3478,8 +3494,8 @@ function formatValue(value) {
         // For small objects, format as a simple table
         if (Object.keys(value).length <= 3) {
             let html = '<div class="metadata-section small-object">';
-            for (const [key, val] of Object.entries(value)) {
-                html += `<div><strong>${formatKeyName(key)}:</strong> ${formatValue(val)}</div>`;
+            for (const [objKey, val] of Object.entries(value)) {
+                html += `<div><strong>${formatKeyName(objKey)}:</strong> ${formatValue(val, objKey)}</div>`;
             }
             html += '</div>';
             return html;
@@ -4051,4 +4067,334 @@ function autoResizeTextarea(textarea) {
     if (textarea.scrollHeight < parseInt(getComputedStyle(textarea).minHeight)) {
         textarea.style.height = getComputedStyle(textarea).minHeight;
     }
+}
+
+// Function to create pagination controls
+function createPagination(currentPage, totalPages, tableId) {
+    // Check if we need pagination
+    if (totalPages <= 1) return;
+    
+    // Create pagination container if it doesn't exist
+    let paginationContainer = document.getElementById(`${tableId}Pagination`);
+    if (!paginationContainer) {
+        paginationContainer = document.createElement('div');
+        paginationContainer.id = `${tableId}Pagination`;
+        paginationContainer.className = 'pagination-container mt-3 d-flex justify-content-center';
+        
+        // Find the table and append pagination after it
+        const table = document.getElementById(tableId);
+        if (table && table.parentNode) {
+            table.parentNode.appendChild(paginationContainer);
+        }
+    }
+    
+    // Generate pagination HTML
+    let paginationHTML = `
+        <nav aria-label="Results pagination">
+            <ul class="pagination">
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+    `;
+    
+    // Display page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    // Add ellipsis if needed at the beginning
+    if (startPage > 1) {
+        paginationHTML += `
+            <li class="page-item ${startPage === 1 ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="1">1</a>
+            </li>
+        `;
+        if (startPage > 2) {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <a class="page-link" href="#">...</a>
+                </li>
+            `;
+        }
+    }
+    
+    // Add page numbers
+    for (let i = startPage; i <= endPage; i++) {
+        if (i !== 1 && i !== totalPages) { // Skip first and last page as they're handled separately
+            paginationHTML += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+            `;
+        }
+    }
+    
+    // Add ellipsis if needed at the end
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <a class="page-link" href="#">...</a>
+                </li>
+            `;
+        }
+        paginationHTML += `
+            <li class="page-item ${endPage === totalPages ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
+            </li>
+        `;
+    }
+    
+    // Add next and last page links
+    paginationHTML += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${totalPages}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    `;
+    
+    // Set the pagination HTML
+    paginationContainer.innerHTML = paginationHTML;
+    
+    // Add click event for pagination
+    document.querySelectorAll(`#${tableId}Pagination .page-link`).forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = parseInt(link.getAttribute('data-page'));
+            if (!isNaN(page)) {
+                // Save current page to localStorage
+                localStorage.setItem('currentResultsPage', page);
+                // Reload the table with the new page
+                updateTableWithData(currentData);
+                // Scroll to top of the table
+                document.getElementById(tableId).scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+}
+
+// Function to sort data by a given column
+function sortData(data, column, direction) {
+    return data.sort((a, b) => {
+        let valueA, valueB;
+        
+        // Extract values based on column
+        switch (column) {
+            case 'timestamp':
+                valueA = a.timestamp || a.unix_timestamp || 0;
+                valueB = b.timestamp || b.unix_timestamp || 0;
+                break;
+            case 'proposal_timestamp':
+                valueA = a.proposal_timestamp || 
+                         (a.proposal_metadata && a.proposal_metadata.unix_timestamp ? 
+                             a.proposal_metadata.unix_timestamp : 0);
+                valueB = b.proposal_timestamp || 
+                         (b.proposal_metadata && b.proposal_metadata.unix_timestamp ? 
+                             b.proposal_metadata.unix_timestamp : 0);
+                break;
+            case 'id':
+                valueA = a.question_id_short || a.query_id || '';
+                valueB = b.question_id_short || b.query_id || '';
+                break;
+            case 'title':
+                valueA = extractTitle(a).toLowerCase();
+                valueB = extractTitle(b).toLowerCase();
+                break;
+            case 'recommendation':
+                valueA = (a.recommendation || a.proposed_price_outcome || '').toLowerCase();
+                valueB = (b.recommendation || b.proposed_price_outcome || '').toLowerCase();
+                break;
+            case 'resolution':
+                valueA = (a.resolved_price_outcome !== undefined && a.resolved_price_outcome !== null) ? 
+                         a.resolved_price_outcome.toString() : 'zzzz'; // Sort unresolved last
+                valueB = (b.resolved_price_outcome !== undefined && b.resolved_price_outcome !== null) ? 
+                         b.resolved_price_outcome.toString() : 'zzzz';
+                break;
+            case 'disputed':
+                valueA = a.disputed === true;
+                valueB = b.disputed === true;
+                break;
+            case 'correct':
+                const isCorrectA = isRecommendationCorrect(a);
+                const isCorrectB = isRecommendationCorrect(b);
+                valueA = isCorrectA === true ? 1 : isCorrectA === false ? 0 : -1;
+                valueB = isCorrectB === true ? 1 : isCorrectB === false ? 0 : -1;
+                break;
+            default:
+                valueA = a[column];
+                valueB = b[column];
+        }
+        
+        // Ensure values are comparable
+        if (typeof valueA === 'string') {
+            valueA = valueA.toString().toLowerCase();
+        }
+        if (typeof valueB === 'string') {
+            valueB = valueB.toString().toLowerCase();
+        }
+        
+        // Convert string timestamps to numbers
+        if (column === 'timestamp' || column === 'proposal_timestamp') {
+            if (typeof valueA === 'string' && !isNaN(parseInt(valueA, 10))) {
+                valueA = parseInt(valueA, 10);
+            }
+            if (typeof valueB === 'string' && !isNaN(parseInt(valueB, 10))) {
+                valueB = parseInt(valueB, 10);
+            }
+        }
+        
+        // Compare values based on direction
+        if (direction === 'asc') {
+            return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+        } else {
+            return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+        }
+    });
+}
+
+// Add this function to initialize the sortable headers
+function initializeSortableHeaders() {
+    const headers = document.querySelectorAll('#resultsTable th');
+    if (!headers.length) return;
+    
+    // Define column mappings (position to column name)
+    const columnMap = [
+        'timestamp',           // Process Time
+        'proposal_timestamp',  // Proposal Time
+        'id',                  // ID
+        'title',               // Title
+        'recommendation',      // AI Rec
+        'resolution',          // Res
+        'disputed',            // Disputed
+        'correct'              // Correct
+    ];
+    
+    // Add sort indicators and click handlers to headers
+    headers.forEach((header, index) => {
+        // Skip if beyond our map
+        if (index >= columnMap.length) return;
+        
+        // Get column name
+        const column = columnMap[index];
+        
+        // Add sort indicator
+        const sortIndicator = document.createElement('span');
+        sortIndicator.classList.add('sort-indicator', 'ms-1');
+        
+        // Set initial indicator if this is the current sort column
+        if (column === currentSort.column) {
+            sortIndicator.innerHTML = currentSort.direction === 'asc' ? '&#9650;' : '&#9660;';
+        } else {
+            sortIndicator.innerHTML = '&#8645;';
+            sortIndicator.style.opacity = '0.3';
+        }
+        
+        // Add the indicator to the header
+        header.appendChild(sortIndicator);
+        
+        // Make header sortable
+        header.classList.add('sortable');
+        header.style.cursor = 'pointer';
+        
+        // Add click handler
+        header.addEventListener('click', () => {
+            // Toggle direction if same column, otherwise set to desc
+            if (column === currentSort.column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'desc'; // Default to descending for new columns
+            }
+            
+            // Update all indicators
+            document.querySelectorAll('#resultsTable th .sort-indicator').forEach((indicator, i) => {
+                if (columnMap[i] === currentSort.column) {
+                    indicator.innerHTML = currentSort.direction === 'asc' ? '&#9650;' : '&#9660;';
+                    indicator.style.opacity = '1';
+                } else {
+                    indicator.innerHTML = '&#8645;';
+                    indicator.style.opacity = '0.3';
+                }
+            });
+            
+            // Update the table with sorted data
+            updateTableWithData(currentData);
+        });
+    });
+}
+
+// Modify displayResultsData to initialize sortable headers after displaying data
+function displayResultsData() {
+    const tableBody = document.getElementById('resultsTableBody');
+    if (!tableBody) return;
+    
+    if (!currentData || currentData.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center">No data available</td>
+            </tr>
+        `;
+        document.getElementById('displayingCount').textContent = '0';
+        document.getElementById('totalEntriesCount').textContent = '0';
+        return;
+    }
+    
+    // Ensure all required fields are available
+    const processedData = currentData.map(item => {
+        // Make a shallow copy to avoid modifying the original
+        const processed = {...item};
+        
+        // Ensure we have consistent field names
+        processed.recommendation = 
+            item.recommendation || 
+            item.proposed_price_outcome || 
+            'N/A';
+            
+        processed.resolved_price_outcome = 
+            item.resolved_price_outcome !== undefined ? item.resolved_price_outcome : 
+            item.resolved_price !== undefined ? item.resolved_price : 
+            null;
+            
+        // Ensure we have a title field for display
+        processed.title = extractTitle(item);
+        
+        // Ensure we have a query_id field
+        processed.query_id = item.query_id || item.id || '';
+        
+        // Ensure we have a timestamp field
+        processed.timestamp = item.timestamp || item.unix_timestamp || 0;
+        
+        // Extract proposal timestamp from proposal_metadata if available
+        processed.proposal_timestamp = 
+            (item.proposal_metadata && item.proposal_metadata.unix_timestamp) ? 
+            item.proposal_metadata.unix_timestamp : 0;
+        
+        return processed;
+    });
+    
+    // Now proceed with normal display logic
+    updateTableWithData(processedData);
+    
+    // Initialize sortable headers after displaying data
+    initializeSortableHeaders();
 }
