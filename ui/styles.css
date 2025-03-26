@@ -1094,9 +1094,9 @@ select[multiple] {
 
 .command-icon {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 0 15px;
+    padding: 15px;
     background-color: #f8f9fa;
     border-right: 1px solid #ced4da;
     color: #495057;
@@ -1109,11 +1109,20 @@ select[multiple] {
     font-size: 1rem;
     outline: none;
     width: 100%;
+    resize: none;
+    height: auto;
+    overflow-y: hidden;
+    min-height: 38px;
+    line-height: 1.5;
 }
 
 .run-btn {
     margin: 0;
     border-radius: 0;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Command history table */

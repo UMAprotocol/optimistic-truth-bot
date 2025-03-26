@@ -576,7 +576,22 @@ def enhanced_perplexity_chatgpt_loop(
             )
             api_response_time = time.time() - start_time
 
+            # Check if we got back valid content (not HTML/error)
             perplexity_text = perplexity_response.choices[0].message.content
+            if (
+                "<html>" in perplexity_text
+                or "<head>" in perplexity_text
+                or "401" in perplexity_text
+                or "Authorization Required" in perplexity_text
+            ):
+                logger.error("Perplexity API authentication error (401 Unauthorized)")
+                if verbose:
+                    print(
+                        "ERROR: Perplexity API authentication error (401 Unauthorized)"
+                    )
+                # Clean exit for authentication errors
+                raise Exception("Perplexity API authentication error")
+
             recommendation = extract_recommendation(perplexity_text)
             previous_perplexity_response = perplexity_text
 
@@ -839,10 +854,52 @@ def enhanced_perplexity_chatgpt_loop(
         except Exception as e:
             stop_spinner.set()
             spinner_thread.join()
-            logger.error(f"Error in API query loop: {str(e)}")
+
+            error_msg = str(e)
+            # Don't log HTML error responses
+            if len(error_msg) > 100 and (
+                "<html>" in error_msg or "<head>" in error_msg
+            ):
+                logger.error(
+                    "Error in API query loop: Perplexity API authentication error (401 Unauthorized)"
+                )
+                if verbose:
+                    print(
+                        "ERROR: Perplexity API authentication error (401 Unauthorized)"
+                    )
+            elif (
+                "401" in error_msg
+                or "Authorization" in error_msg
+                or "Unauthorized" in error_msg
+            ):
+                logger.error(
+                    "Error in API query loop: Perplexity API authentication error (401 Unauthorized)"
+                )
+                if verbose:
+                    print(
+                        "ERROR: Perplexity API authentication error (401 Unauthorized)"
+                    )
+            else:
+                logger.error(f"Error in API query loop: {error_msg}")
+                if verbose:
+                    print(f"ERROR: {error_msg}")
+
+            # Try to collect responses if we have any, otherwise set to empty list
+            if not responses:
+                logger.error("No responses collected during the loop")
+
+            # For authentication errors, raise to ensure proper handling by caller
+            if (
+                "<html>" in error_msg
+                or "401" in error_msg
+                or "Authorization" in error_msg
+                or "Unauthorized" in error_msg
+            ):
+                raise Exception("Perplexity API authentication error")
+
             # Add error to the last response if it exists
             if responses:
-                responses[-1]["error"] = str(e)
+                responses[-1]["error"] = error_msg
             break
 
     # Construct final result with all response data
