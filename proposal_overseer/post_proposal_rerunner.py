@@ -212,7 +212,9 @@ class RateLimiter:
         self.lock = threading.Lock()  # Lock for timestamps
         self.in_flight = 0
         self.in_flight_lock = threading.Lock()  # Lock for tracking in-flight requests
-        self.concurrency_semaphore = threading.Semaphore(max_concurrent)  # Limit concurrent processing
+        self.concurrency_semaphore = threading.Semaphore(
+            max_concurrent
+        )  # Limit concurrent processing
 
     def wait_if_needed(self):
         """Wait if needed to comply with rate limits. Returns wait time in seconds."""
@@ -247,16 +249,16 @@ class RateLimiter:
         """Acquire permission to make an API request, handling both rate limiting and concurrency."""
         # First, acquire the concurrency semaphore (blocks if max concurrent requests are in progress)
         self.concurrency_semaphore.acquire()
-        
+
         try:
             # Then, wait if needed to respect rate limits
             wait_time = self.wait_if_needed()
-            
+
             # Track the in-flight request
             with self.in_flight_lock:
                 self.in_flight += 1
                 current_in_flight = self.in_flight
-                
+
             return wait_time, current_in_flight
         except Exception as e:
             # If anything goes wrong, release the semaphore
@@ -268,16 +270,20 @@ class RateLimiter:
         try:
             # Update in-flight counter
             with self.in_flight_lock:
-                self.in_flight -= 1
+                # Ensure we don't go below zero
+                if self.in_flight > 0:
+                    self.in_flight -= 1
+                else:
+                    self.in_flight = 0
                 current_in_flight = self.in_flight
-                
+
             # Release the concurrency semaphore
             self.concurrency_semaphore.release()
-            
+
             return current_in_flight
         except Exception as e:
             logger.error(f"Error releasing rate limiter: {e}")
-            return -1
+            return 0
 
     def increment_in_flight(self):
         """Increment the count of in-flight requests (legacy method)."""
@@ -298,7 +304,9 @@ class RateLimiter:
 
 
 # Create a global rate limiter instance
-perplexity_rate_limiter = RateLimiter(max_requests_per_minute=5, max_concurrent=MAX_CONCURRENT)
+perplexity_rate_limiter = RateLimiter(
+    max_requests_per_minute=5, max_concurrent=MAX_CONCURRENT
+)
 
 
 def format_prompt_from_json(proposal_data):
@@ -402,7 +410,7 @@ def process_proposal_file(file_path, progress_tracker):
         # Acquire permission to make API request (handles both rate limiting and concurrency)
         try:
             wait_time, in_flight = perplexity_rate_limiter.acquire()
-            
+
             if wait_time > 0:
                 logger.info(
                     f"Rate limit reached. Waiting {wait_time:.2f} seconds before querying for {get_question_id_short(query_id)}"
@@ -435,17 +443,45 @@ def process_proposal_file(file_path, progress_tracker):
                 if VERBOSE:
                     print(f"API calls completed for {get_question_id_short(query_id)}")
 
+                # Verify we have valid Perplexity responses before proceeding
+                perplexity_responses = [
+                    r
+                    for r in result.get("responses", [])
+                    if r.get("interaction_type") == "perplexity_query"
+                ]
+                if not perplexity_responses:
+                    error_msg = f"No valid Perplexity responses for {get_question_id_short(query_id)}"
+                    logger.error(error_msg)
+                    if VERBOSE:
+                        print(f"ERROR: {error_msg}")
+                    raise Exception(error_msg)
+
             except Exception as api_error:
-                error_msg = f"Error during API calls for {get_question_id_short(query_id)}: {str(api_error)}"
+                # Clean up error message if it contains HTML
+                error_msg = str(api_error)
+                if len(error_msg) > 100 and (
+                    "<html>" in error_msg or "401" in error_msg
+                ):
+                    error_msg = f"Perplexity API authentication error (401 Unauthorized) for {get_question_id_short(query_id)}"
+                else:
+                    error_msg = f"Error during API calls for {get_question_id_short(query_id)}: {error_msg}"
+
                 logger.error(error_msg)
                 if VERBOSE:
                     print(f"ERROR: {error_msg}")
+                # Do not proceed if Perplexity API failed
                 raise
             finally:
                 # Release resources when done
-                in_flight = perplexity_rate_limiter.release()
-                api_complete_msg = f"Completed Perplexity-ChatGPT loop for {get_question_id_short(query_id)} (in-flight: {in_flight})"
-                logger.info(api_complete_msg)
+                try:
+                    in_flight = perplexity_rate_limiter.release()
+                    api_complete_msg = f"Completed Perplexity-ChatGPT loop for {get_question_id_short(query_id)} (in-flight: {max(0, in_flight)})"
+                    logger.info(api_complete_msg)
+                except Exception as release_error:
+                    logger.error(f"Error releasing rate limiter: {str(release_error)}")
+                    logger.info(
+                        f"Completed Perplexity-ChatGPT loop for {get_question_id_short(query_id)}"
+                    )
         except Exception as acquire_error:
             error_msg = f"Error acquiring permission for {get_question_id_short(query_id)}: {str(acquire_error)}"
             logger.error(error_msg)
@@ -454,9 +490,19 @@ def process_proposal_file(file_path, progress_tracker):
             raise
 
         if not result:
-            raise Exception(
-                f"No result obtained from API calls for {get_question_id_short(query_id)}"
-            )
+            error_msg = f"No result obtained from API calls for {get_question_id_short(query_id)}"
+            logger.error(error_msg)
+            if VERBOSE:
+                print(f"ERROR: {error_msg}")
+            raise Exception(error_msg)
+
+        # Verify result has valid data structure before continuing
+        if not result.get("final_recommendation") or not result.get("final_response"):
+            error_msg = f"Invalid result format from API calls for {get_question_id_short(query_id)}"
+            logger.error(error_msg)
+            if VERBOSE:
+                print(f"ERROR: {error_msg}")
+            raise Exception(error_msg)
 
         api_response_time = time.time() - start_time
         logger.info(f"API responses received in {api_response_time:.2f} seconds")
@@ -612,6 +658,7 @@ def process_all_proposals():
     # Collect all proposal files first
     proposal_files = list(Path(PROPOSALS_DIR).glob("*.json"))
     total_files = len(proposal_files)
+
     logger.info(f"Found {total_files} proposal files to process")
 
     # Count already processed files
@@ -621,6 +668,53 @@ def process_all_proposals():
             f"Found {processed_files_count} already processed files in output directory"
         )
 
+    # Check for valid API keys before processing
+    if not PERPLEXITY_API_KEY or not OPENAI_API_KEY:
+        logger.error("Missing API keys - cannot proceed")
+        print("ERROR: Missing API keys - cannot proceed")
+        return
+
+    # Try a test API call to verify Perplexity API is working
+    try:
+        test_result = query_perplexity(
+            "test query to verify API key",
+            PERPLEXITY_API_KEY,
+        )
+        if not test_result or not isinstance(test_result, dict):
+            logger.error("Perplexity API test failed - invalid response format")
+            print("ERROR: Perplexity API test failed - invalid response format")
+            sys.exit(1)  # Exit with error code
+    except Exception as e:
+        error_msg = str(e)
+        # Don't log the full HTML response
+        if (
+            "401" in error_msg
+            or "Authorization Required" in error_msg
+            or "Unauthorized" in error_msg
+        ):
+            logger.error("Perplexity API authentication failed (401 Unauthorized)")
+            print("ERROR: Perplexity API authentication failed (401 Unauthorized)")
+        elif len(error_msg) > 100 and ("<html>" in error_msg or "<head>" in error_msg):
+            logger.error(
+                "Perplexity API returned HTML error response (authentication failed)"
+            )
+            print(
+                "ERROR: Perplexity API returned HTML error response (authentication failed)"
+            )
+        else:
+            # Only log non-HTML errors
+            logger.error(f"Perplexity API test failed: {error_msg}")
+            print(f"ERROR: Perplexity API test failed: {error_msg}")
+
+        # Exit immediately on any API test failure
+        logger.error(
+            "Cannot proceed with invalid Perplexity API key or out of API credits"
+        )
+        print(
+            "ERROR: Cannot proceed with invalid Perplexity API key or out of API credits"
+        )
+        sys.exit(1)  # Exit with error code
+
     # Create and start progress tracker
     progress_tracker = ProgressTracker(total_files)
     progress_tracker.start()
@@ -628,38 +722,94 @@ def process_all_proposals():
     # Log the start of file processing
     if VERBOSE:
         print(f"Starting to process files with {MAX_CONCURRENT} concurrent workers")
-    
+
     # Create a lock for the progress tracker to prevent concurrent access issues
     progress_tracker_lock = threading.Lock()
-    
+
+    # Counter for consecutive API errors to detect persistent API issues
+    consecutive_api_errors = 0
+    consecutive_api_errors_lock = threading.Lock()
+    MAX_CONSECUTIVE_API_ERRORS = 5  # Exit after this many consecutive API errors
+
     def process_file_with_lock(file_path):
         """Process a file with thread-safe progress tracking"""
+        nonlocal consecutive_api_errors
+
         try:
             # Process the file
-            processed, api_call_made = process_proposal_file(file_path, progress_tracker)
-            
+            processed, api_call_made = process_proposal_file(
+                file_path, progress_tracker
+            )
+
+            # If API call was successful, reset consecutive error counter
+            if api_call_made and processed:
+                with consecutive_api_errors_lock:
+                    consecutive_api_errors = 0
+
             # Update progress stats in a thread-safe manner
             with progress_tracker_lock:
                 if VERBOSE and processed:
                     print(f"Completed processing {file_path.name}")
-                
+
             return processed, api_call_made
         except Exception as e:
-            error_msg = f"Error processing file {file_path}: {str(e)}"
+            error_str = str(e)
+
+            # Check for HTML or authentication errors
+            is_html_error = len(error_str) > 100 and (
+                "<html>" in error_str or "<head>" in error_str
+            )
+            is_auth_error = (
+                "401" in error_str
+                or "Unauthorized" in error_str
+                or "authorization" in error_str.lower()
+            )
+
+            # Create a clean error message
+            if is_html_error or is_auth_error:
+                error_msg = "Perplexity API authentication error (401 Unauthorized)"
+                # If we encounter an authentication error, exit immediately
+                logger.critical(
+                    "CRITICAL: Authentication error with Perplexity API detected"
+                )
+                print("\nCRITICAL: Authentication error with Perplexity API detected")
+                print("Exiting to prevent further API calls...\n")
+                os._exit(1)  # Exit immediately
+            else:
+                error_msg = f"Error processing file {file_path}: {error_str}"
+
             logger.error(error_msg)
             print(f"ERROR: {error_msg}")
-            
+
+            # Check if this was an API error and increment counter
+            if "API" in error_str or "Perplexity" in error_str:
+                with consecutive_api_errors_lock:
+                    consecutive_api_errors += 1
+                    current_count = consecutive_api_errors
+
+                # If we've had too many consecutive API errors, exit
+                if current_count >= MAX_CONSECUTIVE_API_ERRORS:
+                    critical_msg = f"CRITICAL: {current_count} consecutive API errors detected - possible API quota/auth issue"
+                    logger.critical(critical_msg)
+                    print(f"\n{critical_msg}")
+                    print("Exiting to prevent further API calls...\n")
+                    # Exit the entire program
+                    os._exit(1)
+
             # Update progress stats in a thread-safe manner
             with progress_tracker_lock:
                 progress_tracker.increment(skipped=True)
-            
+
             return False, False
-    
+
     # Use ThreadPoolExecutor for parallel processing
     with ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
         # Submit all tasks to the executor
-        future_to_file = {executor.submit(process_file_with_lock, file_path): file_path for file_path in proposal_files}
-        
+        future_to_file = {
+            executor.submit(process_file_with_lock, file_path): file_path
+            for file_path in proposal_files
+        }
+
         # Process results as they complete
         for future in future_to_file:
             try:

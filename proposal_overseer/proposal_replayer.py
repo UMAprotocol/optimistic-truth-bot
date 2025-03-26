@@ -192,15 +192,45 @@ def process_proposal_file(file_path):
             f"Starting enhanced Perplexity-ChatGPT loop for {get_question_id_short(query_id)}"
         )
 
-        result = enhanced_perplexity_chatgpt_loop(
-            user_prompt=user_prompt,
-            perplexity_api_key=PERPLEXITY_API_KEY,
-            chatgpt_api_key=OPENAI_API_KEY,
-            original_system_prompt=system_prompt,
-            logger=logger,
-            max_attempts=MAX_ATTEMPTS,
-            min_attempts=MIN_ATTEMPTS,
-        )
+        try:
+            result = enhanced_perplexity_chatgpt_loop(
+                user_prompt=user_prompt,
+                perplexity_api_key=PERPLEXITY_API_KEY,
+                chatgpt_api_key=OPENAI_API_KEY,
+                original_system_prompt=system_prompt,
+                logger=logger,
+                max_attempts=MAX_ATTEMPTS,
+                min_attempts=MIN_ATTEMPTS,
+            )
+
+            # Verify we have valid Perplexity responses before proceeding
+            perplexity_responses = [
+                r
+                for r in result.get("responses", [])
+                if r.get("interaction_type") == "perplexity_query"
+            ]
+            if not perplexity_responses:
+                error_msg = f"No valid Perplexity responses for {get_question_id_short(query_id)}"
+                logger.error(error_msg)
+                return False  # Don't proceed with ChatGPT or save output
+
+            # Verify result has valid data structure before continuing
+            if not result.get("final_recommendation") or not result.get(
+                "final_response"
+            ):
+                error_msg = f"Invalid result format from API calls for {get_question_id_short(query_id)}"
+                logger.error(error_msg)
+                return False  # Don't save invalid results
+        except Exception as e:
+            # Clean up error message if it contains HTML
+            error_msg = str(e)
+            if len(error_msg) > 100 and ("<html>" in error_msg or "401" in error_msg):
+                error_msg = f"Perplexity API authentication error (401 Unauthorized) for {get_question_id_short(query_id)}"
+            else:
+                error_msg = f"Error in Perplexity-ChatGPT loop for {get_question_id_short(query_id)}: {error_msg}"
+
+            logger.error(error_msg)
+            return False  # Exit this proposal processing but continue with others
 
         # Extract and organize proposal metadata
         if isinstance(proposal_data, list) and len(proposal_data) > 0:
@@ -373,6 +403,50 @@ class NewFileHandler(FileSystemEventHandler):
 
 def main():
     logger.info("Starting proposal monitor with ChatGPT oversight")
+
+    # Check for valid API keys before processing
+    if not PERPLEXITY_API_KEY or not OPENAI_API_KEY:
+        logger.error("Missing API keys - cannot proceed")
+        print("ERROR: Missing API keys - cannot proceed")
+        return
+
+    # Try a test API call to verify Perplexity API is working
+    try:
+        test_result = query_perplexity(
+            "test query to verify API key",
+            PERPLEXITY_API_KEY,
+        )
+        if not test_result or not isinstance(test_result, dict):
+            logger.error("Perplexity API test failed - invalid response format")
+            print("ERROR: Perplexity API test failed - invalid response format")
+            sys.exit(1)  # Exit with error code
+    except Exception as e:
+        error_msg = str(e)
+        # Don't log the full HTML response
+        if (
+            "401" in error_msg
+            or "Authorization Required" in error_msg
+            or "Unauthorized" in error_msg
+        ):
+            logger.error("Perplexity API authentication failed (401 Unauthorized)")
+            print("ERROR: Perplexity API authentication failed (401 Unauthorized)")
+        elif len(error_msg) > 100 and ("<html>" in error_msg or "<head>" in error_msg):
+            logger.error(
+                "Perplexity API returned HTML error response (authentication failed)"
+            )
+            print(
+                "ERROR: Perplexity API returned HTML error response (authentication failed)"
+            )
+        else:
+            # Only log non-HTML errors
+            logger.error(f"Perplexity API test failed: {error_msg}")
+            print(f"ERROR: Perplexity API test failed: {error_msg}")
+
+        # Exit immediately on any API test failure
+        logger.error("Cannot proceed with invalid Perplexity API key or out of API credits")
+        print("ERROR: Cannot proceed with invalid Perplexity API key or out of API credits")
+        sys.exit(1)  # Exit with error code
+
     process_all_existing_files()
 
     observer = Observer()

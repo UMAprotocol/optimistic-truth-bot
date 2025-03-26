@@ -129,7 +129,27 @@ function initializeExperimentRunner() {
             if (command) {
                 commandInput.value = '';
                 startProcess(command);
+                // Reset height after clearing
+                autoResizeTextarea(commandInput);
             }
+        });
+    }
+    
+    // Setup textarea auto-resize functionality
+    const commandInput = document.getElementById('commandInput');
+    if (commandInput) {
+        // Initial resize
+        autoResizeTextarea(commandInput);
+        
+        // Add event listeners for input changes
+        commandInput.addEventListener('input', function() {
+            autoResizeTextarea(this);
+        });
+        
+        // Also handle paste events
+        commandInput.addEventListener('paste', function() {
+            // Use setTimeout to ensure the paste content is in the textarea
+            setTimeout(() => autoResizeTextarea(this), 0);
         });
     }
     
@@ -3995,4 +4015,19 @@ function processLogEntry(logEntry) {
     processedEntry.message = message;
     
     return processedEntry;
+}
+
+// Function to automatically resize textarea based on content
+function autoResizeTextarea(textarea) {
+    // Reset height to auto to get the right scrollHeight
+    textarea.style.height = 'auto';
+    
+    // Set the height to match content (scrollHeight)
+    // Add a small buffer (2px) to avoid scrollbar flicker
+    textarea.style.height = (textarea.scrollHeight + 2) + 'px';
+    
+    // Enforce min-height from CSS if needed
+    if (textarea.scrollHeight < parseInt(getComputedStyle(textarea).minHeight)) {
+        textarea.style.height = getComputedStyle(textarea).minHeight;
+    }
 }
