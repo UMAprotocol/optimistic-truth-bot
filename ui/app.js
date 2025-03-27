@@ -2978,21 +2978,24 @@ function updateTableHeader() {
     // Build the header row based on selected columns
     let headerRow = '<tr>';
     
+    // Add icon column header (always first)
+    headerRow += '<th class="icon-column"></th>';
+    
     // Add columns based on preferences
-    if (columnPreferences.timestamp) headerRow += '<th>Process Time</th>';
-    if (columnPreferences.proposal_timestamp) headerRow += '<th>Proposal Time</th>';
-    if (columnPreferences.expiration_timestamp) headerRow += '<th>Expiration Time</th>';
-    if (columnPreferences.request_timestamp) headerRow += '<th>Request Time</th>';
-    if (columnPreferences.request_transaction_block_time) headerRow += '<th>Block Time</th>';
-    if (columnPreferences.id) headerRow += '<th>ID</th>';
-    if (columnPreferences.title) headerRow += '<th>Title</th>';
-    if (columnPreferences.recommendation) headerRow += '<th>AI Rec</th>';
-    if (columnPreferences.resolution) headerRow += '<th>Res</th>';
-    if (columnPreferences.disputed) headerRow += '<th>Disputed</th>';
-    if (columnPreferences.correct) headerRow += '<th>Correct</th>';
-    if (columnPreferences.block_number) headerRow += '<th>Block #</th>';
-    if (columnPreferences.proposal_bond) headerRow += '<th>Bond</th>';
-    if (columnPreferences.tags) headerRow += '<th>Tags</th>';
+    if (columnPreferences.timestamp) headerRow += '<th class="col-timestamp">Process Time</th>';
+    if (columnPreferences.proposal_timestamp) headerRow += '<th class="col-proposal-time">Proposal Time</th>';
+    if (columnPreferences.expiration_timestamp) headerRow += '<th class="col-expiration-time">Expiration Time</th>';
+    if (columnPreferences.request_timestamp) headerRow += '<th class="col-request-time">Request Time</th>';
+    if (columnPreferences.request_transaction_block_time) headerRow += '<th class="col-block-time">Block Time</th>';
+    if (columnPreferences.id) headerRow += '<th class="col-id">ID</th>';
+    if (columnPreferences.title) headerRow += '<th class="col-title">Title</th>';
+    if (columnPreferences.recommendation) headerRow += '<th class="col-recommendation">AI Rec</th>';
+    if (columnPreferences.resolution) headerRow += '<th class="col-resolution">Res</th>';
+    if (columnPreferences.disputed) headerRow += '<th class="col-disputed">Disputed</th>';
+    if (columnPreferences.correct) headerRow += '<th class="col-correct">Correct</th>';
+    if (columnPreferences.block_number) headerRow += '<th class="col-block-number">Block #</th>';
+    if (columnPreferences.proposal_bond) headerRow += '<th class="col-proposal-bond">Bond</th>';
+    if (columnPreferences.tags) headerRow += '<th class="col-tags">Tags</th>';
     
     headerRow += '</tr>';
     thead.innerHTML = headerRow;
@@ -3138,27 +3141,34 @@ function updateTableWithData(dataArray) {
         // Build the row based on selected columns
         let row = `<tr class="result-row ${recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">`;
         
+        // Add icon as the first cell if available
+        if (item.icon) {
+            row += `<td class="icon-cell"><img src="${item.icon}" alt="Question Icon" class="table-icon"></td>`;
+        } else {
+            row += `<td class="icon-cell"></td>`;
+        }
+        
         // Add cells based on column preferences
-        if (columnPreferences.timestamp) row += `<td>${formattedDate}</td>`;
-        if (columnPreferences.proposal_timestamp) row += `<td>${formattedProposalDate}</td>`;
-        if (columnPreferences.expiration_timestamp) row += `<td>${formattedExpirationDate}</td>`;
-        if (columnPreferences.request_timestamp) row += `<td>${formattedRequestDate}</td>`;
-        if (columnPreferences.request_transaction_block_time) row += `<td>${formattedBlockTime}</td>`;
-        if (columnPreferences.id) row += `<td><code class="code-font">${queryId}</code></td>`;
-        if (columnPreferences.title) row += `<td>${title}</td>`;
-        if (columnPreferences.recommendation) row += `<td class="recommendation">${recommendation}</td>`;
-        if (columnPreferences.resolution) row += `<td>${resolution}</td>`;
-        if (columnPreferences.disputed) row += `<td>
+        if (columnPreferences.timestamp) row += `<td class="col-timestamp">${formattedDate}</td>`;
+        if (columnPreferences.proposal_timestamp) row += `<td class="col-proposal-time">${formattedProposalDate}</td>`;
+        if (columnPreferences.expiration_timestamp) row += `<td class="col-expiration-time">${formattedExpirationDate}</td>`;
+        if (columnPreferences.request_timestamp) row += `<td class="col-request-time">${formattedRequestDate}</td>`;
+        if (columnPreferences.request_transaction_block_time) row += `<td class="col-block-time">${formattedBlockTime}</td>`;
+        if (columnPreferences.id) row += `<td class="col-id"><code class="code-font">${queryId}</code></td>`;
+        if (columnPreferences.title) row += `<td class="col-title">${title}</td>`;
+        if (columnPreferences.recommendation) row += `<td class="col-recommendation recommendation">${recommendation}</td>`;
+        if (columnPreferences.resolution) row += `<td class="col-resolution">${resolution}</td>`;
+        if (columnPreferences.disputed) row += `<td class="col-disputed">
             <span class="${disputedClass}"><i class="bi ${disputedIcon}"></i> ${isDisputed ? 'Yes' : 'No'}</span>
         </td>`;
-        if (columnPreferences.correct) row += `<td>
+        if (columnPreferences.correct) row += `<td class="col-correct">
             ${canCalculateCorrectness ? 
               `<span class="${correctnessClass}"><i class="bi ${correctnessIcon}"></i> ${isCorrect ? 'Yes' : 'No'}</span>` :
               'N/A'}
         </td>`;
-        if (columnPreferences.block_number) row += `<td>${blockNumber}</td>`;
-        if (columnPreferences.proposal_bond) row += `<td>${proposalBond}</td>`;
-        if (columnPreferences.tags) row += `<td>${formattedTags}</td>`;
+        if (columnPreferences.block_number) row += `<td class="col-block-number">${blockNumber}</td>`;
+        if (columnPreferences.proposal_bond) row += `<td class="col-proposal-bond">${proposalBond}</td>`;
+        if (columnPreferences.tags) row += `<td class="col-tags">${formattedTags}</td>`;
         
         row += '</tr>';
         return row;
@@ -3220,8 +3230,12 @@ function showDetails(data, index) {
     // Get title directly from the data using our extraction function
     const title = extractTitle(data) || 'Details';
     
-    // Set the modal title
-    modalTitle.textContent = title;
+    // Set the modal title with icon if available
+    if (data.icon) {
+        modalTitle.innerHTML = `<img src="${data.icon}" alt="Question Icon" class="modal-icon"> ${title}`;
+    } else {
+        modalTitle.textContent = title;
+    }
     
     // Check if disputed
     const isDisputed = data.disputed === true;
@@ -3297,10 +3311,6 @@ function showDetails(data, index) {
                             <td>${data.proposal_metadata && data.proposal_metadata.unix_timestamp ? formatDate(data.proposal_metadata.unix_timestamp) : 'N/A'}</td>
                         </tr>
                         <tr>
-                            <th>Request Time</th>
-                            <td>${data.proposal_metadata && data.proposal_metadata.request_timestamp ? formatDate(data.proposal_metadata.request_timestamp) : 'N/A'}</td>
-                        </tr>
-                        <tr>
                             <th>Request Block Time</th>
                             <td>${data.proposal_metadata && data.proposal_metadata.request_transaction_block_time ? formatDate(data.proposal_metadata.request_transaction_block_time) : 'N/A'}</td>
                         </tr>
@@ -3348,12 +3358,6 @@ function showDetails(data, index) {
                         <tr>
                             <th>End Date</th>
                             <td>${formatDate(new Date(data.end_date_iso).getTime() / 1000)}</td>
-                        </tr>
-                        ` : ''}
-                        ${data.icon ? `
-                        <tr>
-                            <th>Icon</th>
-                            <td><img src="${data.icon}" alt="Question Icon" class="question-icon" style="max-width: 100px; max-height: 100px;"></td>
                         </tr>
                         ` : ''}
                     </table>
@@ -4695,36 +4699,49 @@ function initializeSortableHeaders() {
     const headers = document.querySelectorAll('#resultsTable th');
     if (!headers.length) return;
     
-    // Define column mappings based on visible columns
-    const columnMap = [];
-    
-    // Add columns to map based on preferences (must match order in updateTableHeader)
-    if (columnPreferences.timestamp) columnMap.push('timestamp');
-    if (columnPreferences.proposal_timestamp) columnMap.push('proposal_timestamp');
-    if (columnPreferences.id) columnMap.push('id');
-    if (columnPreferences.title) columnMap.push('title');
-    if (columnPreferences.recommendation) columnMap.push('recommendation');
-    if (columnPreferences.resolution) columnMap.push('resolution');
-    if (columnPreferences.disputed) columnMap.push('disputed');
-    if (columnPreferences.correct) columnMap.push('correct');
-    if (columnPreferences.block_number) columnMap.push('block_number');
-    if (columnPreferences.proposal_bond) columnMap.push('proposal_bond');
-    if (columnPreferences.tags) columnMap.push('tags');
+    // Create a mapping of classes to column names
+    const columnClassMap = {
+        'col-timestamp': 'timestamp',
+        'col-proposal-time': 'proposal_timestamp',
+        'col-expiration-time': 'expiration_timestamp',
+        'col-request-time': 'request_timestamp',
+        'col-block-time': 'request_transaction_block_time',
+        'col-id': 'id',
+        'col-title': 'title',
+        'col-recommendation': 'recommendation',
+        'col-resolution': 'resolution',
+        'col-disputed': 'disputed',
+        'col-correct': 'correct',
+        'col-block-number': 'block_number',
+        'col-proposal-bond': 'proposal_bond',
+        'col-tags': 'tags'
+    };
     
     // Add sort indicators and click handlers to headers
-    headers.forEach((header, index) => {
-        // Skip if beyond our map
-        if (index >= columnMap.length) return;
+    headers.forEach((header) => {
+        // Skip the icon column (first column with no class)
+        if (header.classList.length === 0 || header.classList.contains('icon-column')) {
+            return;
+        }
         
-        // Get column name
-        const column = columnMap[index];
+        // Get column name from class
+        let columnName = null;
+        for (const className of header.classList) {
+            if (columnClassMap[className]) {
+                columnName = columnClassMap[className];
+                break;
+            }
+        }
+        
+        // Skip if we can't determine the column name
+        if (!columnName) return;
         
         // Add sort indicator
         const sortIndicator = document.createElement('span');
         sortIndicator.classList.add('sort-indicator', 'ms-1');
         
         // Set initial indicator if this is the current sort column
-        if (column === currentSort.column) {
+        if (columnName === currentSort.column) {
             sortIndicator.innerHTML = currentSort.direction === 'asc' ? '&#9650;' : '&#9660;';
         } else {
             sortIndicator.innerHTML = '&#8645;';
@@ -4741,16 +4758,27 @@ function initializeSortableHeaders() {
         // Add click handler
         header.addEventListener('click', () => {
             // Toggle direction if same column, otherwise set to desc
-            if (column === currentSort.column) {
+            if (columnName === currentSort.column) {
                 currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
             } else {
-                currentSort.column = column;
+                currentSort.column = columnName;
                 currentSort.direction = 'desc'; // Default to descending for new columns
             }
             
             // Update all indicators
-            document.querySelectorAll('#resultsTable th .sort-indicator').forEach((indicator, i) => {
-                if (i < columnMap.length && columnMap[i] === currentSort.column) {
+            document.querySelectorAll('#resultsTable th .sort-indicator').forEach((indicator) => {
+                const parentHeader = indicator.closest('th');
+                
+                // Get column name from parent header classes
+                let parentColumnName = null;
+                for (const className of parentHeader.classList) {
+                    if (columnClassMap[className]) {
+                        parentColumnName = columnClassMap[className];
+                        break;
+                    }
+                }
+                
+                if (parentColumnName === currentSort.column) {
                     indicator.innerHTML = currentSort.direction === 'asc' ? '&#9650;' : '&#9660;';
                     indicator.style.opacity = '1';
                 } else {

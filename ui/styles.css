@@ -98,9 +98,8 @@ header .bi {
 
 /* Results table specific styles */
 #resultsTable {
-    table-layout: fixed;
+    table-layout: auto;
     width: 100%;
-    white-space: nowrap;
     border-collapse: collapse;
     margin-bottom: 0;
 }
@@ -121,9 +120,28 @@ header .bi {
     text-overflow: ellipsis;
 }
 
+/* First column in table (icon column) */
+#resultsTable th:first-child,
+#resultsTable td:first-child {
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+    padding-right: 0;
+    padding-left: 8px;
+    border-right: none;
+}
+
+/* Default column sizing */
+#resultsTable th, 
+#resultsTable td {
+    padding: 0.5rem;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Process Time column */
-#resultsTable th:nth-child(1),
-#resultsTable td:nth-child(1) {
+#resultsTable .col-timestamp {
     width: 140px;
     white-space: nowrap;
     overflow: visible;
@@ -131,8 +149,31 @@ header .bi {
 }
 
 /* Proposal Time column */
-#resultsTable th:nth-child(2),
-#resultsTable td:nth-child(2) {
+#resultsTable .col-proposal-time {
+    width: 140px;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: initial;
+}
+
+/* Expiration Time column */
+#resultsTable .col-expiration-time {
+    width: 140px;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: initial;
+}
+
+/* Request Time column */
+#resultsTable .col-request-time {
+    width: 140px;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: initial;
+}
+
+/* Block Time column */
+#resultsTable .col-block-time {
     width: 140px;
     white-space: nowrap;
     overflow: visible;
@@ -140,8 +181,7 @@ header .bi {
 }
 
 /* ID column */
-#resultsTable th:nth-child(3),
-#resultsTable td:nth-child(3) {
+#resultsTable .col-id {
     width: 110px;
     white-space: nowrap;
     overflow: visible;
@@ -149,17 +189,17 @@ header .bi {
 }
 
 /* Title column */
-#resultsTable th:nth-child(4),
-#resultsTable td:nth-child(4) {
+#resultsTable .col-title {
     white-space: normal;
     word-wrap: break-word;
     min-width: 150px;
-    max-width: 150px;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* AI Rec column */
-#resultsTable th:nth-child(5),
-#resultsTable td:nth-child(5) {
+#resultsTable .col-recommendation {
     width: 70px;
     text-align: center;
     white-space: nowrap;
@@ -168,8 +208,7 @@ header .bi {
 }
 
 /* Resolution column */
-#resultsTable th:nth-child(6),
-#resultsTable td:nth-child(6) {
+#resultsTable .col-resolution {
     width: 60px;
     text-align: center;
     white-space: nowrap;
@@ -178,8 +217,7 @@ header .bi {
 }
 
 /* Disputed column */
-#resultsTable th:nth-child(7),
-#resultsTable td:nth-child(7) {
+#resultsTable .col-disputed {
     width: 70px;
     text-align: center;
     white-space: nowrap;
@@ -188,13 +226,45 @@ header .bi {
 }
 
 /* Correct column */
-#resultsTable th:nth-child(8),
-#resultsTable td:nth-child(8) {
+#resultsTable .col-correct {
     width: 70px;
     text-align: center;
     white-space: nowrap;
     overflow: visible;
     text-overflow: initial;
+}
+
+/* Block number column */
+#resultsTable .col-block-number {
+    width: 70px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: initial;
+}
+
+/* Proposal bond column */
+#resultsTable .col-proposal-bond {
+    width: 100px;
+    text-align: right;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: initial;
+}
+
+/* Tags column */
+#resultsTable .col-tags {
+    min-width: 120px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: initial;
+}
+
+/* Make code font in ID column more compact */
+#resultsTable .col-id code {
+    padding: 2px 3px;
+    font-size: 0.85rem;
+    white-space: nowrap;
 }
 
 /* Sortable header styles */
@@ -234,13 +304,6 @@ header .bi {
 
 .pagination .page-item.disabled .page-link {
     color: #6c757d;
-}
-
-/* Make code font in ID column more compact */
-#resultsTable td:nth-child(3) code {
-    padding: 2px 3px;
-    font-size: 0.85rem;
-    white-space: nowrap;
 }
 
 /* Full-width experiment row styling */
@@ -1580,7 +1643,7 @@ select[multiple] {
 }
 
 /* Make code font in ID column more compact */
-#resultsTable td:nth-child(3) code {
+#resultsTable td:nth-child(4) code {
     padding: 2px 3px;
     font-size: 0.85rem;
     white-space: nowrap;
@@ -1621,4 +1684,54 @@ select[multiple] {
 /* Make sure the dropdown doesn't get cut off */
 .dropdown-menu {
     z-index: 1050;
+}
+
+/* Icon styling */
+.table-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    margin: 0 auto;
+}
+
+.icon-cell {
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+    text-align: center;
+    vertical-align: middle;
+    padding-right: 0 !important;
+    padding-left: 8px !important;
+}
+
+.icon-column {
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+    padding: 0.5rem 0.25rem 0.5rem 8px !important;
+}
+
+.modal-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* When many columns are enabled, allow horizontal scrolling */
+.table-responsive {
+    overflow-x: auto;
+    min-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure the table grows horizontally when needed */
+@media (max-width: 1600px) {
+    #resultsTable {
+        min-width: max-content;
+    }
 } 

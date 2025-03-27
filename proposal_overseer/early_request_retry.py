@@ -117,12 +117,29 @@ def process_output_file(file_path):
             # Add to watched requests if not already there
             if query_id not in watched_requests:
                 expiration = output_data.get("proposal_metadata", {}).get("expiration_timestamp", 0)
+                
+                # Get the timestamp of the last response to ensure we wait the minimum time before retrying
+                last_response_time = 0
+                try:
+                    # First check overseer data if it exists
+                    if "overseer_data" in output_data and output_data["overseer_data"].get("final_response_metadata"):
+                        last_response_time = output_data["overseer_data"]["final_response_metadata"].get("created_timestamp", 0)
+                    # Otherwise check standard response metadata
+                    elif "response_metadata" in output_data:
+                        last_response_time = output_data["response_metadata"].get("created_timestamp", 0)
+                    # If no metadata, use file creation time
+                    if not last_response_time:
+                        last_response_time = int(output_data.get("timestamp", 0))
+                except Exception as e:
+                    logger.warning(f"Could not determine last response time for {query_id}: {str(e)}")
+                    last_response_time = int(time.time())  # Use current time as fallback
+                
                 watched_requests[query_id] = {
                     "file_path": file_path,
                     "expiration": expiration,
-                    "last_retry": 0,  # Will be updated when we retry
+                    "last_retry": last_response_time,  # Initialize with the original response time
                 }
-                logger.info(f"Added {query_id} to watch list (expires at {expiration})")
+                logger.info(f"Added {query_id} to watch list (expires at {expiration}, last response at {datetime.datetime.fromtimestamp(last_response_time).strftime('%Y-%m-%d %H:%M:%S')})")
     except Exception as e:
         logger.error(f"Error processing output file {file_path}: {str(e)}")
 
@@ -288,12 +305,23 @@ def check_watched_requests():
             to_remove.append(query_id)
             continue
         
-        # Check if it's time to retry (5 minutes since last retry)
-        if current_timestamp - info["last_retry"] >= args.check_interval:
+        # Check if it's time to retry (check_interval seconds since last retry)
+        time_since_last_retry = current_timestamp - info["last_retry"]
+        if time_since_last_retry >= args.check_interval:
+            time_since_str = f"{time_since_last_retry // 60} minutes, {time_since_last_retry % 60} seconds"
+            logger.info(f"Retrying query {query_id} after {time_since_str} (minimum interval: {args.check_interval} seconds)")
             success = retry_request(query_id, info["file_path"])
             if success:
                 # If recommendation changed, it will be removed by the retry function
-                pass
+                logger.info(f"Retry for {query_id} resulted in changed recommendation")
+            else:
+                # Update the last retry timestamp
+                watched_requests[query_id]["last_retry"] = current_timestamp
+                logger.info(f"Retry for {query_id} completed (no change in recommendation), next retry in {args.check_interval} seconds")
+        else:
+            # Log how much time remains until next retry (only in debug mode to avoid spam)
+            time_remaining = args.check_interval - time_since_last_retry
+            logger.debug(f"Next retry for {query_id} in {time_remaining} seconds")
     
     # Remove expired requests
     for query_id in to_remove:
