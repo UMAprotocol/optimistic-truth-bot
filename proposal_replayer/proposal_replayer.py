@@ -179,6 +179,13 @@ def process_proposal_file(file_path):
             "block_number": raw_data.get("block_number", 0),
             "updates": raw_data.get("updates", []),
             "ancillary_data_hex": raw_data.get("ancillary_data_hex", ""),
+            "transaction_hash": raw_data.get("transaction_hash", ""),
+            "request_transaction_block_time": raw_data.get("request_transaction_block_time", ""),
+            "request_timestamp": raw_data.get("request_timestamp", 0),
+            "expiration_timestamp": raw_data.get("expiration_timestamp", 0),
+            "proposer": raw_data.get("proposer", ""),
+            "bond_currency": raw_data.get("bond_currency", ""),
+            "condition_id": raw_data.get("condition_id", "")
         }
 
         output_data = {
@@ -193,6 +200,10 @@ def process_proposal_file(file_path):
             "resolved_price": None,
             "timestamp": time.time(),
             "processed_file": file_name,
+            "resolved_price_outcome": None,
+            "disputed": False,
+            "recommendation_overridden": False,
+            "proposed_price_outcome": extract_recommendation(response_text),
             "response_metadata": {
                 "model": response.model,
                 "created_timestamp": response.created,
