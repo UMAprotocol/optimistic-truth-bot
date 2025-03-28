@@ -2,7 +2,7 @@
   "query_id": "0x3cabe26724087370c38ab83fb38b7a90c8714c5a442a1b26669f602b7f4bfcf8",
   "question_id_short": "3cabe267",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "timestamp": 1743017677.6569128,
   "processed_file": "questionId_3cabe267.json",
   "proposal_metadata": {
@@ -21,7 +21,7 @@
     "bond_currency": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
     "condition_id": "0x9d9a96c4208e6dc768873463caf449fe4a93345db2de2ebdc873b26dc6a0dc9f"
   },
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p1",
   "disputed": false,
   "recommendation": "p1",
   "recommendation_overridden": false,

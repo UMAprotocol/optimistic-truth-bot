@@ -24,7 +24,7 @@
     "condition_id": "0xb0acc3ef6710e933b96b877c4f74dcf16affb0ce71ce46c68a2de783c211fd3c"
   },
   "resolved_price_outcome": null,
-  "disputed": false,
+  "disputed": true,
   "recommendation": "p2",
   "recommendation_overridden": false,
   "proposed_price_outcome": "p2",
@@ -121,5 +121,6 @@
   ],
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/energy-infrastructure-ceasefire-in-ukraine-in-march-L621uZRZTOms.jpg",
   "end_date_iso": "2025-03-31T00:00:00Z",
-  "game_start_time": null
+  "game_start_time": null,
+  "disputer_address": "0xCCa0C9eCeE075a01DA1B6A20db443c09824FFa27"
 }

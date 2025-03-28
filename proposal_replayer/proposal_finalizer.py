@@ -83,8 +83,12 @@ def get_market_resolution(output_data):
             logger.warning(f"No metadata found for {query_id}")
             return None
 
-    # Extract required data from metadata
-    timestamp = metadata.get("unix_timestamp")
+    # Extract required data from metadata - use request_timestamp as primary field
+    timestamp = (
+        metadata.get("request_timestamp")
+        or metadata.get("request_transaction_block_time")
+        or metadata.get("unix_timestamp")
+    )
     ancillary_data_hex = metadata.get("ancillary_data_hex")
 
     if not timestamp or not ancillary_data_hex:
