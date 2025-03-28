@@ -55,7 +55,7 @@ from prompt import get_system_prompt
 # Import locally defined modules
 from proposal_overseer.common import (
     setup_logging,
-    spinner_animation,
+    spinner,
     extract_recommendation,
     query_perplexity,
     query_chatgpt,
