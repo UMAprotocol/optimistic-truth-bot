@@ -2,7 +2,7 @@
   "query_id": "0x0a686fea8167d54e95d8e9e4db7f4c19e1d3f7df69d707ffed6027cd66cf7caf",
   "question_id_short": "0a686fea",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": -57896044618658097711785492504343953926634992332820282019728792003956564819968,
   "timestamp": 1742924780.3548641,
   "processed_file": "questionId_0a686fea.json",
   "proposal_metadata": {
@@ -21,8 +21,8 @@
     "bond_currency": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
     "condition_id": "0x0ef9a1e851f603bde7134e58e4ed89b9e2879438881ae98c3ad30f20561b1995"
   },
-  "resolved_price_outcome": null,
-  "disputed": false,
+  "resolved_price_outcome": "p4",
+  "disputed": true,
   "recommendation": "p2",
   "recommendation_overridden": false,
   "proposed_price_outcome": "p2",
@@ -116,5 +116,6 @@
   ],
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-doge-audit-the-irs-G69yAqTrsts6.jpg",
   "end_date_iso": "2025-04-30T00:00:00Z",
-  "game_start_time": null
+  "game_start_time": null,
+  "disputer_address": "0xdf08FFC4619e0324B3d38F85d5F07A5Cf31f133F"
 }

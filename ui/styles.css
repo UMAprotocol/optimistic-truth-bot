@@ -148,8 +148,16 @@ header .bi {
     text-overflow: initial;
 }
 
-/* Proposal Time column */
+/* Request Time column */
 #resultsTable .col-proposal-time {
+    width: 140px;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: initial;
+}
+
+/* Request Time column (direct time) */
+#resultsTable .col-request-time {
     width: 140px;
     white-space: nowrap;
     overflow: visible;
@@ -158,14 +166,6 @@ header .bi {
 
 /* Expiration Time column */
 #resultsTable .col-expiration-time {
-    width: 140px;
-    white-space: nowrap;
-    overflow: visible;
-    text-overflow: initial;
-}
-
-/* Request Time column */
-#resultsTable .col-request-time {
     width: 140px;
     white-space: nowrap;
     overflow: visible;

@@ -2983,7 +2983,7 @@ function updateTableHeader() {
     
     // Add columns based on preferences
     if (columnPreferences.timestamp) headerRow += '<th class="col-timestamp">Process Time</th>';
-    if (columnPreferences.proposal_timestamp) headerRow += '<th class="col-proposal-time">Proposal Time</th>';
+    if (columnPreferences.proposal_timestamp) headerRow += '<th class="col-proposal-time">Request Time</th>';
     if (columnPreferences.expiration_timestamp) headerRow += '<th class="col-expiration-time">Expiration Time</th>';
     if (columnPreferences.request_timestamp) headerRow += '<th class="col-request-time">Request Time</th>';
     if (columnPreferences.request_transaction_block_time) headerRow += '<th class="col-block-time">Block Time</th>';
@@ -3105,8 +3105,8 @@ function updateTableWithData(dataArray) {
         // Access the proposal date directly from proposal_metadata as a fallback
         const formattedProposalDate = proposalTimestamp ? 
             formatDate(proposalTimestamp) : 
-            (item.proposal_metadata && item.proposal_metadata.unix_timestamp ? 
-                formatDate(item.proposal_metadata.unix_timestamp) : 'N/A');
+            (item.proposal_metadata && item.proposal_metadata.request_timestamp ? 
+                formatDate(item.proposal_metadata.request_timestamp) : 'N/A');
         
         // Format the expiration timestamp if available
         const expirationTimestamp = item.proposal_metadata?.expiration_timestamp || 0;
@@ -3307,8 +3307,8 @@ function showDetails(data, index) {
                             <td>${formatDate(data.timestamp || 0)}</td>
                         </tr>
                         <tr>
-                            <th>Proposal Time</th>
-                            <td>${data.proposal_metadata && data.proposal_metadata.unix_timestamp ? formatDate(data.proposal_metadata.unix_timestamp) : 'N/A'}</td>
+                            <th>Request Time</th>
+                            <td>${data.proposal_metadata && data.proposal_metadata.request_timestamp ? formatDate(data.proposal_metadata.request_timestamp) : 'N/A'}</td>
                         </tr>
                         <tr>
                             <th>Request Block Time</th>
@@ -4606,11 +4606,11 @@ function sortData(data, column, direction) {
                 break;
             case 'proposal_timestamp':
                 valueA = a.proposal_timestamp || 
-                         (a.proposal_metadata && a.proposal_metadata.unix_timestamp ? 
-                             a.proposal_metadata.unix_timestamp : 0);
+                         (a.proposal_metadata && a.proposal_metadata.request_timestamp ? 
+                             a.proposal_metadata.request_timestamp : 0);
                 valueB = b.proposal_timestamp || 
-                         (b.proposal_metadata && b.proposal_metadata.unix_timestamp ? 
-                             b.proposal_metadata.unix_timestamp : 0);
+                         (b.proposal_metadata && b.proposal_metadata.request_timestamp ? 
+                             b.proposal_metadata.request_timestamp : 0);
                 break;
             case 'id':
                 valueA = a.question_id_short || a.query_id || '';
@@ -4836,8 +4836,8 @@ function displayResultsData() {
         
         // Extract proposal timestamp from proposal_metadata if available
         processed.proposal_timestamp = 
-            (item.proposal_metadata && item.proposal_metadata.unix_timestamp) ? 
-            item.proposal_metadata.unix_timestamp : 0;
+            (item.proposal_metadata && item.proposal_metadata.request_timestamp) ? 
+            item.proposal_metadata.request_timestamp : 0;
         
         return processed;
     });
