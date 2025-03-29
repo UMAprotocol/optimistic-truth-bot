@@ -1,6 +1,6 @@
 {
   "experiment": {
-    "timestamp": "12:45 28-03-2025",
+    "timestamp": "28-03-2025 12:45",
     "title": "Overseer V2 Realtime",
     "goal": "Running the V2 Perplexity + ChatGPT overseer code in real time for 5 days to see how things perform. Addionally, Running the early request retry logic that will enable P4s to be retried over the duration of liveness.",
     "previous_experiment": "25032025-perplexity-chatgpt-overseer-replay-v2",
