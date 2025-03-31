@@ -51,6 +51,7 @@ print(
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from prompt import get_system_prompt
+from proposal_overseer.prompt_overseer import format_market_price_info
 
 # Import locally defined modules
 from proposal_overseer.common import (
@@ -62,6 +63,7 @@ from proposal_overseer.common import (
     extract_prompt_update,
     get_overseer_decision,
     enhanced_perplexity_chatgpt_loop,
+    get_token_price,
 )
 
 logger = setup_logging("proposal_overseer", "logs/proposal_overseer.log")
@@ -207,10 +209,36 @@ def process_proposal_file(file_path):
             logger.info(f"Proposal {query_id} already processed, skipping")
             return True
 
+        # Extract token information if available
+        tokens = None
+        market_price_info = None
+        is_list = isinstance(proposal_data, list) and len(proposal_data) > 0
+        proposal_obj = proposal_data[0] if is_list else proposal_data
+
+        if "tokens" in proposal_obj:
+            tokens = proposal_obj.get("tokens", [])
+            logger.info(f"Found {len(tokens)} tokens in proposal data")
+
+            # Update token prices from Polymarket API
+            for token in tokens:
+                token_id = token.get("token_id")
+                if token_id:
+                    logger.info(f"Fetching price for token {token_id}")
+                    price_data = get_token_price(token_id)
+                    if price_data and "price" in price_data:
+                        # Update the token price with the latest data
+                        token["price"] = price_data["price"]
+                        logger.info(
+                            f"Updated token {token_id} price to {price_data['price']}"
+                        )
+
+            # Format market price information for ChatGPT
+            market_price_info = format_market_price_info(tokens)
+            logger.info(f"Prepared market price info for ChatGPT overseer")
+
         user_prompt = format_prompt_from_json(proposal_data)
         system_prompt = get_system_prompt()
 
-        is_list = isinstance(proposal_data, list) and len(proposal_data) > 0
         tx_hash = (proposal_data[0] if is_list else proposal_data).get(
             "transaction_hash", ""
         )
@@ -231,6 +259,7 @@ def process_proposal_file(file_path):
                 logger=logger,
                 max_attempts=MAX_ATTEMPTS,
                 min_attempts=MIN_ATTEMPTS,
+                market_price_info=market_price_info,
             )
 
             # Verify we have valid Perplexity responses before proceeding
@@ -269,15 +298,20 @@ def process_proposal_file(file_path):
             raw_data = proposal_data
 
         # Extract all fields from the original proposal to ensure we save everything
-        proposal_metadata = {k: v for k, v in raw_data.items() if k not in [
-            "query_id",  # These fields are already at the top level
-            "transaction_hash", 
-            "proposed_price",
-            "ancillary_data",
-            "resolution_conditions",
-            "updates",
-            "tags"
-        ]}
+        proposal_metadata = {
+            k: v
+            for k, v in raw_data.items()
+            if k
+            not in [
+                "query_id",  # These fields are already at the top level
+                "transaction_hash",
+                "proposed_price",
+                "ancillary_data",
+                "resolution_conditions",
+                "updates",
+                "tags",
+            ]
+        }
 
         # Prepare the output data with all the information we've gathered
         final_response = next(
@@ -310,6 +344,8 @@ def process_proposal_file(file_path):
             "overseer_data": {
                 "attempts": result["attempts"],
                 "interactions": result["responses"],
+                "market_price_info": market_price_info,  # Include market price info in output
+                "tokens": tokens,  # Include token data in output
                 "recommendation_journey": [
                     {
                         "attempt": i + 1,
@@ -324,7 +360,7 @@ def process_proposal_file(file_path):
                         ),
                         "overseer_satisfaction_level": next(
                             (
-                                r["satisfaction_level"]
+                                r.get("satisfaction_level")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
@@ -333,7 +369,7 @@ def process_proposal_file(file_path):
                         ),
                         "prompt_updated": next(
                             (
-                                r["prompt_updated"]
+                                r.get("prompt_updated", False)
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
@@ -342,7 +378,7 @@ def process_proposal_file(file_path):
                         ),
                         "critique": next(
                             (
-                                r["critique"]
+                                r.get("critique", "")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
@@ -351,21 +387,21 @@ def process_proposal_file(file_path):
                         ),
                         "system_prompt_before": next(
                             (
-                                r["system_prompt_before"]
+                                r.get("system_prompt_before", "")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
                             ),
-                            None,
+                            "",
                         ),
                         "system_prompt_after": next(
                             (
-                                r["system_prompt_after"]
+                                r.get("system_prompt_after", "")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
                             ),
-                            None,
+                            "",
                         ),
                     }
                     for i in range(result["attempts"])

@@ -3473,6 +3473,43 @@ function showDetails(data, index) {
                     </div>
                 </div>
                 
+                ${data.overseer_data.market_price_info ? `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <strong>Market Price Information</strong>
+                    </div>
+                    <div class="card-body">
+                        <pre class="mb-0 market-info-text">${data.overseer_data.market_price_info}</pre>
+                        
+                        ${data.overseer_data.tokens && data.overseer_data.tokens.length > 0 ? `
+                        <div class="mt-3">
+                            <strong>Tokens:</strong>
+                            <table class="table table-sm table-bordered mt-2">
+                                <thead>
+                                    <tr>
+                                        <th>Outcome</th>
+                                        <th>Price</th>
+                                        <th>Winner</th>
+                                        <th>Token ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.overseer_data.tokens.map(token => `
+                                    <tr class="${token.winner ? 'table-success' : ''}">
+                                        <td>${token.outcome}</td>
+                                        <td>${token.price}</td>
+                                        <td>${token.winner ? 'Yes' : 'No'}</td>
+                                        <td><small class="text-muted">${token.token_id}</small></td>
+                                    </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+                
                 <div class="accordion" id="interactionsAccordion">
                     ${data.overseer_data.interactions.map((interaction, idx) => `
                         <div class="accordion-item">
