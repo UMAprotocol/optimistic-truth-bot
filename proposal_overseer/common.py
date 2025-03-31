@@ -970,11 +970,27 @@ def enhanced_perplexity_chatgpt_loop(
     if final_recommendation_overridden:
         logger.info(f"Final recommendation was overridden to {final_recommendation}")
 
+    # Check if we reached max attempts and the final evaluation was not satisfied
+    final_evaluation = next(
+        (r for r in responses if r.get("stage") == f"evaluation_{attempts}" and r.get("interaction_type") == "chatgpt_evaluation"),
+        None
+    )
+    
+    if attempts >= max_attempts and final_evaluation and final_evaluation.get("satisfaction_level") != "satisfied":
+        logger.warning(f"Maximum attempts reached and final evaluation was not satisfied. Defaulting to P4.")
+        if verbose:
+            print("Maximum attempts reached and final evaluation was not satisfied. Defaulting to P4.")
+        
+        # Override the final recommendation to p4
+        final_recommendation = "p4"
+        final_recommendation_overridden = True
+        logger.info("Final recommendation overridden to p4 due to unsatisfied final evaluation at max attempts")
+
     final_result = {
         "attempts": attempts,
         "responses": responses,
         "initial_recommendation": initial_recommendation,
-        "final_recommendation": (
+        "final_recommendation": final_recommendation if final_recommendation else (
             final_perplexity_response.get("recommendation", "p4")
             if final_perplexity_response
             else "p4"
