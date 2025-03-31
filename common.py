@@ -70,6 +70,61 @@ def get_polymarket_data(condition_id: str) -> dict:
         time.sleep(0.5)  # 500ms between API requests
 
 
+def find_market_by_neg_risk_request_id(data, neg_risk_request_id: str) -> dict:
+    """
+    Find a market in Polymarket data by its neg_risk_request_id.
+
+    Args:
+        data: Polymarket data (could be a list of markets or a dictionary with nested markets)
+        neg_risk_request_id: The neg_risk_request_id to search for
+
+    Returns:
+        The complete market data object or None if not found
+    """
+    # If data is a dictionary, try to find markets key
+    if isinstance(data, dict):
+        # Check if this dictionary itself has the neg_risk_request_id
+        if data.get("neg_risk_request_id") == neg_risk_request_id:
+            return data
+
+        # Look for markets in common locations
+        for key in ["markets", "data", "results"]:
+            if key in data and isinstance(data[key], list):
+                result = find_market_by_neg_risk_request_id(
+                    data[key], neg_risk_request_id
+                )
+                if result:
+                    return result
+
+        # Recursively search all dictionary values
+        for value in data.values():
+            if isinstance(value, (dict, list)):
+                result = find_market_by_neg_risk_request_id(value, neg_risk_request_id)
+                if result:
+                    return result
+
+    # If data is a list, search each item
+    elif isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict):
+                if item.get("neg_risk_request_id") == neg_risk_request_id:
+                    return item
+
+                # Recursively search nested structures
+                if any(isinstance(v, (dict, list)) for v in item.values()):
+                    result = find_market_by_neg_risk_request_id(
+                        item, neg_risk_request_id
+                    )
+                    if result:
+                        return result
+            elif isinstance(item, (dict, list)):
+                result = find_market_by_neg_risk_request_id(item, neg_risk_request_id)
+                if result:
+                    return result
+
+    return None
+
+
 def load_abi(filename):
     with open(f"./abi/{filename}") as f:
         return json.load(f)

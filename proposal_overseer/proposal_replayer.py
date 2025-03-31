@@ -268,15 +268,16 @@ def process_proposal_file(file_path):
         else:
             raw_data = proposal_data
 
-        proposal_metadata = {
-            "creator": raw_data.get("creator", ""),
-            "proposal_bond": raw_data.get("proposal_bond", 0),
-            "reward_amount": raw_data.get("reward_amount", 0),
-            "unix_timestamp": raw_data.get("unix_timestamp", 0),
-            "block_number": raw_data.get("block_number", 0),
-            "updates": raw_data.get("updates", []),
-            "ancillary_data_hex": raw_data.get("ancillary_data_hex", ""),
-        }
+        # Extract all fields from the original proposal to ensure we save everything
+        proposal_metadata = {k: v for k, v in raw_data.items() if k not in [
+            "query_id",  # These fields are already at the top level
+            "transaction_hash", 
+            "proposed_price",
+            "ancillary_data",
+            "resolution_conditions",
+            "updates",
+            "tags"
+        ]}
 
         # Prepare the output data with all the information we've gathered
         final_response = next(

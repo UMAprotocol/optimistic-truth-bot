@@ -72,6 +72,8 @@ Be extremely critical and cautious. The response must be highly accurate and rel
 
 Remember: First attempt p4 recommendations MUST always get a RETRY verdict with require_rerun=true.
 
+Note that the result should NEVER be p3. if perplexity returns p3, you MUST return RETRY or DEFAULT_TO_P4 and under no circumstances should you return p3 as this is ambiguous and could lead to incorrect resolutions: either P1 or P2 could be correct or not sure yet via P4.
+
 EXTRA THINGS TO CONSIDER:
 - Ensure that if the user prompt relates to a particular source that perplexity is using the correct source
 - Ensure that if the user prompt contains updates, perplexity is using the updates to update its analysis and resolution and is factoring them heavily into its recommendation
