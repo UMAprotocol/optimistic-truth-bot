@@ -551,14 +551,20 @@ def process_proposal_file(file_path, progress_tracker):
         else:
             raw_data = proposal_data
 
+        # Extract all fields from the original proposal to ensure we save everything
         proposal_metadata = {
-            "creator": raw_data.get("creator", ""),
-            "proposal_bond": raw_data.get("proposal_bond", 0),
-            "reward_amount": raw_data.get("reward_amount", 0),
-            "unix_timestamp": raw_data.get("unix_timestamp", 0),
-            "block_number": raw_data.get("block_number", 0),
-            "updates": raw_data.get("updates", []),
-            "ancillary_data_hex": raw_data.get("ancillary_data_hex", ""),
+            k: v
+            for k, v in raw_data.items()
+            if k
+            not in [
+                "query_id",  # These fields are already at the top level
+                "transaction_hash",
+                "proposed_price",
+                "ancillary_data",
+                "resolution_conditions",
+                "updates",
+                "tags",
+            ]
         }
 
         # Prepare the output data with all the information we've gathered
@@ -657,6 +663,10 @@ def process_proposal_file(file_path, progress_tracker):
                 ),
             },
         }
+
+        # Include condition_id at the top level if it exists in raw_data
+        if "condition_id" in raw_data:
+            output_data["condition_id"] = raw_data.get("condition_id", "")
 
         # Include tags if they exist in the proposal data
         if "tags" in raw_data:

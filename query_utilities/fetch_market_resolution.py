@@ -20,6 +20,7 @@ from common import (
     load_abi,
     OptimisticOracleV2,
     UmaCtfAdapter,
+    NegRiskUmaCtfAdapter,
     yesOrNoIdentifier,
     compute_condition_id,
     get_polymarket_data,
@@ -92,6 +93,9 @@ def main(question_id):
     print("----------------------------------------")
     condition_id = compute_condition_id(UmaCtfAdapter, question_id, 2)
     print(f"Condition ID:                  {condition_id}")
+    
+    condition_id_alternative = compute_condition_id(NegRiskUmaCtfAdapter, question_id, 1)
+    print(f"Condition ID Alternative:      {condition_id_alternative}")
 
     poly_data = get_polymarket_data(condition_id)
     if poly_data:
