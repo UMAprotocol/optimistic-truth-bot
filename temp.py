@@ -74,14 +74,24 @@ def process_file(file_path, processed_files_dir, output_dir):
         # Fields to check and copy from processed file to main file
         fields_to_update = []
 
+        # Fields that should be at the root level
+        root_fields = [
+            "tags",
+            "icon",
+            "end_date_iso",
+            "game_start_time",
+        ]
+
+        # Add root level fields
+        for field in root_fields:
+            if field in processed_data and field not in data:
+                data[field] = processed_data[field]
+                fields_to_update.append(field)
+
         # Check specifically for proposal_metadata fields that might be missing
         if "proposal_metadata" in data:
-            # Check if any fields are missing in proposal_metadata
-            # by comparing with fields in processed_data
-            proposal_metadata = data["proposal_metadata"]
-
-            # Fields we want to ensure are in proposal_metadata
-            expected_fields = [
+            # Fields that should be within proposal_metadata
+            proposal_metadata_fields = [
                 "creator",
                 "proposal_bond",
                 "reward_amount",
@@ -89,28 +99,36 @@ def process_file(file_path, processed_files_dir, output_dir):
                 "block_number",
                 "updates",
                 "ancillary_data_hex",
-            ]
-
-            # Add additional fields from processed_data
-            for field in [
-                "tags",
-                "icon",
-                "end_date_iso",
-                "game_start_time",
-                "condition_id",
-                "resolution_conditions",
+                "transaction_hash",
+                "request_transaction_block_time",
                 "request_timestamp",
                 "expiration_timestamp",
-            ]:
-                if field in processed_data and field not in data:
-                    data[field] = processed_data[field]
-                    fields_to_update.append(field)
+                "proposer",
+                "bond_currency",
+                "condition_id",
+            ]
+
+            proposal_metadata = data["proposal_metadata"]
 
             # Update proposal_metadata fields
-            for field in expected_fields:
-                if field not in proposal_metadata and field in processed_data:
-                    proposal_metadata[field] = processed_data[field]
-                    fields_to_update.append(f"proposal_metadata.{field}")
+            for field in proposal_metadata_fields:
+                # Check if field exists in processed data (could be at root or in processed data)
+                if field not in proposal_metadata:
+                    if field in processed_data:
+                        proposal_metadata[field] = processed_data[field]
+                        fields_to_update.append(f"proposal_metadata.{field}")
+                    # Some fields might be nested in a different structure in the processed file
+                    elif field == "condition_id" and "condition_id" in processed_data:
+                        proposal_metadata[field] = processed_data["condition_id"]
+                        fields_to_update.append(f"proposal_metadata.{field}")
+
+            # Special case: Set unix_timestamp to be equal to request_timestamp if it exists
+            if "request_timestamp" in processed_data:
+                proposal_metadata["unix_timestamp"] = processed_data[
+                    "request_timestamp"
+                ]
+                if "unix_timestamp" not in fields_to_update:
+                    fields_to_update.append(f"proposal_metadata.unix_timestamp")
 
         # If no fields were updated, copy the original file and log
         if not fields_to_update:

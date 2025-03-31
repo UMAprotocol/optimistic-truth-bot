@@ -306,6 +306,11 @@ def enrich_proposal_with_polymarket_data(result, question_id):
         result["end_date_iso"] = poly_data.get("end_date_iso", "")
         result["game_start_time"] = poly_data.get("game_start_time", "")
 
+        # Add the additional requested fields
+        result["tokens"] = poly_data.get("tokens", [])
+        result["neg_risk_market_id"] = poly_data.get("neg_risk_market_id", "")
+        result["neg_risk_request_id"] = poly_data.get("neg_risk_request_id", "")
+
         logger.info(f"Added Polymarket data for {question_id}: tags={result['tags']}")
         return result
 
