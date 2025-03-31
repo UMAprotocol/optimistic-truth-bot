@@ -1,0 +1,88 @@
+{
+  "query_id": "0x79a9fad0fd4bdf2982f06b27743814d6777401a472adec0c4282ccd9f661b11d",
+  "question_id_short": "79a9fad0",
+  "transaction_hash": "0x6c52e197351b4c88430f765999d586488087006ea7ed20d57d29e1f3508a1a30",
+  "proposed_price": 0,
+  "resolved_price": null,
+  "timestamp": 1743302753.8504045,
+  "processed_file": "questionId_79a9fad0.json",
+  "proposal_metadata": {
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "unix_timestamp": 0,
+    "block_number": 69667584,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a20427275696e732076732e205265642057696e67732c206465736372697074696f6e3a20496e20746865207570636f6d696e67204e484c2067616d652c207363686564756c656420666f72204d6172636820323920617420383a3030504d2045543a0a49662074686520426f73746f6e20427275696e732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c427275696e73e2809d2e0a49662074686520446574726f6974205265642057696e67732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c5265642057696e6773e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f205265642057696e67732c20703220746f20427275696e732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a63373839643263343235303261323534386565663365646265383464666539656432333334303361"
+  },
+  "resolved_price_outcome": null,
+  "disputed": false,
+  "initial_recommendation": "p1",
+  "recommendation": "p1",
+  "recommendation_changed": false,
+  "recommendation_overridden": false,
+  "proposed_price_outcome": "p1",
+  "user_prompt": "user:\n\nancillary_data:\nq: title: Bruins vs. Red Wings, description: In the upcoming NHL game, scheduled for March 29 at 8:00PM ET:\nIf the Boston Bruins win, the market will resolve to \"Bruins\".\nIf the Detroit Red Wings win, the market will resolve to \"Red Wings\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Red Wings, p2 to Bruins, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743302678 Current Date and Time: 2025-03-30 02:44:38 UTC",
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [
+      {
+        "attempt": 1,
+        "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a UMA optimistic oracle request for the Bruins vs. Red Wings game on March 29, 2025, at 8:00 PM ET. The ancillary data specifies that if the Bruins win, it's p2; if the Red Wings win, it's p1; postponed keeps it open, and canceled is p3. \n\nFirst, I need to check the current date, which is March 30, 2025, 2:45 AM UTC. The game was scheduled for March 29, so it's in the past. Now, I need to verify the outcome using the provided search results.\n\nLooking at the sources, most of them are predictions or previews before the game (sources 2, 3, 4, 6, 7, 10). However, sources 8 and 9 have actual game data. Source 8 from Plain Text Sports shows the final score as Bruins 1, Red Wings 2. Source 9 from USA Today's game summary also lists the final score as 2-1 in favor of the Red Wings, with goals by Marco Kasper and Lucas Raymond. \n\nThe other sources like 5 and 7 have conflicting information. Source 5 (FOX Sports) mentions a game on March 30, but the detailed stats might be a placeholder. However, sources 8 and 9 are more concrete with period-by-period breakdowns and goal details, indicating the game occurred and ended 2-1 Red Wings. \n\nSince the game date is in the past and there are verified results showing Detroit won, the resolution should be p1 as per the ancillary data. No mentions of postponement or cancellation, so p3 isn't applicable. All conditions are met for p1: Red Wings victory.\n</think>\n\nThe NHL game between the Boston Bruins and Detroit Red Wings scheduled for March 29, 2025, at 8:00 PM ET concluded with a **2-1 victory for the Detroit Red Wings** at Little Caesars Arena. The Red Wings secured the win with goals from Marco Kasper (1st period) and Lucas Raymond (2nd period), while the Bruins' lone goal came from Morgan Geekie on a power play in the 2nd period[8][9]. \n\n**Key details confirming the outcome:**\n- Final score: **Red Wings 2, Bruins 1**  \n- The game concluded without postponement or cancellation, as evidenced by period-by-period scoring and penalty logs[8][9].  \n- No contradictory reports of rescheduling or alternative outcomes were found in the verified sources.  \n\nBased on the resolution conditions provided, the market resolves to **\"Red Wings\"** (p1).  \n\nrecommendation: p1",
+        "recommendation": "p1",
+        "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743302678 Current Date and Time: 2025-03-30 02:44:38 UTC",
+        "cumulative_refinements": false,
+        "response_metadata": {
+          "model": "sonar-deep-research",
+          "created_timestamp": 1743302750,
+          "created_datetime": "2025-03-30T02:45:50",
+          "completion_tokens": 576,
+          "prompt_tokens": 1055,
+          "total_tokens": 1631,
+          "api_response_time_seconds": 71.57181406021118
+        },
+        "citations": [
+          "https://nesn.com/2024/12/one-big-takeaway-as-bruins-seal-ot-comeback-win-over-red-wings/",
+          "https://www.sportsbettingdime.com/news/nhl/bruins-vs-red-wings-prediction-pick-betting-line-saturday-mar-29/",
+          "https://pickdawgz.com/nhl-picks/2025-03-29/bruins-vs-red-wings-prediction-nhl-picks",
+          "https://www.docsports.com/free-picks/nhl-hockey/2025/boston-bruins-vs-detroit-red-wings-prediction-3-29-2025-nhl-picks-best-bets-odds.html",
+          "https://www.foxsports.com/nhl/boston-bruins-vs-detroit-red-wings-mar-29-2025-game-boxscore-42703",
+          "https://ats.io/nhl/boston-bruins-vs-detroit-red-wings-prediction-3-29-2025/318596/",
+          "https://www.thescore.com/nhl/events/30591",
+          "https://plaintextsports.com/nhl/2025-03-29/bos-det",
+          "https://sportsdata.usatoday.com/hockey/nhl/summary/2670856",
+          "https://www.dimers.com/bet-hub/nhl/schedule/2024_177_det_bos"
+        ],
+        "interaction_type": "perplexity_query",
+        "stage": "initial_response",
+        "error": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+      }
+    ],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p1",
+        "overseer_satisfaction_level": null,
+        "prompt_updated": false,
+        "critique": null,
+        "system_prompt_before": null,
+        "system_prompt_after": null
+      }
+    ],
+    "final_response_metadata": {
+      "model": "sonar-deep-research",
+      "created_timestamp": 1743302750,
+      "created_datetime": "2025-03-30T02:45:50",
+      "completion_tokens": 576,
+      "prompt_tokens": 1055,
+      "total_tokens": 1631,
+      "api_response_time_seconds": 71.57181406021118
+    }
+  },
+  "tags": [
+    "Sports",
+    "NHL",
+    "Games"
+  ]
+}
