@@ -385,9 +385,9 @@ def process_proposal_file(file_path):
                             ),
                             None,
                         ),
-                        "system_prompt_before": next(
+                        "chatgpt_prompt": next(
                             (
-                                r.get("system_prompt_before", "")
+                                r.get("prompt", "")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
