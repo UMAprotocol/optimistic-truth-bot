@@ -1,0 +1,92 @@
+{
+  "query_id": "0xd748bf54c8926a5efdcf580242b4fd68cb2524b2be7f3cc9bf71abb494540b64",
+  "question_id_short": "d748bf54",
+  "transaction_hash": "0xea122c937f5c9357712dbfb6e661ee53e51f4f5d09305b3f34f2bc0501e47da6",
+  "proposed_price": 0,
+  "resolved_price": null,
+  "timestamp": 1743306308.899171,
+  "processed_file": "questionId_d748bf54.json",
+  "proposal_metadata": {
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposal_bond": 500000000,
+    "reward_amount": 5000000,
+    "unix_timestamp": 0,
+    "block_number": 69669234,
+    "updates": [],
+    "ancillary_data_hex": "0x713a207469746c653a20444554205469676572732076732e204c414420446f6467657273204d617263682032392c206465736372697074696f6e3a2054686973206d61726b65742077696c6c207265736f6c766520746f207468652077696e6e6572206f6620746865206c6973746564204d4c422067616d65207363686564756c656420666f72204d617263682032392e0a0a4966207468652067616d6520697320706f7374706f6e6564206f722063616e63656c6564206265666f726520697420626567696e732074686973206d61726b65742077696c6c207265736f6c766520746f2035302d35302e0a0a4966207468652067616d6520626567696e73206275742069732073757370656e64656420616e64206e6f7420636f6d706c65746564206f6e204d617263682032392c20746865206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c204d617263682033312c2031313a353920504d2020617420776869636820706f696e74206966207468652067616d6520686173206e6f74206265656e207265737461727465642c2074686973206d61726b65742077696c6c207265736f6c766520746f2035302d35302e0a0a4966207468652067616d65206973206465636c61726564206f6666696369616c20776974686f7574206265696e672066756c6c7920636f6d706c657465642028652e672e2c2064756520746f207261696e20616674657220352b20696e6e696e6773292c20746865206d61726b65742077696c6c207265736f6c7665206163636f7264696e6720746f20746865206f6666696369616c2077696e6e65722061732064657465726d696e6564206279204d4c422072756c65732e0a0a4966207468652067616d6520656e647320696e2061207469652074686973206d61726b65742077696c6c207265736f6c766520746f2035302d35302e0a0a546865206f6666696369616c206f7574636f6d65206173207265636f72646564206279204d616a6f72204c6561677565204261736562616c6c2077696c6c206265207573656420746f2064657465726d696e6520746865207265736f6c7574696f6e206f662074686973206d61726b65742e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f20446f64676572732c20703220746f205469676572732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a39313433306361643264333937353736363439393731376661306436366137386438313465356335"
+  },
+  "resolved_price_outcome": null,
+  "disputed": false,
+  "initial_recommendation": "p1",
+  "recommendation": "p1",
+  "recommendation_changed": false,
+  "recommendation_overridden": false,
+  "proposed_price_outcome": "p1",
+  "user_prompt": "user:\n\nancillary_data:\nq: title: DET Tigers vs. LAD Dodgers March 29, description: This market will resolve to the winner of the listed MLB game scheduled for March 29.\n\nIf the game is postponed or canceled before it begins this market will resolve to 50-50.\n\nIf the game begins but is suspended and not completed on March 29, the market will remain open until March 31, 11:59 PM  at which point if the game has not been restarted, this market will resolve to 50-50.\n\nIf the game is declared official without being fully completed (e.g., due to rain after 5+ innings), the market will resolve according to the official winner as determined by MLB rules.\n\nIf the game ends in a tie this market will resolve to 50-50.\n\nThe official outcome as recorded by Major League Baseball will be used to determine the resolution of this market.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Dodgers, p2 to Tigers, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743306183 Current Date and Time: 2025-03-30 03:43:03 UTC",
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [
+      {
+        "attempt": 1,
+        "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a UMA optimistic oracle request for the MLB game between the Detroit Tigers and Los Angeles Dodgers on March 29, 2025. The ancillary data specifies that p1 is Dodgers, p2 is Tigers, and p3 is 50-50. \n\nFirst, I need to check if the game occurred on March 29. The current date given is March 30, 2025, so the game date is in the past. Now, looking at the search results, multiple sources (1, 3, 5, 7, 10) report that the Dodgers won the game on March 29 with a score of 8-5 in the 10th inning. Mookie Betts hit a walk-off three-run homer. The game was completed, so there's no suspension or postponement mentioned. \n\nThe resolution conditions state that the official MLB outcome determines the result. Since the Dodgers won, the market should resolve to p1. There's no indication of the game being canceled, postponed, or ending in a tie. All sources confirm the Dodgers' victory, so the recommendation is p1.\n</think>\n\nThe Detroit Tigers vs. Los Angeles Dodgers game scheduled for March 29, 2025, was completed as planned. The **Los Angeles Dodgers defeated the Detroit Tigers 8-5 in 10 innings**, with Mookie Betts hitting a walk-off three-run homer[1][3][5][7][10]. The game was not postponed, suspended, or declared a tie, and it concluded according to MLB rules. \n\nBased on the resolution conditions provided (p1 for Dodgers win, p2 for Tigers win, p3 for unresolved/50-50), the market resolves to **p1** (Dodgers victory) as confirmed by multiple verified sources reporting the official outcome.\n\nrecommendation: p1",
+        "recommendation": "p1",
+        "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743306183 Current Date and Time: 2025-03-30 03:43:03 UTC",
+        "cumulative_refinements": false,
+        "response_metadata": {
+          "model": "sonar-deep-research",
+          "created_timestamp": 1743306305,
+          "created_datetime": "2025-03-30T03:45:05",
+          "completion_tokens": 392,
+          "prompt_tokens": 1135,
+          "total_tokens": 1527,
+          "api_response_time_seconds": 122.17336988449097
+        },
+        "citations": [
+          "https://spectrumnews1.com/ca/southern-california/sports/2025/03/29/betts-hits-winning-3-run-homer-in-10th-as-dodgers-beat-tigers-8-5",
+          "https://www.foxsports.com/articles/mlb/dodgers-vs-tigers-prediction-odds-picks-march-29",
+          "https://www.cbssports.com/mlb/gametracker/boxscore/MLB_20250328_DET@LAD/",
+          "https://www.cbssports.com/mlb/gametracker/recap/MLB_20250327_DET@LAD/",
+          "https://www.nbclosangeles.com/news/sports/watch-mookie-betts-hits-game-winning-3-run-homer-in-10th-as-dodgers-beat-tigers-8-5-for-first-4-0-start-since-1981/3665686/",
+          "https://www.actionnetwork.com/mlb/detroit-tigers-vs-los-angeles-dodgers-prediction-picks-odds-saturday-march-29-qs",
+          "https://www.cbssports.com/mlb/gametracker/recap/MLB_20250328_DET@LAD/",
+          "https://www.mlb.com/video/game/778546",
+          "https://www.nbcsports.com/betting/mlb/news/tigers-at-dodgers-prediction-odds-expert-picks-starting-pitchers-betting-trends-and-stats-for-march-28",
+          "https://www.cbsnews.com/detroit/news/los-angeles-dodgers-detroit-tigers-8-5/",
+          "https://www.youtube.com/watch?v=NsBI8PTHAUU",
+          "https://www.latimes.com/sports/dodgers/live/dodgers-detroit-tigers-live-updates-start-time-score-watch-tv-recap",
+          "https://www.cbssports.com/mlb/gametracker/boxscore/MLB_20250327_DET@LAD/",
+          "https://www.mlb.com/stories/game/778544"
+        ],
+        "interaction_type": "perplexity_query",
+        "stage": "initial_response",
+        "error": "Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+      }
+    ],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p1",
+        "overseer_satisfaction_level": null,
+        "prompt_updated": false,
+        "critique": null,
+        "system_prompt_before": null,
+        "system_prompt_after": null
+      }
+    ],
+    "final_response_metadata": {
+      "model": "sonar-deep-research",
+      "created_timestamp": 1743306305,
+      "created_datetime": "2025-03-30T03:45:05",
+      "completion_tokens": 392,
+      "prompt_tokens": 1135,
+      "total_tokens": 1527,
+      "api_response_time_seconds": 122.17336988449097
+    }
+  },
+  "tags": [
+    "Sports",
+    "MLB",
+    "Games"
+  ]
+}
