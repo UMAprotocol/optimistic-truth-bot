@@ -69,7 +69,9 @@ from proposal_overseer.common import (
     extract_prompt_update,
     get_overseer_decision,
     enhanced_perplexity_chatgpt_loop,
+    get_token_price,
 )
+from proposal_overseer.prompt_overseer import format_market_price_info
 
 # Setup logging
 logger = setup_logging("single_proposal_runner", "logs/single_proposal_runner.log")
@@ -199,6 +201,44 @@ def process_single_proposal(file_path):
         logger.info(f"Full query ID: {query_id}")
         print(f"Full query ID: {query_id}")
 
+        # Extract token information if available
+        tokens = None
+        market_price_info = None
+        is_list = isinstance(proposal_data, list) and len(proposal_data) > 0
+        proposal_obj = proposal_data[0] if is_list else proposal_data
+
+        if "tokens" in proposal_obj:
+            tokens = proposal_obj.get("tokens", [])
+            logger.info(f"Found {len(tokens)} tokens in proposal data")
+            print(f"Found {len(tokens)} tokens in proposal data")
+
+            # Update token prices from Polymarket API
+            for token in tokens:
+                token_id = token.get("token_id")
+                if token_id:
+                    logger.info(f"Fetching price for token {token_id}")
+                    print(f"Fetching price for token {token_id}")
+                    price_data = get_token_price(token_id)
+                    if price_data and "price" in price_data:
+                        # Update the token price with the latest data
+                        token["price"] = price_data["price"]
+                        logger.info(
+                            f"Updated token {token_id} price to {price_data['price']}"
+                        )
+                        print(
+                            f"Updated token {token_id} price to {price_data['price']}"
+                        )
+
+            # Format market price information for ChatGPT
+            market_price_info = format_market_price_info(tokens)
+            logger.info(f"Prepared market price info for ChatGPT overseer")
+            if VERBOSE:
+                print(f"Prepared market price info for ChatGPT overseer")
+                print("\n" + "=" * 80)
+                print("MARKET PRICE INFORMATION:")
+                print(market_price_info)
+                print("=" * 80 + "\n")
+
         # Setup inputs for API calls
         user_prompt = format_prompt_from_json(proposal_data)
         system_prompt = get_system_prompt()
@@ -216,7 +256,6 @@ def process_single_proposal(file_path):
         logger.info("System prompt and user prompt prepared")
 
         # Extract transaction hash and proposed price
-        is_list = isinstance(proposal_data, list) and len(proposal_data) > 0
         tx_hash = (proposal_data[0] if is_list else proposal_data).get(
             "transaction_hash", ""
         )
@@ -240,6 +279,7 @@ def process_single_proposal(file_path):
             max_attempts=MAX_ATTEMPTS,
             min_attempts=MIN_ATTEMPTS,
             verbose=VERBOSE,
+            market_price_info=market_price_info,
         )
 
         api_time = time.time() - start_time
@@ -304,6 +344,8 @@ def process_single_proposal(file_path):
             "overseer_data": {
                 "attempts": result["attempts"],
                 "interactions": result["responses"],
+                "market_price_info": market_price_info,  # Include market price info in output
+                "tokens": tokens,  # Include token data in output
                 "recommendation_journey": [
                     {
                         "attempt": i + 1,
@@ -318,7 +360,7 @@ def process_single_proposal(file_path):
                         ),
                         "overseer_satisfaction_level": next(
                             (
-                                r["satisfaction_level"]
+                                r.get("satisfaction_level")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
@@ -327,7 +369,7 @@ def process_single_proposal(file_path):
                         ),
                         "prompt_updated": next(
                             (
-                                r["prompt_updated"]
+                                r.get("prompt_updated", False)
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
@@ -336,7 +378,7 @@ def process_single_proposal(file_path):
                         ),
                         "critique": next(
                             (
-                                r["critique"]
+                                r.get("critique", "")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
@@ -345,21 +387,21 @@ def process_single_proposal(file_path):
                         ),
                         "system_prompt_before": next(
                             (
-                                r["system_prompt_before"]
+                                r.get("system_prompt_before", "")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
                             ),
-                            None,
+                            "",
                         ),
                         "system_prompt_after": next(
                             (
-                                r["system_prompt_after"]
+                                r.get("system_prompt_after", "")
                                 for r in result["responses"]
                                 if r.get("stage") == f"evaluation_{i+1}"
                                 and r["interaction_type"] == "chatgpt_evaluation"
                             ),
-                            None,
+                            "",
                         ),
                     }
                     for i in range(result["attempts"])
@@ -400,6 +442,23 @@ def process_single_proposal(file_path):
             f"- Recommendation overridden: {result.get('recommendation_overridden', False)}"
         )
         print(f"- Processing time: {total_time:.2f} seconds")
+
+        # Print market price summary if available
+        if market_price_info:
+            print(f"- Market price data: Found for {len(tokens)} tokens")
+            yes_token = next(
+                (t for t in tokens if t.get("outcome", "").upper() == "YES"), None
+            )
+            no_token = next(
+                (t for t in tokens if t.get("outcome", "").upper() == "NO"), None
+            )
+            if yes_token:
+                print(f"  YES token price: {yes_token.get('price', 'Unknown')}")
+            if no_token:
+                print(f"  NO token price: {no_token.get('price', 'Unknown')}")
+        else:
+            print("- Market price data: None available")
+
         print("=" * 80 + "\n")
 
         # Print all interactions if verbose mode is enabled

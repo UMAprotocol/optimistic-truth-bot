@@ -11,9 +11,15 @@ import threading
 import sys
 import logging
 import os
+import requests
 from openai import OpenAI
 from datetime import datetime
 from pathlib import Path
+
+# Remove imports from root-level common.py to avoid circular dependencies
+
+# Constants for Polymarket API
+POLYMARKET_PRICES_API = "https://clob.polymarket.com/prices"
 
 
 def spinner(message, verbose=False, interval=0.1):
@@ -481,6 +487,7 @@ def enhanced_perplexity_chatgpt_loop(
     max_attempts=3,
     min_attempts=2,
     verbose=False,
+    market_price_info=None,
 ):
     """
     Enhanced version of perplexity_chatgpt_loop that ensures at least min_attempts
@@ -495,6 +502,7 @@ def enhanced_perplexity_chatgpt_loop(
         max_attempts (int): Maximum number of retry attempts
         min_attempts (int): Minimum number of attempts before defaulting to p4
         verbose (bool): Whether to output verbose logging
+        market_price_info (str): Optional formatted market price information to include in the ChatGPT overseer prompt
 
     Returns:
         dict: Result containing final response, recommendation, and metadata
@@ -641,70 +649,51 @@ def enhanced_perplexity_chatgpt_loop(
             stop_spinner.set()
             spinner_thread.join()
 
-            # Create new spinner for ChatGPT query
-            stop_spinner = threading.Event()
-            spinner_thread = threading.Thread(
+            from proposal_overseer.prompt_overseer import get_overseer_prompt
+
+            overseer_start_time = time.time()
+            overseer_stop_spinner = threading.Event()
+            overseer_spinner_thread = threading.Thread(
                 target=spinner,
                 args=(
-                    "Consulting ChatGPT overseer for validation",
+                    f"Querying ChatGPT overseer (attempt {attempts}/{max_attempts})",
                     True,
                 ),
                 daemon=True,
             )
-            spinner_thread.start()
+            overseer_spinner_thread.start()
 
-            from proposal_overseer.prompt_overseer import get_overseer_prompt
-
-            # For later attempts, encourage more critical analysis from the overseer
+            # Get the ChatGPT overseer's evaluation
             enhanced_overseer_prompt = get_overseer_prompt(
                 user_prompt=user_prompt,
                 system_prompt=system_prompt,
                 perplexity_response=perplexity_text,
                 recommendation=recommendation,
                 attempt=attempts,
+                market_price_info=market_price_info,  # Pass market price info as is
             )
 
-            # Add additional instructions for the overseer on retry attempts
-            if attempts > 1:
-                enhanced_overseer_prompt += (
-                    "\n\nThis is attempt #"
-                    + str(attempts)
-                    + ". Please be especially critical of this response. If you see any potential for improvement or additional information that could be found, explain specifically what is missing and what could be improved."
-                )
-                enhanced_overseer_prompt += "\n\nIf you recommend a retry, please be very specific about what additional information or improvements you want to see in the next response."
-
-            start_time = time.time()
             overseer_response = query_chatgpt(
-                enhanced_overseer_prompt, chatgpt_api_key, verbose=verbose
+                enhanced_overseer_prompt,
+                chatgpt_api_key,
+                model="gpt-4-turbo",
+                verbose=verbose,
             )
-            overseer_response_time = time.time() - start_time
+
+            overseer_stop_spinner.set()
+            overseer_spinner_thread.join()
 
             overseer_text = overseer_response.choices[0].message.content
             decision, require_rerun, critique, prompt_update = get_overseer_decision(
                 overseer_text
             )
 
-            # CRITICAL CHECK: ALWAYS force a retry if first attempt has p4 recommendation
-            if attempts == 1 and recommendation == "p4":
-                logger.info(
-                    "First attempt with p4 recommendation - FORCING retry regardless of overseer decision"
-                )
-                decision = "retry"
-                require_rerun = True
-                if not critique or critique == "No specific critique provided.":
-                    critique = "First attempt with p4 recommendation requires at least one more attempt with improved search strategies."
-
-            # Save the extracted critique for potential next attempt
-            if critique:
-                previous_overseer_critique = critique
-                logger.info("Extracted critique for next attempt")
-
-            # Store overseer metadata
+            # Store overseer response
             overseer_data = {
                 "interaction_type": "chatgpt_evaluation",
                 "stage": f"evaluation_{attempts}",
                 "response": overseer_text,
-                "satisfaction_level": None,  # Will be set below
+                "satisfaction_level": decision,
                 "critique": critique,
                 "metadata": {
                     "model": overseer_response.model,
@@ -715,50 +704,59 @@ def enhanced_perplexity_chatgpt_loop(
                     "completion_tokens": overseer_response.usage.completion_tokens,
                     "prompt_tokens": overseer_response.usage.prompt_tokens,
                     "total_tokens": overseer_response.usage.total_tokens,
-                    "api_response_time_seconds": overseer_response_time,
+                    "api_response_time_seconds": time.time() - overseer_start_time,
                 },
-                "prompt_updated": False,
-                "system_prompt_before": system_prompt,
+                "decision": decision,
+                "require_rerun": require_rerun,
+                "prompt_updated": False,  # Will be set to True if we update the prompt
+                "system_prompt_before": system_prompt,  # Always set this field
+                "system_prompt_after": system_prompt,  # Default to the same, will be updated if needed
             }
 
-            # Process the decision - CRITICAL FIX: Always respect the overseer's decision
-            # If the overseer is satisfied, we must accept that and NEVER force a second verification
-            if decision == "satisfied":
-                logger.info(
-                    "Overseer is satisfied with the response - accepting without question"
-                )
-                overseer_data["satisfaction_level"] = "satisfied"
-                # Ensure system_prompt_after is set when satisfied
-                overseer_data["system_prompt_after"] = system_prompt
+            logger.info(f"ChatGPT overseer decision: {decision}")
+            logger.info(f"Overseer requires rerun: {require_rerun}")
+
+            # Store overseer feedback for potential next attempt
+            previous_overseer_critique = critique
+
+            # If we are satisfied, we can break early
+            if decision.lower() == "satisfied" and not require_rerun:
+                logger.info("Overseer is satisfied with the response, no need to retry")
                 responses.append(overseer_data)
-                stop_spinner.set()
-                spinner_thread.join()
                 break
 
-            # If this is the final attempt and overseer is not satisfied, default to p4
-            if is_final_attempt:
-                logger.info(
-                    "Final attempt and overseer is not satisfied - defaulting to p4"
-                )
-                # Override the recommendation to p4
-                response_data["recommendation"] = "p4"
-                response_data["recommendation_overridden"] = True
-                overseer_data["satisfaction_level"] = "final_attempt_defaulted_to_p4"
-                overseer_data["override_action"] = "max_attempts_reached_changed_to_p4"
-                # Ensure system_prompt_after is set
-                overseer_data["system_prompt_after"] = system_prompt
-                responses.append(overseer_data)
-                stop_spinner.set()
-                spinner_thread.join()
-                break
+            # If we're forced to default to p4...
+            if decision.lower() == "default_to_p4":
+                logger.info("Overseer has determined we should default to p4")
+                # Override recommendation to p4
+                if recommendation != "p4":
+                    logger.info(
+                        f"Overriding recommendation from {recommendation} to p4 based on overseer decision"
+                    )
+                    response_data["recommendation"] = "p4"
+                    response_data["recommendation_overridden"] = True
+
+                # Only break if we're past the minimum attempts or it's the final attempt
+                if attempts >= min_attempts or attempts == max_attempts:
+                    logger.info(
+                        f"Breaking early with p4 after attempt {attempts}/{max_attempts} (min_attempts={min_attempts})"
+                    )
+                    responses.append(overseer_data)
+                    break
+                else:
+                    logger.info(
+                        f"Continuing despite p4 recommendation as only on attempt {attempts}/{max_attempts} (min_attempts={min_attempts})"
+                    )
+
+            responses.append(overseer_data)
 
             # Continue with remaining decision logic only if not satisfied and not final attempt
             if require_rerun:
                 # If we have a prompt update from the decision, use it
                 if prompt_update:
                     overseer_data["prompt_updated"] = True
-                    overseer_data["system_prompt_before"] = system_prompt
-
+                    # system_prompt_before is already set in the initial overseer_data creation
+                    
                     # Check if the prompt_update is a complete system prompt or just refinements
                     if prompt_update.startswith(
                         "You are an artificial intelligence oracle"
@@ -777,130 +775,73 @@ def enhanced_perplexity_chatgpt_loop(
                         overseer_data["system_prompt_after"] = updated_system_prompt
                         system_prompt = updated_system_prompt
                         logger.info("Appending overseer refinements to system prompt")
-                else:
-                    # Ensure system_prompt_after is set even when no update
-                    overseer_data["system_prompt_after"] = system_prompt
+                # No else block needed as system_prompt_after is already set in the initial overseer_data creation
 
-                # Set satisfaction level based on decision
-                if decision == "default_p4" and attempts >= min_attempts:
+            # If this is the final attempt and we didn't break, we're done
+            if is_final_attempt:
+                logger.info(f"Completed all {max_attempts} attempts")
+                if decision.lower() != "satisfied":
                     logger.info(
-                        "Overseer recommends defaulting to p4 but first running again"
+                        "Overseer was not fully satisfied, but we've reached max attempts"
                     )
-                    overseer_data["satisfaction_level"] = "uncertain_retry_requested"
-                elif decision == "default_p4":
-                    logger.info(
-                        f"Overseer suggested p4 but forcing retry (attempt {attempts}/{min_attempts} min)"
-                    )
-                    overseer_data["satisfaction_level"] = "forced_retry"
-                else:  # retry
-                    logger.info("Overseer requested retry with improvements")
-                    overseer_data["satisfaction_level"] = "retry_requested"
-
-                responses.append(overseer_data)
-                stop_spinner.set()
-                spinner_thread.join()
-                continue
-            else:
-                # No rerun required and not satisfied = default to p4
-                # If we haven't reached min_attempts, force another run anyway
-                if decision == "default_p4" and attempts < min_attempts:
-                    logger.info(
-                        f"Overseer wants to default to p4, but we need to meet min_attempts ({attempts}/{min_attempts})"
-                    )
-
-                    # Create a forced retry message
-                    if not previous_overseer_critique:
-                        previous_overseer_critique = f"This is attempt {attempts} of {min_attempts} minimum attempts. Even though the overseer suggests defaulting to p4, we're forcing another attempt to meet the minimum requirements."
-                        overseer_data["critique"] = previous_overseer_critique
-
-                    # Force a retry with a special system prompt
-                    forced_retry_instruction = (
-                        f"\n\nIMPORTANT - This is a forced attempt {attempts} of {min_attempts} minimum required attempts:"
-                        "\n1. The previous attempt suggested defaulting to p4, but we need to make additional attempts"
-                        "\n2. Try different search strategies to uncover information not found in previous attempts"
-                        "\n3. Consider alternative interpretations or perspectives"
-                        "\n4. Be creative in your research approach to find better information"
-                        "\n5. This attempt is required to meet the minimum attempt count policy"
-                    )
-
-                    updated_system_prompt = system_prompt + forced_retry_instruction
-                    overseer_data["prompt_updated"] = True
-                    overseer_data["system_prompt_before"] = system_prompt
-                    overseer_data["system_prompt_after"] = updated_system_prompt
-                    system_prompt = updated_system_prompt
-
-                    overseer_data["satisfaction_level"] = "forced_retry"
-                    responses.append(overseer_data)
-                    stop_spinner.set()
-                    spinner_thread.join()
-                    continue
-
-                # The decision is default_p4 and we're ok with that
-                logger.info(
-                    "Overseer recommends defaulting to p4 - accepting this decision"
-                )
-                # Override the recommendation to p4
-                response_data["recommendation"] = "p4"
-                response_data["recommendation_overridden"] = True
-                overseer_data["satisfaction_level"] = "defaulted_to_p4"
-                overseer_data["override_action"] = "recommendation_changed_to_p4"
-                # Ensure system_prompt_after is set
-                overseer_data["system_prompt_after"] = system_prompt
-                responses.append(overseer_data)
-                stop_spinner.set()
-                spinner_thread.join()
                 break
 
         except Exception as e:
-            stop_spinner.set()
-            spinner_thread.join()
-
             error_msg = str(e)
-            # Don't log HTML error responses
             if len(error_msg) > 100 and (
                 "<html>" in error_msg or "<head>" in error_msg
             ):
-                logger.error(
-                    "Error in API query loop: Perplexity API authentication error (401 Unauthorized)"
-                )
+                logger.error("Perplexity API returned HTML error")
                 if verbose:
-                    print(
-                        "ERROR: Perplexity API authentication error (401 Unauthorized)"
+                    print("ERROR: Perplexity API returned HTML error")
+                # Show a truncated version of the error
+                error_msg = "Perplexity API returned HTML error (authentication issue)"
+            elif "401" in error_msg or "unauthorized" in error_msg.lower():
+                error_msg = "Perplexity API authentication error (401 Unauthorized)"
+
+            logger.error(f"Error in attempt {attempts}: {error_msg}")
+            if verbose:
+                print(f"ERROR in attempt {attempts}: {error_msg}")
+
+            # Stop the spinner thread
+            stop_spinner.set()
+            spinner_thread.join()
+
+            # For authentication errors, bail out immediately
+            if "401" in error_msg or "authentication" in error_msg.lower():
+                logger.critical("Authentication error - stopping query attempts")
+                raise Exception(f"Authentication error: {error_msg}")
+
+            # For API errors on final attempt, or any critical errors, bail out
+            if is_final_attempt or "critical" in error_msg.lower():
+                # If this was the final attempt, record it and continue to final result
+                if is_final_attempt:
+                    logger.error(
+                        f"Error on final attempt {max_attempts}/{max_attempts}: {error_msg}"
                     )
-            elif (
-                "401" in error_msg
-                or "Authorization" in error_msg
-                or "Unauthorized" in error_msg
-            ):
-                logger.error(
-                    "Error in API query loop: Perplexity API authentication error (401 Unauthorized)"
-                )
-                if verbose:
-                    print(
-                        "ERROR: Perplexity API authentication error (401 Unauthorized)"
+                    # Add an error response so we have something to return
+                    responses.append(
+                        {
+                            "interaction_type": "error",
+                            "stage": f"attempt_{attempts}_error",
+                            "error": error_msg,
+                            "recommendation": "p4",  # Default to p4 on errors
+                        }
                     )
+                break
             else:
-                logger.error(f"Error in API query loop: {error_msg}")
-                if verbose:
-                    print(f"ERROR: {error_msg}")
-
-            # Try to collect responses if we have any, otherwise set to empty list
-            if not responses:
-                logger.error("No responses collected during the loop")
-
-            # For authentication errors, raise to ensure proper handling by caller
-            if (
-                "<html>" in error_msg
-                or "401" in error_msg
-                or "Authorization" in error_msg
-                or "Unauthorized" in error_msg
-            ):
-                raise Exception("Perplexity API authentication error")
-
-            # Add error to the last response if it exists
-            if responses:
-                responses[-1]["error"] = error_msg
-            break
+                # For non-final attempts, log the error and continue to next attempt
+                logger.warning(
+                    f"Error on attempt {attempts}/{max_attempts}: {error_msg} - trying again"
+                )
+                responses.append(
+                    {
+                        "interaction_type": "error",
+                        "stage": f"attempt_{attempts}_error",
+                        "error": error_msg,
+                    }
+                )
+                continue
 
     # Construct final result with all response data
     # Find the most recent perplexity response for the final output
@@ -956,6 +897,7 @@ def enhanced_perplexity_chatgpt_loop(
                 perplexity_response=final_perplexity_response.get("response", ""),
                 recommendation=final_perplexity_response.get("recommendation", ""),
                 attempt=last_perplexity_attempt,
+                market_price_info=market_price_info,  # Pass market price info as is
             )
 
             overseer_response = query_chatgpt(
@@ -1049,6 +991,32 @@ def enhanced_perplexity_chatgpt_loop(
             if final_perplexity_response
             else original_system_prompt
         ),
+        "market_price_info": market_price_info,  # Include market price info in the result
     }
 
     return final_result
+
+
+def get_token_price(token_id: str) -> dict:
+    """
+    Fetch token price from Polymarket Prices API.
+    
+    Args:
+        token_id: The token ID to query
+        
+    Returns:
+        Dictionary with token price information or None if failed
+    """
+    try:
+        payload = [{"token_id": token_id}]
+        response = requests.post(POLYMARKET_PRICES_API, json=payload)
+        response.raise_for_status()
+        result = response.json()
+        if result and isinstance(result, list) and len(result) > 0:
+            return result[0]
+        return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching Polymarket price for token {token_id}: {str(e)}")
+        return None
+    finally:
+        time.sleep(0.5)  # 500ms between API requests

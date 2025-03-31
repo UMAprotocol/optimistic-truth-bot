@@ -21,6 +21,7 @@ NegRiskUmaCtfAdapter = "0x2F5e3684cb1F318ec51b00Edba38d79Ac2c0aA9d"
 UmaCtfAdapter = "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74"
 yesOrNoIdentifier = "0x5945535f4f525f4e4f5f51554552590000000000000000000000000000000000"
 POLYMARKET_API_BASE = "https://clob.polymarket.com/markets/"
+POLYMARKET_PRICES_API = "https://clob.polymarket.com/prices"
 
 
 def compute_condition_id(
@@ -65,6 +66,31 @@ def get_polymarket_data(condition_id: str) -> dict:
         return response.json()
     except requests.exceptions.RequestException as e:
         logging.error(f"Error fetching Polymarket data for {condition_id}: {str(e)}")
+        return None
+    finally:
+        time.sleep(0.5)  # 500ms between API requests
+
+
+def get_token_price(token_id: str) -> dict:
+    """
+    Fetch token price from Polymarket Prices API.
+
+    Args:
+        token_id: The token ID to query
+
+    Returns:
+        Dictionary with token price information or None if failed
+    """
+    try:
+        payload = [{"token_id": token_id}]
+        response = requests.post(POLYMARKET_PRICES_API, json=payload)
+        response.raise_for_status()
+        result = response.json()
+        if result and isinstance(result, list) and len(result) > 0:
+            return result[0]
+        return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching Polymarket price for token {token_id}: {str(e)}")
         return None
     finally:
         time.sleep(0.5)  # 500ms between API requests

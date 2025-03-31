@@ -1734,4 +1734,15 @@ select[multiple] {
     #resultsTable {
         min-width: max-content;
     }
+}
+
+/* Market price info styles */
+.market-info-text {
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 4px solid #0d6efd;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-break: normal;
 } 
