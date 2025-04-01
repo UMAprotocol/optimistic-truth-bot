@@ -37,6 +37,28 @@ multi-operator/
       └── prompt_overseer.py   # Overseer prompt utilities
 ```
 
+## Repository Structure
+
+- **solvers/**: Contains implementations of different solvers
+  - `base_solver.py`: Abstract base class for all solvers
+  - `perplexity_solver.py`: Implementation of the Perplexity solver
+  - **code_runner/**: Code Runner solver for executing arbitrary code
+    - `code_runner_solver.py`: Implementation of the Code Runner solver
+    - `sample_functions/`: Template functions for different query types
+    - `executed_functions/`: Directory where generated code is saved and executed
+    - See [code_runner/README.md](solvers/code_runner/README.md) for more details
+
+- **router/**: Router component that decides which solver(s) to use
+  - `router.py`: Implementation of the router
+
+- **overseer/**: Overseer component that evaluates solver responses
+  - `overseer.py`: Implementation of the overseer
+  - `prompt_overseer.py`: Prompt templates for the overseer
+
+- **Common Files**:
+  - `common.py`: Shared utilities and constants
+  - `proposal_processor.py`: Main processor for handling proposals
+
 ## Usage
 
 ### Prerequisites
@@ -99,3 +121,41 @@ The system follows this workflow for each proposal:
 4. **Evaluation**: Evaluates the solver's response using the overseer
 5. **Refinement**: If needed, retries with updated instructions
 6. **Resolution**: Finalizes the recommendation (p1, p2, p3, p4) and saves the result 
+
+## Solvers
+
+The system includes multiple solvers that can be selected by the router based on the query type:
+
+1. **Perplexity Solver**: Uses the Perplexity API to find information online to answer general questions.
+   - **Capabilities**:
+     - Searches online for up-to-date information
+     - Handles complex, nuanced questions requiring general knowledge
+     - Can interpret and explain concepts, events, and outcomes
+     - Provides context and background information
+   - **Limitations**:
+     - May not have access to very recent information (knowledge cutoff)
+     - Cannot access or process real-time data from specific APIs
+     - Limited by the quality of information available online
+
+2. **Code Runner Solver**: Executes custom code to fetch specific data from APIs.
+   - **Capabilities**:
+     - Fetches precise, real-time data from supported APIs
+     - Currently supports:
+       * Binance API: Cryptocurrency prices at specific times/dates
+       * Sports Data IO: MLB game results, scores, and performance data
+     - Can handle timezone conversions and date-specific queries
+     - Provides deterministic results based on data sources
+   - **Limitations**:
+     - Only works with specifically supported data sources (Binance, MLB)
+     - Cannot answer general knowledge questions
+     - No contextual understanding beyond the data it fetches
+     - Limited to the functionality implemented in the sample functions
+
+The router can select one or multiple solvers for a given query. When multiple solvers are used, their results are combined and evaluated by the overseer to produce a final recommendation. This approach allows the system to leverage both precise data fetching and contextual understanding when needed.
+
+**Example Multi-Solver Workflow**:
+1. For a question like "Did BTC price rise after the SEC announcement on March 15th?"
+2. The router selects both solvers
+3. Code Runner fetches the precise BTC prices before and after March 15th
+4. Perplexity provides context about the SEC announcement
+5. The overseer combines these insights to determine the final recommendation 

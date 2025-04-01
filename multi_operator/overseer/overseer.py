@@ -7,7 +7,7 @@ Provides validation and feedback on solver responses.
 import logging
 import json
 import re
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 
 from ..common import query_chatgpt
 from .prompt_overseer import get_overseer_prompt, format_market_price_info
@@ -128,6 +128,7 @@ class Overseer:
         #   "require_rerun": false,
         #   "reason": "The response is accurate and can be used confidently.",
         #   "critique": "The response is well-reasoned and addresses all aspects of the query.",
+        #   "market_alignment": "The recommendation aligns with market sentiment.",
         #   "prompt_update": ""
         # }
         # ```
@@ -171,6 +172,14 @@ class Overseer:
         critique_pattern = r"(?:critique|feedback):\s*([^\n]+)"
         critique_match = re.search(critique_pattern, response_text, re.IGNORECASE)
 
+        # Look for market alignment patterns
+        market_alignment_pattern = (
+            r"(?:market_alignment|market alignment|market|alignment):\s*([^\n]+)"
+        )
+        market_alignment_match = re.search(
+            market_alignment_pattern, response_text, re.IGNORECASE
+        )
+
         # Look for prompt update patterns
         update_pattern = r"(?:prompt_update|update):\s*([^\n]+(?:\n[^\n]+)*)"
         update_match = re.search(update_pattern, response_text, re.IGNORECASE)
@@ -187,6 +196,11 @@ class Overseer:
             "critique": (
                 critique_match.group(1) if critique_match else "No critique provided"
             ),
+            "market_alignment": (
+                market_alignment_match.group(1)
+                if market_alignment_match
+                else "No market alignment information provided"
+            ),
             "prompt_update": update_match.group(1) if update_match else "",
         }
 
@@ -195,3 +209,187 @@ class Overseer:
             decision["require_rerun"] = True
 
         return decision
+
+    def suggest_reroute(
+        self,
+        user_prompt: str,
+        system_prompt: str,
+        solver_results: List[Dict[str, Any]],
+        attempted_solvers: List[str],
+        all_available_solvers: List[str],
+        max_solver_attempts: int = 3,
+        model: str = "gpt-4-turbo",
+    ) -> Dict[str, Any]:
+        """
+        Analyze solver failures and recommend re-routing with modified solver selection.
+
+        Args:
+            user_prompt: The original user prompt
+            system_prompt: The system prompt
+            solver_results: List of results from attempted solvers
+            attempted_solvers: List of solvers that have been tried
+            all_available_solvers: List of all available solvers
+            max_solver_attempts: Maximum number of attempts per solver
+            model: The ChatGPT model to use
+
+        Returns:
+            Dictionary containing:
+                - 'should_reroute': Boolean indicating whether to re-route
+                - 'excluded_solvers': List of solvers to exclude from next routing
+                - 'routing_guidance': Additional guidance for the router
+                - 'reason': Reason for the re-routing recommendation
+        """
+        self.logger.info(
+            "Analyzing solver results to determine if re-routing is needed"
+        )
+
+        # Default response structure
+        result = {
+            "should_reroute": False,
+            "excluded_solvers": [],
+            "routing_guidance": "",
+            "reason": "No re-routing needed",
+        }
+
+        # Check if any solvers have consistently failed
+        failing_solvers = []
+        for solver_name in attempted_solvers:
+            # Count attempts and failures for this solver
+            solver_attempts = [
+                r for r in solver_results if r.get("solver") == solver_name
+            ]
+            failed_attempts = [
+                r
+                for r in solver_attempts
+                if r.get("solver_result", {}).get("recommendation") == "p4"
+                or not r.get("execution_successful", True)
+            ]
+
+            # If the solver has failed consistently, add to failing solvers
+            if len(failed_attempts) >= min(len(solver_attempts), max_solver_attempts):
+                failing_solvers.append(solver_name)
+                self.logger.info(
+                    f"Solver {solver_name} has failed consistently ({len(failed_attempts)}/{len(solver_attempts)})"
+                )
+
+        # If no consistently failing solvers, return default
+        if not failing_solvers:
+            return result
+
+        # Check if there are alternative solvers available
+        available_alternatives = [
+            s for s in all_available_solvers if s not in failing_solvers
+        ]
+        if not available_alternatives:
+            self.logger.info(
+                "No alternative solvers available, must continue with existing solvers"
+            )
+            return result
+
+        # Prepare a prompt for ChatGPT to analyze the situation
+        reroute_prompt = f"""You are an expert overseer for UMA's optimistic oracle system. You need to analyze solver performance and recommend re-routing strategy.
+
+ORIGINAL QUERY:
+{user_prompt}
+
+SOLVER PERFORMANCE SUMMARY:
+"""
+
+        # Add summary of each solver's performance
+        for solver_name in attempted_solvers:
+            solver_attempts = [
+                r for r in solver_results if r.get("solver") == solver_name
+            ]
+            reroute_prompt += f"\n{solver_name.upper()} SOLVER:"
+
+            for i, attempt in enumerate(solver_attempts):
+                success = attempt.get("execution_successful", False)
+                recommendation = attempt.get("recommendation", "unknown")
+                status = (
+                    "✅ SUCCESS" if success and recommendation != "p4" else "❌ FAILURE"
+                )
+                reroute_prompt += (
+                    f"\n- Attempt {i+1}: {status} - Recommendation: {recommendation}"
+                )
+
+                # Add more details for code_runner solver
+                if solver_name == "code_runner" and "code_output" in attempt.get(
+                    "solver_result", {}
+                ):
+                    output_snippet = attempt.get("solver_result", {}).get(
+                        "code_output", ""
+                    )
+                    if output_snippet:
+                        # Truncate long outputs
+                        if len(output_snippet) > 200:
+                            output_snippet = output_snippet[:200] + "..."
+                        reroute_prompt += f"\n  Output: {output_snippet}"
+
+        reroute_prompt += f"""
+
+FAILING SOLVERS: {', '.join(failing_solvers)}
+AVAILABLE ALTERNATIVE SOLVERS: {', '.join(available_alternatives)}
+
+Based on the above information, please analyze whether we should:
+1. Exclude certain failing solvers from the next routing decision
+2. Provide specific guidance to the router on how to better route this query
+
+Return your analysis in a specific format:
+```decision
+{{
+  "should_reroute": true/false,
+  "excluded_solvers": ["solver1", "solver2"],
+  "routing_guidance": "Brief specific guidance for the router",
+  "reason": "Detailed explanation of your recommendation"
+}}
+```
+"""
+
+        # Query ChatGPT
+        raw_response = query_chatgpt(
+            prompt=reroute_prompt,
+            api_key=self.api_key,
+            model=model,
+            verbose=self.verbose,
+        )
+
+        # Extract response text
+        response_text = raw_response.choices[0].message.content
+
+        # Extract the routing decision
+        import json
+        import re
+
+        decision_pattern = r"```decision\s*(\{[\s\S]*?\})\s*```"
+        match = re.search(decision_pattern, response_text)
+
+        if match:
+            try:
+                decision = json.loads(match.group(1))
+
+                # Validate the decision
+                should_reroute = decision.get("should_reroute", False)
+                excluded_solvers = decision.get("excluded_solvers", [])
+                routing_guidance = decision.get("routing_guidance", "")
+                reason = decision.get("reason", "")
+
+                # Validate excluded solvers
+                excluded_solvers = [
+                    s for s in excluded_solvers if s in attempted_solvers
+                ]
+
+                result = {
+                    "should_reroute": should_reroute,
+                    "excluded_solvers": excluded_solvers,
+                    "routing_guidance": routing_guidance,
+                    "reason": reason,
+                }
+
+                self.logger.info(
+                    f"Re-routing recommendation: should_reroute={should_reroute}, excluded_solvers={excluded_solvers}"
+                )
+
+            except json.JSONDecodeError as e:
+                self.logger.error(f"Error parsing re-routing decision JSON: {e}")
+
+        return result

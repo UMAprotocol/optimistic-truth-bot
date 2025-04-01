@@ -29,10 +29,14 @@ class Router:
         self.logger = logging.getLogger("router")
 
         # List of available solvers
-        self.available_solvers = ["perplexity"]
+        self.available_solvers = ["perplexity", "code_runner"]
 
     def get_router_prompt(
-        self, user_prompt: str, available_solvers: Optional[List[str]] = None
+        self,
+        user_prompt: str,
+        available_solvers: Optional[List[str]] = None,
+        excluded_solvers: Optional[List[str]] = None,
+        overseer_guidance: Optional[str] = None,
     ) -> str:
         """
         Generate the router prompt for ChatGPT to decide which solver to use.
@@ -40,6 +44,8 @@ class Router:
         Args:
             user_prompt: The user prompt to analyze
             available_solvers: List of available solvers (defaults to self.available_solvers)
+            excluded_solvers: List of solvers to exclude from consideration
+            overseer_guidance: Additional guidance from the overseer
 
         Returns:
             The router prompt for ChatGPT
@@ -47,11 +53,37 @@ class Router:
         if available_solvers is None:
             available_solvers = self.available_solvers
 
+        # If excluded_solvers is provided, filter available_solvers
+        if excluded_solvers:
+            available_solvers = [
+                s for s in available_solvers if s not in excluded_solvers
+            ]
+
+        # Ensure we have at least one solver
+        if not available_solvers:
+            self.logger.warning(
+                "No available solvers after exclusions, using perplexity as fallback"
+            )
+            available_solvers = ["perplexity"]
+
         solvers_str = ", ".join(available_solvers)
 
         prompt = f"""You are an expert router for UMA's optimistic oracle system. Your task is to analyze the provided query and decide which AI solver is best suited to handle it.
 
 Available solvers: {solvers_str}
+
+Solver descriptions:
+- perplexity: Uses the Perplexity AI search engine to find information online to answer general questions. Best for:
+  * Historical data and events
+  * General knowledge questions requiring context
+  * Questions needing interpretation of complex information
+  * Has knowledge cutoff and may not have very recent information
+
+- code_runner: Executes code to fetch real-time data from specific APIs. Currently supports:
+  * Binance API: Can fetch cryptocurrency prices at specific times/dates with timezone conversion
+  * Sports Data IO: Can retrieve MLB game results, scores, team performance and game status
+  * Best for questions requiring precise, current data from these specific sources
+  * Limited to only these data sources - cannot access other APIs or general information
 
 USER PROMPT:
 {user_prompt}
@@ -59,24 +91,61 @@ USER PROMPT:
 Please analyze the prompt carefully, considering:
 1. The complexity of the query
 2. The type of information needed
-3. Whether the question requires specialized knowledge
-4. Any other relevant factors
+3. Whether the question requires specialized knowledge or data access
+4. Whether the question specifically involves cryptocurrency prices or MLB sports data
+5. Whether multiple approaches might be complementary
 
-Based on your analysis, determine the most appropriate solver from the available options.
+IMPORTANT: You SHOULD select MULTIPLE solvers when appropriate. For complementary approaches, multiple solvers can provide different perspectives on the same question.
+"""
 
-IMPORTANT: Return your answer in a specific format:
+        # Add overseer guidance if provided
+        if overseer_guidance:
+            prompt += f"""
+OVERSEER GUIDANCE:
+Based on previous attempts to solve this question, the overseer has provided the following guidance:
+{overseer_guidance}
+
+Please take this guidance into account when making your decision.
+"""
+
+        # If there are excluded solvers, explain why
+        if excluded_solvers:
+            excluded_str = ", ".join(excluded_solvers)
+            prompt += f"""
+NOTE: The following solvers have been EXCLUDED due to previous failures or overseer feedback: {excluded_str}
+"""
+
+        prompt += """
+Return your answer in a specific format:
 ```decision
-{{
-  "solver": "[solver_name]",
-  "reason": "Brief explanation of why this solver is best suited"
-}}
+{
+  "solvers": ["solver_name1", "solver_name2"],
+  "reason": "Brief explanation of why these solvers are best suited",
+  "multi_solver_strategy": "Optional explanation of how these solvers complement each other"
+}
 ```
 
 Where:
-- solver_name: The name of the chosen solver from {solvers_str}
-- reason: A brief explanation of why you selected this solver
+- solvers: Array of solver names selected from the available solvers
+- reason: A brief explanation of why you selected these solvers
+- multi_solver_strategy: If multiple solvers are selected, explain how they complement each other
 
-For now, since we only have Perplexity available, you should generally choose it. However, your analysis is still important as it will help inform future solver selection capabilities.
+Guidelines for solver selection:
+- Use code_runner when the question specifically asks for:
+  * Current or historical cryptocurrency prices from Binance (e.g., "What was the price of BTC on March 30th at 12pm ET?")
+  * MLB game results, scores or team performance (e.g., "Did the Blue Jays win against the Orioles on April 1st?")
+  
+- Use perplexity when the question requires:
+  * General knowledge or context not limited to specific data points
+  * Explanation or interpretation of events, rules, or concepts
+  * Information beyond just crypto prices or MLB sports data
+  
+- Use both solvers when:
+  * The question needs both factual data AND context/interpretation
+  * Example: "Did BTC price increase after the news about XYZ on March 30th?" (code_runner for price data, perplexity for news context)
+  * Example: "How did the Blue Jays perform compared to expectations in their April 1st game?" (code_runner for game data, perplexity for context about expectations)
+
+Remember: code_runner is highly accurate for the supported data types but limited in scope. Perplexity has broader knowledge but may not have the most current information.
 """
         return prompt
 
@@ -84,34 +153,58 @@ For now, since we only have Perplexity available, you should generally choose it
         self,
         user_prompt: str,
         available_solvers: Optional[List[str]] = None,
+        excluded_solvers: Optional[List[str]] = None,
+        overseer_guidance: Optional[str] = None,
         model: str = "gpt-4-turbo",
     ) -> Dict[str, Any]:
         """
-        Route a proposal to the appropriate solver.
+        Route a proposal to the appropriate solver(s).
 
         Args:
             user_prompt: The user prompt to route
             available_solvers: List of available solvers (defaults to self.available_solvers)
+            excluded_solvers: List of solvers to exclude from consideration
+            overseer_guidance: Additional guidance from the overseer
             model: The ChatGPT model to use for routing
 
         Returns:
             Dictionary containing:
-                - 'solver': The chosen solver name
-                - 'reason': The reason for choosing the solver
+                - 'solvers': List of chosen solver names
+                - 'reason': The reason for choosing the solvers
+                - 'multi_solver_strategy': Strategy for using multiple solvers (if applicable)
                 - 'response': The response text from ChatGPT
         """
         if available_solvers is None:
             available_solvers = self.available_solvers
 
-        self.logger.info("Routing proposal to appropriate solver")
+        # Apply exclusions
+        if excluded_solvers:
+            effective_solvers = [
+                s for s in available_solvers if s not in excluded_solvers
+            ]
+            if not effective_solvers:
+                self.logger.warning(
+                    "No available solvers after exclusions, using perplexity as fallback"
+                )
+                effective_solvers = ["perplexity"]
+        else:
+            effective_solvers = available_solvers
+
+        self.logger.info("Routing proposal to appropriate solver(s)")
         if self.verbose:
-            print("Routing proposal to appropriate solver...")
-            print(f"Available solvers: {', '.join(available_solvers)}")
+            print("Routing proposal to appropriate solver(s)...")
+            print(f"Available solvers: {', '.join(effective_solvers)}")
+            if excluded_solvers:
+                print(f"Excluded solvers: {', '.join(excluded_solvers)}")
+            if overseer_guidance:
+                print(f"With overseer guidance: {overseer_guidance}")
 
         # Generate the router prompt
         router_prompt = self.get_router_prompt(
             user_prompt=user_prompt,
-            available_solvers=available_solvers,
+            available_solvers=effective_solvers,
+            excluded_solvers=excluded_solvers,
+            overseer_guidance=overseer_guidance,
         )
 
         # Query ChatGPT API
@@ -126,17 +219,27 @@ For now, since we only have Perplexity available, you should generally choose it
         response_text = raw_response.choices[0].message.content
 
         # Extract the routing decision
-        decision = self.extract_decision(response_text, available_solvers)
+        decision = self.extract_decision(response_text, effective_solvers)
 
         if self.verbose:
-            print(f"Selected solver: {decision.get('solver', 'perplexity')}")
+            print(f"Selected solvers: {decision.get('solvers', ['perplexity'])}")
             print(f"Reason: {decision.get('reason', 'Default selection')}")
+            if (
+                "multi_solver_strategy" in decision
+                and decision["multi_solver_strategy"]
+            ):
+                print(f"Multi-solver strategy: {decision['multi_solver_strategy']}")
 
-        self.logger.info(f"Selected solver: {decision.get('solver', 'perplexity')}")
+        self.logger.info(f"Selected solvers: {decision.get('solvers', ['perplexity'])}")
+        if len(decision.get("solvers", [])) > 1:
+            self.logger.info(
+                f"Multi-solver strategy: {decision.get('multi_solver_strategy', 'No strategy provided')}"
+            )
 
         return {
-            "solver": decision.get("solver", "perplexity"),
+            "solvers": decision.get("solvers", ["perplexity"]),
             "reason": decision.get("reason", "Default selection"),
+            "multi_solver_strategy": decision.get("multi_solver_strategy", ""),
             "response": response_text,
         }
 
@@ -151,7 +254,7 @@ For now, since we only have Perplexity available, you should generally choose it
             available_solvers: List of available solvers
 
         Returns:
-            Dictionary containing the solver and reason
+            Dictionary containing the solvers and reason
         """
         import re
         import json
@@ -159,8 +262,9 @@ For now, since we only have Perplexity available, you should generally choose it
         # Look for a decision block in the format:
         # ```decision
         # {
-        #   "solver": "perplexity",
-        #   "reason": "Perplexity is best suited because..."
+        #   "solvers": ["perplexity", "code_runner"],
+        #   "reason": "Perplexity is best suited because...",
+        #   "multi_solver_strategy": "These solvers complement each other because..."
         # }
         # ```
         decision_pattern = r"```decision\s*(\{[\s\S]*?\})\s*```"
@@ -169,21 +273,32 @@ For now, since we only have Perplexity available, you should generally choose it
         if match:
             try:
                 decision = json.loads(match.group(1))
-                # Validate the solver
-                if "solver" in decision and decision["solver"] in available_solvers:
-                    return decision
-                else:
-                    self.logger.warning(
-                        f"Invalid solver in decision: {decision.get('solver')}"
-                    )
-                    return {
-                        "solver": "perplexity",
-                        "reason": "Default selection (invalid solver in decision)",
-                    }
+                # Validate the solvers
+                if "solvers" in decision and isinstance(decision["solvers"], list):
+                    # Filter out any invalid solvers
+                    decision["solvers"] = [
+                        solver
+                        for solver in decision["solvers"]
+                        if solver in available_solvers
+                    ]
+                    # If we have at least one valid solver, return the decision
+                    if decision["solvers"]:
+                        return decision
+
+                # If we get here, there were no valid solvers in the decision
+                self.logger.warning(
+                    f"No valid solvers in decision: {decision.get('solvers')}"
+                )
+                return {
+                    "solvers": ["perplexity"],
+                    "reason": "Default selection (no valid solvers in decision)",
+                    "multi_solver_strategy": "",
+                }
             except json.JSONDecodeError as e:
                 self.logger.error(f"Error parsing decision JSON: {e}")
                 return self.extract_decision_fallback(response_text, available_solvers)
 
+        # If no decision block is found, try the fallback method
         return self.extract_decision_fallback(response_text, available_solvers)
 
     def extract_decision_fallback(
@@ -198,40 +313,41 @@ For now, since we only have Perplexity available, you should generally choose it
             available_solvers: List of available solvers
 
         Returns:
-            Dictionary containing the solver and reason
+            Dictionary containing the solvers and reason
         """
         import re
 
-        # Look for solver name patterns
-        solver_pattern = r"(?:solver|choose|select|use):\s*(\w+)"
-        solver_match = re.search(solver_pattern, response_text, re.IGNORECASE)
+        # List to store the solvers mentioned in the response
+        mentioned_solvers = []
+
+        # Look for mentions of available solvers in the response text
+        for solver in available_solvers:
+            if solver.lower() in response_text.lower():
+                mentioned_solvers.append(solver)
+
+        # If no solvers were explicitly mentioned, default to perplexity
+        if not mentioned_solvers:
+            mentioned_solvers = ["perplexity"]
 
         # Look for reason patterns
         reason_pattern = r"(?:reason|explanation|because):\s*([^\n]+)"
         reason_match = re.search(reason_pattern, response_text, re.IGNORECASE)
 
-        # Direct mention of solver name
-        solver = None
-        if solver_match:
-            solver_candidate = solver_match.group(1).lower()
-            if solver_candidate in available_solvers:
-                solver = solver_candidate
-
-        # If no valid solver found, look for direct mentions of solver names in the text
-        if not solver:
-            for available_solver in available_solvers:
-                if available_solver.lower() in response_text.lower():
-                    solver = available_solver
-                    break
-
-        # Default to perplexity if still no valid solver
-        if not solver or solver not in available_solvers:
-            solver = "perplexity"
-
+        # Extract reason or provide a default
         reason = (
             reason_match.group(1)
             if reason_match
             else "Default selection based on available solvers"
         )
 
-        return {"solver": solver, "reason": reason}
+        # Look for multi-solver strategy
+        strategy_pattern = r"(?:strategy|approach|method|how to use):\s*([^\n]+)"
+        strategy_match = re.search(strategy_pattern, response_text, re.IGNORECASE)
+
+        strategy = strategy_match.group(1) if strategy_match else ""
+
+        return {
+            "solvers": mentioned_solvers,
+            "reason": reason,
+            "multi_solver_strategy": strategy,
+        }

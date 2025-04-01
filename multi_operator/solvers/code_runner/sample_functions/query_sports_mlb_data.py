@@ -9,13 +9,29 @@ import logging
 load_dotenv()
 API_KEY = os.getenv("SPORTS_DATA_IO_MLB_API_KEY")
 
-# Constants
+# Check if API key is available
+if not API_KEY:
+    raise ValueError(
+        "SPORTS_DATA_IO_MLB_API_KEY not found in environment variables. "
+        "Please add it to your .env file."
+    )
+
+# Constants - RESOLUTION MAPPING
+# These keys are outcome descriptions, and values are the recommendation codes
+# When returning a recommendation, use format: "recommendation: p1"
+# DO NOT use RESOLUTION_MAP["p1"], instead use RESOLUTION_MAP["Blue Jays"]
 RESOLUTION_MAP = {
-    "Blue Jays": "p1",
-    "Orioles": "p2",
-    "50-50": "p3",
-    "Too early to resolve": "p4",
+    "Blue Jays": "p1",  # Home team wins maps to p1
+    "Orioles": "p2",  # Away team wins maps to p2
+    "50-50": "p3",  # Tie or undetermined maps to p3
+    "Too early to resolve": "p4",  # Incomplete data maps to p4
 }
+
+# Example usage of RESOLUTION_MAP:
+# If Blue Jays win: return "recommendation: " + RESOLUTION_MAP["Blue Jays"]  # returns "recommendation: p1"
+# If Orioles win: return "recommendation: " + RESOLUTION_MAP["Orioles"]      # returns "recommendation: p2"
+# If tied game: return "recommendation: " + RESOLUTION_MAP["50-50"]          # returns "recommendation: p3"
+# If no data: return "recommendation: " + RESOLUTION_MAP["Too early to resolve"]  # returns "recommendation: p4"
 
 logger = logging.getLogger(__name__)
 

@@ -2,6 +2,16 @@ import requests
 import argparse
 from datetime import datetime, timedelta, timezone
 import pytz
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Note: Binance public API doesn't require an API key for basic price queries
+# However, if we need rate limits increased or private endpoints, we could use:
+# BINANCE_API_KEY = os.getenv("BINANCE_API_KEY")
+# BINANCE_API_SECRET = os.getenv("BINANCE_API_SECRET")
 
 
 def get_close_price_at_specific_time(
@@ -37,6 +47,7 @@ def get_close_price_at_specific_time(
     }
 
     response = requests.get("https://api.binance.com/api/v3/klines", params=params)
+    response.raise_for_status()  # Will raise an exception for HTTP errors
     data = response.json()
 
     if not data:
