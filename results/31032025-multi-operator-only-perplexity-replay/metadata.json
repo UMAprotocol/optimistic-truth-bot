@@ -1,7 +1,7 @@
 {
     "experiment": {
       "timestamp": "31-03-2025 21:15",
-      "title": "Multi-Operator Router System",
+      "title": "Multi-Operator Router System (with only Perplexity enabled)",
       "goal": "Implementing a modular architecture with a router component that decides which solver to use for a given proposal. The router analyzes the query content and selects the most appropriate solver. Currently, only Perplexity is available as a solver, but the system is designed to easily incorporate additional solvers in the future.",
       "previous_experiment": "31032025-perplexity-chatgpt-overseer-price-augmented-replay",
       "modifications": {

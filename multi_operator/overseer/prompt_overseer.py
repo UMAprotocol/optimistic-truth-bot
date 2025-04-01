@@ -8,108 +8,118 @@ responses from solvers and determine if they are accurate or need refinement.
 
 from datetime import datetime, timezone
 import time
+from typing import Optional
 
 
 def get_overseer_prompt(
-    user_prompt,
-    system_prompt,
-    solver_response,
-    recommendation,
-    attempt=1,
-    market_price_info=None,
-    solver_name="perplexity",
-):
+    user_prompt: str,
+    system_prompt: str,
+    solver_response: str,
+    recommendation: str,
+    attempt: int = 1,
+    market_price_info: Optional[str] = None,
+    solver_name: str = "perplexity",
+) -> str:
     """
-    Generate the prompt for the ChatGPT overseer based on the solver response.
+    Generate the overseer prompt for ChatGPT to evaluate a solver response.
 
     Args:
         user_prompt: The original user prompt
         system_prompt: The system prompt used for the solver
         solver_response: The response from the solver
-        recommendation: The recommendation extracted from the solver (p1, p2, p3, p4)
+        recommendation: The recommendation from the solver (p1, p2, p3, p4)
         attempt: The current attempt number
-        market_price_info: Optional market price information from Polymarket
+        market_price_info: Optional market price information
         solver_name: The name of the solver that produced the response
+
+    Returns:
+        The overseer prompt for ChatGPT
     """
-    market_price_section = ""
-    if market_price_info:
-        market_price_section = f"""
-MARKET PRICE INFORMATION:
-{market_price_info}
+    prompt = f"""You are a UMA optimistic oracle overseer AI, responsible for evaluating responses for UMA's optimistic oracle system.
 
-IMPORTANT MARKET PRICE CONSIDERATION:
-The above market price is a leading indicator from Polymarket for this prediction market. This reflects what market participants collectively believe about the outcome. A high price (close to 1.0) for a YES token indicates strong market confidence in YES outcome, while a high price for a NO token indicates strong confidence in NO outcome. This market signal should be considered a very strong indicator for correctness.
+The response you are evaluating came from the {solver_name} solver, attempt {attempt}.
 
-If the solver's recommendation aligns with market sentiment (e.g., p2/YES when YES token price is high), this strengthens confidence in the recommendation. If they conflict (e.g., p1/NO when YES token price is high), this should trigger more scrutiny and likely warrant a retry. In conflicting cases, the market price should be heavily weighted in your evaluation.
+Your task is to determine whether the response is sufficient to provide a definitive recommendation for the query. You will also provide a critique of the response and suggest improvements if necessary.
 
-RULE: If the solver's recommendation conflicts with strong market signals (>0.85 confidence in one direction), you should almost always select RETRY.
-"""
-
-    prompt = f"""You are an expert overseer evaluating the quality and accuracy of a {solver_name} response for UMA's optimistic oracle system. 
-
-Your task is to:
-1. Critically evaluate the {solver_name} response for accuracy, completeness, and adherence to the system prompt instructions
-2. Determine if the response is satisfactory or needs improvement
-3. Make a clear decision on how to proceed
-
-Here is the content you need to evaluate:
-
-USER PROMPT:
+ORIGINAL QUERY:
 {user_prompt}
 
 SYSTEM PROMPT:
 {system_prompt}
 
-{solver_name.upper()} RESPONSE:
+RESPONSE FROM {solver_name.upper()} SOLVER:
 {solver_response}
 
-{solver_name.upper()} RECOMMENDATION: {recommendation}
-CURRENT ATTEMPT: {attempt}
-{market_price_section}
+RECOMMENDATION FROM SOLVER: {recommendation}
 
-Please perform a detailed evaluation, analyzing:
-- Factual accuracy and adherence to instructions
-- Logical reasoning and completeness
-- Verification of event and alignment of recommendation with facts
-- Any missing information, bias, or errors in the response
-- Alignment with market price signals (when available)
+"""
 
-IMPORTANT: Use plain text in your response. Do not use markdown formatting, bold, italics, bullet points or other formatting. Your response should be simple plain text without any formatting.
+    # Add market price information if available
+    if market_price_info:
+        prompt += f"""
+MARKET PRICE INFORMATION:
+{market_price_info}
 
-CRITICAL RULE: If this is the first attempt AND the recommendation is p4, you MUST ALWAYS choose RETRY. It is never acceptable to return p4 on the first attempt - we must always try at least one more time with improved search strategies.
+"""
+    else:
+        prompt += """
+NOTE: No market price information is available for this query. In your evaluation, explicitly state that you are making your assessment without market price data.
 
-After your evaluation, you MUST provide a decision in a specific format at the end of your response:
+"""
 
+    # Add specific evaluation criteria for code_runner
+    if "code_runner" in solver_name.lower():
+        prompt += """
+ADDITIONAL CODE EVALUATION CRITERIA:
+For code runner solutions, please evaluate:
+1. Whether the code correctly extracts and interprets the data needed from APIs
+2. Whether the logic for determining the recommendation is correct
+3. If the code handles edge cases and errors appropriately
+4. If the API calls and data processing approach are sensible
+5. Whether the code correctly maps outcomes to recommendation codes (p1, p2, p3, p4)
+
+Your critique should focus both on the code correctness AND whether the final recommendation is justified by the data.
+"""
+
+    prompt += """
+Please evaluate this response and recommendation according to the following criteria:
+1. Is the information provided accurate and relevant to the query?
+2. Is there sufficient information to make a definitive recommendation?
+3. Is the recommendation (p1, p2, p3, p4) consistent with the information provided?
+4. Does the response answer all aspects of the query?
+5. Are there any notable omissions or errors in the response?
+6. IMPORTANT: Does the recommendation align with market sentiment? (Or explicitly note the absence of market data if none is available)
+
+Based on your evaluation, determine one of the following verdicts:
+- SATISFIED: The response is accurate and complete, and the recommendation is justified.
+- RETRY: The response needs improvement or contains inaccuracies that should be addressed.
+- DEFAULT_TO_P4: The response quality is unsatisfactory, and the system should default to a p4 recommendation.
+
+IMPORTANT: Return your evaluation in a specific format:
 ```decision
-{{
-  "verdict": "[SATISFIED or RETRY or DEFAULT_TO_P4]",
-  "require_rerun": [true or false],
-  "reason": "Brief explanation of your decision",
-  "critique": "Specific feedback about the response quality",
-  "prompt_update": "Optional updated system prompt to use for the next attempt if require_rerun is true"
-}}
+{
+  "verdict": "SATISFIED/RETRY/DEFAULT_TO_P4",
+  "require_rerun": true/false,
+  "reason": "Brief explanation of your verdict",
+  "critique": "Detailed critique of the response",
+  "market_alignment": "Statement about whether the recommendation aligns with market data or a note about the absence of market data",
+  "prompt_update": "Optional additional instructions for a rerun"
+}
 ```
 
 Where:
-- SATISFIED: The response is accurate and can be used confidently.
-- RETRY: The response has issues but could be improved with another attempt.
-- DEFAULT_TO_P4: The query cannot be resolved confidently and should default to p4.
-- require_rerun: Must be true for RETRY, typically false for SATISFIED, and can be true or false for DEFAULT_TO_P4.
-- prompt_update: For RETRY, provide ONLY the specific refinements or additional instructions needed, not a complete system prompt replacement. Only provide a full system prompt replacement if you believe the entire prompt structure needs to be changed.
+- verdict: Your verdict (SATISFIED, RETRY, or DEFAULT_TO_P4)
+- require_rerun: Boolean indicating whether another attempt should be made
+- reason: Brief explanation of your verdict (1-2 sentences)
+- critique: Detailed critique of the response, including strengths and weaknesses
+- market_alignment: REQUIRED field explaining alignment with market data or noting its absence
+- prompt_update: Additional instructions to include in the prompt for a rerun (leave empty if not needed)
 
-IMPORTANT: When providing a prompt_update, focus on specific refinements and additions that would help improve the response. DO NOT rewrite the entire system prompt unless absolutely necessary. Your refinements will be appended to the existing system prompt, not replace it.
+IMPORTANT: You MUST include the market_alignment field in your decision, even if market data is not available. In that case, state explicitly that your assessment does not include market data considerations.
 
-Be extremely critical and cautious. The response must be highly accurate and reliable. When in doubt, recommend DEFAULT_TO_P4 or RETRY with specific improvements.
-
-Remember: First attempt p4 recommendations MUST always get a RETRY verdict with require_rerun=true.
-
-Note that the result should NEVER be p3. if the solver returns p3, you MUST return RETRY or DEFAULT_TO_P4 and under no circumstances should you return p3 as this is ambiguous and could lead to incorrect resolutions: either P1 or P2 could be correct or not sure yet via P4.
-
-EXTRA THINGS TO CONSIDER:
-- Ensure that if the user prompt relates to a particular source that the solver is using the correct source
-- Ensure that if the user prompt contains updates, the solver is using the updates to update its analysis and resolution and is factoring them heavily into its recommendation
-- The solver can often be bad at identifying "how many times did x get mentioned" or "how many times did y say z" etc - be sure to verify that the reasoning is using the correct source
+Remember, your goal is to ensure that UMA token holders receive accurate and well-reasoned recommendations for their queries.
 """
+
     return prompt
 
 

@@ -32,6 +32,7 @@ from .common import (
 from .router.router import Router
 from .overseer.overseer import Overseer
 from .solvers.perplexity_solver import PerplexitySolver
+from .solvers.code_runner import CodeRunnerSolver
 from .overseer.prompt_overseer import format_market_price_info
 
 
@@ -161,7 +162,10 @@ class MultiOperatorProcessor:
         self.solvers = {
             "perplexity": PerplexitySolver(
                 api_key=self.perplexity_api_key, verbose=self.verbose
-            )
+            ),
+            "code_runner": CodeRunnerSolver(
+                api_key=self.openai_api_key, verbose=self.verbose
+            ),
         }
         self.logger.info(f"Initialized {len(self.solvers)} solvers")
 
@@ -249,527 +253,419 @@ class MultiOperatorProcessor:
             proposal_obj = proposal_data[0] if is_list else proposal_data
 
             if "tokens" in proposal_obj:
-                tokens = proposal_obj.get("tokens", [])
-                self.logger.info(f"Found {len(tokens)} tokens in proposal data")
+                tokens = proposal_obj["tokens"]
+                market_price_info = format_market_price_info(tokens)
 
-                # Update token prices from Polymarket API
-                for token in tokens:
-                    # Check if shutdown was requested
-                    if hasattr(self, "shutdown_requested") and self.shutdown_requested:
-                        self.logger.info(
-                            f"Skipping token price fetch - shutdown requested"
-                        )
-                        break
-
-                    token_id = token.get("token_id")
-                    # Skip price fetching if we already have winner information or price is set to 1
-                    if token.get("winner") is not None or token.get("price") == 1:
-                        self.logger.info(
-                            f"Skipping price fetch for token {token_id} - already have winner info or price=1"
-                        )
-                        continue
-
-                    if token_id:
-                        self.logger.info(f"Fetching price for token {token_id}")
-                        price_data = get_token_price(token_id, verbose=self.verbose)
-                        if price_data and "price" in price_data:
-                            # Update the token price with the latest data
-                            token["price"] = price_data["price"]
-                            self.logger.info(
-                                f"Updated token {token_id} price to {price_data['price']}"
-                            )
-
-            # Format user prompt
+            # Format the prompt using proposal data
             user_prompt = format_prompt_from_json(proposal_data)
+            if not user_prompt:
+                self.logger.error(f"Failed to format prompt from proposal: {short_id}")
+                return None
+
+            # Get the system prompt
+            if not hasattr(self, "get_system_prompt"):
+                self.load_solver_prompt()
             system_prompt = self.get_system_prompt()
 
-            # Route the proposal to determine which solver to use
-            self.logger.info(f"Routing proposal {short_id} to determine solver")
-            routing_result = self.router.route(user_prompt=user_prompt)
-            solver_name = routing_result["solver"]
+            # Track all solver results for potential rerouting
+            all_solver_results = []
+            attempted_solvers = []
+            current_routing_attempt = 1
+            max_routing_attempts = 2  # Maximum number of times to try re-routing
 
-            self.logger.info(f"Router selected solver: {solver_name}")
-            if self.verbose:
-                print(f"Router selected solver: {solver_name}")
-                print(f"Reason: {routing_result['reason']}")
+            # Keep track of excluded solvers and overseer guidance for re-routing
+            excluded_solvers = []
+            overseer_guidance = None
 
-            # Process the proposal with the selected solver and overseer
-            solver_overseer_result = self.process_with_solver_and_overseer(
-                solver_name=solver_name,
-                user_prompt=user_prompt,
-                system_prompt=system_prompt,
-                tokens=tokens,
-            )
-
-            # Initialize a comprehensive result object with all fields from the proposal
-            result = {
-                # Basic identification fields
-                "query_id": query_id,
-                "short_id": short_id,
-                "file_path": str(file_path),
-                "processed_file": file_path.name,
-                # Core recommendation fields
-                "recommendation": solver_overseer_result["recommendation"],
-                "total_attempts": solver_overseer_result["total_attempts"],
-                "attempts": solver_overseer_result["attempts"],
-                # Timestamps and metadata
-                "timestamp": time.time(),
-                # Router decision
-                "router_decision": {
-                    "solver": routing_result["solver"],
-                    "reason": routing_result["reason"],
-                },
-                # Add prompts for reference
-                "user_prompt": user_prompt,
-                "system_prompt": system_prompt,
-            }
-
-            # Add pricing information if available
-            if "proposed_price" in proposal_obj:
-                result["proposed_price"] = proposal_obj.get("proposed_price")
-            if "resolved_price" in proposal_obj:
-                result["resolved_price"] = proposal_obj.get("resolved_price")
-
-            # Add transaction details if available
-            if "transaction_hash" in proposal_obj:
-                result["transaction_hash"] = proposal_obj.get("transaction_hash")
-
-            # Add resolution information if available
-            if "proposed_price_outcome" in proposal_obj:
-                result["proposed_price_outcome"] = proposal_obj.get(
-                    "proposed_price_outcome"
-                )
-            if "resolved_price_outcome" in proposal_obj:
-                result["resolved_price_outcome"] = proposal_obj.get(
-                    "resolved_price_outcome"
-                )
-
-            # Add dispute status if available
-            if "disputed" in proposal_obj:
-                result["disputed"] = proposal_obj.get("disputed")
-            else:
-                result["disputed"] = False  # Default to false if not specified
-
-            # Add recommendation override status
-            result["recommendation_overridden"] = (
-                False  # Default value, can be changed later if needed
-            )
-
-            # Add condition ID if available
-            if "condition_id" in proposal_obj:
-                result["condition_id"] = proposal_obj.get("condition_id")
-
-            # Add tags if available
-            if "tags" in proposal_obj:
-                result["tags"] = proposal_obj.get("tags")
-
-            # Add detailed proposal metadata
-            result["proposal_metadata"] = {}
-            for key, value in proposal_obj.items():
-                if key not in ["query_id", "short_id", "file_path"]:
-                    result["proposal_metadata"][key] = value
-
-            # Move specific fields from proposal_metadata to top-level for consistency
-            if "proposal_obj" in locals() and proposal_obj:
-                for field in ["tags", "icon", "end_date_iso", "game_start_time"]:
-                    if field in proposal_obj:
-                        result[field] = proposal_obj.get(field)
-
-            # Add detailed overseer data
-            result["overseer_data"] = {
-                "attempts": solver_overseer_result["total_attempts"],
-                "interactions": [],  # Will be filled with interaction details
-                "market_price_info": (
-                    format_market_price_info(tokens) if tokens else None
-                ),
-                "tokens": tokens if tokens else [],
-                "recommendation_journey": [],  # Will be filled with journey details
-            }
-
-            # Fill interactions data
-            for attempt_data in solver_overseer_result["attempts"]:
-                solver_interaction = {
-                    "attempt": attempt_data["attempt"],
-                    "response": attempt_data["solver_result"]["response"],
-                    "recommendation": attempt_data["solver_result"]["recommendation"],
-                    "system_prompt": system_prompt,  # Add original system prompt
-                    "cumulative_refinements": False,  # Default value, change if needed
-                    "interaction_type": f"{attempt_data['solver']}_query",
-                    "stage": (
-                        "initial_response"
-                        if attempt_data["attempt"] == 1
-                        else f"retry_{attempt_data['attempt']}"
-                    ),
-                }
-
-                # Add response metadata if available
-                if "response_metadata" in attempt_data["solver_result"]:
-                    solver_interaction["response_metadata"] = attempt_data[
-                        "solver_result"
-                    ]["response_metadata"]
-
-                # Add overseer evaluation data
-                overseer_evaluation = {
-                    "interaction_type": "chatgpt_evaluation",
-                    "stage": f"evaluation_{attempt_data['attempt']}",
-                    "response": attempt_data["overseer_result"].get("response", ""),
-                    "satisfaction_level": (
-                        "satisfied"
-                        if attempt_data["overseer_result"]["verdict"] == "SATISFIED"
-                        else "not_satisfied"
-                    ),
-                    "critique": attempt_data["overseer_result"].get("critique", ""),
-                    "decision": attempt_data["overseer_result"]["verdict"].lower(),
-                    "require_rerun": attempt_data["overseer_result"]["require_rerun"],
-                    "prompt_updated": bool(
-                        attempt_data["overseer_result"].get("prompt_update", "")
-                    ),
-                    "system_prompt_before": system_prompt,
-                    "system_prompt_after": system_prompt
-                    + (
-                        f"\n\nADDITIONAL INSTRUCTIONS: {attempt_data['overseer_result'].get('prompt_update', '')}"
-                        if attempt_data["overseer_result"].get("prompt_update", "")
-                        else ""
-                    ),
-                }
-
-                # Add these interactions to the overseer_data
-                result["overseer_data"]["interactions"].append(solver_interaction)
-                result["overseer_data"]["interactions"].append(overseer_evaluation)
-
-                # Add to recommendation journey
-                journey_entry = {
-                    "attempt": attempt_data["attempt"],
-                    f"{attempt_data['solver']}_recommendation": attempt_data[
-                        "solver_result"
-                    ]["recommendation"],
-                    "overseer_satisfaction_level": (
-                        "satisfied"
-                        if attempt_data["overseer_result"]["verdict"] == "SATISFIED"
-                        else "not_satisfied"
-                    ),
-                    "prompt_updated": bool(
-                        attempt_data["overseer_result"].get("prompt_update", "")
-                    ),
-                    "critique": attempt_data["overseer_result"].get("critique", ""),
-                    "system_prompt_before": system_prompt,
-                    "system_prompt_after": system_prompt
-                    + (
-                        f"\n\nADDITIONAL INSTRUCTIONS: {attempt_data['overseer_result'].get('prompt_update', '')}"
-                        if attempt_data["overseer_result"].get("prompt_update", "")
-                        else ""
-                    ),
-                }
-                result["overseer_data"]["recommendation_journey"].append(journey_entry)
-
-            # Add final response metadata if available (from the last attempt)
-            if solver_overseer_result["attempts"]:
-                last_attempt = solver_overseer_result["attempts"][-1]
-                if "response_metadata" in last_attempt["solver_result"]:
-                    result["overseer_data"]["final_response_metadata"] = last_attempt[
-                        "solver_result"
-                    ]["response_metadata"]
-
-            # Save the result if output is enabled
-            if self.save_output and self.output_dir:
-                output_file = self.save_result(result)
-                self.logger.info(f"Saved result to {output_file}")
-
-            self.logger.info(f"Completed processing proposal: {short_id}")
-            if self.verbose:
-                print(f"\n{'='*80}")
-                print(f"✅ COMPLETED PROPOSAL: \033[1m\033[36m{short_id}\033[0m")
-                print(
-                    f"🏆 Final recommendation: \033[1m\033[33m{result.get('recommendation', 'unknown')}\033[0m"
-                )
-                print(f"🔢 Total attempts: {result.get('total_attempts', 0)}")
-                print(f"{'='*80}\n")
-
-            return result
-
-        except KeyboardInterrupt:
-            self.logger.warning(
-                f"Processing of proposal {short_id} interrupted by user"
-            )
-            if self.verbose:
-                print(
-                    f"\n\033[1m\033[33m⚠️ Processing of proposal {short_id} canceled by user\033[0m"
-                )
-
-            # Set shutdown flag if it exists
-            if hasattr(self, "shutdown_requested"):
-                self.shutdown_requested = True
-
-            # Re-raise to be handled by the caller
-            raise
-        except Exception as e:
-            self.logger.error(f"Error processing proposal {short_id}: {e}")
-            if self.verbose:
-                print(
-                    f"\n\033[1m\033[31m❌ Error processing proposal {short_id}: {e}\033[0m"
-                )
-
-            # Create a well-formed error result with all required fields
-            result = {
-                # Basic identification fields
-                "query_id": query_id,
-                "short_id": short_id,
-                "file_path": str(file_path),
-                "processed_file": file_path.name,
-                "timestamp": time.time(),
-                # Error information
-                "error": str(e),
-                "recommendation": "p4",  # Default to p4 on error
-                "total_attempts": 0,
-                "attempts": [],
-                # Empty fields for consistency
-                "overseer_data": {
-                    "attempts": 0,
-                    "interactions": [],
-                    "market_price_info": None,
-                    "tokens": [],
-                    "recommendation_journey": [],
-                },
-                # Add router decision if available
-                "router_decision": {
-                    "solver": "perplexity",  # Default value
-                    "reason": f"Error occurred: {str(e)}",
-                },
-                # Add other required fields
-                "user_prompt": user_prompt if "user_prompt" in locals() else "",
-                "system_prompt": system_prompt if "system_prompt" in locals() else "",
-                "disputed": False,
-                "recommendation_overridden": False,
-            }
-
-            # Add proposal metadata if available
-            if "proposal_obj" in locals() and proposal_obj:
-                # Add pricing information if available
-                if "proposed_price" in proposal_obj:
-                    result["proposed_price"] = proposal_obj.get("proposed_price")
-                if "resolved_price" in proposal_obj:
-                    result["resolved_price"] = proposal_obj.get("resolved_price")
-                if "proposed_price_outcome" in proposal_obj:
-                    result["proposed_price_outcome"] = proposal_obj.get(
-                        "proposed_price_outcome"
-                    )
-                if "resolved_price_outcome" in proposal_obj:
-                    result["resolved_price_outcome"] = proposal_obj.get(
-                        "resolved_price_outcome"
-                    )
-                if "condition_id" in proposal_obj:
-                    result["condition_id"] = proposal_obj.get("condition_id")
-                if "tags" in proposal_obj:
-                    result["tags"] = proposal_obj.get("tags")
-
-                # Add detailed proposal metadata
-                result["proposal_metadata"] = {}
-                for key, value in proposal_obj.items():
-                    if key not in ["query_id", "short_id", "file_path"]:
-                        result["proposal_metadata"][key] = value
-            else:
-                result["proposal_metadata"] = {}
-
-            # Add proposal fields to the top level if they exist in metadata
-            if "proposal_obj" in locals() and proposal_obj:
-                for field in ["tags", "icon", "end_date_iso", "game_start_time"]:
-                    if field in proposal_obj:
-                        result[field] = proposal_obj.get(field)
-
-            # Save the result if output is enabled
-            if self.save_output and self.output_dir:
-                output_file = self.save_result(result)
-                self.logger.info(f"Error result saved to {output_file}")
-
-            return result
-
-    def process_with_solver_and_overseer(
-        self, solver_name, user_prompt, system_prompt, tokens=None
-    ):
-        """
-        Process a proposal with the specified solver and overseer.
-
-        Args:
-            solver_name: Name of the solver to use
-            user_prompt: User prompt to solve
-            system_prompt: System prompt to use
-            tokens: Optional token objects with price information
-
-        Returns:
-            Dictionary containing the processing results
-        """
-        # Check if the solver exists
-        if solver_name not in self.solvers:
-            self.logger.error(
-                f"Solver {solver_name} not found, using perplexity instead"
-            )
-            solver_name = "perplexity"
-
-        solver = self.solvers[solver_name]
-
-        attempts = []
-        current_attempt = 1
-        final_recommendation = None
-        updated_system_prompt = system_prompt
-
-        try:
-            while current_attempt <= self.max_attempts:
-                # Check if shutdown was requested
-                if hasattr(self, "shutdown_requested") and self.shutdown_requested:
-                    self.logger.info("Stopping solver attempts - shutdown requested")
-                    break
-
+            while current_routing_attempt <= max_routing_attempts:
                 self.logger.info(
-                    f"Attempt {current_attempt}/{self.max_attempts} with {solver_name}"
+                    f"Routing attempt {current_routing_attempt}/{max_routing_attempts}"
                 )
-                if self.verbose:
-                    attempt_header = f"🔄 ATTEMPT {current_attempt}/{self.max_attempts}"
-                    solver_info = f"🤖 Solver: \033[1m\033[36m{solver_name}\033[0m"
-                    print(f"\n{'─'*80}")
-                    print(f"{attempt_header} | {solver_info}")
-                    print(f"{'─'*80}")
 
-                try:
-                    # Solve the proposal
-                    solver_result = solver.solve(
-                        user_prompt=user_prompt, system_prompt=updated_system_prompt
-                    )
-                except KeyboardInterrupt:
-                    self.logger.warning(
-                        f"Solver attempt {current_attempt} interrupted by user"
-                    )
-                    if self.verbose:
-                        print(
-                            f"\n\033[1m\033[33m⚠️ Solver attempt interrupted by user\033[0m"
-                        )
-                    if hasattr(self, "shutdown_requested"):
-                        self.shutdown_requested = True
-                    raise
+                # Router: Decide which solver(s) to use
+                route_result = self.router.route(
+                    user_prompt=user_prompt,
+                    available_solvers=list(self.solvers.keys()),
+                    excluded_solvers=excluded_solvers,
+                    overseer_guidance=overseer_guidance,
+                    model="gpt-4-turbo",
+                )
 
-                recommendation = solver_result["recommendation"]
-                solver_response = solver_result["response"]
+                solvers_to_use = route_result.get("solvers", ["perplexity"])
+                route_reason = route_result.get("reason", "Default routing")
+                multi_solver_strategy = route_result.get("multi_solver_strategy", "")
 
-                self.logger.info(f"Solver recommendation: {recommendation}")
+                self.logger.info(f"Router selected solvers: {solvers_to_use}")
+                self.logger.info(f"Router reason: {route_reason}")
+                if multi_solver_strategy:
+                    self.logger.info(f"Multi-solver strategy: {multi_solver_strategy}")
+
                 if self.verbose:
                     print(
-                        f"📊 Solver recommendation: \033[1m\033[33m{recommendation}\033[0m"
+                        f"\n🔀 ROUTER DECISION (Attempt {current_routing_attempt}/{max_routing_attempts}):"
                     )
+                    print(f"Solvers: {solvers_to_use}")
+                    print(f"Reason: {route_reason}")
+                    if multi_solver_strategy:
+                        print(f"Multi-solver strategy: {multi_solver_strategy}")
+                    if excluded_solvers:
+                        print(f"Excluded solvers: {excluded_solvers}")
+                    print(f"{'='*80}\n")
 
-                try:
-                    # Evaluate the solver's response
-                    overseer_result = self.overseer.evaluate(
-                        user_prompt=user_prompt,
-                        system_prompt=updated_system_prompt,
-                        solver_response=solver_response,
-                        recommendation=recommendation,
-                        attempt=current_attempt,
-                        tokens=tokens,
-                        solver_name=solver_name,
-                    )
-                except KeyboardInterrupt:
-                    self.logger.warning(f"Overseer evaluation interrupted by user")
-                    if self.verbose:
-                        print(
-                            f"\n\033[1m\033[33m⚠️ Overseer evaluation interrupted by user\033[0m"
-                        )
-                        if hasattr(self, "shutdown_requested"):
-                            self.shutdown_requested = True
-                        raise
+                # Process with each solver, with retry support
+                solver_results = []
+                for solver_name in solvers_to_use:
+                    # Track that we attempted this solver
+                    if solver_name not in attempted_solvers:
+                        attempted_solvers.append(solver_name)
 
-                decision = overseer_result["decision"]
-                verdict = decision.get("verdict", "DEFAULT_TO_P4")
-                require_rerun = decision.get("require_rerun", False)
+                    max_attempts = self.max_attempts  # Default max attempts
+                    current_attempt = 1
+                    updated_system_prompt = system_prompt
+                    final_solver_result = None
 
-                self.logger.info(
-                    f"Overseer verdict: {verdict}, require_rerun: {require_rerun}"
-                )
-
-                if self.verbose:
-                    # Format verdict with appropriate color and symbol
-                    if verdict == "SATISFIED":
-                        verdict_display = f"✅ \033[1m\033[32mSATISFIED\033[0m"
-                    elif verdict == "RETRY":
-                        verdict_display = f"🔄 \033[1m\033[33mRETRY\033[0m"
-                    else:
-                        verdict_display = f"❌ \033[1m\033[31m{verdict}\033[0m"
-
-                    # Display the verdict and reason
-                    print(f"🧐 Overseer verdict: {verdict_display}")
-                    if decision.get("reason"):
-                        print(f"💭 Reason: {decision.get('reason')}")
-                    if require_rerun:
-                        print(f"🔁 Requires rerun: \033[1m\033[33mYes\033[0m")
-                    print(f"{'─'*80}")
-
-                # Store attempt information (excluding raw API responses that aren't JSON serializable)
-                attempts.append(
-                    {
-                        "attempt": current_attempt,
-                        "solver": solver_name,
-                        "solver_result": {
-                            "recommendation": recommendation,
-                            "response": solver_response,
-                        },
-                        "overseer_result": {
-                            "verdict": verdict,
-                            "require_rerun": require_rerun,
-                            "reason": decision.get("reason", ""),
-                            "critique": decision.get("critique", ""),
-                            "response": overseer_result.get("response", ""),
-                        },
-                    }
-                )
-
-                # Process the overseer's decision
-                if verdict == "SATISFIED":
-                    # Overseer is satisfied with the recommendation
-                    final_recommendation = recommendation
-                    break
-                elif (
-                    verdict == "RETRY"
-                    and require_rerun
-                    and current_attempt < self.max_attempts
-                ):
-                    # Update the system prompt if provided
-                    prompt_update = decision.get("prompt_update", "")
-                    if prompt_update:
-                        updated_system_prompt = f"{updated_system_prompt}\n\nADDITIONAL INSTRUCTIONS: {prompt_update}"
-                        self.logger.info("Updated system prompt for next attempt")
-
-                    # Continue to the next attempt
-                    current_attempt += 1
-                else:
-                    # Either DEFAULT_TO_P4 or reached max attempts
-                    if current_attempt >= self.min_attempts:
-                        # We've done enough attempts, default to p4
-                        final_recommendation = "p4"
+                    while current_attempt <= max_attempts:
                         self.logger.info(
-                            f"Defaulting to p4 after {current_attempt} attempts"
+                            f"Processing with {solver_name}, attempt {current_attempt}/{max_attempts}"
                         )
-                        break
-                    else:
-                        # We need to do more attempts
-                        current_attempt += 1
 
-            # Default to p4 if we reached max attempts without a recommendation
-            if final_recommendation is None:
-                final_recommendation = "p4"
-                self.logger.info(
-                    f"Defaulting to p4 after reaching max attempts: {self.max_attempts}"
+                        # Get the solver
+                        if solver_name not in self.solvers:
+                            self.logger.error(f"Solver {solver_name} not found")
+                            solver_result = {
+                                "error": f"Solver {solver_name} not found",
+                                "recommendation": "p4",  # Default to p4
+                            }
+                            solver_results.append(solver_result)
+                            break
+
+                        solver = self.solvers[solver_name]
+
+                        # Process with the solver
+                        solver_result = solver.solve(
+                            user_prompt=user_prompt, system_prompt=updated_system_prompt
+                        )
+
+                        # Keep track of the current result
+                        current_solver_result = {
+                            "solver": solver_name,
+                            "solver_result": solver_result,
+                            "recommendation": solver_result.get("recommendation", "p4"),
+                            "response": solver_result.get("response", ""),
+                            "attempt": current_attempt,
+                            "execution_successful": solver_result.get(
+                                "response_metadata", {}
+                            ).get("execution_successful", True),
+                        }
+
+                        # Evaluate with overseer
+                        solver_recommendation = solver_result.get(
+                            "recommendation", "p4"
+                        )
+                        solver_response = solver_result.get("response", "")
+
+                        # For code_runner, include the generated code in the response so the overseer can see the logic
+                        if solver_name == "code_runner":
+                            code = solver_result.get("code", "")
+                            code_output = solver_result.get("code_output", "")
+                            enhanced_response = f"""CODE RUNNER SOLUTION:
+
+GENERATED CODE:
+```python
+{code}
+```
+
+CODE EXECUTION OUTPUT:
+```
+{code_output}
+```
+
+SUMMARY:
+{solver_response}
+"""
+                            solver_response = enhanced_response
+
+                        overseer_result = self.overseer.evaluate(
+                            user_prompt=user_prompt,
+                            system_prompt=updated_system_prompt,
+                            solver_response=solver_response,
+                            recommendation=solver_recommendation,
+                            attempt=current_attempt,
+                            tokens=tokens,
+                            solver_name=solver_name,
+                            model="gpt-4-turbo",
+                        )
+
+                        # Add overseer result to current result
+                        current_solver_result["overseer_result"] = overseer_result
+
+                        # Check if overseer is satisfied or we need to retry
+                        overseer_decision = overseer_result["decision"]
+                        verdict = overseer_decision.get("verdict", "DEFAULT_TO_P4")
+                        require_rerun = overseer_decision.get("require_rerun", False)
+
+                        self.logger.info(
+                            f"Overseer verdict for {solver_name}: {verdict}, require_rerun: {require_rerun}"
+                        )
+
+                        if self.verbose:
+                            verdict_display = (
+                                "✅ SATISFIED"
+                                if verdict == "SATISFIED"
+                                else (
+                                    "🔄 RETRY"
+                                    if verdict == "RETRY"
+                                    else "⚠️ DEFAULT_TO_P4"
+                                )
+                            )
+                            print(f"Overseer verdict: {verdict_display}")
+                            print(
+                                f"Reason: {overseer_decision.get('reason', 'No reason provided')}"
+                            )
+                            if "market_alignment" in overseer_decision:
+                                print(
+                                    f"Market alignment: {overseer_decision['market_alignment']}"
+                                )
+                            if require_rerun:
+                                print(f"Requires rerun: Yes")
+                            print("-" * 40)
+
+                        if verdict == "SATISFIED":
+                            # Overseer is satisfied with the result
+                            final_solver_result = current_solver_result
+                            break
+                        elif (
+                            verdict == "RETRY"
+                            and require_rerun
+                            and current_attempt < max_attempts
+                        ):
+                            # Update the system prompt if the overseer provided additional guidance
+                            prompt_update = overseer_decision.get("prompt_update", "")
+                            if prompt_update:
+                                updated_system_prompt = f"{updated_system_prompt}\n\nADDITIONAL INSTRUCTIONS: {prompt_update}"
+                                self.logger.info(
+                                    f"Updated system prompt for {solver_name} retry"
+                                )
+
+                            # Store the current result and try again
+                            solver_results.append(current_solver_result)
+                            all_solver_results.append(current_solver_result)
+                            current_attempt += 1
+                        else:
+                            # Either DEFAULT_TO_P4 or reached max attempts
+                            final_solver_result = current_solver_result
+                            break
+
+                    # Add the final result if not already added
+                    if (
+                        final_solver_result
+                        and final_solver_result not in solver_results
+                    ):
+                        solver_results.append(final_solver_result)
+                        all_solver_results.append(final_solver_result)
+
+                # If no more routing attempts needed or we have successful results, break the routing loop
+                if current_routing_attempt >= max_routing_attempts:
+                    break
+
+                # Otherwise, check if we need to re-route based on solver results
+                # Ask the overseer for re-routing advice
+                reroute_result = self.overseer.suggest_reroute(
+                    user_prompt=user_prompt,
+                    system_prompt=system_prompt,
+                    solver_results=all_solver_results,
+                    attempted_solvers=attempted_solvers,
+                    all_available_solvers=list(self.solvers.keys()),
+                    max_solver_attempts=self.max_attempts,
+                    model="gpt-4-turbo",
                 )
 
-            return {
-                "recommendation": final_recommendation,
-                "attempts": attempts,
-                "total_attempts": current_attempt,
-            }
+                # If the overseer suggests re-routing, prepare for next routing attempt
+                if reroute_result.get("should_reroute", False):
+                    self.logger.info("Overseer suggests re-routing")
+
+                    # Update excluded solvers and overseer guidance
+                    excluded_solvers = reroute_result.get("excluded_solvers", [])
+                    overseer_guidance = reroute_result.get("routing_guidance", "")
+
+                    self.logger.info(
+                        f"Re-routing with excluded solvers: {excluded_solvers}"
+                    )
+                    self.logger.info(f"Overseer guidance: {overseer_guidance}")
+
+                    # Increment routing attempt counter
+                    current_routing_attempt += 1
+                else:
+                    # No re-routing needed, break the loop
+                    self.logger.info("Overseer does not suggest re-routing")
+                    break
+
+            # If multiple solvers were used, we need to have the overseer evaluate all results
+            final_result = None
+            if len(solver_results) > 1:
+                self.logger.info(f"Processing multiple solver results with overseer")
+
+                # Build a combined solver response for the overseer
+                combined_response = self._build_combined_response(solver_results)
+
+                # Determine recommendation from the combined results
+                # We'll use the most common recommendation, defaulting to p4 if tied
+                recommendations = [
+                    r.get("recommendation", "p4") for r in solver_results
+                ]
+                from collections import Counter
+
+                counter = Counter(recommendations)
+                most_common = counter.most_common()
+
+                # Default to p4 if we have a tie for most common
+                if len(most_common) > 1 and most_common[0][1] == most_common[1][1]:
+                    combined_recommendation = "p4"
+                else:
+                    combined_recommendation = most_common[0][0]
+
+                # Evaluate with overseer
+                overseer_result = self.overseer.evaluate(
+                    user_prompt=user_prompt,
+                    system_prompt=system_prompt,
+                    solver_response=combined_response,
+                    recommendation=combined_recommendation,
+                    attempt=1,
+                    tokens=tokens,
+                    solver_name="multiple_solvers",
+                    model="gpt-4-turbo",
+                )
+
+                # Prepare final result
+                overseer_decision = overseer_result["decision"]
+
+                final_result = {
+                    "query_id": query_id,
+                    "short_id": short_id,
+                    "user_prompt": user_prompt,
+                    "system_prompt": system_prompt,
+                    "router_result": route_result,
+                    "solver_results": solver_results,
+                    "all_solver_results": all_solver_results,
+                    "overseer_result": overseer_result,
+                    "recommendation": overseer_decision.get(
+                        "verdict", combined_recommendation
+                    ),
+                    "reason": overseer_decision.get(
+                        "reason", "Evaluated by overseer from multiple solver results"
+                    ),
+                    "market_alignment": overseer_decision.get(
+                        "market_alignment", "No market alignment information provided"
+                    ),
+                    "routing_attempts": current_routing_attempt,
+                    "attempted_solvers": attempted_solvers,
+                    "rerouting_info": (
+                        {
+                            "excluded_solvers": excluded_solvers,
+                            "overseer_guidance": overseer_guidance,
+                        }
+                        if current_routing_attempt > 1
+                        else None
+                    ),
+                }
+            else:
+                # Just use the single solver result as before
+                solver_result = solver_results[0] if solver_results else None
+                if not solver_result:
+                    self.logger.error(f"No solver result for proposal: {short_id}")
+                    return None
+
+                # Construct the final result
+                overseer_result = solver_result.get("overseer_result", {})
+                overseer_decision = overseer_result.get("decision", {})
+
+                final_result = {
+                    "query_id": query_id,
+                    "short_id": short_id,
+                    "user_prompt": user_prompt,
+                    "system_prompt": system_prompt,
+                    "router_result": route_result,
+                    "solver_results": solver_results,
+                    "all_solver_results": all_solver_results,
+                    "overseer_result": overseer_result,
+                    "recommendation": overseer_decision.get(
+                        "verdict", solver_result.get("recommendation", "p4")
+                    ),
+                    "reason": overseer_decision.get("reason", "Evaluated by overseer"),
+                    "market_alignment": overseer_decision.get(
+                        "market_alignment", "No market alignment information provided"
+                    ),
+                    "routing_attempts": current_routing_attempt,
+                    "attempted_solvers": attempted_solvers,
+                    "rerouting_info": (
+                        {
+                            "excluded_solvers": excluded_solvers,
+                            "overseer_guidance": overseer_guidance,
+                        }
+                        if current_routing_attempt > 1
+                        else None
+                    ),
+                }
+
+            # Save the result
+            if self.save_output:
+                self.save_result(final_result)
+
+            return final_result
+
         except Exception as e:
-            self.logger.error(f"Error processing solver attempts: {e}")
-            return {
-                "error": str(e),
-                "recommendation": "p4",  # Default to p4 on error
-                "total_attempts": 0,
-            }
+            import traceback
+
+            self.logger.error(f"Error processing proposal {short_id}: {e}")
+            self.logger.error(traceback.format_exc())
+            return None
+
+    def _build_combined_response(self, solver_results):
+        """
+        Build a combined response from multiple solver results for the overseer.
+
+        Args:
+            solver_results: List of solver results
+
+        Returns:
+            Combined response string
+        """
+        combined = "COMBINED RESULTS FROM MULTIPLE SOLVERS\n\n"
+
+        for result in solver_results:
+            solver_name = result.get("solver", "unknown")
+            recommendation = result.get("recommendation", "unknown")
+            response = result.get("response", "No response")
+            overseer_result = result.get("overseer_result", {})
+            overseer_decision = (
+                overseer_result.get("decision", {}) if overseer_result else {}
+            )
+
+            combined += f"===== SOLVER: {solver_name.upper()} =====\n"
+            combined += f"RECOMMENDATION: {recommendation}\n"
+
+            # Add market alignment if available
+            if "market_alignment" in overseer_decision:
+                combined += (
+                    f"MARKET ALIGNMENT: {overseer_decision['market_alignment']}\n"
+                )
+
+            combined += "\n"
+
+            # For code_runner, include the code in the combined response
+            if solver_name == "code_runner" and "solver_result" in result:
+                code = result["solver_result"].get("code", "")
+                code_output = result["solver_result"].get("code_output", "")
+
+                combined += f"GENERATED CODE:\n```python\n{code}\n```\n\n"
+                combined += f"CODE OUTPUT:\n```\n{code_output}\n```\n\n"
+                combined += f"SUMMARY:\n{response}\n\n"
+            else:
+                combined += f"RESPONSE:\n{response}\n\n"
+
+            combined += "=" * 40 + "\n\n"
+
+        return combined
 
     def run(self):
         """Run the processor to continuously monitor and process proposals."""
