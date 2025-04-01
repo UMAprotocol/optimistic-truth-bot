@@ -1,5 +1,6 @@
 import os
 import requests
+import argparse
 from dotenv import load_dotenv
 from datetime import datetime
 import logging
@@ -9,9 +10,6 @@ load_dotenv()
 API_KEY = os.getenv("SPORTS_DATA_IO_MLB_API_KEY")
 
 # Constants
-GAME_DATE = "2025-03-30"
-HOME_TEAM = "TOR"
-AWAY_TEAM = "BAL"
 RESOLUTION_MAP = {
     "Blue Jays": "p1",
     "Orioles": "p2",
@@ -143,11 +141,47 @@ def determine_resolution(game):
 
 
 def main():
-    game = fetch_game_data(GAME_DATE, HOME_TEAM, AWAY_TEAM)
-    print(game)
+    parser = argparse.ArgumentParser(
+        description="Query MLB game data and determine resolution"
+    )
+    parser.add_argument("--date", required=True, help="Game date in YYYY-MM-DD format")
+    parser.add_argument("--home", required=True, help="Home team abbreviation")
+    parser.add_argument("--away", required=True, help="Away team abbreviation")
+    parser.add_argument(
+        "--format",
+        choices=["json", "text"],
+        default="text",
+        help="Output format (json or text)",
+    )
+
+    args = parser.parse_args()
+
+    game = fetch_game_data(args.date, args.home, args.away)
     resolution = determine_resolution(game)
-    print(f"recommendation: {resolution}")
+
+    if args.format == "json":
+        import json
+
+        result = {
+            "date": args.date,
+            "home_team": args.home,
+            "away_team": args.away,
+            "resolution": resolution,
+        }
+        print(json.dumps(result))
+    else:
+        print(f"recommendation: {resolution}")
 
 
 if __name__ == "__main__":
     main()
+
+# Example usage:
+# 1. Query a specific game:
+#    python functions/query_sports_mlb_data.py --date 2025-03-30 --home TOR --away BAL
+#
+# 2. Query another game:
+#    python functions/query_sports_mlb_data.py --date 2025-04-05 --home NYY --away BOS
+#
+# 3. Get result in JSON format:
+#    python functions/query_sports_mlb_data.py --date 2025-03-30 --home TOR --away BAL --format json
