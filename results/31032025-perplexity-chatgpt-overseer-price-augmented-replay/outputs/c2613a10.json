@@ -363,5 +363,8 @@
     "Ethereum",
     "Crypto Prices",
     "Recurring"
-  ]
+  ],
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/ethereum-up-or-down-on-march-19-ct4AmKiRqyz6.jpg",
+  "end_date_iso": "2025-03-30T00:00:00Z",
+  "game_start_time": null
 }
