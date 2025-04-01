@@ -153,5 +153,8 @@
     "MicroStrategy",
     "Recurring",
     "Saylor"
-  ]
+  ],
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-strategy-purchase-bitcoin-feb-25-mar-3-q07w55qGyDbg.jpg",
+  "end_date_iso": "2025-03-31T00:00:00Z",
+  "game_start_time": null
 }

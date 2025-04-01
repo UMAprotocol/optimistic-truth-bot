@@ -158,5 +158,8 @@
     "Politics",
     "U.S. Politics",
     "us government"
-  ]
+  ],
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-congress-grant-trump-more-funds-for-deportations-7--x_e1am16e.jpg",
+  "end_date_iso": "2025-06-30T00:00:00Z",
+  "game_start_time": null
 }

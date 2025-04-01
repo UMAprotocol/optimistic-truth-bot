@@ -22,6 +22,7 @@ let columnPreferences = {
     id: true,
     title: true,
     recommendation: true,
+    router_decision: false,
     resolution: true,
     disputed: true,
     correct: true,
@@ -1877,7 +1878,14 @@ function loadColumnPreferences() {
     try {
         const savedPreferences = localStorage.getItem('columnPreferences');
         if (savedPreferences) {
-            columnPreferences = JSON.parse(savedPreferences);
+            const parsed = JSON.parse(savedPreferences);
+            // Merge with defaults to ensure we have all properties
+            columnPreferences = { ...columnPreferences, ...parsed };
+        }
+        
+        // Add any new columns that may not be in saved preferences
+        if (columnPreferences.router_decision === undefined) {
+            columnPreferences.router_decision = false;
         }
     } catch (error) {
         console.error('Error loading column preferences:', error);
@@ -1971,6 +1979,11 @@ function initializeColumnSelector() {
                     <label class="form-check-label" for="col-recommendation">Recommendation</label>
                 </div>
                 <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-router_decision" 
+                        ${columnPreferences.router_decision ? 'checked' : ''} data-column="router_decision">
+                    <label class="form-check-label" for="col-router_decision">Router Decision</label>
+                </div>
+                <div class="form-check">
                     <input class="form-check-input column-checkbox" type="checkbox" id="col-resolution" 
                         ${columnPreferences.resolution ? 'checked' : ''} data-column="resolution">
                     <label class="form-check-label" for="col-resolution">Resolution</label>
@@ -2045,6 +2058,7 @@ function initializeColumnSelector() {
             id: true,
             title: true,
             recommendation: true,
+            router_decision: false,
             resolution: true,
             disputed: true,
             correct: true,
@@ -2108,7 +2122,45 @@ async function loadExperimentsData() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        experimentsData = await response.json();
+        const responseData = await response.json();
+        
+        // Check if we have a response with mongo_status (format when MongoDB is down)
+        if (responseData.mongo_status === 'error') {
+            // Use the filesystem results
+            experimentsData = responseData.results;
+            
+            // Show warning about MongoDB being down
+            console.warn('MongoDB connection error:', responseData.mongo_error);
+            
+            // Display warning banner at the top of the page
+            const warningBanner = document.createElement('div');
+            warningBanner.className = 'alert alert-warning alert-dismissible fade show';
+            warningBanner.setAttribute('role', 'alert');
+            warningBanner.innerHTML = `
+                <strong>Warning:</strong> MongoDB connection failed (${responseData.mongo_error}). 
+                Only filesystem data is available.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insert at the top of the main content area
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent && mainContent.firstChild) {
+                mainContent.insertBefore(warningBanner, mainContent.firstChild);
+            } else {
+                document.body.insertBefore(warningBanner, document.body.firstChild);
+            }
+            
+            // Disable MongoDB filter option
+            const mongodbFilterBtn = document.getElementById('filterSourceMongodb');
+            if (mongodbFilterBtn) {
+                mongodbFilterBtn.classList.add('disabled');
+                mongodbFilterBtn.title = 'MongoDB is currently unavailable';
+            }
+        } else {
+            // Normal case - MongoDB is working
+            experimentsData = responseData;
+        }
+        
         console.log('Loaded experiments data:', experimentsData);
         
         displayExperimentsTable();
@@ -2336,7 +2388,19 @@ async function loadExperimentData(directory, source) {
                 const response = await fetch(`/api/results-directories`);
                 if (response.ok) {
                     // Get the list of files to load for this directory
-                    const allDirectories = await response.json();
+                    const responseData = await response.json();
+                    
+                    // Handle the case where MongoDB is down but we still have filesystem data
+                    let allDirectories;
+                    if (responseData.mongo_status === 'error') {
+                        // Extract the results array from the response
+                        allDirectories = responseData.results;
+                        console.warn('Note: MongoDB is unavailable, using filesystem data only');
+                    } else {
+                        // Normal case - MongoDB is available
+                        allDirectories = responseData;
+                    }
+                    
                     const targetDir = allDirectories.find(dir => dir.directory === directory);
                     
                     if (targetDir && targetDir.path) {
@@ -2990,6 +3054,7 @@ function updateTableHeader() {
     if (columnPreferences.id) headerRow += '<th class="col-id">ID</th>';
     if (columnPreferences.title) headerRow += '<th class="col-title">Title</th>';
     if (columnPreferences.recommendation) headerRow += '<th class="col-recommendation">AI Rec</th>';
+    if (columnPreferences.router_decision) headerRow += '<th class="col-router">Router</th>';
     if (columnPreferences.resolution) headerRow += '<th class="col-resolution">Res</th>';
     if (columnPreferences.disputed) headerRow += '<th class="col-disputed">Disputed</th>';
     if (columnPreferences.correct) headerRow += '<th class="col-correct">Correct</th>';
@@ -3149,26 +3214,21 @@ function updateTableWithData(dataArray) {
         }
         
         // Add cells based on column preferences
-        if (columnPreferences.timestamp) row += `<td class="col-timestamp">${formattedDate}</td>`;
-        if (columnPreferences.proposal_timestamp) row += `<td class="col-proposal-time">${formattedProposalDate}</td>`;
-        if (columnPreferences.expiration_timestamp) row += `<td class="col-expiration-time">${formattedExpirationDate}</td>`;
-        if (columnPreferences.request_timestamp) row += `<td class="col-request-time">${formattedRequestDate}</td>`;
-        if (columnPreferences.request_transaction_block_time) row += `<td class="col-block-time">${formattedBlockTime}</td>`;
-        if (columnPreferences.id) row += `<td class="col-id"><code class="code-font">${queryId}</code></td>`;
-        if (columnPreferences.title) row += `<td class="col-title">${title}</td>`;
-        if (columnPreferences.recommendation) row += `<td class="col-recommendation recommendation">${recommendation}</td>`;
-        if (columnPreferences.resolution) row += `<td class="col-resolution">${resolution}</td>`;
-        if (columnPreferences.disputed) row += `<td class="col-disputed">
-            <span class="${disputedClass}"><i class="bi ${disputedIcon}"></i> ${isDisputed ? 'Yes' : 'No'}</span>
-        </td>`;
-        if (columnPreferences.correct) row += `<td class="col-correct">
-            ${canCalculateCorrectness ? 
-              `<span class="${correctnessClass}"><i class="bi ${correctnessIcon}"></i> ${isCorrect ? 'Yes' : 'No'}</span>` :
-              'N/A'}
-        </td>`;
-        if (columnPreferences.block_number) row += `<td class="col-block-number">${blockNumber}</td>`;
-        if (columnPreferences.proposal_bond) row += `<td class="col-proposal-bond">${proposalBond}</td>`;
-        if (columnPreferences.tags) row += `<td class="col-tags">${formattedTags}</td>`;
+        if (columnPreferences.timestamp) row += `<td>${formattedDate}</td>`;
+        if (columnPreferences.proposal_timestamp) row += `<td>${formattedProposalDate}</td>`;
+        if (columnPreferences.expiration_timestamp) row += `<td>${formattedExpirationDate}</td>`;
+        if (columnPreferences.request_timestamp) row += `<td>${formattedRequestDate}</td>`;
+        if (columnPreferences.request_transaction_block_time) row += `<td>${formattedBlockTime}</td>`;
+        if (columnPreferences.id) row += `<td class="monospace">${queryId}</td>`;
+        if (columnPreferences.title) row += `<td>${title || 'No title'}</td>`;
+        if (columnPreferences.recommendation) row += `<td><code>${recommendation}</code></td>`;
+        if (columnPreferences.router_decision) row += `<td>${item.router_decision ? item.router_decision.solver || 'N/A' : 'N/A'}</td>`;
+        if (columnPreferences.resolution) row += `<td><code>${resolution}</code></td>`;
+        if (columnPreferences.disputed) row += `<td><i class="bi ${disputedIcon} ${disputedClass}"></i></td>`;
+        if (columnPreferences.correct) row += `<td><i class="bi ${correctnessIcon} ${correctnessClass}"></i></td>`;
+        if (columnPreferences.block_number) row += `<td>${blockNumber}</td>`;
+        if (columnPreferences.proposal_bond) row += `<td>${proposalBond}</td>`;
+        if (columnPreferences.tags) row += `<td>${formattedTags}</td>`;
         
         row += '</tr>';
         return row;
@@ -3365,6 +3425,29 @@ function showDetails(data, index) {
             </div>
         </div>
     `;
+    
+    // Add router decision if available (before user prompt)
+    if (data.router_decision) {
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Router Decision</h4>
+                <div class="card">
+                    <div class="card-body p-0">
+                        <table class="table meta-table mb-0">
+                            <tr>
+                                <th>Solver</th>
+                                <td>${data.router_decision.solver || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <th>Reason</th>
+                                <td>${data.router_decision.reason || 'N/A'}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
     
     // Add user prompt section if available
     if (data.user_prompt) {
@@ -3741,7 +3824,7 @@ function showDetails(data, index) {
         'resolved_price_outcome', 'timestamp', 'unix_timestamp', 'transaction_hash', 
         'proposal_data', 'api_response', 'response', 'system_prompt', 'user_prompt',
         'ancillary_data', 'citations', 'proposal_metadata', 'response_metadata', 'processed_file',
-        'overseer_data', 'tags', 'disputed', 'proposed_price_outcome'
+        'overseer_data', 'tags', 'disputed', 'proposed_price_outcome', 'router_decision'
     ];
     
     const remainingEntries = Object.entries(data).filter(([key]) => !commonFields.includes(key));

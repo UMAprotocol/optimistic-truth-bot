@@ -143,5 +143,8 @@
     "Games",
     "CBB",
     "March Madness Games 2025"
-  ]
+  ],
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/ncaab1.png",
+  "end_date_iso": "2025-04-06T00:00:00Z",
+  "game_start_time": "2025-03-30T21:05:00Z"
 }

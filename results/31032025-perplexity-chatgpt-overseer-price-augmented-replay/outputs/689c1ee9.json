@@ -149,5 +149,8 @@
     "Sports",
     "MLB",
     "Games"
-  ]
+  ],
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg",
+  "end_date_iso": "2025-03-31T00:00:00Z",
+  "game_start_time": "2025-03-30T23:00:00Z"
 }

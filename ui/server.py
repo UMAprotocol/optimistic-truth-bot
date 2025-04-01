@@ -100,7 +100,15 @@ def get_mongodb_connection():
     if mongodb_client is None:
         try:
             logger.info(f"Connecting to MongoDB at {MONGO_URI}")
-            mongodb_client = MongoClient(MONGO_URI)
+            # Set a shorter client timeout to avoid application hanging
+            mongodb_client = MongoClient(
+                MONGO_URI,
+                serverSelectionTimeoutMS=5000,  # 5 seconds timeout instead of default 30s
+                connectTimeoutMS=5000,
+                socketTimeoutMS=10000,
+            )
+            # Verify connection by querying server info
+            mongodb_client.server_info()  # This will raise an exception if connection fails
             mongodb_db = mongodb_client[MONGODB_DB]
             logger.info(f"Connected to MongoDB, database: {MONGODB_DB}")
         except Exception as e:
@@ -991,6 +999,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                 )
 
                     # Then try to get results from MongoDB
+                    mongo_error_info = None
                     try:
                         db = get_mongodb_connection()
                         if db is not None:
@@ -1035,12 +1044,31 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         logger.error(
                             f"Error getting MongoDB experiments: {mongo_error}"
                         )
+                        # Save the error info to include in the response
+                        mongo_error_info = {
+                            "mongo_error": str(mongo_error),
+                            "mongo_status": "unavailable",
+                        }
                         # Continue with filesystem results even if MongoDB fails
+
+                    # Return the response with filesystem data and optional MongoDB error info
+                    response_data = results
+                    if mongo_error_info:
+                        # Add MongoDB error info to the response
+                        response_data = {
+                            "results": results,
+                            "mongo_status": "error",
+                            "mongo_error": mongo_error_info["mongo_error"],
+                        }
 
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
-                    self.wfile.write(json.dumps(results).encode())
+                    self.wfile.write(
+                        json.dumps(
+                            response_data if mongo_error_info else results
+                        ).encode()
+                    )
                     return
                 except Exception as e:
                     self.send_response(500)

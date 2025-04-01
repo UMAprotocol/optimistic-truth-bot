@@ -359,5 +359,8 @@
     "Crypto Prices",
     "Recurring"
   ],
-  "disputer_address": "0x9C28995d9fc5ED05c24BA721A7BF72d7B8d94eAc"
+  "disputer_address": "0x9C28995d9fc5ED05c24BA721A7BF72d7B8d94eAc",
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/bitcoin-up-or-down-on-march-13-ppoEj3rBtGBr.jpg",
+  "end_date_iso": "2025-03-30T00:00:00Z",
+  "game_start_time": null
 }

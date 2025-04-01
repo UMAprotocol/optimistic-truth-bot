@@ -152,5 +152,8 @@
     "CBB",
     "baketball",
     "ncaab"
-  ]
+  ],
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/which-teams-will-make-the-final-four-PvxGWFvha6EK.jpg",
+  "end_date_iso": "2025-03-31T00:00:00Z",
+  "game_start_time": null
 }

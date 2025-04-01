@@ -142,5 +142,8 @@
     "Sports",
     "NHL",
     "Games"
-  ]
+  ],
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/nhl.png",
+  "end_date_iso": "2025-04-07T00:00:00Z",
+  "game_start_time": "2025-03-31T00:00:00Z"
 }
