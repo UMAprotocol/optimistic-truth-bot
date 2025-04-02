@@ -28,6 +28,7 @@ from .common import (
     get_output_filename,
     should_process_proposal,
     get_token_price,
+    validate_output_json,
 )
 from .router.router import Router
 from .overseer.overseer import Overseer
@@ -546,7 +547,6 @@ SUMMARY:
                     "system_prompt": system_prompt,
                     "router_result": route_result,
                     "solver_results": solver_results,
-                    "all_solver_results": all_solver_results,
                     "overseer_result": overseer_result,
                     "recommendation": overseer_decision.get(
                         "verdict", combined_recommendation
@@ -559,6 +559,8 @@ SUMMARY:
                     ),
                     "routing_attempts": current_routing_attempt,
                     "attempted_solvers": attempted_solvers,
+                    "proposal_metadata": proposal_obj,
+                    "file_path": str(file_path),
                     "rerouting_info": (
                         {
                             "excluded_solvers": excluded_solvers,
@@ -568,6 +570,10 @@ SUMMARY:
                         else None
                     ),
                 }
+
+                # Add all_solver_results only if it's different from solver_results
+                if all_solver_results != solver_results:
+                    final_result["all_solver_results"] = all_solver_results
             else:
                 # Just use the single solver result as before
                 solver_result = solver_results[0] if solver_results else None
@@ -586,7 +592,6 @@ SUMMARY:
                     "system_prompt": system_prompt,
                     "router_result": route_result,
                     "solver_results": solver_results,
-                    "all_solver_results": all_solver_results,
                     "overseer_result": overseer_result,
                     "recommendation": overseer_decision.get(
                         "verdict", solver_result.get("recommendation", "p4")
@@ -597,6 +602,8 @@ SUMMARY:
                     ),
                     "routing_attempts": current_routing_attempt,
                     "attempted_solvers": attempted_solvers,
+                    "proposal_metadata": proposal_obj,
+                    "file_path": str(file_path),
                     "rerouting_info": (
                         {
                             "excluded_solvers": excluded_solvers,
@@ -607,9 +614,26 @@ SUMMARY:
                     ),
                 }
 
+                # Add all_solver_results only if it contains different information
+                if all_solver_results != solver_results:
+                    final_result["all_solver_results"] = all_solver_results
+
             # Save the result
             if self.save_output:
-                self.save_result(final_result)
+                output_path = self.save_result(final_result)
+                if output_path and self.verbose:
+                    # Validate the saved result for backward compatibility
+                    try:
+                        with open(output_path, "r") as f:
+                            saved_data = json.load(f)
+
+                        is_valid, missing_fields = validate_output_json(saved_data)
+                        if not is_valid:
+                            self.logger.warning(
+                                f"Saved result is missing backward compatibility fields: {missing_fields}"
+                            )
+                    except Exception as e:
+                        self.logger.error(f"Error validating saved result: {e}")
 
             return final_result
 
@@ -774,109 +798,227 @@ SUMMARY:
         print("\033[1m\033[32m✅ Shutdown complete\033[0m")
 
     def save_result(self, result):
-        """
-        Save the result to a file with standardized structure.
-        Ensures critical fields are available at both top level and in proposal_metadata.
-
-        Args:
-            result: The result dictionary to save
-
-        Returns:
-            Path to the saved file or None if saving failed
-        """
-        if not self.output_dir:
-            self.logger.warning("No output directory specified, skipping save")
-            return None
-
-        # Create the output directory if it doesn't exist
-        self.output_dir.mkdir(exist_ok=True)
-
-        # Make a copy of the result to avoid modifying the original
-        result_copy = result.copy()
-
+        """Save the result to a file."""
         try:
-            # Ensure critical fields from proposal_metadata are also at the top level
-            top_level_fields = ["tags", "icon", "end_date_iso", "game_start_time"]
+            query_id = result.get("query_id", "")
+            short_id = result.get("short_id", "")
 
-            # Handle both single objects and arrays of objects
-            if "proposal_metadata" in result_copy and isinstance(
-                result_copy["proposal_metadata"], dict
-            ):
-                metadata = result_copy["proposal_metadata"]
-                self.logger.debug(
-                    f"Extracting fields from proposal_metadata: {', '.join(top_level_fields)}"
-                )
+            # Create the output file name
+            timestamp = int(time.time())
+            formatted_time = time.strftime("%Y%m%d_%H%M%S", time.localtime(timestamp))
+            output_file = f"result_{short_id}_{formatted_time}.json"
+            output_path = os.path.join(self.output_dir, output_file)
 
-                for field in top_level_fields:
-                    # Check if the field exists in the proposal_metadata and not already at the top level
-                    if field in metadata and field not in result_copy:
-                        result_copy[field] = metadata[field]
-                        self.logger.debug(f"Moved field '{field}' to top level")
+            # Create a clean result with only necessary fields
+            clean_result = {}
 
-            # Generate output filename with timestamp
-            if "short_id" not in result_copy or not result_copy["short_id"]:
-                # Fallback if short_id is missing
-                self.logger.warning(
-                    "Missing short_id in result, using timestamp only for filename"
-                )
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_filename = f"result_unknown_{timestamp}.json"
-            else:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_filename = f"result_{result_copy['short_id']}_{timestamp}.json"
+            # Essential fields that should be at the top level
+            essential_fields = [
+                "query_id",
+                "short_id",
+                "reason",
+                "market_alignment",
+                "routing_attempts",
+                "attempted_solvers",
+                "user_prompt",
+                "system_prompt",
+            ]
 
-            output_file = self.output_dir / output_filename
+            # Add essential fields if they exist
+            for field in essential_fields:
+                if field in result:
+                    clean_result[field] = result[field]
 
-            with open(output_file, "w") as f:
-                json.dump(result_copy, f, indent=2)
+            # Add question_id_short which is the same as short_id
+            clean_result["question_id_short"] = short_id
 
-            self.logger.debug(f"Successfully saved full result to {output_file}")
-            return output_file
+            # Add the processed file name
+            if "file_path" in result:
+                processed_file = os.path.basename(result["file_path"])
+                clean_result["processed_file"] = processed_file
 
-        except (TypeError, KeyError, AttributeError) as e:
-            self.logger.error(f"Error processing or saving result: {str(e)}")
+            # Add timestamps
+            clean_result["timestamp"] = time.time()
 
-            # Try to save with minimal content if there was an error
-            try:
-                # Create a minimal result with safe getters to avoid exceptions
-                minimal_result = {
-                    "error": f"Error saving full result: {str(e)}",
-                    "timestamp": time.time(),
-                    "recommendation": (
-                        result.get("recommendation", "p4")
-                        if isinstance(result, dict)
-                        else "p4"
-                    ),
-                }
+            # Default values for required flags
+            clean_result["disputed"] = False
+            clean_result["recommendation_overridden"] = False
 
-                # Add other fields if they exist
-                for field in ["query_id", "short_id", "file_path", "total_attempts"]:
-                    if isinstance(result, dict) and field in result:
-                        minimal_result[field] = result[field]
+            # Include nested result objects without any processing
+            for nested_key in ["router_result", "solver_results", "overseer_result"]:
+                if nested_key in result:
+                    clean_result[nested_key] = result[nested_key]
 
-                # In case of missing short_id, generate a minimal filename
-                if "short_id" not in minimal_result or not minimal_result["short_id"]:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    output_filename = f"minimal_result_{timestamp}.json"
-                else:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    output_filename = (
-                        f"minimal_result_{minimal_result['short_id']}_{timestamp}.json"
+            # Only include all_solver_results if it's different from solver_results
+            if "all_solver_results" in result and "solver_results" in result:
+                if result["all_solver_results"] != result["solver_results"]:
+                    clean_result["all_solver_results"] = result["all_solver_results"]
+
+            # For recommendation, make sure we use the p1/p2/p3/p4 value, not the verdict
+            # Get the recommendation from the solver result or overseer result
+            recommendation = result.get("recommendation", "p4")
+
+            # If recommendation is the overseer verdict, find the actual recommendation value
+            if recommendation in ["SATISFIED", "RETRY", "DEFAULT_TO_P4"]:
+                # Check solver results for a recommendation
+                if "solver_results" in result and result["solver_results"]:
+                    recommendation = result["solver_results"][0].get(
+                        "recommendation", "p4"
                     )
 
-                output_file = self.output_dir / output_filename
+            # Make sure we have a valid recommendation (p1, p2, p3, p4)
+            if not recommendation.startswith("p"):
+                recommendation = "p4"  # Default to p4 if recommendation is invalid
 
-                with open(output_file, "w") as f:
-                    json.dump(minimal_result, f, indent=2)
+            clean_result["recommendation"] = recommendation
 
-                self.logger.warning(
-                    f"Saved minimal result to {output_file} after error"
-                )
-                return output_file
+            # Include the full proposal_metadata without duplicating fields at top level
+            if "proposal_metadata" in result and result["proposal_metadata"]:
+                proposal_metadata = result["proposal_metadata"]
 
-            except Exception as e2:
-                self.logger.error(f"Failed to save even minimal result: {str(e2)}")
-                return None
+                # Create a copy of the metadata object to modify
+                clean_metadata = proposal_metadata.copy()
+
+                # Fields that should be at top level but NOT in proposal_metadata
+                top_level_exclusive_fields = ["icon", "condition_id"]
+
+                # Fields that should be in proposal_metadata but NOT at top level
+                metadata_exclusive_fields = ["transaction_hash"]
+
+                # Shared fields that should be in both places
+                shared_fields = [
+                    "proposed_price",
+                    "resolved_price",
+                    "proposed_price_outcome",
+                    "resolved_price_outcome",
+                    "tags",
+                    "end_date_iso",
+                    "game_start_time",
+                ]
+
+                # Move top level exclusive fields out of metadata
+                for field in top_level_exclusive_fields:
+                    if field in clean_metadata:
+                        clean_result[field] = clean_metadata[field]
+                        # Remove from metadata to prevent duplication
+                        clean_metadata.pop(field, None)
+
+                # Set top-level fields from metadata
+                for field in shared_fields:
+                    if field in clean_metadata:
+                        clean_result[field] = clean_metadata[field]
+
+                # Remove transaction_hash from top level if it exists
+                if "transaction_hash" in clean_result:
+                    clean_result.pop("transaction_hash", None)
+
+                # Store the cleaned metadata
+                clean_result["proposal_metadata"] = clean_metadata
+
+                # Set default values for missing required fields at top level
+                for field in top_level_exclusive_fields + shared_fields:
+                    if field not in clean_result:
+                        if field == "proposed_price":
+                            clean_result[field] = 0
+                        elif field == "resolved_price":
+                            clean_result[field] = None
+                        elif field == "proposed_price_outcome":
+                            # Try to derive from recommendation
+                            clean_result[field] = recommendation
+                        elif field == "resolved_price_outcome":
+                            clean_result[field] = None
+                        elif field == "condition_id":
+                            clean_result[field] = ""
+                        elif field == "tags":
+                            clean_result[field] = []
+                        elif field == "icon":
+                            clean_result[field] = ""
+                        elif field == "end_date_iso":
+                            clean_result[field] = ""
+                        elif field == "game_start_time":
+                            clean_result[field] = None
+
+            # Create a recommendation_journey structure similar to 1ac9ab6e.json
+            if "solver_results" in clean_result:
+                # Create a recommendation journey from solver results
+                recommendation_journey = []
+
+                # Track attempt number
+                attempt_counter = 1
+                for solver_result in clean_result["solver_results"]:
+                    if (
+                        "overseer_result" in solver_result
+                        and "decision" in solver_result["overseer_result"]
+                    ):
+                        overseer_decision = solver_result["overseer_result"]["decision"]
+
+                        # Create journey entry
+                        journey_entry = {
+                            "attempt": attempt_counter,
+                            "perplexity_recommendation": solver_result.get(
+                                "recommendation", ""
+                            ),
+                            "overseer_satisfaction_level": overseer_decision.get(
+                                "verdict", ""
+                            ).lower(),
+                            "prompt_updated": bool(
+                                overseer_decision.get("prompt_update", "")
+                            ),
+                            "critique": overseer_decision.get("critique", ""),
+                        }
+
+                        # Add system prompt information if available
+                        if "system_prompt" in result:
+                            journey_entry["system_prompt_before"] = result[
+                                "system_prompt"
+                            ]
+
+                            # If prompt was updated, include the updated prompt
+                            if (
+                                journey_entry["prompt_updated"]
+                                and "prompt_update" in overseer_decision
+                            ):
+                                updated_prompt = f"{result['system_prompt']}\n\nADDITIONAL INSTRUCTIONS: {overseer_decision['prompt_update']}"
+                                journey_entry["system_prompt_after"] = updated_prompt
+                            else:
+                                journey_entry["system_prompt_after"] = result[
+                                    "system_prompt"
+                                ]
+
+                        recommendation_journey.append(journey_entry)
+                        attempt_counter += 1
+
+                # Create overseer_data structure similar to 1ac9ab6e.json
+                overseer_data = {
+                    "attempts": len(recommendation_journey),
+                    "interactions": [],  # Detailed interaction data would go here
+                    "market_price_info": result.get(
+                        "market_alignment", "No market price information available"
+                    ),
+                    "tokens": result.get("tokens", []),
+                    "recommendation_journey": recommendation_journey,
+                }
+
+                # If we have response_metadata from a solver, include it as final_response_metadata
+                if (
+                    clean_result["solver_results"]
+                    and "response_metadata" in clean_result["solver_results"][0]
+                ):
+                    overseer_data["final_response_metadata"] = clean_result[
+                        "solver_results"
+                    ][0]["response_metadata"]
+
+                clean_result["overseer_data"] = overseer_data
+
+            # Save the result
+            with open(output_path, "w") as f:
+                json.dump(clean_result, f, indent=2)
+
+            self.logger.info(f"Result saved to {output_path}")
+            return output_path
+        except Exception as e:
+            self.logger.error(f"Error saving result: {e}")
+            return None
 
 
 def main():

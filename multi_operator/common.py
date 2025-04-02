@@ -502,3 +502,54 @@ def get_token_price(token_id: str, verbose=False) -> dict:
         spinner_active = False
         if spinner_thread and spinner_thread.is_alive():
             spinner_thread.join(timeout=0.5)  # Wait for thread to finish
+
+
+def validate_output_json(output_json):
+    """
+    Validate that the output JSON contains all required fields for backward compatibility.
+
+    Args:
+        output_json: The JSON object to validate
+
+    Returns:
+        tuple: (is_valid, missing_fields)
+    """
+    # Fields that must exist at the top level
+    required_fields = [
+        "query_id",
+        "question_id_short",
+        "proposed_price",
+        "resolved_price",
+        "timestamp",
+        "processed_file",
+        "resolved_price_outcome",
+        "disputed",
+        "recommendation",
+        "recommendation_overridden",
+        "proposed_price_outcome",
+        "user_prompt",
+        "system_prompt",
+        "condition_id",
+        "tags",
+        "icon",
+        "end_date_iso",
+        "game_start_time",
+    ]
+
+    missing_fields = [field for field in required_fields if field not in output_json]
+
+    # Check if required nested structures exist
+    if "proposal_metadata" not in output_json:
+        missing_fields.append("proposal_metadata")
+    else:
+        # Transaction hash should be in proposal_metadata, not at top level
+        if "transaction_hash" not in output_json["proposal_metadata"]:
+            missing_fields.append("transaction_hash (in proposal_metadata)")
+
+        # Make sure recommendation is a p-value (p1, p2, p3, p4)
+        if "recommendation" in output_json and not output_json[
+            "recommendation"
+        ].startswith("p"):
+            missing_fields.append("valid p-value recommendation")
+
+    return (len(missing_fields) == 0, missing_fields)
