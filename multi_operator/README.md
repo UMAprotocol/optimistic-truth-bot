@@ -159,3 +159,29 @@ The router can select one or multiple solvers for a given query. When multiple s
 3. Code Runner fetches the precise BTC prices before and after March 15th
 4. Perplexity provides context about the SEC announcement
 5. The overseer combines these insights to determine the final recommendation 
+
+## Testing
+
+The Multi-Operator includes a comprehensive test suite to ensure backward compatibility with existing systems. The tests verify that the output JSON structure contains all required fields in the expected format.
+
+To run the tests:
+
+```bash
+# From the multi_operator directory:
+python -m tests.run_tests
+
+# To validate a specific JSON output file:
+python -m tests.validate_json_format path/to/output.json --verbose
+```
+
+Test files and validation scripts are located in the `tests/` directory.
+
+### Output Format Requirements
+
+The Multi-Operator output format maintains backward compatibility with the previous implementation while providing additional information for the multi-operator flow. Key requirements include:
+
+1. Essential fields must be present at the top level (query_id, recommendation, etc.)
+2. Fields like `icon` and `condition_id` must be at the top level only
+3. `transaction_hash` must be in `proposal_metadata` only 
+4. Fields like tags, prices, etc. are duplicated at both levels for compatibility
+5. The `recommendation` field must contain the final p1/p2/p3/p4 value, not the overseer verdict 

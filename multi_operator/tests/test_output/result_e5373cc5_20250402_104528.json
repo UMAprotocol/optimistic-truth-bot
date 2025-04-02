@@ -1,0 +1,112 @@
+{
+  "query_id": "0xe5373cc54eb12bc20210bbc945d0eb96881c6bdd90057b67abe6958bcce77a9d",
+  "short_id": "e5373cc5",
+  "reason": "Test reason",
+  "market_alignment": "No market price data is available for this query.",
+  "routing_attempts": 1,
+  "attempted_solvers": [
+    "perplexity"
+  ],
+  "user_prompt": "Test prompt",
+  "system_prompt": "Test system prompt",
+  "question_id_short": "e5373cc5",
+  "processed_file": "questionId_e5373cc5.json",
+  "timestamp": 1743583528.710613,
+  "disputed": false,
+  "recommendation_overridden": false,
+  "router_result": {
+    "solvers": [
+      "perplexity"
+    ],
+    "reason": "Test routing reason"
+  },
+  "solver_results": [
+    {
+      "solver": "perplexity",
+      "recommendation": "p2",
+      "response": "Test response",
+      "attempt": 1,
+      "execution_successful": true,
+      "overseer_result": {
+        "decision": {
+          "verdict": "SATISFIED",
+          "require_rerun": false,
+          "reason": "Test reason",
+          "critique": "Test critique",
+          "market_alignment": "No market price data is available for this query."
+        }
+      }
+    }
+  ],
+  "overseer_result": {
+    "decision": {
+      "verdict": "SATISFIED",
+      "require_rerun": false,
+      "reason": "Test reason",
+      "critique": "Test critique",
+      "market_alignment": "No market price data is available for this query."
+    }
+  },
+  "recommendation": "p2",
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/bitcoin-up-or-down.jpg",
+  "condition_id": "0x0ecdbc27eda94366284bf4c8e990017491d57f95c53dcd2353d6104ff7cb9e54",
+  "proposed_price": 0,
+  "resolved_price": null,
+  "proposed_price_outcome": "p1",
+  "resolved_price_outcome": null,
+  "tags": [
+    "Crypto",
+    "Bitcoin",
+    "Crypto Prices",
+    "Recurring"
+  ],
+  "end_date_iso": "2025-03-16T00:00:00Z",
+  "game_start_time": null,
+  "proposal_metadata": {
+    "query_id": "0xe5373cc54eb12bc20210bbc945d0eb96881c6bdd90057b67abe6958bcce77a9d",
+    "transaction_hash": "0xde871f58887ef3e98ef9f941df53ccd32766eaa3acb6800535564d2482c323b6",
+    "block_number": 69125278,
+    "request_transaction_block_time": 1742140865,
+    "ancillary_data": "Sample ancillary data",
+    "ancillary_data_hex": "0x73616d706c65",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5.",
+    "proposed_price": 0,
+    "proposed_price_outcome": "p1",
+    "resolved_price": null,
+    "resolved_price_outcome": null,
+    "request_timestamp": 1741964809,
+    "expiration_timestamp": 1742148065,
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposer": "0xcf12F5b99605CB299Fb11d5EfF4fB304De008d02",
+    "bond_currency": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    "proposal_bond": 500000000,
+    "reward_amount": 5000000,
+    "updates": [],
+    "tags": [
+      "Crypto",
+      "Bitcoin",
+      "Crypto Prices",
+      "Recurring"
+    ],
+    "end_date_iso": "2025-03-16T00:00:00Z",
+    "game_start_time": null,
+    "disputer_address": "0xdf08FFC4619e0324B3d38F85d5F07A5Cf31f133F"
+  },
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [],
+    "market_price_info": "No market price data is available for this query.",
+    "tokens": [],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p2",
+        "overseer_satisfaction_level": "satisfied",
+        "prompt_updated": false,
+        "critique": "Test critique",
+        "system_prompt_before": "Test system prompt",
+        "system_prompt_after": "Test system prompt"
+      }
+    ]
+  }
+}
