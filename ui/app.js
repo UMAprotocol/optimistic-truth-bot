@@ -141,6 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set up experiment runner events
     initializeExperimentRunner();
+
+    // Add event listener for modal shown event to apply syntax highlighting
+    document.getElementById('detailsModal')?.addEventListener('shown.bs.modal', function () {
+        // Reapply syntax highlighting to all code blocks
+        Prism.highlightAllUnder(document.getElementById('detailsModalBody'));
+    });
 });
 
 // Initialize the tab functionality
@@ -3363,191 +3369,232 @@ function showDetails(data, index) {
                             </td>
                         </tr>
                         <tr>
+                            <th>Condition ID</th>
+                            <td>
+                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${data.condition_id || ''}" id="copyConditionId">
+                                    ${data.condition_id || 'N/A'}
+                                </code>
+                            </td>
+                        </tr>
+                        <tr>
                             <th>Process Time</th>
                             <td>${formatDate(data.timestamp || 0)}</td>
                         </tr>
                         <tr>
                             <th>Request Time</th>
-                            <td>${data.proposal_metadata && data.proposal_metadata.request_timestamp ? formatDate(data.proposal_metadata.request_timestamp) : 'N/A'}</td>
+                            <td>${formatDate(data.proposal_metadata?.request_timestamp || 0)}</td>
                         </tr>
                         <tr>
-                            <th>Request Block Time</th>
-                            <td>${data.proposal_metadata && data.proposal_metadata.request_transaction_block_time ? formatDate(data.proposal_metadata.request_transaction_block_time) : 'N/A'}</td>
+                            <th>Block Time</th>
+                            <td>${formatDate(data.proposal_metadata?.request_transaction_block_time || 0)}</td>
                         </tr>
                         <tr>
                             <th>Expiration Time</th>
-                            <td>${data.proposal_metadata && data.proposal_metadata.expiration_timestamp ? formatDate(data.proposal_metadata.expiration_timestamp) : 'N/A'}</td>
+                            <td>${formatDate(data.proposal_metadata?.expiration_timestamp || 0)}</td>
                         </tr>
-                        <tr>
-                            <th>Disputed</th>
-                            <td>${isDisputed ? '<span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Yes</span>' : 'No'}</td>
-                        </tr>
-                        <tr>
-                            <th>Proposal Transaction</th>
-                            <td>${createTxLink(data.proposal_metadata?.transaction_hash || data.proposal_data?.transaction_hash || data.transaction_hash)}</td>
-                        </tr>
-                        ${data.proposal_metadata?.proposer ? `
-                        <tr>
-                            <th>Proposer</th>
-                            <td>${createAddressLink(data.proposal_metadata.proposer)}</td>
-                        </tr>
-                        ` : ''}
-                        ${data.proposal_metadata?.bond_currency ? `
-                        <tr>
-                            <th>Bond Currency</th>
-                            <td>${createAddressLink(data.proposal_metadata.bond_currency)}</td>
-                        </tr>
-                        ` : ''}
-                        ${data.proposal_metadata?.condition_id ? `
-                        <tr>
-                            <th>Condition ID</th>
-                            <td>
-                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${data.proposal_metadata.condition_id}">
-                                    ${data.proposal_metadata.condition_id}
-                                </code>
-                            </td>
-                        </tr>
-                        ` : ''}
-                        ${data.game_start_time ? `
-                        <tr>
-                            <th>Game Start Time</th>
-                            <td>${formatDate(new Date(data.game_start_time).getTime() / 1000)}</td>
-                        </tr>
-                        ` : ''}
-                        ${data.end_date_iso ? `
                         <tr>
                             <th>End Date</th>
-                            <td>${formatDate(new Date(data.end_date_iso).getTime() / 1000)}</td>
+                            <td>${data.end_date_iso || 'N/A'}</td>
                         </tr>
-                        ` : ''}
                     </table>
                 </div>
             </div>
         </div>
     `;
-    
-    // Add router decision if available (before user prompt)
-    if (data.router_decision) {
+
+    // Add multi-operator data section if available
+    if (data.router_result || data.attempted_solvers) {
         content += `
             <div class="detail-section">
-                <h4 class="section-title">Router Decision</h4>
-                <div class="card">
-                    <div class="card-body p-0">
-                        <table class="table meta-table mb-0">
-                            <tr>
-                                <th>Solver</th>
-                                <td>${data.router_decision.solver || 'N/A'}</td>
-                            </tr>
-                            <tr>
-                                <th>Reason</th>
-                                <td>${data.router_decision.reason || 'N/A'}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                <h4 class="section-title">Multi-Operator Processing</h4>
+                <div class="multi-operator-section">
         `;
-    }
-    
-    // Add user prompt section if available
-    if (data.user_prompt) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">User Prompt</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <pre class="mb-0 prompt-text">${data.user_prompt}</pre>
-                    </div>
+        
+        // Add attempted solvers
+        if (data.attempted_solvers && Array.isArray(data.attempted_solvers)) {
+            content += `
+                <div class="mb-3">
+                    <strong>Attempted Solvers:</strong> 
+                    ${data.attempted_solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('')}
                 </div>
-            </div>
-        `;
-    }
-    
-    // Add prompt section if available
-    if (data.proposal_data?.prompt) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">Proposal Data Prompt</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <pre class="mb-0 prompt-text">${data.proposal_data.prompt}</pre>
-                    </div>
+                <div class="mb-3">
+                    <strong>Routing Attempts:</strong> ${data.routing_attempts || 1}
                 </div>
-            </div>
-        `;
-    }
-    
-    // Add system prompt if available
-    if (data.system_prompt) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">System Prompt</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <pre class="mb-0 prompt-text">${data.system_prompt}</pre>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Add response section
-    if (data.response) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">Response</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <pre class="mb-0 response-text">${data.response}</pre>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Add response metadata if available
-    if (data.response_metadata) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">Response Metadata</h4>
-                <div class="card">
-                    <div class="card-body p-0">
-                        <table class="table meta-table mb-0">
-                            ${Object.entries(data.response_metadata).map(([key, value]) => `
-                                <tr>
-                                    <th>${formatKeyName(key)}</th>
-                                    <td>${formatValue(value, key)}</td>
-                                </tr>
-                            `).join('')}
-                        </table>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Add overseer data section if available
-    if (data.overseer_data) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">Overseer Data</h4>
+            `;
+        }
+        
+        // Add router result
+        if (data.router_result) {
+            const routerResult = data.router_result;
+            content += `
                 <div class="card mb-3">
                     <div class="card-header">
-                        <strong>Overseer Summary</strong>
+                        <strong>Router Decision</strong>
                     </div>
                     <div class="card-body">
-                        <p><strong>Attempts:</strong> ${data.overseer_data.attempts}</p>
-                        <div class="recommendation-journey mt-3 mb-2">
-                            <strong>Recommendation Journey:</strong>
-                            <div class="journey-steps mt-2">
-                                ${data.overseer_data.recommendation_journey.map((step, idx) => `
-                                    <div class="journey-step">
-                                        <span class="step-number">${idx + 1}</span>
-                                        <div class="step-details">
-                                            <div><strong>Attempt:</strong> ${step.attempt}</div>
-                                            <div><strong>Perplexity:</strong> <code>${step.perplexity_recommendation}</code></div>
-                                            <div><strong>Overseer:</strong> ${formatSatisfactionLevel(step.overseer_satisfaction_level || step.overseer_decision)}</div>
-                                            <div><strong>Prompt Updated:</strong> ${step.prompt_updated ? 'Yes' : 'No'}</div>
+                        <div class="mb-2">
+                            <strong>Selected Solvers:</strong> 
+                            ${routerResult.solvers ? routerResult.solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('') : 'N/A'}
+                        </div>
+                        ${routerResult.reason ? `
+                            <div class="router-reason">
+                                <strong>Reason:</strong> ${routerResult.reason}
+                            </div>
+                        ` : ''}
+                        ${routerResult.multi_solver_strategy ? `
+                            <div class="mt-2">
+                                <strong>Multi-Solver Strategy:</strong> ${routerResult.multi_solver_strategy}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Add solver results
+        if (data.solver_results && Array.isArray(data.solver_results) && data.solver_results.length > 0) {
+            content += `<h5 class="mb-3">Solver Results</h5>`;
+            
+            data.solver_results.forEach((solverResult, index) => {
+                const executionStatus = solverResult.execution_successful === true ? 
+                    '<span class="execution-successful"><i class="bi bi-check-circle-fill"></i> Success</span>' : 
+                    '<span class="execution-failed"><i class="bi bi-x-circle-fill"></i> Failed</span>';
+                
+                content += `
+                    <div class="solver-card">
+                        <div class="solver-header">
+                            <div class="solver-name">${solverResult.solver || 'Unknown Solver'}</div>
+                            <div class="d-flex align-items-center">
+                                <div class="solver-attempt me-3">Attempt ${solverResult.attempt || index + 1}</div>
+                                <div>${executionStatus}</div>
+                            </div>
+                        </div>
+                        <div class="solver-body">
+                            <div><strong>Recommendation:</strong> ${solverResult.recommendation || 'N/A'}</div>
+                            
+                            ${solverResult.response ? `
+                                <div class="mt-2">
+                                    <strong>Response:</strong>
+                                    <pre class="response-text mt-2">${formatCodeBlocks(solverResult.response)}</pre>
+                                </div>
+                            ` : ''}
+                            
+                            ${solverResult.solver_result && solverResult.solver_result.code ? `
+                                <div class="code-section">
+                                    <div class="code-header">
+                                        <span>Generated Code</span>
+                                        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${solverResult.solver_result.code.replace(/`/g, '\\`')}\`)">Copy</button>
+                                    </div>
+                                    <div class="code-content">
+                                        <pre><code class="language-python">${solverResult.solver_result.code}</code></pre>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${solverResult.code ? `
+                                <div class="code-section">
+                                    <div class="code-header">
+                                        <span>Generated Code</span>
+                                        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${solverResult.code.replace(/`/g, '\\`')}\`)">Copy</button>
+                                    </div>
+                                    <div class="code-content">
+                                        <pre><code class="language-python">${solverResult.code}</code></pre>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${solverResult.code_output ? `
+                                <div class="code-section">
+                                    <div class="code-header">
+                                        <span>Code Output</span>
+                                    </div>
+                                    <div class="code-content">
+                                        <pre><code class="language-plaintext">${solverResult.code_output}</code></pre>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${solverResult.solver_result && solverResult.solver_result.code_output ? `
+                                <div class="code-section">
+                                    <div class="code-header">
+                                        <span>Code Output</span>
+                                    </div>
+                                    <div class="code-content">
+                                        <pre><code class="language-plaintext">${solverResult.solver_result.code_output}</code></pre>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${solverResult.overseer_result ? `
+                                <div class="mt-3">
+                                    <strong>Overseer Evaluation:</strong>
+                                    <div class="mt-2">
+                                        <strong>Verdict:</strong> 
+                                        <span class="${solverResult.overseer_result.decision?.verdict === 'SATISFIED' ? 'text-success' : 
+                                                      solverResult.overseer_result.decision?.verdict === 'RETRY' ? 'text-warning' : 'text-danger'}">
+                                            ${solverResult.overseer_result.decision?.verdict || 'N/A'}
+                                        </span>
+                                    </div>
+                                    ${solverResult.overseer_result.decision?.reason ? `
+                                        <div class="overseer-reason mt-2">${solverResult.overseer_result.decision.reason}</div>
+                                    ` : ''}
+                                    ${solverResult.overseer_result.decision?.critique ? `
+                                        <div class="overseer-critique">${solverResult.overseer_result.decision.critique}</div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            ${solverResult.response_metadata ? `
+                                <div class="mt-3">
+                                    <strong>Response Metadata:</strong>
+                                    <div class="card mt-2">
+                                        <div class="card-body p-0">
+                                            <table class="table meta-table mb-0">
+                                                ${Object.entries(solverResult.response_metadata).map(([key, value]) => `
+                                                    <tr>
+                                                        <th>${formatKeyName(key)}</th>
+                                                        <td>${formatValue(value, key)}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${/* Display all other solver_result fields not already displayed */ ''}
+                            ${solverResult.solver_result && typeof solverResult.solver_result === 'object' ? 
+                                Object.entries(solverResult.solver_result)
+                                    .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata'].includes(key))
+                                    .map(([key, value]) => `
+                                        <div class="mt-3">
+                                            <strong>${formatKeyName(key)}:</strong>
+                                            <div class="mt-2">${formatValue(value, key)}</div>
+                                        </div>
+                                    `).join('') : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        // Add tokens section if available from proposal_metadata
+        if (data.proposal_metadata && data.proposal_metadata.tokens && data.proposal_metadata.tokens.length > 0) {
+            content += `
+                <div class="detail-section">
+                    <h4 class="section-title">Tokens</h4>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="token-cards">
+                                ${data.proposal_metadata.tokens.map((token, idx) => `
+                                    <div class="token-card">
+                                        <div class="token-header">
+                                            <strong>${token.outcome || 'Token ' + (idx + 1)}</strong>
+                                            ${token.token_id ? `<code class="ms-2 token-address copy-to-clipboard" title="Click to copy" data-copy="${token.token_id}">ID: ${token.token_id.substring(0, 6)}...${token.token_id.substring(token.token_id.length - 4)}</code>` : ''}
+                                        </div>
+                                        <div class="token-body">
+                                            ${token.price !== undefined ? `<div><strong>Price:</strong> ${token.price}</div>` : ''}
+                                            ${token.winner !== undefined ? `<div><strong>Winner:</strong> ${token.winner ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>'}</div>` : ''}
                                         </div>
                                     </div>
                                 `).join('')}
@@ -3555,249 +3602,133 @@ function showDetails(data, index) {
                         </div>
                     </div>
                 </div>
-                
-                ${data.overseer_data.market_price_info ? `
-                <div class="card mb-3">
+            `;
+        }
+        
+        // Add overall overseer result if available
+        if (data.overseer_result && data.overseer_result.decision) {
+            const overseerDecision = data.overseer_result.decision;
+            content += `
+                <div class="card mt-3">
                     <div class="card-header">
-                        <strong>Market Price Information</strong>
+                        <strong>Final Overseer Evaluation</strong>
                     </div>
                     <div class="card-body">
-                        <pre class="mb-0 market-info-text">${data.overseer_data.market_price_info}</pre>
-                        
-                        ${data.overseer_data.tokens && data.overseer_data.tokens.length > 0 ? `
-                        <div class="mt-3">
-                            <strong>Tokens:</strong>
-                            <table class="table table-sm table-bordered mt-2">
-                                <thead>
-                                    <tr>
-                                        <th>Outcome</th>
-                                        <th>Price</th>
-                                        <th>Winner</th>
-                                        <th>Token ID</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${data.overseer_data.tokens.map(token => `
-                                    <tr class="${token.winner ? 'table-success' : ''}">
-                                        <td>${token.outcome}</td>
-                                        <td>${token.price}</td>
-                                        <td>${token.winner ? 'Yes' : 'No'}</td>
-                                        <td><small class="text-muted">${token.token_id}</small></td>
-                                    </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                        <div>
+                            <strong>Verdict:</strong> 
+                            <span class="${overseerDecision.verdict === 'SATISFIED' ? 'text-success' : 
+                                         overseerDecision.verdict === 'RETRY' ? 'text-warning' : 'text-danger'}">
+                                ${overseerDecision.verdict || 'N/A'}
+                            </span>
                         </div>
+                        ${overseerDecision.reason ? `
+                            <div class="overseer-reason mt-2">${overseerDecision.reason}</div>
+                        ` : ''}
+                        ${overseerDecision.critique ? `
+                            <div class="overseer-critique">${overseerDecision.critique}</div>
+                        ` : ''}
+                        ${overseerDecision.market_alignment ? `
+                            <div class="mt-3">
+                                <strong>Market Alignment:</strong> ${overseerDecision.market_alignment}
+                            </div>
                         ` : ''}
                     </div>
                 </div>
-                ` : ''}
-                
-                <div class="accordion" id="interactionsAccordion">
-                    ${data.overseer_data.interactions.map((interaction, idx) => `
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="heading${idx}">
-                                <button class="accordion-button ${idx > 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" 
-                                    data-bs-target="#collapse${idx}" aria-expanded="${idx === 0 ? 'true' : 'false'}" aria-controls="collapse${idx}">
-                                    <strong>${interaction.interaction_type === 'perplexity_query' ? 
-                                        `Attempt ${interaction.attempt}: ${formatStageName(interaction.stage)}` : 
-                                        `ChatGPT: ${formatStageName(interaction.stage)}`}</strong>
-                                    ${interaction.recommendation ? ` - Recommendation: <code>${interaction.recommendation}</code>` : ''}
-                                    ${interaction.decision || interaction.satisfaction_level ? 
-                                        ` - Decision: <code>${interaction.decision || interaction.satisfaction_level}</code>` : ''}
-                                </button>
-                            </h2>
-                            <div id="collapse${idx}" class="accordion-collapse collapse ${idx === 0 ? 'show' : ''}" 
-                                aria-labelledby="heading${idx}" data-bs-parent="#interactionsAccordion">
-                                <div class="accordion-body">
-                                    ${interaction.interaction_type === 'perplexity_query' ? `
-                                        <div class="card mb-3">
-                                            <div class="card-header">Response</div>
-                                            <div class="card-body">
-                                                <pre class="mb-0 response-text">${interaction.response}</pre>
+            `;
+        }
+        
+        content += `
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add overseer_data section if available
+    if (data.overseer_data) {
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Overseer Data</h4>
+                <div class="card">
+                    <div class="card-body">
+                        ${data.overseer_data.attempts ? `<div><strong>Attempts:</strong> ${data.overseer_data.attempts}</div>` : ''}
+                        ${data.overseer_data.market_price_info ? `
+                            <div class="mt-2">
+                                <strong>Market Price Info:</strong> ${data.overseer_data.market_price_info}
+                            </div>
+                        ` : ''}
+                        
+                        ${/* Add tokens section if present */
+                        data.overseer_data.tokens && data.overseer_data.tokens.length > 0 ? `
+                            <div class="mt-3">
+                                <strong>Tokens:</strong>
+                                <div class="token-cards mt-2">
+                                    ${data.overseer_data.tokens.map((token, idx) => `
+                                        <div class="token-card">
+                                            <div class="token-header">
+                                                <strong>${token.symbol || 'Token ' + (idx + 1)}</strong>
+                                                ${token.address ? `<code class="ms-2 token-address copy-to-clipboard" title="Click to copy" data-copy="${token.address}">${token.address.substring(0, 8)}...${token.address.substring(token.address.length - 4)}</code>` : ''}
+                                            </div>
+                                            <div class="token-body">
+                                                ${token.name ? `<div><strong>Name:</strong> ${token.name}</div>` : ''}
+                                                ${token.decimals !== undefined ? `<div><strong>Decimals:</strong> ${token.decimals}</div>` : ''}
+                                                ${token.price !== undefined ? `<div><strong>Price:</strong> $${token.price}</div>` : ''}
+                                                ${token.type ? `<div><strong>Type:</strong> ${token.type}</div>` : ''}
+                                                ${token.marketId ? `<div><strong>Market ID:</strong> ${token.marketId}</div>` : ''}
                                             </div>
                                         </div>
-                                        ${interaction.citations && interaction.citations.length > 0 ? `
-                                            <div class="card mb-3">
-                                                <div class="card-header">Citations</div>
-                                                <div class="card-body">
-                                                    <ul class="citation-list">
-                                                        ${interaction.citations.map(citation => `
-                                                            <li><a href="${citation}" target="_blank">${citation}</a></li>
-                                                        `).join('')}
-                                                    </ul>
-                                                </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${/* Display neg_risk_market_id if present */
+                        data.neg_risk_market_id ? `
+                            <div class="mt-3">
+                                <strong>Negative Risk Market ID:</strong> ${data.neg_risk_market_id}
+                            </div>
+                        ` : data.overseer_data.neg_risk_market_id ? `
+                            <div class="mt-3">
+                                <strong>Negative Risk Market ID:</strong> ${data.overseer_data.neg_risk_market_id}
+                            </div>
+                        ` : ''}
+                        
+                        ${data.overseer_data.recommendation_journey && data.overseer_data.recommendation_journey.length > 0 ? `
+                            <div class="mt-3">
+                                <strong>Recommendation Journey:</strong>
+                                <div class="recommendation-journey mt-2">
+                                    ${data.overseer_data.recommendation_journey.map((journey, idx) => `
+                                        <div class="journey-item">
+                                            <div class="journey-header">
+                                                <span>Attempt ${journey.attempt}</span>
+                                                <span class="${journey.overseer_satisfaction_level === 'satisfied' ? 'text-success' : 'text-warning'}">
+                                                    ${formatSatisfactionLevel(journey.overseer_satisfaction_level)}
+                                                </span>
                                             </div>
-                                        ` : ''}
-                                        <div class="card">
-                                            <div class="card-header">Response Metadata</div>
-                                            <div class="card-body p-0">
-                                                <table class="table meta-table mb-0">
-                                                    ${Object.entries(interaction.response_metadata || {}).map(([key, value]) => `
-                                                        <tr>
-                                                            <th>${formatKeyName(key)}</th>
-                                                            <td>${formatValue(value, key)}</td>
-                                                        </tr>
-                                                    `).join('')}
-                                                </table>
-                                            </div>
-                                        </div>
-                                    ` : `
-                                        <div class="card mb-3">
-                                            <div class="card-header">Evaluation</div>
-                                            <div class="card-body">
-                                                <pre class="mb-0 response-text">${interaction.response}</pre>
-                                            </div>
-                                        </div>
-                                        <div class="alert ${interaction.decision === 'satisfied' || interaction.satisfaction_level === 'satisfied' ? 'alert-success' : 
-                                            interaction.decision === 'not_satisfied' || interaction.satisfaction_level === 'not_satisfied' ? 'alert-danger' : 
-                                            interaction.satisfaction_level && interaction.satisfaction_level.includes('retry') ? 'alert-warning' : 'alert-secondary'}">
-                                            <strong>Decision:</strong> ${formatSatisfactionLevel(interaction.satisfaction_level || interaction.decision)}
-                                            ${interaction.critique ? `<p class="mt-2 mb-0"><strong>Critique:</strong> ${interaction.critique}</p>` : ''}
-                                        </div>
-                                        ${interaction.recommendation_overridden ? `
-                                            <div class="alert alert-info override-alert">
-                                                <strong><i class="bi bi-arrow-repeat"></i> Recommendation was overridden</strong>
-                                                ${interaction.override_action ? 
-                                                    `<p class="mt-2 mb-0 small">${interaction.override_action.replace(/_/g, ' ')}</p>` : ''}
-                                            </div>
-                                        ` : ''}
-                                        ${interaction.prompt_updated ? `
-                                            <div class="alert alert-info">
-                                                <strong>Prompt was updated</strong>
-                                                ${interaction.system_prompt_before ? `
+                                            <div class="journey-body">
+                                                <div><strong>Recommendation:</strong> ${journey.perplexity_recommendation || 'N/A'}</div>
+                                                ${journey.critique ? `
                                                     <div class="mt-2">
-                                                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" 
-                                                            data-bs-target="#promptBefore${idx}" aria-expanded="false" aria-controls="promptBefore${idx}">
-                                                            Show Prompt Before
-                                                        </button>
-                                                        <button class="btn btn-sm btn-outline-secondary ms-2" type="button" data-bs-toggle="collapse" 
-                                                            data-bs-target="#promptAfter${idx}" aria-expanded="false" aria-controls="promptAfter${idx}">
-                                                            Show Prompt After
-                                                        </button>
+                                                        <strong>Critique:</strong> ${journey.critique}
                                                     </div>
-                                                    <div class="collapse mt-3" id="promptBefore${idx}">
-                                                        <div class="card card-body">
-                                                            <h6>Before:</h6>
-                                                            <pre class="mb-0 prompt-text">${interaction.system_prompt_before}</pre>
-                                                        </div>
-                                                    </div>
-                                                    <div class="collapse mt-3" id="promptAfter${idx}">
-                                                        <div class="card card-body">
-                                                            <h6>After:</h6>
-                                                            <pre class="mb-0 prompt-text">${interaction.system_prompt_after}</pre>
-                                                        </div>
+                                                ` : ''}
+                                                ${journey.prompt_updated ? `
+                                                    <div class="mt-2">
+                                                        <strong>Prompt Updated:</strong> Yes
                                                     </div>
                                                 ` : ''}
                                             </div>
-                                        ` : ''}
-                                        <div class="card">
-                                            <div class="card-header">Metadata</div>
-                                            <div class="card-body p-0">
-                                                <table class="table meta-table mb-0">
-                                                    ${Object.entries(interaction.metadata || {}).map(([key, value]) => `
-                                                        <tr>
-                                                            <th>${formatKeyName(key)}</th>
-                                                            <td>${formatValue(value, key)}</td>
-                                                        </tr>
-                                                    `).join('')}
-                                                </table>
-                                            </div>
                                         </div>
-                                    `}
+                                    `).join('')}
                                 </div>
                             </div>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                ${data.overseer_data.final_response_metadata ? `
-                    <div class="card mt-3">
-                        <div class="card-header">Final Response Metadata</div>
-                        <div class="card-body p-0">
-                            <table class="table meta-table mb-0">
-                                ${Object.entries(data.overseer_data.final_response_metadata).map(([key, value]) => `
-                                    <tr>
-                                        <th>${formatKeyName(key)}</th>
-                                        <td>${formatValue(value, key)}</td>
-                                    </tr>
-                                `).join('')}
-                            </table>
-                        </div>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }
-    
-    // Add API response section
-    if (data.api_response && data.api_response.text) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">API Response</h4>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Response from ${data.api_response.model || 'AI Model'}</span>
-                            <span class="text-muted">${formatDate(data.api_response.timestamp)}</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <pre class="mb-0 response-text">${data.api_response.text}</pre>
+                        ` : ''}
                     </div>
                 </div>
             </div>
         `;
     }
     
-    // Add ancillary data if available
-    if (data.ancillary_data) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">Ancillary Data</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <pre class="mb-0 ancillary-data">${data.ancillary_data}</pre>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Add processed file if available
-    if (data.processed_file) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">Processed File</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <code>${data.processed_file}</code>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Add citations if available - simplified version
-    if (data.citations && data.citations.length > 0) {
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">Citations</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <ul class="list-group">
-                            ${data.citations.map(citation => {
-                                const url = typeof citation === 'string' ? citation : citation.url;
-                                return `<li class="list-group-item"><a href="${url}" target="_blank">${url}</a></li>`;
-                            }).join('')}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    // Add proposal metadata
+    // Add proposal_metadata section if available
     if (data.proposal_metadata) {
         content += `
             <div class="detail-section">
@@ -3805,52 +3736,137 @@ function showDetails(data, index) {
                 <div class="card">
                     <div class="card-body p-0">
                         <table class="table meta-table mb-0">
-                            ${Object.entries(data.proposal_metadata).map(([key, value]) => `
+                            ${data.proposal_metadata.transaction_hash ? `
                                 <tr>
-                                    <th>${formatKeyName(key)}</th>
-                                    <td>${formatValue(value, key)}</td>
+                                    <th>Transaction Hash</th>
+                                    <td>${createTxLink(data.proposal_metadata.transaction_hash)}</td>
                                 </tr>
-                            `).join('')}
+                            ` : ''}
+                            ${data.proposal_metadata.block_number ? `
+                                <tr>
+                                    <th>Block Number</th>
+                                    <td><a href="https://polygonscan.com/block/${data.proposal_metadata.block_number}" target="_blank">${data.proposal_metadata.block_number}</a></td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.creator ? `
+                                <tr>
+                                    <th>Creator</th>
+                                    <td>${createAddressLink(data.proposal_metadata.creator)}</td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.proposer ? `
+                                <tr>
+                                    <th>Proposer</th>
+                                    <td>${createAddressLink(data.proposal_metadata.proposer)}</td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.bond_currency ? `
+                                <tr>
+                                    <th>Bond Currency</th>
+                                    <td>${createAddressLink(data.proposal_metadata.bond_currency)}</td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.proposal_bond ? `
+                                <tr>
+                                    <th>Proposal Bond</th>
+                                    <td>${formatBond(data.proposal_metadata.proposal_bond)}</td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.reward_amount ? `
+                                <tr>
+                                    <th>Reward Amount</th>
+                                    <td>${formatBond(data.proposal_metadata.reward_amount)}</td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.request_timestamp ? `
+                                <tr>
+                                    <th>Request Time</th>
+                                    <td>${formatDate(data.proposal_metadata.request_timestamp)}</td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.expiration_timestamp ? `
+                                <tr>
+                                    <th>Expiration Time</th>
+                                    <td>${formatDate(data.proposal_metadata.expiration_timestamp)}</td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.request_transaction_block_time ? `
+                                <tr>
+                                    <th>Block Time</th>
+                                    <td>${formatDate(data.proposal_metadata.request_transaction_block_time)}</td>
+                                </tr>
+                            ` : ''}
+                            ${data.proposal_metadata.resolution_conditions ? `
+                                <tr>
+                                    <th>Resolution Conditions</th>
+                                    <td>${data.proposal_metadata.resolution_conditions}</td>
+                                </tr>
+                            ` : ''}
                         </table>
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong>Full Metadata:</strong>
+                                <button class="btn btn-sm btn-outline-secondary toggle-metadata-btn">Toggle Full View</button>
+                            </div>
+                            <pre class="mb-0 json-data" style="display: none;">${JSON.stringify(data.proposal_metadata, null, 2)}</pre>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
     }
     
-    // Add any remaining fields as a "More Details" section
-    const commonFields = [
-        'query_id', 'question_id_short', 'recommendation', 'proposed_price', 'resolved_price', 
-        'resolved_price_outcome', 'timestamp', 'unix_timestamp', 'transaction_hash', 
-        'proposal_data', 'api_response', 'response', 'system_prompt', 'user_prompt',
-        'ancillary_data', 'citations', 'proposal_metadata', 'response_metadata', 'processed_file',
-        'overseer_data', 'tags', 'disputed', 'proposed_price_outcome', 'router_decision'
-    ];
-    
-    const remainingEntries = Object.entries(data).filter(([key]) => !commonFields.includes(key));
-    
-    if (remainingEntries.length > 0) {
+    // Add neg_risk fields if present in data or proposal_metadata
+    if (data.neg_risk_market_id || data.neg_risk_request_id || 
+        (data.proposal_metadata && (data.proposal_metadata.neg_risk_market_id || data.proposal_metadata.neg_risk_request_id))) {
+        
+        const neg_risk_market_id = data.neg_risk_market_id || (data.proposal_metadata && data.proposal_metadata.neg_risk_market_id) || '';
+        const neg_risk_request_id = data.neg_risk_request_id || (data.proposal_metadata && data.proposal_metadata.neg_risk_request_id) || '';
+        
         content += `
             <div class="detail-section">
-                <h4 class="section-title">Additional Details</h4>
+                <h4 class="section-title">Negative Risk Data</h4>
                 <div class="card">
-                    <div class="card-body p-0">
-                        <table class="table meta-table mb-0">
-                            ${remainingEntries.map(([key, value]) => `
-                                <tr>
-                                    <th>${formatKeyName(key)}</th>
-                                    <td>${formatValue(value, key)}</td>
-                                </tr>
-                            `).join('')}
-                        </table>
+                    <div class="card-body">
+                        ${neg_risk_market_id ? `
+                            <div class="mb-2">
+                                <strong>Negative Risk Market ID:</strong>
+                                <code class="ms-2 code-font copy-to-clipboard" title="Click to copy" data-copy="${neg_risk_market_id}">
+                                    ${neg_risk_market_id}
+                                </code>
+                            </div>
+                        ` : ''}
+                        ${neg_risk_request_id ? `
+                            <div>
+                                <strong>Negative Risk Request ID:</strong>
+                                <code class="ms-2 code-font copy-to-clipboard" title="Click to copy" data-copy="${neg_risk_request_id}">
+                                    ${neg_risk_request_id}
+                                </code>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             </div>
         `;
     }
+    
+    // Add raw data section with all JSON fields
+    content += `
+        <div class="detail-section">
+            <h4 class="section-title">Full JSON Data</h4>
+            <div class="card">
+                <div class="card-body">
+                    <pre class="mb-0 json-data">${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            </div>
+        </div>
+    `;
     
     // Set the modal content
     modalBody.innerHTML = content;
+    
+    // Apply syntax highlighting to code blocks
+    Prism.highlightAllUnder(modalBody);
     
     // Add click event for copying to clipboard
     document.querySelectorAll('.copy-to-clipboard').forEach(element => {
@@ -3875,6 +3891,20 @@ function showDetails(data, index) {
                     this.classList.remove('copied');
                 }, 1000);
             });
+        });
+    });
+    
+    // Add toggle functionality for metadata JSON
+    document.querySelectorAll('.toggle-metadata-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const jsonData = this.parentElement.nextElementSibling;
+            if (jsonData.style.display === 'none') {
+                jsonData.style.display = 'block';
+                this.textContent = 'Hide Full View';
+            } else {
+                jsonData.style.display = 'none';
+                this.textContent = 'Toggle Full View';
+            }
         });
     });
     
@@ -5009,3 +5039,23 @@ function clearDateFilter() {
     // Apply all filters with the cleared date filters
     applyAllFilters(currentFilter);
 }
+
+// Helper function to detect and format code blocks in responses
+function formatCodeBlocks(text) {
+    if (!text) return '';
+    
+    // Pattern to match Markdown code blocks: ```language\ncode\n```
+    const codeBlockRegex = /```([a-zA-Z0-9_]*)\n([\s\S]*?)\n```/g;
+    
+    // Replace code blocks with properly formatted HTML for PrismJS
+    return text.replace(codeBlockRegex, (match, language, code) => {
+        // Default to plaintext if no language is specified
+        const langClass = language ? `language-${language}` : 'language-plaintext';
+        
+        return `<pre class="code-block"><code class="${langClass}">${code}</code></pre>`;
+    });
+}
+
+// Apply this function in the showDetails function when displaying responses
+// Update the relevant sections with:
+// <pre class="mb-0 response-text">${formatCodeBlocks(solverResult.response)}</pre>
