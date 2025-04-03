@@ -3307,8 +3307,11 @@ function showDetails(data, index) {
     const isDisputed = data.disputed === true;
     
     // Get proposed price if available, being careful with 0 values
+    // Handle both old and new file structures
     const proposedPrice = data.proposed_price_outcome !== undefined ? data.proposed_price_outcome : 
-                         (data.proposed_price !== undefined ? data.proposed_price : 'N/A');
+                         (data.proposed_price !== undefined ? data.proposed_price : 
+                         (data.proposal_metadata?.proposed_price_outcome !== undefined ? data.proposal_metadata.proposed_price_outcome : 
+                         (data.proposal_metadata?.proposed_price !== undefined ? data.proposal_metadata.proposed_price : 'N/A')));
     
     // Get correctness state
     const isCorrect = isRecommendationCorrect(data);
@@ -3323,28 +3326,45 @@ function showDetails(data, index) {
         correctnessText = 'No';
     }
     
+    // Get resolved price from either location
+    const resolvedPrice = data.resolved_price_outcome || data.resolved_price || 
+                         data.proposal_metadata?.resolved_price_outcome || data.proposal_metadata?.resolved_price || 'Unresolved';
+    
     // Generate the content
     let content = `
         <div class="alert ${alertClass} mb-4">
             <strong>Recommendation:</strong> ${data.recommendation || 'N/A'} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
-            <strong>Resolved:</strong> ${data.resolved_price_outcome || data.resolved_price || 'Unresolved'} | 
+            <strong>Resolved:</strong> ${resolvedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
             <strong>Correct:</strong> ${correctnessText}
         </div>
     `;
     
     // Add tags section if available
-    if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+    // Check both potential locations for tags
+    const tags = data.tags || data.proposal_metadata?.tags;
+    if (tags && Array.isArray(tags) && tags.length > 0) {
         content += `
             <div class="mb-3">
                 <strong>Tags:</strong> 
-                ${data.tags.map(tag => `<span class="tag-badge">${tag}</span>`).join('')}
+                ${tags.map(tag => `<span class="tag-badge">${tag}</span>`).join('')}
             </div>
         `;
     }
     
     // Add overview section with clickable query ID for copying
+    // Handle data from different potential locations
+    const query_id = data.query_id || '';
+    const short_id = data.question_id_short || data.short_id || '';
+    const condition_id = data.condition_id || data.proposal_metadata?.condition_id || '';
+    const process_time = data.timestamp || 0;
+    const request_time = data.proposal_metadata?.request_timestamp || 0;
+    const block_time = data.proposal_metadata?.request_transaction_block_time || 0;
+    const expiration_time = data.proposal_metadata?.expiration_timestamp || 0;
+    const end_date = data.end_date_iso || data.proposal_metadata?.end_date_iso || 'N/A';
+    const game_start_time = data.game_start_time || data.proposal_metadata?.game_start_time || 'N/A';
+    
     content += `
         <div class="detail-section">
             <h4 class="section-title">Overview</h4>
@@ -3354,8 +3374,8 @@ function showDetails(data, index) {
                         <tr>
                             <th>Query ID</th>
                             <td>
-                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${data.query_id || ''}" id="copyQueryId">
-                                    ${data.query_id || 'N/A'}
+                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${query_id}" id="copyQueryId">
+                                    ${query_id || 'N/A'}
                                 </code>
                                 <span class="copy-feedback" id="copyFeedback" style="display:none;">Copied!</span>
                             </td>
@@ -3363,39 +3383,45 @@ function showDetails(data, index) {
                         <tr>
                             <th>Short ID</th>
                             <td>
-                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${data.question_id_short || ''}" id="copyShortId">
-                                    ${data.question_id_short || 'N/A'}
+                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${short_id}" id="copyShortId">
+                                    ${short_id || 'N/A'}
                                 </code>
                             </td>
                         </tr>
                         <tr>
                             <th>Condition ID</th>
                             <td>
-                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${data.condition_id || ''}" id="copyConditionId">
-                                    ${data.condition_id || 'N/A'}
+                                <code class="code-font copy-to-clipboard" title="Click to copy" data-copy="${condition_id}" id="copyConditionId">
+                                    ${condition_id || 'N/A'}
                                 </code>
                             </td>
                         </tr>
                         <tr>
                             <th>Process Time</th>
-                            <td>${formatDate(data.timestamp || 0)}</td>
+                            <td>${formatDate(process_time)}</td>
                         </tr>
                         <tr>
                             <th>Request Time</th>
-                            <td>${formatDate(data.proposal_metadata?.request_timestamp || 0)}</td>
+                            <td>${formatDate(request_time)}</td>
                         </tr>
                         <tr>
                             <th>Block Time</th>
-                            <td>${formatDate(data.proposal_metadata?.request_transaction_block_time || 0)}</td>
+                            <td>${formatDate(block_time)}</td>
                         </tr>
                         <tr>
                             <th>Expiration Time</th>
-                            <td>${formatDate(data.proposal_metadata?.expiration_timestamp || 0)}</td>
+                            <td>${formatDate(expiration_time)}</td>
                         </tr>
                         <tr>
                             <th>End Date</th>
-                            <td>${data.end_date_iso || 'N/A'}</td>
+                            <td>${end_date}</td>
                         </tr>
+                        ${game_start_time !== 'N/A' ? `
+                        <tr>
+                            <th>Game Start Time</th>
+                            <td>${game_start_time}</td>
+                        </tr>
+                        ` : ''}
                     </table>
                 </div>
             </div>
@@ -3528,19 +3554,13 @@ function showDetails(data, index) {
                             ${solverResult.overseer_result ? `
                                 <div class="mt-3">
                                     <strong>Overseer Evaluation:</strong>
-                                    <div class="mt-2">
-                                        <strong>Verdict:</strong> 
-                                        <span class="${solverResult.overseer_result.decision?.verdict === 'SATISFIED' ? 'text-success' : 
-                                                      solverResult.overseer_result.decision?.verdict === 'RETRY' ? 'text-warning' : 'text-danger'}">
-                                            ${solverResult.overseer_result.decision?.verdict || 'N/A'}
-                                        </span>
+                                    <div class="overseer-details mt-2">
+                                        <div><strong>Decision:</strong> ${solverResult.overseer_result.decision?.verdict || solverResult.overseer_result.verdict || 'N/A'}</div>
+                                        <div class="mt-1"><strong>Reason:</strong> ${solverResult.overseer_result.decision?.reason || solverResult.overseer_result.reason || 'N/A'}</div>
+                                        ${solverResult.overseer_result.decision?.critique || solverResult.overseer_result.critique ? `
+                                            <div class="mt-1"><strong>Critique:</strong> ${solverResult.overseer_result.decision?.critique || solverResult.overseer_result.critique}</div>
+                                        ` : ''}
                                     </div>
-                                    ${solverResult.overseer_result.decision?.reason ? `
-                                        <div class="overseer-reason mt-2">${solverResult.overseer_result.decision.reason}</div>
-                                    ` : ''}
-                                    ${solverResult.overseer_result.decision?.critique ? `
-                                        <div class="overseer-critique">${solverResult.overseer_result.decision.critique}</div>
-                                    ` : ''}
                                 </div>
                             ` : ''}
                             
@@ -3576,107 +3596,84 @@ function showDetails(data, index) {
                     </div>
                 `;
             });
+            
+            content += `</div></div>`;
         }
-        
-        // Add tokens section if available from proposal_metadata
-        if (data.proposal_metadata && data.proposal_metadata.tokens && data.proposal_metadata.tokens.length > 0) {
-            content += `
-                <div class="detail-section">
-                    <h4 class="section-title">Tokens</h4>
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="token-cards">
-                                ${data.proposal_metadata.tokens.map((token, idx) => `
-                                    <div class="token-card">
-                                        <div class="token-header">
-                                            <strong>${token.outcome || 'Token ' + (idx + 1)}</strong>
-                                            ${token.token_id ? `<code class="ms-2 token-address copy-to-clipboard" title="Click to copy" data-copy="${token.token_id}">ID: ${token.token_id.substring(0, 6)}...${token.token_id.substring(token.token_id.length - 4)}</code>` : ''}
-                                        </div>
-                                        <div class="token-body">
-                                            ${token.price !== undefined ? `<div><strong>Price:</strong> ${token.price}</div>` : ''}
-                                            ${token.winner !== undefined ? `<div><strong>Winner:</strong> ${token.winner ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>'}</div>` : ''}
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Add overall overseer result if available
-        if (data.overseer_result && data.overseer_result.decision) {
-            const overseerDecision = data.overseer_result.decision;
-            content += `
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <strong>Final Overseer Evaluation</strong>
-                    </div>
-                    <div class="card-body">
-                        <div>
-                            <strong>Verdict:</strong> 
-                            <span class="${overseerDecision.verdict === 'SATISFIED' ? 'text-success' : 
-                                         overseerDecision.verdict === 'RETRY' ? 'text-warning' : 'text-danger'}">
-                                ${overseerDecision.verdict || 'N/A'}
-                            </span>
-                        </div>
-                        ${overseerDecision.reason ? `
-                            <div class="overseer-reason mt-2">${overseerDecision.reason}</div>
-                        ` : ''}
-                        ${overseerDecision.critique ? `
-                            <div class="overseer-critique">${overseerDecision.critique}</div>
-                        ` : ''}
-                        ${overseerDecision.market_alignment ? `
-                            <div class="mt-3">
-                                <strong>Market Alignment:</strong> ${overseerDecision.market_alignment}
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-        }
-        
-        content += `
-                </div>
-            </div>
-        `;
     }
     
-    // Add overseer_data section if available
-    if (data.overseer_data) {
+    // Add overseer section for both old and new file structures
+    // Get overseer data from both potential locations 
+    const overseerData = data.overseer_data || data.overseer_result || null;
+    
+    if (overseerData) {
         content += `
             <div class="detail-section">
                 <h4 class="section-title">Overseer Data</h4>
                 <div class="card">
                     <div class="card-body">
-                        ${data.overseer_data.attempts ? `<div><strong>Attempts:</strong> ${data.overseer_data.attempts}</div>` : ''}
-                        ${data.overseer_data.market_price_info ? `
+                        ${overseerData.attempts ? `<div><strong>Attempts:</strong> ${overseerData.attempts}</div>` : ''}
+                        ${overseerData.market_price_info ? `
                             <div class="mt-2">
-                                <strong>Market Price Info:</strong> ${data.overseer_data.market_price_info}
+                                <strong>Market Price Info:</strong> ${overseerData.market_price_info}
                             </div>
                         ` : ''}
                         
                         ${/* Add tokens section if present */
-                        data.overseer_data.tokens && data.overseer_data.tokens.length > 0 ? `
+                        overseerData.tokens && overseerData.tokens.length > 0 ?
+                        `
                             <div class="mt-3">
                                 <strong>Tokens:</strong>
-                                <div class="token-cards mt-2">
-                                    ${data.overseer_data.tokens.map((token, idx) => `
-                                        <div class="token-card">
-                                            <div class="token-header">
-                                                <strong>${token.symbol || 'Token ' + (idx + 1)}</strong>
-                                                ${token.address ? `<code class="ms-2 token-address copy-to-clipboard" title="Click to copy" data-copy="${token.address}">${token.address.substring(0, 8)}...${token.address.substring(token.address.length - 4)}</code>` : ''}
-                                            </div>
-                                            <div class="token-body">
-                                                ${token.name ? `<div><strong>Name:</strong> ${token.name}</div>` : ''}
-                                                ${token.decimals !== undefined ? `<div><strong>Decimals:</strong> ${token.decimals}</div>` : ''}
-                                                ${token.price !== undefined ? `<div><strong>Price:</strong> $${token.price}</div>` : ''}
-                                                ${token.type ? `<div><strong>Type:</strong> ${token.type}</div>` : ''}
-                                                ${token.marketId ? `<div><strong>Market ID:</strong> ${token.marketId}</div>` : ''}
-                                            </div>
-                                        </div>
-                                    `).join('')}
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Outcome</th>
+                                                <th>Price</th>
+                                                <th>Winner</th>
+                                                <th>Token ID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${overseerData.tokens.map(token => `
+                                                <tr>
+                                                    <td>${token.outcome}</td>
+                                                    <td>${token.price}</td>
+                                                    <td>${token.winner ? 'Yes' : 'No'}</td>
+                                                    <td><small class="code-font">${token.token_id}</small></td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${/* Display tokens from proposal_metadata as fallback */
+                        !overseerData.tokens?.length && (data.proposal_metadata?.tokens?.length || data.tokens?.length) ?
+                        `
+                            <div class="mt-3">
+                                <strong>Tokens:</strong>
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Outcome</th>
+                                                <th>Price</th>
+                                                <th>Winner</th>
+                                                <th>Token ID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${(data.tokens?.length ? data.tokens : data.proposal_metadata?.tokens).map(token => `
+                                                <tr>
+                                                    <td>${token.outcome}</td>
+                                                    <td>${token.price}</td>
+                                                    <td>${token.winner ? 'Yes' : 'No'}</td>
+                                                    <td><small class="code-font">${token.token_id}</small></td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         ` : ''}
@@ -3686,39 +3683,111 @@ function showDetails(data, index) {
                             <div class="mt-3">
                                 <strong>Negative Risk Market ID:</strong> ${data.neg_risk_market_id}
                             </div>
-                        ` : data.overseer_data.neg_risk_market_id ? `
+                        ` : overseerData.neg_risk_market_id ? `
                             <div class="mt-3">
-                                <strong>Negative Risk Market ID:</strong> ${data.overseer_data.neg_risk_market_id}
+                                <strong>Negative Risk Market ID:</strong> ${overseerData.neg_risk_market_id}
+                            </div>
+                        ` : data.proposal_metadata?.neg_risk_market_id ? `
+                            <div class="mt-3">
+                                <strong>Negative Risk Market ID:</strong> ${data.proposal_metadata.neg_risk_market_id}
                             </div>
                         ` : ''}
                         
-                        ${data.overseer_data.recommendation_journey && data.overseer_data.recommendation_journey.length > 0 ? `
+                        ${overseerData.recommendation_journey && overseerData.recommendation_journey.length > 0 ? `
                             <div class="mt-3">
                                 <strong>Recommendation Journey:</strong>
                                 <div class="recommendation-journey mt-2">
-                                    ${data.overseer_data.recommendation_journey.map((journey, idx) => `
-                                        <div class="journey-item">
-                                            <div class="journey-header">
-                                                <span>Attempt ${journey.attempt}</span>
-                                                <span class="${journey.overseer_satisfaction_level === 'satisfied' ? 'text-success' : 'text-warning'}">
-                                                    ${formatSatisfactionLevel(journey.overseer_satisfaction_level)}
-                                                </span>
-                                            </div>
-                                            <div class="journey-body">
-                                                <div><strong>Recommendation:</strong> ${journey.perplexity_recommendation || 'N/A'}</div>
-                                                ${journey.critique ? `
-                                                    <div class="mt-2">
-                                                        <strong>Critique:</strong> ${journey.critique}
-                                                    </div>
-                                                ` : ''}
-                                                ${journey.prompt_updated ? `
-                                                    <div class="mt-2">
-                                                        <strong>Prompt Updated:</strong> Yes
-                                                    </div>
-                                                ` : ''}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Attempt</th>
+                                                    <th>Recommendation</th>
+                                                    <th>Satisfaction</th>
+                                                    <th>Critique</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${overseerData.recommendation_journey.map(journey => `
+                                                    <tr>
+                                                        <td>${journey.attempt}</td>
+                                                        <td>${journey.perplexity_recommendation || 'N/A'}</td>
+                                                        <td>${formatSatisfactionLevel(journey.overseer_satisfaction_level)}</td>
+                                                        <td>${journey.critique || 'N/A'}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${/* Add interactions if available */
+                        overseerData.interactions && overseerData.interactions.length > 0 ? `
+                            <div class="mt-3">
+                                <strong>Interactions:</strong>
+                                <div class="accordion mt-2" id="interactionsAccordion">
+                                    ${overseerData.interactions.map((interaction, i) => `
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="interactionHeading${i}">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#interactionCollapse${i}" aria-expanded="false" aria-controls="interactionCollapse${i}">
+                                                    Attempt ${interaction.attempt} - ${formatStageName(interaction.stage)}
+                                                </button>
+                                            </h2>
+                                            <div id="interactionCollapse${i}" class="accordion-collapse collapse" aria-labelledby="interactionHeading${i}" data-bs-parent="#interactionsAccordion">
+                                                <div class="accordion-body">
+                                                    <div class="mb-2"><strong>Interaction Type:</strong> ${interaction.interaction_type || 'N/A'}</div>
+                                                    ${interaction.recommendation ? `<div class="mb-2"><strong>Recommendation:</strong> ${interaction.recommendation}</div>` : ''}
+                                                    ${interaction.response ? `
+                                                        <div class="mb-2">
+                                                            <strong>Response:</strong>
+                                                            <pre class="response-text mt-2">${formatCodeBlocks(interaction.response)}</pre>
+                                                        </div>
+                                                    ` : ''}
+                                                    ${interaction.metadata ? `
+                                                        <div class="mt-3">
+                                                            <strong>Metadata:</strong>
+                                                            <pre class="mt-2 metadata-json">${JSON.stringify(interaction.metadata, null, 2)}</pre>
+                                                        </div>
+                                                    ` : ''}
+                                                </div>
                                             </div>
                                         </div>
                                     `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${/* Show overseer decision data if available */
+                        overseerData.decision ? `
+                            <div class="mt-3">
+                                <strong>Overseer Decision:</strong>
+                                <div class="card mt-2">
+                                    <div class="card-body p-0">
+                                        <table class="table meta-table mb-0">
+                                            <tr>
+                                                <th>Verdict</th>
+                                                <td>${overseerData.decision.verdict || 'N/A'}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Reason</th>
+                                                <td>${overseerData.decision.reason || 'N/A'}</td>
+                                            </tr>
+                                            ${overseerData.decision.critique ? `
+                                                <tr>
+                                                    <th>Critique</th>
+                                                    <td>${overseerData.decision.critique}</td>
+                                                </tr>
+                                            ` : ''}
+                                            ${overseerData.decision.market_alignment ? `
+                                                <tr>
+                                                    <th>Market Alignment</th>
+                                                    <td>${overseerData.decision.market_alignment}</td>
+                                                </tr>
+                                            ` : ''}
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         ` : ''}
@@ -3802,6 +3871,14 @@ function showDetails(data, index) {
                                     <td>${data.proposal_metadata.resolution_conditions}</td>
                                 </tr>
                             ` : ''}
+                            ${data.proposal_metadata.ancillary_data ? `
+                                <tr>
+                                    <th>Ancillary Data</th>
+                                    <td>
+                                        <div class="ancillary-data">${data.proposal_metadata.ancillary_data}</div>
+                                    </td>
+                                </tr>
+                            ` : ''}
                         </table>
                         <div class="p-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -3816,34 +3893,39 @@ function showDetails(data, index) {
         `;
     }
     
-    // Add neg_risk fields if present in data or proposal_metadata
-    if (data.neg_risk_market_id || data.neg_risk_request_id || 
-        (data.proposal_metadata && (data.proposal_metadata.neg_risk_market_id || data.proposal_metadata.neg_risk_request_id))) {
-        
-        const neg_risk_market_id = data.neg_risk_market_id || (data.proposal_metadata && data.proposal_metadata.neg_risk_market_id) || '';
-        const neg_risk_request_id = data.neg_risk_request_id || (data.proposal_metadata && data.proposal_metadata.neg_risk_request_id) || '';
-        
+    // Add tokens section if available at root level and not already displayed
+    const tokensAlreadyDisplayed = 
+        (overseerData?.tokens && overseerData.tokens.length > 0) || 
+        (overseerData && (data.proposal_metadata?.tokens?.length > 0 || data.tokens?.length > 0));
+    
+    if (data.tokens && data.tokens.length > 0 && !tokensAlreadyDisplayed) {
         content += `
             <div class="detail-section">
-                <h4 class="section-title">Negative Risk Data</h4>
+                <h4 class="section-title">Tokens</h4>
                 <div class="card">
                     <div class="card-body">
-                        ${neg_risk_market_id ? `
-                            <div class="mb-2">
-                                <strong>Negative Risk Market ID:</strong>
-                                <code class="ms-2 code-font copy-to-clipboard" title="Click to copy" data-copy="${neg_risk_market_id}">
-                                    ${neg_risk_market_id}
-                                </code>
-                            </div>
-                        ` : ''}
-                        ${neg_risk_request_id ? `
-                            <div>
-                                <strong>Negative Risk Request ID:</strong>
-                                <code class="ms-2 code-font copy-to-clipboard" title="Click to copy" data-copy="${neg_risk_request_id}">
-                                    ${neg_risk_request_id}
-                                </code>
-                            </div>
-                        ` : ''}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Outcome</th>
+                                        <th>Price</th>
+                                        <th>Winner</th>
+                                        <th>Token ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.tokens.map(token => `
+                                        <tr>
+                                            <td>${token.outcome}</td>
+                                            <td>${token.price}</td>
+                                            <td>${token.winner ? 'Yes' : 'No'}</td>
+                                            <td><small class="code-font">${token.token_id}</small></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
