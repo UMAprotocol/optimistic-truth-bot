@@ -1790,11 +1790,26 @@ function updateAnalyticsDisplay(analytics) {
         accuracyPercent.textContent = `${Math.round(analytics.accuracyPercent)}%`;
     }
     
-    // Update counts
-    document.getElementById('correctCount').textContent = analytics.correctCount;
-    document.getElementById('incorrectCount').textContent = analytics.incorrectCount;
-    document.getElementById('totalCount').textContent = analytics.totalCount;
-    document.getElementById('noDataCount').textContent = analytics.noDataCount;
+    // Update counts - add null checks for each element
+    const correctCount = document.getElementById('correctCount');
+    if (correctCount) {
+        correctCount.textContent = analytics.correctCount;
+    }
+    
+    const incorrectCount = document.getElementById('incorrectCount');
+    if (incorrectCount) {
+        incorrectCount.textContent = analytics.incorrectCount;
+    }
+    
+    const totalCount = document.getElementById('totalCount');
+    if (totalCount) {
+        totalCount.textContent = analytics.totalCount;
+    }
+    
+    const noDataCount = document.getElementById('noDataCount');
+    if (noDataCount) {
+        noDataCount.textContent = analytics.noDataCount;
+    }
     
     // Update P1-P2 Accuracy progress bar
     const p12AccuracyBar = document.getElementById('p12Accuracy');
@@ -2378,17 +2393,44 @@ async function loadExperimentData(directory, source) {
             currentExperiment.explicitSource = source;
         }
         
-        // Display the experiment metadata - Keep this visible during loading
-        displayExperimentMetadata();
-        
-        // Make sure the metadata container is visible
+        // Show loading spinner in experiment metadata card instead of content
         const metadataContainer = document.getElementById('experimentMetadataCard');
-        if (metadataContainer) {
+        const metadataContent = document.getElementById('experimentMetadataContent');
+        if (metadataContainer && metadataContent) {
             metadataContainer.style.display = 'block';
+            metadataContent.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading metadata...</span>
+                    </div>
+                    <p class="mt-2">Loading experiment metadata...</p>
+                </div>
+            `;
         }
         
-        // Hide analytics while keeping metadata visible
-        document.getElementById('analyticsDashboard').style.display = 'none';
+        // Show loading spinner in analytics dashboard instead of hiding it
+        const analyticsDashboard = document.getElementById('analyticsDashboard');
+        if (analyticsDashboard) {
+            analyticsDashboard.style.display = 'block';
+            const analyticsTabs = document.getElementById('analyticsTabs');
+            const analyticsTabContent = document.getElementById('analyticsTabContent');
+            
+            if (analyticsTabs) {
+                analyticsTabs.style.display = 'none';
+            }
+            
+            if (analyticsTabContent) {
+                analyticsTabContent.innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading analytics...</span>
+                        </div>
+                        <p class="mt-2">Loading analytics data...</p>
+                    </div>
+                `;
+            }
+        }
+        
         document.getElementById('filterControls').style.display = 'none';
         document.getElementById('resultsTableCard').style.display = 'block'; // Keep visible for loading indicator
         document.querySelector('.results-section').style.display = 'block';
@@ -2399,11 +2441,11 @@ async function loadExperimentData(directory, source) {
             tagFilterCard.style.display = 'none';
         }
         
-        // Reset analytics display with empty data
-        updateAnalyticsDisplay(null);
-        
         // Set the results table title
-        document.getElementById('resultsTableTitle').textContent = `${currentExperiment.title || directory} Results`;
+        const resultsTableTitle = document.getElementById('resultsTableTitle');
+        if (resultsTableTitle) {
+            resultsTableTitle.textContent = `${currentExperiment.title || directory} Results`;
+        }
         
         // Initialize charts for this experiment
         initializeCharts();
@@ -2413,7 +2455,7 @@ async function loadExperimentData(directory, source) {
                                currentExperiment.source === 'mongodb' || 
                                currentExperiment.path?.startsWith('mongodb/');
         
-        // Show loading indicator
+        // Show loading indicator in results table
         document.getElementById('resultsTableBody').innerHTML = `
             <tr>
                 <td colspan="7" class="text-center">
@@ -2699,8 +2741,20 @@ async function loadExperimentData(directory, source) {
         // Display results if we have data
         if (currentData.length > 0) {
             // Now show all the sections since data is loaded
-            document.getElementById('analyticsDashboard').style.display = 'block';
+            const analyticsDashboard = document.getElementById('analyticsDashboard');
+            if (analyticsDashboard) {
+                analyticsDashboard.style.display = 'block';
+                // Make sure the tabs are visible again
+                const analyticsTabs = document.getElementById('analyticsTabs');
+                if (analyticsTabs) {
+                    analyticsTabs.style.display = 'flex';
+                }
+            }
+            
             document.getElementById('filterControls').style.display = 'flex';
+            
+            // Display the experiment metadata properly now that data is loaded
+            displayExperimentMetadata();
             
             // Populate the table with data
             displayResultsData();
@@ -2741,6 +2795,9 @@ async function loadExperimentData(directory, source) {
         if (tagFilterCard) {
             tagFilterCard.style.display = 'none';
         }
+        
+        // Still display experiment metadata even on error
+        displayExperimentMetadata();
         
         document.getElementById('resultsTableBody').innerHTML = `
             <tr>
@@ -3101,21 +3158,53 @@ function displayExperimentMetadata() {
 // Display the results data in the table
 function displayResultsData() {
     // Show results section and filter controls
-    document.querySelector('.results-section').style.display = 'block';
-    document.getElementById('filterControls').style.display = 'flex';
-    document.getElementById('resultsTableCard').style.display = 'block';
-    document.getElementById('analyticsNote').style.display = 'block';
+    const resultsSection = document.querySelector('.results-section');
+    if (resultsSection) {
+        resultsSection.style.display = 'block';
+    }
+    
+    const filterControls = document.getElementById('filterControls');
+    if (filterControls) {
+        filterControls.style.display = 'flex';
+    }
+    
+    const resultsTableCard = document.getElementById('resultsTableCard');
+    if (resultsTableCard) {
+        resultsTableCard.style.display = 'block';
+    }
+    
+    const analyticsNote = document.getElementById('analyticsNote');
+    if (analyticsNote) {
+        analyticsNote.style.display = 'block';
+    }
     
     // Show the date filter card
-    document.getElementById('dateFilterCard').style.display = 'block';
+    const dateFilterCard = document.getElementById('dateFilterCard');
+    if (dateFilterCard) {
+        dateFilterCard.style.display = 'block';
+    }
     
     // Ensure we have data
+    const tableBody = document.getElementById('resultsTableBody');
+    if (!tableBody) return;
+    
     if (!currentData || currentData.length === 0) {
-        document.getElementById('resultsTableBody').innerHTML = `
+        tableBody.innerHTML = `
             <tr>
                 <td colspan="8" class="text-center">No data available</td>
             </tr>
         `;
+        
+        const displayingCount = document.getElementById('displayingCount');
+        if (displayingCount) {
+            displayingCount.textContent = '0';
+        }
+        
+        const totalEntriesCount = document.getElementById('totalEntriesCount');
+        if (totalEntriesCount) {
+            totalEntriesCount.textContent = '0';
+        }
+        
         return;
     }
     
@@ -3343,8 +3432,15 @@ function updateTableWithData(dataArray) {
     });
     
     // Update the count display
-    document.getElementById('displayingCount').textContent = currentPageItems.length;
-    document.getElementById('totalEntriesCount').textContent = sortedData.length;
+    const displayingCount = document.getElementById('displayingCount');
+    if (displayingCount) {
+        displayingCount.textContent = currentPageItems.length;
+    }
+    
+    const totalEntriesCount = document.getElementById('totalEntriesCount');
+    if (totalEntriesCount) {
+        totalEntriesCount.textContent = sortedData.length;
+    }
     
     // Create pagination controls
     createPagination(currentPage, totalPages, 'resultsTable');
