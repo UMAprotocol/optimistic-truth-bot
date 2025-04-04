@@ -1843,7 +1843,18 @@ function formatDate(timestamp) {
     try {
         // Handle string timestamps that are in ISO format
         if (typeof timestamp === 'string') {
-            // Try parsing as ISO format first
+            // Check for DD-MM-YYYY HH:MM format (e.g., "01-04-2025 21:15")
+            if (timestamp.match(/^\d{2}-\d{2}-\d{4}\s\d{2}:\d{2}$/)) {
+                const [datePart, timePart] = timestamp.split(' ');
+                const [day, month, year] = datePart.split('-');
+                const [hours, minutes] = timePart.split(':');
+                const date = new Date(year, month - 1, day, hours, minutes);
+                if (!isNaN(date.getTime())) {
+                    return date.toISOString().slice(0, 10) + ' ' + date.toTimeString().slice(0, 8);
+                }
+            }
+            
+            // Try parsing as ISO format
             if (timestamp.includes('T') || timestamp.includes('-')) {
                 const date = new Date(timestamp);
                 if (!isNaN(date.getTime())) {
@@ -1884,7 +1895,14 @@ function formatDisplayDate(dateStr) {
     
     // Try to parse the date string
     try {
-        // Handle formats like "13-03-2025"
+        // Handle formats like "DD-MM-YYYY HH:MM" (e.g., "01-04-2025 21:15")
+        if (dateStr.match(/^\d{2}-\d{2}-\d{4}\s\d{2}:\d{2}$/)) {
+            const [datePart, timePart] = dateStr.split(' ');
+            const [day, month, year] = datePart.split('-');
+            return `${month}/${day}/${year.slice(-2)} ${timePart}`;
+        }
+        
+        // Handle formats like "DD-MM-YYYY"
         if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
             const parts = dateStr.split('-');
             return `${parts[1]}/${parts[0]}/${parts[2].slice(-2)}`;
@@ -2331,7 +2349,15 @@ function displayExperimentsTable() {
             '<i class="bi bi-folder-fill me-1" title="Filesystem Data Source"></i>';
         
         // Get proper formatted date using the timestamp
-        let formattedDate = formatDisplayDate(experiment.timestamp);
+        let formattedDate = 'N/A';
+        // First check if there's a timestamp in experiment itself
+        if (experiment.timestamp) {
+            formattedDate = formatDisplayDate(experiment.timestamp);
+        }
+        // Then check if it's in the metadata.experiment.timestamp
+        else if (experiment.metadata && experiment.metadata.experiment && experiment.metadata.experiment.timestamp) {
+            formattedDate = formatDisplayDate(experiment.metadata.experiment.timestamp);
+        }
         
         // For MongoDB sources, make sure we're using the experiment metadata
         const experimentGoal = experiment.goal || (experiment.metadata && experiment.metadata.experiment?.goal) || '';
@@ -2866,24 +2892,24 @@ function displayExperimentMetadata() {
                 </div>
             </div>
             
-            ${currentExperiment.timestamp ? `
+            ${currentExperiment.timestamp || (experimentInfo.timestamp ? `
             <div class="row mb-3">
                 <div class="col-md-4">
                     <strong>Date:</strong>
                 </div>
                 <div class="col-md-8">
-                    ${formatDisplayDate(currentExperiment.timestamp)}
+                    ${formatDisplayDate(currentExperiment.timestamp || experimentInfo.timestamp)}
                 </div>
             </div>
-            ` : ''}
+            ` : '')}
             
-            ${currentExperiment.goal ? `
+            ${currentExperiment.goal || experimentInfo.goal ? `
             <div class="row mb-3">
                 <div class="col-md-4">
                     <strong>Goal:</strong>
                 </div>
                 <div class="col-md-8">
-                    ${currentExperiment.goal}
+                    ${currentExperiment.goal || experimentInfo.goal}
                 </div>
             </div>
             ` : ''}
