@@ -1,0 +1,8 @@
+{
+  "query_id": "0x27068e0985fdd677e91dfd893d7651ce5cf4648d3c83f5ab0eaa781bbbef0b18",
+  "transaction_hash": "0x3a7a629fb3fd1531015a9bc2a48364a03ede3f995df2e5a35dce9a2d9e8eb390",
+  "block_number": 69689853,
+  "request_transaction_block_time": 1743350471,
+  "ancillary_data": "q: title: Bitcoin Up or Down on March 30?, description: This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for BTCUSDT 29 Mar '25 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the 30 Mar '25 12:00 ET candle...",
+  "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Down, p2 to Up, p3 to unknown/50-50."
+} 

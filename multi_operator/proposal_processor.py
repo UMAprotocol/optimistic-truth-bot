@@ -116,6 +116,13 @@ class MultiOperatorProcessor:
         # Track processed files to avoid duplicate processing
         self.processed_files = set()
 
+        # Track query_ids that already have existing output files
+        self.processed_query_ids = set()
+
+        # If we have an output directory, scan it for existing result files
+        if self.save_output and self.output_dir:
+            self._load_processed_query_ids()
+
         # Flag to control running status
         self.running = False
 
@@ -129,6 +136,34 @@ class MultiOperatorProcessor:
         self.logger.info(f"Start block number: {self.start_block_number}")
         self.logger.info(f"Poll interval: {self.poll_interval} seconds")
         self.logger.info(f"Verbose: {self.verbose}")
+
+    def _load_processed_query_ids(self):
+        """Load all query_ids that already have result files in the output directory."""
+        if not self.output_dir:
+            return
+
+        # Look for result files matching pattern result_XXXXXXXX_*.json
+        result_files = self.output_dir.glob("result_*_*.json")
+        query_ids_loaded = 0
+
+        for file_path in result_files:
+            try:
+                # Extract the short_id from the filename (result_SHORT_ID_TIMESTAMP.json)
+                filename = file_path.name
+                if filename.startswith("result_") and "_" in filename:
+                    parts = filename.split("_")
+                    if len(parts) >= 3:
+                        short_id = parts[1]
+                        self.processed_query_ids.add(short_id)
+                        query_ids_loaded += 1
+            except Exception as e:
+                self.logger.error(
+                    f"Error processing existing result file {file_path}: {e}"
+                )
+
+        self.logger.info(
+            f"Loaded {query_ids_loaded} existing query IDs from output directory"
+        )
 
     def load_solver_prompt(self):
         """Load the solver system prompt from the prompt.py module."""
@@ -198,6 +233,15 @@ class MultiOperatorProcessor:
                     # Extract query ID for logging
                     query_id = get_query_id_from_proposal(proposal_data)
                     short_id = get_question_id_short(query_id)
+
+                    # Skip if we've already processed this query_id in a previous run
+                    if short_id in self.processed_query_ids:
+                        self.logger.info(
+                            f"Skipping proposal with ID {short_id} - existing output file found"
+                        )
+                        # Mark as processed
+                        self.processed_files.add(file_str)
+                        continue
 
                     self.logger.info(
                         f"Found new proposal: {short_id} ({file_path.name})"
@@ -1013,6 +1057,10 @@ SUMMARY:
             # Save the result
             with open(output_path, "w") as f:
                 json.dump(clean_result, f, indent=2)
+
+            # Add this short_id to our processed query IDs
+            if short_id:
+                self.processed_query_ids.add(short_id)
 
             self.logger.info(f"Result saved to {output_path}")
             return output_path

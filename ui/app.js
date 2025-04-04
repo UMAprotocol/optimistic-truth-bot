@@ -7,6 +7,7 @@ let currentFilter = 'all'; // Track current result filter
 let currentSearch = ''; // Track current search term
 let currentSourceFilter = 'filesystem'; // Track current source filter
 let autoScrollEnabled = true; // Auto-scroll preference
+let mongoOnlyResults = false; // Track if we should only show MongoDB results
 
 // Date filter variables
 let currentDateFilters = {
@@ -49,6 +50,39 @@ let currentSort = {
     direction: 'desc'    // Default direction is descending (newest first)
 };
 
+// Function to fetch server configuration
+async function fetchServerConfig() {
+    try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+            const config = await response.json();
+            console.log('Server config:', config);
+            
+            // Update global settings
+            mongoOnlyResults = config.mongo_only_results === true;
+            
+            // Update UI based on configuration
+            const sourceFilterGroup = document.querySelector('.source-filter-group');
+            if (sourceFilterGroup) {
+                sourceFilterGroup.style.display = mongoOnlyResults ? 'none' : 'block';
+            }
+            
+            // If mongo_only_results is true, force MongoDB source filter
+            if (mongoOnlyResults) {
+                currentSourceFilter = 'mongodb';
+                document.getElementById('filterSourceMongoDB')?.classList.add('active');
+                document.getElementById('filterSourceFilesystem')?.classList.remove('active');
+            }
+            
+            return config;
+        }
+    } catch (error) {
+        console.error('Error fetching server config:', error);
+    }
+    
+    return null;
+}
+
 // Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize modal
@@ -57,8 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize tab functionality
     initializeTabs();
     
-    // Load experiments directory data
-    loadExperimentsData();
+    // Fetch server configuration first
+    fetchServerConfig().then(() => {
+        // Then load experiments directory data
+        loadExperimentsData();
+    });
 
     // Setup tag filter when data is loaded
     document.addEventListener('dataLoaded', setupTagFilter);
@@ -104,9 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFilter('incorrectIgnoringP4');
     });
     
-    // Set up source filter buttons
+    // Set up source filter buttons if not in mongoOnlyResults mode
     document.getElementById('filterSourceFilesystem')?.addEventListener('click', () => {
-        applySourceFilter('filesystem');
+        if (!mongoOnlyResults) {
+            applySourceFilter('filesystem');
+        }
     });
     
     document.getElementById('filterSourceMongoDB')?.addEventListener('click', () => {
@@ -2130,6 +2169,20 @@ async function loadExperimentsData() {
         
         const responseData = await response.json();
         
+        // Check if we have a mongo_only_results flag in the response
+        mongoOnlyResults = responseData.mongo_only_results === true;
+        
+        // Update source filter visibility based on MONGO_ONLY_RESULTS setting
+        const sourceFilterGroup = document.querySelector('.source-filter-group');
+        if (sourceFilterGroup) {
+            sourceFilterGroup.style.display = mongoOnlyResults ? 'none' : 'block';
+        }
+        
+        // If mongo_only_results is true, force MongoDB source filter
+        if (mongoOnlyResults) {
+            currentSourceFilter = 'mongodb';
+        }
+        
         // Check if we have a response with mongo_status (format when MongoDB is down)
         if (responseData.mongo_status === 'error') {
             // Use the filesystem results
@@ -2157,14 +2210,21 @@ async function loadExperimentsData() {
             }
             
             // Disable MongoDB filter option
-            const mongodbFilterBtn = document.getElementById('filterSourceMongodb');
+            const mongodbFilterBtn = document.getElementById('filterSourceMongoDB');
             if (mongodbFilterBtn) {
                 mongodbFilterBtn.classList.add('disabled');
                 mongodbFilterBtn.title = 'MongoDB is currently unavailable';
             }
         } else {
             // Normal case - MongoDB is working
-            experimentsData = responseData;
+            // Check if we have a results field (new format with MONGO_ONLY_RESULTS)
+            if (responseData.results) {
+                experimentsData = responseData.results;
+                console.log('Using results field from response in loadExperimentsData');
+            } else {
+                // Legacy format where the response is directly the array
+                experimentsData = responseData;
+            }
         }
         
         console.log('Loaded experiments data:', experimentsData);
@@ -2204,18 +2264,32 @@ function displayExperimentsTable() {
     // Filter experiments based on source
     let filteredExperiments = [...experimentsData];
     
-    // Default to filesystem if no source filter is set
+    // Default to appropriate source filter based on settings
     if (!currentSourceFilter) {
-        currentSourceFilter = 'filesystem';
-        document.getElementById('filterSourceFilesystem')?.classList.add('active');
+        currentSourceFilter = mongoOnlyResults ? 'mongodb' : 'filesystem';
+        
+        // Update UI to reflect the chosen filter
+        if (mongoOnlyResults) {
+            document.getElementById('filterSourceMongoDB')?.classList.add('active');
+        } else {
+            document.getElementById('filterSourceFilesystem')?.classList.add('active');
+        }
     }
     
-    // Filter by selected source
-    filteredExperiments = filteredExperiments.filter(exp => {
-        const isMongoDBSource = exp.source === 'mongodb' || exp.path?.startsWith('mongodb/');
-        return (currentSourceFilter === 'mongodb' && isMongoDBSource) || 
-                (currentSourceFilter === 'filesystem' && !isMongoDBSource);
-    });
+    // Filter by selected source (but only if mongo_only_results is false)
+    if (!mongoOnlyResults) {
+        filteredExperiments = filteredExperiments.filter(exp => {
+            const isMongoDBSource = exp.source === 'mongodb' || exp.path?.startsWith('mongodb/');
+            return (currentSourceFilter === 'mongodb' && isMongoDBSource) || 
+                   (currentSourceFilter === 'filesystem' && !isMongoDBSource);
+        });
+    } else {
+        // If mongo_only_results is true, only show MongoDB sources
+        filteredExperiments = filteredExperiments.filter(exp => {
+            const isMongoDBSource = exp.source === 'mongodb' || exp.path?.startsWith('mongodb/');
+            return isMongoDBSource;
+        });
+    }
     
     // Sort experiments by timestamp (newest first - descending order)
     const sortedExperiments = filteredExperiments.sort((a, b) => {
@@ -2402,9 +2476,21 @@ async function loadExperimentData(directory, source) {
                         // Extract the results array from the response
                         allDirectories = responseData.results;
                         console.warn('Note: MongoDB is unavailable, using filesystem data only');
+                    } else if (responseData.results) {
+                        // New structure with results field due to MONGO_ONLY_RESULTS flag
+                        allDirectories = responseData.results;
+                        console.log('Using results field from response');
                     } else {
-                        // Normal case - MongoDB is available
+                        // Legacy case - response is directly the array of directories
                         allDirectories = responseData;
+                    }
+                    
+                    console.log('All directories:', allDirectories);
+                    
+                    // Make sure allDirectories is an array before using find
+                    if (!Array.isArray(allDirectories)) {
+                        console.error('Error: allDirectories is not an array', allDirectories);
+                        throw new Error('Directory data is not in the expected format');
                     }
                     
                     const targetDir = allDirectories.find(dir => dir.directory === directory);
@@ -4410,6 +4496,12 @@ function handleLogout() {
 
 // Apply a source filter
 function applySourceFilter(source) {
+    // If mongoOnlyResults is true, we can only use MongoDB
+    if (mongoOnlyResults && source !== 'mongodb') {
+        console.warn('Cannot change source when MONGO_ONLY_RESULTS is enabled');
+        return;
+    }
+    
     // Update current source filter
     currentSourceFilter = source;
     

@@ -65,6 +65,7 @@ BASE_REPO_DIR = PARENT_DIR
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
 MONGODB_DB = os.environ.get("MONGODB_DB", "uma_analytics")
 MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "prompts")
+MONGO_ONLY_RESULTS = os.environ.get("MONGO_ONLY_RESULTS", "false").lower() == "true"
 
 # Authentication settings - Change these!
 AUTH_ENABLED = os.environ.get("AUTH_ENABLED", "true").lower() == "true"
@@ -522,7 +523,29 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     return
 
             # API endpoints
-            if self.path == "/api/processes":
+            if self.path == "/api/config":
+                try:
+                    config = {
+                        "mongo_only_results": MONGO_ONLY_RESULTS,
+                        "mongodb_db": MONGODB_DB,
+                        "auth_enabled": AUTH_ENABLED,
+                    }
+
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(config).encode())
+                    return
+                except Exception as e:
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    error_message = f"Error getting server configuration: {str(e)}"
+                    logger.error(error_message)
+                    self.wfile.write(json.dumps({"error": error_message}).encode())
+                    return
+
+            elif self.path == "/api/processes":
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -961,42 +984,43 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 try:
                     results = []
 
-                    # First get results from filesystem
-                    for dir_path in RESULTS_DIR.iterdir():
-                        if dir_path.is_dir():
-                            metadata_file = dir_path / "metadata.json"
-                            if metadata_file.exists():
-                                with open(metadata_file, "r") as f:
-                                    metadata = json.load(f)
+                    # First get results from filesystem (only if MONGO_ONLY_RESULTS is False)
+                    if not MONGO_ONLY_RESULTS:
+                        for dir_path in RESULTS_DIR.iterdir():
+                            if dir_path.is_dir():
+                                metadata_file = dir_path / "metadata.json"
+                                if metadata_file.exists():
+                                    with open(metadata_file, "r") as f:
+                                        metadata = json.load(f)
 
-                                result = {
-                                    "directory": dir_path.name,
-                                    "path": f"results/{dir_path.name}",
-                                    "title": metadata.get("experiment", {}).get(
-                                        "title", dir_path.name
-                                    ),
-                                    "timestamp": metadata.get("experiment", {}).get(
-                                        "timestamp", ""
-                                    ),
-                                    "goal": metadata.get("experiment", {}).get(
-                                        "goal", ""
-                                    ),
-                                    "metadata": metadata,
-                                    "source": "filesystem",
-                                }
-                                results.append(result)
-                            else:
-                                # If no metadata file exists, use directory name
-                                results.append(
-                                    {
+                                    result = {
                                         "directory": dir_path.name,
                                         "path": f"results/{dir_path.name}",
-                                        "title": dir_path.name,
-                                        "timestamp": "",
-                                        "goal": "",
+                                        "title": metadata.get("experiment", {}).get(
+                                            "title", dir_path.name
+                                        ),
+                                        "timestamp": metadata.get("experiment", {}).get(
+                                            "timestamp", ""
+                                        ),
+                                        "goal": metadata.get("experiment", {}).get(
+                                            "goal", ""
+                                        ),
+                                        "metadata": metadata,
                                         "source": "filesystem",
                                     }
-                                )
+                                    results.append(result)
+                                else:
+                                    # If no metadata file exists, use directory name
+                                    results.append(
+                                        {
+                                            "directory": dir_path.name,
+                                            "path": f"results/{dir_path.name}",
+                                            "title": dir_path.name,
+                                            "timestamp": "",
+                                            "goal": "",
+                                            "source": "filesystem",
+                                        }
+                                    )
 
                     # Then try to get results from MongoDB
                     mongo_error_info = None
@@ -1059,16 +1083,19 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                             "results": results,
                             "mongo_status": "error",
                             "mongo_error": mongo_error_info["mongo_error"],
+                            "mongo_only_results": MONGO_ONLY_RESULTS,
+                        }
+                    else:
+                        # Add mongo_only_results flag to the response
+                        response_data = {
+                            "results": results,
+                            "mongo_only_results": MONGO_ONLY_RESULTS,
                         }
 
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
-                    self.wfile.write(
-                        json.dumps(
-                            response_data if mongo_error_info else results
-                        ).encode()
-                    )
+                    self.wfile.write(json.dumps(response_data).encode())
                     return
                 except Exception as e:
                     self.send_response(500)
