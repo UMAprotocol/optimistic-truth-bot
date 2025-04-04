@@ -8,6 +8,7 @@ let currentSearch = ''; // Track current search term
 let currentSourceFilter = 'filesystem'; // Track current source filter
 let autoScrollEnabled = true; // Auto-scroll preference
 let mongoOnlyResults = false; // Track if we should only show MongoDB results
+let disableExperimentRunner = false; // Track if experiment runner is disabled
 
 // Date filter variables
 let currentDateFilters = {
@@ -60,6 +61,7 @@ async function fetchServerConfig() {
             
             // Update global settings
             mongoOnlyResults = config.mongo_only_results === true;
+            disableExperimentRunner = config.disable_experiment_runner === true;
             
             // Update UI based on configuration
             const sourceFilterGroup = document.querySelector('.source-filter-group');
@@ -92,7 +94,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     
     // Fetch server configuration first
-    fetchServerConfig().then(() => {
+    fetchServerConfig().then((config) => {
+        // Hide experiment runner tab if disabled
+        if (disableExperimentRunner) {
+            const experimentTab = document.getElementById('experiment-tab');
+            if (experimentTab) {
+                experimentTab.parentElement.style.display = 'none';
+                
+                // Show analytics tab if experiment runner tab is active
+                const analyticsTab = document.getElementById('analytics-tab');
+                if (experimentTab.classList.contains('active') && analyticsTab) {
+                    const tabInstance = new bootstrap.Tab(analyticsTab);
+                    tabInstance.show();
+                }
+            }
+        }
+        
         // Then load experiments directory data
         loadExperimentsData();
     });
@@ -205,6 +222,11 @@ function initializeTabs() {
 
 // Initialize experiment runner components
 function initializeExperimentRunner() {
+    // Skip initialization if experiment runner is disabled
+    if (disableExperimentRunner) {
+        return;
+    }
+    
     // Setup command form submission
     const form = document.getElementById('experimentForm');
     if (form) {
