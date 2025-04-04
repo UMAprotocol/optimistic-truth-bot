@@ -67,6 +67,11 @@ MONGODB_DB = os.environ.get("MONGODB_DB", "uma_analytics")
 MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "prompts")
 MONGO_ONLY_RESULTS = os.environ.get("MONGO_ONLY_RESULTS", "false").lower() == "true"
 
+# Experiment runner configuration
+DISABLE_EXPERIMENT_RUNNER = (
+    os.environ.get("DISABLE_EXPERIMENT_RUNNER", "false").lower() == "true"
+)
+
 # Authentication settings - Change these!
 AUTH_ENABLED = os.environ.get("AUTH_ENABLED", "true").lower() == "true"
 AUTH_USERNAME = os.environ.get("AUTH_USERNAME", "admin")
@@ -529,6 +534,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         "mongo_only_results": MONGO_ONLY_RESULTS,
                         "mongodb_db": MONGODB_DB,
                         "auth_enabled": AUTH_ENABLED,
+                        "disable_experiment_runner": DISABLE_EXPERIMENT_RUNNER,
                     }
 
                     self.send_response(200)
@@ -546,6 +552,23 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     return
 
             elif self.path == "/api/processes":
+                if not self.is_authenticated():
+                    self.send_response(401)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                    return
+
+                # Check if experiment runner is disabled
+                if DISABLE_EXPERIMENT_RUNNER:
+                    self.send_response(403)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps({"error": "Experiment runner is disabled"}).encode()
+                    )
+                    return
+
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -1519,6 +1542,23 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
         # API endpoint to start a new process
         if self.path == "/api/process/start":
+            if not self.is_authenticated():
+                self.send_response(401)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                return
+
+            # Check if experiment runner is disabled
+            if DISABLE_EXPERIMENT_RUNNER:
+                self.send_response(403)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(
+                    json.dumps({"error": "Experiment runner is disabled"}).encode()
+                )
+                return
+
             try:
                 content_length = int(self.headers.get("Content-Length", 0))
                 post_data = self.rfile.read(content_length).decode("utf-8")
@@ -1652,6 +1692,23 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
         # API endpoint to stop a process
         elif self.path.startswith("/api/process/stop/"):
+            if not self.is_authenticated():
+                self.send_response(401)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                return
+
+            # Check if experiment runner is disabled
+            if DISABLE_EXPERIMENT_RUNNER:
+                self.send_response(403)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(
+                    json.dumps({"error": "Experiment runner is disabled"}).encode()
+                )
+                return
+
             try:
                 # Extract process ID from the URL
                 process_id = self.path.split("/")[-1]
@@ -1715,6 +1772,23 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
         # API endpoint to send input to a running process
         elif self.path.startswith("/api/process/input/"):
+            if not self.is_authenticated():
+                self.send_response(401)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                return
+
+            # Check if experiment runner is disabled
+            if DISABLE_EXPERIMENT_RUNNER:
+                self.send_response(403)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(
+                    json.dumps({"error": "Experiment runner is disabled"}).encode()
+                )
+                return
+
             try:
                 # Extract process ID from the URL
                 process_id = self.path.split("/")[-1]
