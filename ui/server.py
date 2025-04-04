@@ -1331,11 +1331,37 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                     try:
                                         # Try to parse as JSON
                                         content = json.load(f)
+
+                                        # Special handling for metadata.json files
+                                        if safe_filename.lower() == "metadata.json":
+                                            # Check and log timestamp format
+                                            if content.get("experiment") and content[
+                                                "experiment"
+                                            ].get("timestamp"):
+                                                timestamp = content["experiment"][
+                                                    "timestamp"
+                                                ]
+                                                logger.info(
+                                                    f"Metadata timestamp format in {full_path}: {timestamp} (type: {type(timestamp).__name__})"
+                                                )
+
                                         result["files"][safe_filename] = content
                                         logger.debug(
                                             f"Successfully loaded file: {safe_filename}"
                                         )
-                                    except json.JSONDecodeError:
+                                    except json.JSONDecodeError as json_err:
+                                        # Log detailed error info for metadata.json files
+                                        if safe_filename.lower() == "metadata.json":
+                                            logger.error(
+                                                f"JSON decode error in {full_path}: {json_err}"
+                                            )
+                                            # Try to read the raw content for inspection
+                                            f.seek(0)
+                                            raw_content = f.read()
+                                            logger.error(
+                                                f"Raw content of problematic metadata.json: {raw_content[:200]}..."
+                                            )
+
                                         # If not valid JSON, read as text
                                         f.seek(0)
                                         text_content = f.read()
