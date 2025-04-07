@@ -211,8 +211,7 @@ class MultiOperatorProcessor:
 
     def scan_proposals(self):
         """Scan for new proposals in the proposals directory."""
-        self.logger.info(f"Scanning for proposals in {self.proposals_dir}")
-
+        # Only log scanning message if we find new proposals
         new_proposals = []
 
         # Scan for JSON files in the proposals directory
@@ -801,9 +800,22 @@ SUMMARY:
                 if self.shutdown_requested:
                     break
 
-                if new_proposals:
+                # Add timestamp to scan log message only once per hour when no proposals are found
+                current_hour = datetime.now().hour
+                if (
+                    not new_proposals
+                    and not hasattr(self, "_last_scan_log_hour")
+                    or self._last_scan_log_hour != current_hour
+                ):
+                    self._last_scan_log_hour = current_hour
                     self.logger.info(
-                        f"Found {len(new_proposals)} new proposals to process"
+                        f"Scanning for proposals in {self.proposals_dir} - no new proposals found"
+                    )
+
+                if new_proposals:
+                    # Log that we found proposals during scanning
+                    self.logger.info(
+                        f"Scanning for proposals in {self.proposals_dir} found {len(new_proposals)} new proposals to process"
                     )
                     if self.verbose:
                         num_proposals = len(new_proposals)
@@ -1031,6 +1043,17 @@ SUMMARY:
 
                         recommendation_journey.append(journey_entry)
                         attempt_counter += 1
+
+                # Update the final recommendation to match the last journey entry
+                if recommendation_journey:
+                    final_journey_entry = recommendation_journey[-1]
+                    final_recommendation = final_journey_entry.get(
+                        "perplexity_recommendation", ""
+                    )
+                    if final_recommendation and final_recommendation.startswith("p"):
+                        clean_result["recommendation"] = final_recommendation
+                        # Also update proposed_price_outcome to match final recommendation
+                        clean_result["proposed_price_outcome"] = final_recommendation
 
                 # Create overseer_data structure similar to 1ac9ab6e.json
                 overseer_data = {

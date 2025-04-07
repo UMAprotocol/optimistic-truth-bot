@@ -286,7 +286,7 @@ def main():
     args = setup_arguments()
     
     # Resolve watch directory to absolute path
-    watch_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), args.watch_dir))
+    watch_dir = os.path.abspath(args.watch_dir)
     logger.info(f"Watching directory: {watch_dir}")
     
     # Connect to MongoDB

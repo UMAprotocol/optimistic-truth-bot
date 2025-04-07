@@ -307,7 +307,12 @@ def check_watched_requests():
     current_timestamp = get_current_timestamp()
     to_remove = []
     
-    for short_id, info in watched_requests.items():
+    # Create a copy of the keys to iterate over
+    for short_id in list(watched_requests.keys()):
+        info = watched_requests.get(short_id)
+        if not info:
+            continue  # Skip if already removed by another operation
+            
         # Check if expired
         if current_timestamp > info["expiration"]:
             logger.info(f"Request {short_id} has expired, removing from watch list")
@@ -331,10 +336,11 @@ def check_watched_requests():
                     print(f"✅ Retry for {short_id} resulted in changed recommendation - removed from watch list")
             else:
                 # Update the last retry timestamp
-                watched_requests[short_id]["last_retry"] = current_timestamp
-                logger.info(f"Retry for {short_id} completed (no change in recommendation), next retry in {args.check_interval} seconds")
-                if args.verbose:
-                    print(f"⏳ No change in recommendation for {short_id}, next retry in {args.check_interval} seconds")
+                if short_id in watched_requests:  # Check if still exists
+                    watched_requests[short_id]["last_retry"] = current_timestamp
+                    logger.info(f"Retry for {short_id} completed (no change in recommendation), next retry in {args.check_interval} seconds")
+                    if args.verbose:
+                        print(f"⏳ No change in recommendation for {short_id}, next retry in {args.check_interval} seconds")
         else:
             # Log how much time remains until next retry (only in debug mode to avoid spam)
             time_remaining = args.check_interval - time_since_last_retry
@@ -342,9 +348,10 @@ def check_watched_requests():
     
     # Remove expired requests
     for short_id in to_remove:
-        del watched_requests[short_id]
-        if args.verbose:
-            print(f"⌛ Request {short_id} has expired, removed from watch list")
+        if short_id in watched_requests:  # Double check
+            del watched_requests[short_id]
+            if args.verbose:
+                print(f"⌛ Request {short_id} has expired, removed from watch list")
 
 
 class OutputFileHandler(FileSystemEventHandler):
@@ -365,19 +372,51 @@ class OutputFileHandler(FileSystemEventHandler):
                     # Check if recommendation changed
                     if not is_p4_recommendation(event.src_path):
                         logger.info(f"Recommendation changed for {short_id}, removing from watch list")
-                        del watched_requests[short_id]
-                        if args.verbose:
-                            print(f"✅ Recommendation changed for {short_id}, removed from watch list")
+                        if short_id in watched_requests:  # Double check before deletion
+                            del watched_requests[short_id]
+                            if args.verbose:
+                                print(f"✅ Recommendation changed for {short_id}, removed from watch list")
                     break
 
 
 def scan_output_directory(directory):
     """Scan an output directory for P4 recommendations that haven't expired."""
-    logger.info(f"Scanning directory: {directory}")
-    if args.verbose:
-        print(f"🔍 Scanning directory: {directory}")
-        
-    for file_path in directory.glob("*.json"):
+    # Initialize the list of previously scanned files for this directory if not exists
+    if not hasattr(scan_output_directory, "scanned_directories"):
+        scan_output_directory.scanned_directories = {}
+    
+    # Get previously scanned files for this directory
+    dir_str = str(directory)
+    if dir_str not in scan_output_directory.scanned_directories:
+        scan_output_directory.scanned_directories[dir_str] = set()
+        is_initial_scan = True
+    else:
+        is_initial_scan = False
+    
+    previously_scanned = scan_output_directory.scanned_directories[dir_str]
+    
+    # Get current files
+    current_files = set(str(f) for f in directory.glob("*.json"))
+    
+    # Find new files
+    new_files = current_files - previously_scanned
+    
+    # Log scanning message appropriately
+    if is_initial_scan:
+        logger.info(f"Initial scanning of directory: {directory}")
+        if args.verbose:
+            print(f"🔍 Initial scanning of directory: {directory}")
+    elif new_files:
+        logger.info(f"Scanning directory: {directory} - found {len(new_files)} new files")
+        if args.verbose:
+            print(f"🔍 Found {len(new_files)} new files in {directory}")
+    
+    # Update the set of scanned files
+    scan_output_directory.scanned_directories[dir_str].update(current_files)
+    
+    # Process only new files if not initial scan, otherwise process all
+    files_to_process = [Path(f) for f in (current_files if is_initial_scan else new_files)]
+    for file_path in files_to_process:
         process_output_file(file_path)
 
 
