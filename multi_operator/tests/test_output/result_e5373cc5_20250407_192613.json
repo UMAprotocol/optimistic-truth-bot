@@ -11,7 +11,7 @@
   "system_prompt": "Test system prompt",
   "question_id_short": "e5373cc5",
   "processed_file": "questionId_e5373cc5.json",
-  "timestamp": 1743583528.710613,
+  "timestamp": 1744046773.4815621,
   "disputed": false,
   "recommendation_overridden": false,
   "router_result": {
@@ -52,7 +52,7 @@
   "condition_id": "0x0ecdbc27eda94366284bf4c8e990017491d57f95c53dcd2353d6104ff7cb9e54",
   "proposed_price": 0,
   "resolved_price": null,
-  "proposed_price_outcome": "p1",
+  "proposed_price_outcome": "p2",
   "resolved_price_outcome": null,
   "tags": [
     "Crypto",
