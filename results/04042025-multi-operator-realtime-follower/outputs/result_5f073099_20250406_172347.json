@@ -1,0 +1,146 @@
+{
+  "query_id": "0x5f0730993c79a5f796c1151ad7abb36ae59ae8b0105c2aa70d5529f28084b2c5",
+  "short_id": "5f073099",
+  "reason": "The response accurately resolves the query based on the provided data and conditions.",
+  "market_alignment": "The recommendation aligns with market data, which strongly favors the New York Yankees outcome, indicating a correct and justified recommendation.",
+  "routing_attempts": 1,
+  "attempted_solvers": [
+    "code_runner"
+  ],
+  "user_prompt": "user:\n\nancillary_data:\nq: title: Pittsburgh Pirates vs. New York Yankees, description: In the upcoming MLB game, scheduled for April 4 at 4:12PM ET:\nIf the Pittsburgh Pirates win, the market will resolve to \"Pittsburgh Pirates\".\nIf the New York Yankees win, the market will resolve to \"New York Yankees\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to New York Yankees, p2 to Pittsburgh Pirates, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743960178 Current Date and Time: 2025-04-06 17:22:58 UTC",
+  "question_id_short": "5f073099",
+  "processed_file": "questionId_5f073099.json",
+  "timestamp": 1743960227.9413779,
+  "disputed": false,
+  "recommendation_overridden": false,
+  "router_result": {
+    "solvers": [
+      "code_runner"
+    ],
+    "reason": "The query specifically requires the outcome of an MLB game between the Pittsburgh Pirates and the New York Yankees, including details on game status such as postponement or cancellation. The code_runner solver is equipped to handle this request as it can access real-time MLB game results and statuses through the Sports Data IO API.",
+    "multi_solver_strategy": "",
+    "response": "```decision\n{\n  \"solvers\": [\"code_runner\"],\n  \"reason\": \"The query specifically requires the outcome of an MLB game between the Pittsburgh Pirates and the New York Yankees, including details on game status such as postponement or cancellation. The code_runner solver is equipped to handle this request as it can access real-time MLB game results and statuses through the Sports Data IO API.\"\n}\n```"
+  },
+  "solver_results": [
+    {
+      "solver": "code_runner",
+      "solver_result": {
+        "recommendation": "p1",
+        "response": "Code execution successful. Recommendation found: p1.\n\nOutput:\nrecommendation: p1\n",
+        "solver": "code_runner",
+        "code_file": "multi_operator/solvers/code_runner/executed_functions/sports_mlb_20250406_172300.py",
+        "code": "import os\nimport requests\nfrom dotenv import load_dotenv\nfrom datetime import datetime\nimport logging\n\n# Load API key from .env file\nload_dotenv()\nAPI_KEY = os.getenv(\"SPORTS_DATA_IO_MLB_API_KEY\")\n\n# Check if API key is available\nif not API_KEY:\n    raise ValueError(\n        \"SPORTS_DATA_IO_MLB_API_KEY not found in environment variables. \"\n        \"Please add it to your .env file.\"\n    )\n\n# Constants - RESOLUTION MAPPING\nRESOLUTION_MAP = {\n    \"Pittsburgh Pirates\": \"p2\",\n    \"New York Yankees\": \"p1\",\n    \"50-50\": \"p3\",\n    \"Too early to resolve\": \"p4\",\n}\n\nlogger = logging.getLogger(__name__)\n\ndef fetch_game_data(date, home_team, away_team):\n    \"\"\"\n    Fetches game data for the specified date and teams.\n    \"\"\"\n    url = f\"https://api.sportsdata.io/v3/mlb/scores/json/GamesByDate/{date}?key={API_KEY}\"\n    try:\n        response = requests.get(url)\n        response.raise_for_status()\n        games = response.json()\n\n        for game in games:\n            if game[\"HomeTeam\"] == home_team and game[\"AwayTeam\"] == away_team:\n                return game\n        return None\n    except requests.exceptions.RequestException as e:\n        logger.error(f\"API request failed: {e}\")\n        return None\n\ndef determine_resolution(game):\n    \"\"\"\n    Determines the resolution based on the game's status and outcome.\n    \"\"\"\n    if not game:\n        return RESOLUTION_MAP[\"Too early to resolve\"]\n\n    status = game.get(\"Status\")\n    if status == \"Final\":\n        home_score = game.get(\"HomeTeamRuns\")\n        away_score = game.get(\"AwayTeamRuns\")\n        if home_score > away_score:\n            return RESOLUTION_MAP[\"Pittsburgh Pirates\"]\n        else:\n            return RESOLUTION_MAP[\"New York Yankees\"]\n    elif status == \"Postponed\":\n        return RESOLUTION_MAP[\"Too early to resolve\"]\n    elif status == \"Canceled\":\n        return RESOLUTION_MAP[\"50-50\"]\n    else:\n        return RESOLUTION_MAP[\"Too early to resolve\"]\n\ndef main():\n    date = \"2025-04-04\"\n    home_team = \"PIT\"\n    away_team = \"NYY\"\n\n    game = fetch_game_data(date, home_team, away_team)\n    resolution = determine_resolution(game)\n    print(f\"recommendation: {resolution}\")\n\nif __name__ == \"__main__\":\n    main()",
+        "code_output": "recommendation: p1\n",
+        "response_metadata": {
+          "query_type": "sports_mlb",
+          "created_timestamp": 1743960221,
+          "created_datetime": "2025-04-06T17:23:41",
+          "api_response_time_seconds": 40.65193724632263,
+          "execution_successful": true,
+          "attempts": 1,
+          "attempts_info": []
+        }
+      },
+      "recommendation": "p1",
+      "response": "Code execution successful. Recommendation found: p1.\n\nOutput:\nrecommendation: p1\n",
+      "attempt": 1,
+      "execution_successful": true,
+      "overseer_result": {
+        "decision": {
+          "verdict": "SATISFIED",
+          "require_rerun": false,
+          "reason": "The response accurately resolves the query based on the provided data and conditions.",
+          "critique": "The code provided by the solver effectively fetches and processes data from the specified API, correctly interpreting the game's outcome. The logic for determining the recommendation is sound, handling different game statuses such as 'Final', 'Postponed', and 'Canceled'. The mapping of outcomes to the resolution codes (p1, p2, p3, p4) is correctly implemented. The code also includes error handling for API request failures, which is a good practice. However, the code could be improved by adding more detailed logging for different stages of data processing and by handling potential edge cases where game data might be incomplete or ambiguous.",
+          "market_alignment": "The recommendation aligns with market data, which strongly favors the New York Yankees outcome, indicating a correct and justified recommendation."
+        },
+        "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately resolves the query based on the provided data and conditions.\",\n  \"critique\": \"The code provided by the solver effectively fetches and processes data from the specified API, correctly interpreting the game's outcome. The logic for determining the recommendation is sound, handling different game statuses such as 'Final', 'Postponed', and 'Canceled'. The mapping of outcomes to the resolution codes (p1, p2, p3, p4) is correctly implemented. The code also includes error handling for API request failures, which is a good practice. However, the code could be improved by adding more detailed logging for different stages of data processing and by handling potential edge cases where game data might be incomplete or ambiguous.\",\n  \"market_alignment\": \"The recommendation aligns with market data, which strongly favors the New York Yankees outcome, indicating a correct and justified recommendation.\"\n}\n```"
+      }
+    }
+  ],
+  "overseer_result": {
+    "decision": {
+      "verdict": "SATISFIED",
+      "require_rerun": false,
+      "reason": "The response accurately resolves the query based on the provided data and conditions.",
+      "critique": "The code provided by the solver effectively fetches and processes data from the specified API, correctly interpreting the game's outcome. The logic for determining the recommendation is sound, handling different game statuses such as 'Final', 'Postponed', and 'Canceled'. The mapping of outcomes to the resolution codes (p1, p2, p3, p4) is correctly implemented. The code also includes error handling for API request failures, which is a good practice. However, the code could be improved by adding more detailed logging for different stages of data processing and by handling potential edge cases where game data might be incomplete or ambiguous.",
+      "market_alignment": "The recommendation aligns with market data, which strongly favors the New York Yankees outcome, indicating a correct and justified recommendation."
+    },
+    "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately resolves the query based on the provided data and conditions.\",\n  \"critique\": \"The code provided by the solver effectively fetches and processes data from the specified API, correctly interpreting the game's outcome. The logic for determining the recommendation is sound, handling different game statuses such as 'Final', 'Postponed', and 'Canceled'. The mapping of outcomes to the resolution codes (p1, p2, p3, p4) is correctly implemented. The code also includes error handling for API request failures, which is a good practice. However, the code could be improved by adding more detailed logging for different stages of data processing and by handling potential edge cases where game data might be incomplete or ambiguous.\",\n  \"market_alignment\": \"The recommendation aligns with market data, which strongly favors the New York Yankees outcome, indicating a correct and justified recommendation.\"\n}\n```"
+  },
+  "recommendation": "p1",
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg",
+  "condition_id": "0xaf7a6122adaf23f35a4ee59446bdc8e582ae014399507fa381e8f7581a7f118b",
+  "proposed_price": 0,
+  "resolved_price": 0,
+  "proposed_price_outcome": "p1",
+  "resolved_price_outcome": "p1",
+  "tags": [
+    "Sports",
+    "MLB",
+    "Games"
+  ],
+  "end_date_iso": "2025-04-11T00:00:00Z",
+  "game_start_time": "2025-04-04T20:12:00Z",
+  "proposal_metadata": {
+    "query_id": "0x5f0730993c79a5f796c1151ad7abb36ae59ae8b0105c2aa70d5529f28084b2c5",
+    "transaction_hash": "0x7549d3fcf48043199b1dda2c3073baa26c4448bd5ff429e1e28a594b0f0e6e17",
+    "block_number": 69904808,
+    "request_transaction_block_time": 1743809533,
+    "ancillary_data": "q: title: Pittsburgh Pirates vs. New York Yankees, description: In the upcoming MLB game, scheduled for April 4 at 4:12PM ET:\nIf the Pittsburgh Pirates win, the market will resolve to \"Pittsburgh Pirates\".\nIf the New York Yankees win, the market will resolve to \"New York Yankees\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "ancillary_data_hex": "0x713a207469746c653a205069747473627572676820506972617465732076732e204e657720596f726b2059616e6b6565732c206465736372697074696f6e3a20496e20746865207570636f6d696e67204d4c422067616d652c207363686564756c656420666f7220417072696c203420617420343a3132504d2045543a0a496620746865205069747473627572676820506972617465732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c506974747362757267682050697261746573e2809d2e0a496620746865204e657720596f726b2059616e6b6565732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4e657720596f726b2059616e6b656573e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204e657720596f726b2059616e6b6565732c20703220746f205069747473627572676820506972617465732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a38613636373533356562343266393432313836633330653730633732343833363132653038353462",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to New York Yankees, p2 to Pittsburgh Pirates, p3 to unknown/50-50.",
+    "proposed_price": 0,
+    "proposed_price_outcome": "p1",
+    "resolved_price": null,
+    "resolved_price_outcome": null,
+    "request_timestamp": 1743580933,
+    "expiration_timestamp": 1743816733,
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposer": "0x53692Dbf47fCE6Fb3d54fDEd6A4834be981F557c",
+    "bond_currency": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "updates": [],
+    "tags": [
+      "Sports",
+      "MLB",
+      "Games"
+    ],
+    "end_date_iso": "2025-04-11T00:00:00Z",
+    "game_start_time": "2025-04-04T20:12:00Z",
+    "tokens": [
+      {
+        "token_id": "33027300531077484468208527436615992693066117552000071578994674235769809012850",
+        "outcome": "Pittsburgh Pirates",
+        "price": 0,
+        "winner": false
+      },
+      {
+        "token_id": "91394649582162326697774694598547754663937127707600845860100783122674652530039",
+        "outcome": "New York Yankees",
+        "price": 1,
+        "winner": true
+      }
+    ],
+    "neg_risk_market_id": "",
+    "neg_risk_request_id": ""
+  },
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [],
+    "market_price_info": "The recommendation aligns with market data, which strongly favors the New York Yankees outcome, indicating a correct and justified recommendation.",
+    "tokens": [],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p1",
+        "overseer_satisfaction_level": "satisfied",
+        "prompt_updated": false,
+        "critique": "The code provided by the solver effectively fetches and processes data from the specified API, correctly interpreting the game's outcome. The logic for determining the recommendation is sound, handling different game statuses such as 'Final', 'Postponed', and 'Canceled'. The mapping of outcomes to the resolution codes (p1, p2, p3, p4) is correctly implemented. The code also includes error handling for API request failures, which is a good practice. However, the code could be improved by adding more detailed logging for different stages of data processing and by handling potential edge cases where game data might be incomplete or ambiguous.",
+        "system_prompt_before": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743960178 Current Date and Time: 2025-04-06 17:22:58 UTC",
+        "system_prompt_after": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743960178 Current Date and Time: 2025-04-06 17:22:58 UTC"
+      }
+    ]
+  }
+}

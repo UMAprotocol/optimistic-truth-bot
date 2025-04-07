@@ -1,0 +1,215 @@
+{
+  "query_id": "0x1e1d2cc52ccc05386024865ce54824450f0957396aa0d1b90036f8aaad10a686",
+  "short_id": "1e1d2cc5",
+  "reason": "The response accurately reflects the outcome of the event and aligns with the resolution conditions provided.",
+  "market_alignment": "The recommendation aligns with market sentiment, as indicated by the Polymarket token prices, which strongly favor the New York Mets outcome.",
+  "routing_attempts": 2,
+  "attempted_solvers": [
+    "code_runner",
+    "perplexity"
+  ],
+  "user_prompt": "user:\n\nancillary_data:\nq: title: New York Mets vs. Toronto Blue Jays, description: In the upcoming MLB game, scheduled for April 5 at 7:10PM ET:\nIf the New York Mets win, the market will resolve to \"New York Mets\".\nIf the Toronto Blue Jays win, the market will resolve to \"Toronto Blue Jays\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Toronto Blue Jays, p2 to New York Mets, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743967089 Current Date and Time: 2025-04-06 19:18:09 UTC",
+  "question_id_short": "1e1d2cc5",
+  "processed_file": "questionId_1e1d2cc5.json",
+  "timestamp": 1743967260.767935,
+  "disputed": false,
+  "recommendation_overridden": false,
+  "router_result": {
+    "solvers": [
+      "perplexity"
+    ],
+    "reason": "The query requires information about the outcome of a specific MLB game, which includes determining the winner, or handling scenarios like postponements or cancellations. Perplexity is suited for interpreting these complex conditions and providing a comprehensive response based on general knowledge and historical context. The code_runner solver, although capable of fetching MLB game results, has been explicitly excluded by the overseer's guidance for this query.",
+    "multi_solver_strategy": "",
+    "response": "```decision\n{\n  \"solvers\": [\"perplexity\"],\n  \"reason\": \"The query requires information about the outcome of a specific MLB game, which includes determining the winner, or handling scenarios like postponements or cancellations. Perplexity is suited for interpreting these complex conditions and providing a comprehensive response based on general knowledge and historical context. The code_runner solver, although capable of fetching MLB game results, has been explicitly excluded by the overseer's guidance for this query.\"\n}\n```"
+  },
+  "solver_results": [
+    {
+      "solver": "perplexity",
+      "solver_result": {
+        "recommendation": "p2",
+        "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the New York Mets vs. Toronto Blue Jays game on April 5, 2025. The ancillary data specifies that if the Mets win, it's p2; if the Blue Jays win, p1; postponed stays open, canceled is p3. \n\nFirst, I need to confirm the game's date and time. The query says April 5 at 7:10 PM ET. The current timestamp given is April 6, 2025, 19:18:09 UTC, which is 3:18 PM ET on April 6. So the game was scheduled for the previous day, April 5, which has already occurred. That means the event is in the past, so I don't need to check for postponement or cancellation unless there's info suggesting that.\n\nLooking at the search results, multiple sources (1, 6, 8, 9, 10, 11, 12, 13, 14) report that the Mets won 3-2. For example, source 8 from the AP states Lindor's walk-off sac fly led to the Mets' victory. Source 6 mentions Mets pitchers combined for 11 strikeouts and Lindor's sac fly. There's consistent reporting across different outlets like Fox Sports, YouTube highlights, and AP articles. \n\nI should check if any sources contradict this. All the provided search results align with the Mets winning. Also, the box score in source 1 shows the final score as Mets 3, Blue Jays 2. The game wasn't postponed or canceled, as per the detailed play-by-play in sources 2, 4, and 7. \n\nGeorge Springer's injury (source 9, 11) is noted but doesn't affect the game's outcome. The resolution conditions are clear: Mets win is p2. No sources indicate a different result. Therefore, the recommendation should be p2.\n</think>\n\nrecommendation: p2",
+        "solver": "perplexity",
+        "response_metadata": {
+          "model": "sonar-deep-research",
+          "created_timestamp": 1743967254,
+          "created_datetime": "2025-04-06T19:20:54",
+          "api_response_time_seconds": 94.19841432571411,
+          "completion_tokens": 420,
+          "prompt_tokens": 1063,
+          "total_tokens": 1483
+        }
+      },
+      "recommendation": "p2",
+      "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the New York Mets vs. Toronto Blue Jays game on April 5, 2025. The ancillary data specifies that if the Mets win, it's p2; if the Blue Jays win, p1; postponed stays open, canceled is p3. \n\nFirst, I need to confirm the game's date and time. The query says April 5 at 7:10 PM ET. The current timestamp given is April 6, 2025, 19:18:09 UTC, which is 3:18 PM ET on April 6. So the game was scheduled for the previous day, April 5, which has already occurred. That means the event is in the past, so I don't need to check for postponement or cancellation unless there's info suggesting that.\n\nLooking at the search results, multiple sources (1, 6, 8, 9, 10, 11, 12, 13, 14) report that the Mets won 3-2. For example, source 8 from the AP states Lindor's walk-off sac fly led to the Mets' victory. Source 6 mentions Mets pitchers combined for 11 strikeouts and Lindor's sac fly. There's consistent reporting across different outlets like Fox Sports, YouTube highlights, and AP articles. \n\nI should check if any sources contradict this. All the provided search results align with the Mets winning. Also, the box score in source 1 shows the final score as Mets 3, Blue Jays 2. The game wasn't postponed or canceled, as per the detailed play-by-play in sources 2, 4, and 7. \n\nGeorge Springer's injury (source 9, 11) is noted but doesn't affect the game's outcome. The resolution conditions are clear: Mets win is p2. No sources indicate a different result. Therefore, the recommendation should be p2.\n</think>\n\nrecommendation: p2",
+      "attempt": 1,
+      "execution_successful": true,
+      "overseer_result": {
+        "decision": {
+          "verdict": "SATISFIED",
+          "require_rerun": false,
+          "reason": "The response accurately reflects the outcome of the event and aligns with the resolution conditions provided.",
+          "critique": "The response from the perplexity solver is thorough and well-reasoned. It confirms the event's occurrence and outcome based on multiple reliable sources, including AP and Fox Sports, which report that the New York Mets won the game. The response effectively uses these sources to justify the recommendation of p2, corresponding to a Mets win, as outlined in the ancillary data. The solver also correctly identifies that the game was not postponed or canceled, which matches the conditions for resolution. There is no evidence of notable omissions or errors in the response.",
+          "market_alignment": "The recommendation aligns with market sentiment, as indicated by the Polymarket token prices, which strongly favor the New York Mets outcome.",
+          "prompt_update": ""
+        },
+        "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately reflects the outcome of the event and aligns with the resolution conditions provided.\",\n  \"critique\": \"The response from the perplexity solver is thorough and well-reasoned. It confirms the event's occurrence and outcome based on multiple reliable sources, including AP and Fox Sports, which report that the New York Mets won the game. The response effectively uses these sources to justify the recommendation of p2, corresponding to a Mets win, as outlined in the ancillary data. The solver also correctly identifies that the game was not postponed or canceled, which matches the conditions for resolution. There is no evidence of notable omissions or errors in the response.\",\n  \"market_alignment\": \"The recommendation aligns with market sentiment, as indicated by the Polymarket token prices, which strongly favor the New York Mets outcome.\",\n  \"prompt_update\": \"\"\n}\n```"
+      }
+    }
+  ],
+  "overseer_result": {
+    "decision": {
+      "verdict": "SATISFIED",
+      "require_rerun": false,
+      "reason": "The response accurately reflects the outcome of the event and aligns with the resolution conditions provided.",
+      "critique": "The response from the perplexity solver is thorough and well-reasoned. It confirms the event's occurrence and outcome based on multiple reliable sources, including AP and Fox Sports, which report that the New York Mets won the game. The response effectively uses these sources to justify the recommendation of p2, corresponding to a Mets win, as outlined in the ancillary data. The solver also correctly identifies that the game was not postponed or canceled, which matches the conditions for resolution. There is no evidence of notable omissions or errors in the response.",
+      "market_alignment": "The recommendation aligns with market sentiment, as indicated by the Polymarket token prices, which strongly favor the New York Mets outcome.",
+      "prompt_update": ""
+    },
+    "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately reflects the outcome of the event and aligns with the resolution conditions provided.\",\n  \"critique\": \"The response from the perplexity solver is thorough and well-reasoned. It confirms the event's occurrence and outcome based on multiple reliable sources, including AP and Fox Sports, which report that the New York Mets won the game. The response effectively uses these sources to justify the recommendation of p2, corresponding to a Mets win, as outlined in the ancillary data. The solver also correctly identifies that the game was not postponed or canceled, which matches the conditions for resolution. There is no evidence of notable omissions or errors in the response.\",\n  \"market_alignment\": \"The recommendation aligns with market sentiment, as indicated by the Polymarket token prices, which strongly favor the New York Mets outcome.\",\n  \"prompt_update\": \"\"\n}\n```"
+  },
+  "all_solver_results": [
+    {
+      "solver": "code_runner",
+      "solver_result": {
+        "recommendation": "p4",
+        "response": "Code execution successful. Recommendation found: p4.\n\nOutput:\nrecommendation: p4\n",
+        "solver": "code_runner",
+        "code_file": "multi_operator/solvers/code_runner/executed_functions/sports_mlb_20250406_191814.py",
+        "code": "from dotenv import load_dotenv\nimport os\nimport requests\n\ndef resolve_mlb_game():\n    load_dotenv()\n    api_key = os.getenv(\"SPORTS_DATA_IO_MLB_API_KEY\")\n    game_date = \"2025-04-05\"\n    home_team = \"New York Mets\"\n    away_team = \"Toronto Blue Jays\"\n\n    RESOLUTION_MAP = {\n        \"New York Mets\": \"p2\",\n        \"Toronto Blue Jays\": \"p1\",\n        \"50-50\": \"p3\",\n        \"Too early to resolve\": \"p4\"\n    }\n\n    if not api_key:\n        return \"recommendation: \" + RESOLUTION_MAP[\"Too early to resolve\"]\n\n    url = f\"https://api.sportsdata.io/v3/mlb/scores/json/GamesByDate/{game_date}?key={api_key}\"\n    try:\n        response = requests.get(url)\n        response.raise_for_status()\n        games = response.json()\n\n        for game in games:\n            if game['HomeTeam'] == home_team and game['AwayTeam'] == away_team:\n                if game['Status'] == \"Final\":\n                    if game['HomeTeamRuns'] > game['AwayTeamRuns']:\n                        return \"recommendation: \" + RESOLUTION_MAP[home_team]\n                    elif game['HomeTeamRuns'] < game['AwayTeamRuns']:\n                        return \"recommendation: \" + RESOLUTION_MAP[away_team]\n                elif game['Status'] == \"Postponed\":\n                    return \"recommendation: \" + RESOLUTION_MAP[\"Too early to resolve\"]\n                elif game['Status'] == \"Canceled\":\n                    return \"recommendation: \" + RESOLUTION_MAP[\"50-50\"]\n        return \"recommendation: \" + RESOLUTION_MAP[\"Too early to resolve\"]\n    except requests.RequestException as e:\n        print(f\"Error fetching data: {e}\")\n        return \"recommendation: \" + RESOLUTION_MAP[\"Too early to resolve\"]\n\nprint(resolve_mlb_game())",
+        "code_output": "recommendation: p4\n",
+        "response_metadata": {
+          "query_type": "sports_mlb",
+          "created_timestamp": 1743967138,
+          "created_datetime": "2025-04-06T19:18:58",
+          "api_response_time_seconds": 43.49374794960022,
+          "execution_successful": true,
+          "attempts": 1,
+          "attempts_info": []
+        }
+      },
+      "recommendation": "p4",
+      "response": "Code execution successful. Recommendation found: p4.\n\nOutput:\nrecommendation: p4\n",
+      "attempt": 1,
+      "execution_successful": true,
+      "overseer_result": {
+        "decision": {
+          "verdict": "DEFAULT_TO_P4",
+          "require_rerun": false,
+          "reason": "The response does not provide a definitive resolution based on the event outcome.",
+          "critique": "The code execution resulted in a recommendation of p4, indicating that it is too early to resolve the query. This is incorrect as the current timestamp indicates that the game date has passed. The code checks for API keys and attempts to fetch game data but does not successfully determine the game outcome. The logic to handle different game statuses (Final, Postponed, Canceled) is present, but there is no evidence that it was effectively executed or that the game data was correctly retrieved and processed. The response does not align with the provided market data, which strongly favors a New York Mets win.",
+          "market_alignment": "The recommendation does not align with market data, which indicates a strong favor towards a New York Mets outcome.",
+          "prompt_update": ""
+        },
+        "response": "```decision\n{\n  \"verdict\": \"DEFAULT_TO_P4\",\n  \"require_rerun\": false,\n  \"reason\": \"The response does not provide a definitive resolution based on the event outcome.\",\n  \"critique\": \"The code execution resulted in a recommendation of p4, indicating that it is too early to resolve the query. This is incorrect as the current timestamp indicates that the game date has passed. The code checks for API keys and attempts to fetch game data but does not successfully determine the game outcome. The logic to handle different game statuses (Final, Postponed, Canceled) is present, but there is no evidence that it was effectively executed or that the game data was correctly retrieved and processed. The response does not align with the provided market data, which strongly favors a New York Mets win.\",\n  \"market_alignment\": \"The recommendation does not align with market data, which indicates a strong favor towards a New York Mets outcome.\",\n  \"prompt_update\": \"\"\n}\n```"
+      }
+    },
+    {
+      "solver": "perplexity",
+      "solver_result": {
+        "recommendation": "p2",
+        "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the New York Mets vs. Toronto Blue Jays game on April 5, 2025. The ancillary data specifies that if the Mets win, it's p2; if the Blue Jays win, p1; postponed stays open, canceled is p3. \n\nFirst, I need to confirm the game's date and time. The query says April 5 at 7:10 PM ET. The current timestamp given is April 6, 2025, 19:18:09 UTC, which is 3:18 PM ET on April 6. So the game was scheduled for the previous day, April 5, which has already occurred. That means the event is in the past, so I don't need to check for postponement or cancellation unless there's info suggesting that.\n\nLooking at the search results, multiple sources (1, 6, 8, 9, 10, 11, 12, 13, 14) report that the Mets won 3-2. For example, source 8 from the AP states Lindor's walk-off sac fly led to the Mets' victory. Source 6 mentions Mets pitchers combined for 11 strikeouts and Lindor's sac fly. There's consistent reporting across different outlets like Fox Sports, YouTube highlights, and AP articles. \n\nI should check if any sources contradict this. All the provided search results align with the Mets winning. Also, the box score in source 1 shows the final score as Mets 3, Blue Jays 2. The game wasn't postponed or canceled, as per the detailed play-by-play in sources 2, 4, and 7. \n\nGeorge Springer's injury (source 9, 11) is noted but doesn't affect the game's outcome. The resolution conditions are clear: Mets win is p2. No sources indicate a different result. Therefore, the recommendation should be p2.\n</think>\n\nrecommendation: p2",
+        "solver": "perplexity",
+        "response_metadata": {
+          "model": "sonar-deep-research",
+          "created_timestamp": 1743967254,
+          "created_datetime": "2025-04-06T19:20:54",
+          "api_response_time_seconds": 94.19841432571411,
+          "completion_tokens": 420,
+          "prompt_tokens": 1063,
+          "total_tokens": 1483
+        }
+      },
+      "recommendation": "p2",
+      "response": "<think>\nOkay, let's tackle this query. The user wants to resolve a market based on the outcome of the New York Mets vs. Toronto Blue Jays game on April 5, 2025. The ancillary data specifies that if the Mets win, it's p2; if the Blue Jays win, p1; postponed stays open, canceled is p3. \n\nFirst, I need to confirm the game's date and time. The query says April 5 at 7:10 PM ET. The current timestamp given is April 6, 2025, 19:18:09 UTC, which is 3:18 PM ET on April 6. So the game was scheduled for the previous day, April 5, which has already occurred. That means the event is in the past, so I don't need to check for postponement or cancellation unless there's info suggesting that.\n\nLooking at the search results, multiple sources (1, 6, 8, 9, 10, 11, 12, 13, 14) report that the Mets won 3-2. For example, source 8 from the AP states Lindor's walk-off sac fly led to the Mets' victory. Source 6 mentions Mets pitchers combined for 11 strikeouts and Lindor's sac fly. There's consistent reporting across different outlets like Fox Sports, YouTube highlights, and AP articles. \n\nI should check if any sources contradict this. All the provided search results align with the Mets winning. Also, the box score in source 1 shows the final score as Mets 3, Blue Jays 2. The game wasn't postponed or canceled, as per the detailed play-by-play in sources 2, 4, and 7. \n\nGeorge Springer's injury (source 9, 11) is noted but doesn't affect the game's outcome. The resolution conditions are clear: Mets win is p2. No sources indicate a different result. Therefore, the recommendation should be p2.\n</think>\n\nrecommendation: p2",
+      "attempt": 1,
+      "execution_successful": true,
+      "overseer_result": {
+        "decision": {
+          "verdict": "SATISFIED",
+          "require_rerun": false,
+          "reason": "The response accurately reflects the outcome of the event and aligns with the resolution conditions provided.",
+          "critique": "The response from the perplexity solver is thorough and well-reasoned. It confirms the event's occurrence and outcome based on multiple reliable sources, including AP and Fox Sports, which report that the New York Mets won the game. The response effectively uses these sources to justify the recommendation of p2, corresponding to a Mets win, as outlined in the ancillary data. The solver also correctly identifies that the game was not postponed or canceled, which matches the conditions for resolution. There is no evidence of notable omissions or errors in the response.",
+          "market_alignment": "The recommendation aligns with market sentiment, as indicated by the Polymarket token prices, which strongly favor the New York Mets outcome.",
+          "prompt_update": ""
+        },
+        "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately reflects the outcome of the event and aligns with the resolution conditions provided.\",\n  \"critique\": \"The response from the perplexity solver is thorough and well-reasoned. It confirms the event's occurrence and outcome based on multiple reliable sources, including AP and Fox Sports, which report that the New York Mets won the game. The response effectively uses these sources to justify the recommendation of p2, corresponding to a Mets win, as outlined in the ancillary data. The solver also correctly identifies that the game was not postponed or canceled, which matches the conditions for resolution. There is no evidence of notable omissions or errors in the response.\",\n  \"market_alignment\": \"The recommendation aligns with market sentiment, as indicated by the Polymarket token prices, which strongly favor the New York Mets outcome.\",\n  \"prompt_update\": \"\"\n}\n```"
+      }
+    }
+  ],
+  "recommendation": "p2",
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg",
+  "condition_id": "0xdcfcbf9c9874da74f63125ac590a26f03e08274e50b90470a370c7d1e96cf851",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "proposed_price_outcome": "p2",
+  "resolved_price_outcome": "p2",
+  "tags": [
+    "Sports",
+    "MLB",
+    "Games"
+  ],
+  "end_date_iso": "2025-04-12T00:00:00Z",
+  "game_start_time": "2025-04-05T23:10:00Z",
+  "proposal_metadata": {
+    "query_id": "0x1e1d2cc52ccc05386024865ce54824450f0957396aa0d1b90036f8aaad10a686",
+    "transaction_hash": "0x4893f3a430594d1705a046b540048979c2b78f4072e7c82ed04261b98ff706b2",
+    "block_number": 69950010,
+    "request_transaction_block_time": 1743906160,
+    "ancillary_data": "q: title: New York Mets vs. Toronto Blue Jays, description: In the upcoming MLB game, scheduled for April 5 at 7:10PM ET:\nIf the New York Mets win, the market will resolve to \"New York Mets\".\nIf the Toronto Blue Jays win, the market will resolve to \"Toronto Blue Jays\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.",
+    "ancillary_data_hex": "0x713a207469746c653a204e657720596f726b204d6574732076732e20546f726f6e746f20426c7565204a6179732c206465736372697074696f6e3a20496e20746865207570636f6d696e67204d4c422067616d652c207363686564756c656420666f7220417072696c203520617420373a3130504d2045543a0a496620746865204e657720596f726b204d6574732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c4e657720596f726b204d657473e2809d2e0a49662074686520546f726f6e746f20426c7565204a6179732077696e2c20746865206d61726b65742077696c6c207265736f6c766520746f20e2809c546f726f6e746f20426c7565204a617973e2809d2e0a4966207468652067616d6520697320706f7374706f6e65642c2074686973206d61726b65742077696c6c2072656d61696e206f70656e20756e74696c207468652067616d6520686173206265656e20636f6d706c657465642e0a4966207468652067616d652069732063616e63656c656420656e746972656c792c2077697468206e6f206d616b652d75702067616d652c2074686973206d61726b65742077696c6c207265736f6c76652035302d35302e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f20546f726f6e746f20426c7565204a6179732c20703220746f204e657720596f726b204d6574732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a38613636373533356562343266393432313836633330653730633732343833363132653038353462",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Toronto Blue Jays, p2 to New York Mets, p3 to unknown/50-50.",
+    "proposed_price": 1000000000000000000,
+    "proposed_price_outcome": "p2",
+    "resolved_price": null,
+    "resolved_price_outcome": null,
+    "request_timestamp": 1743581013,
+    "expiration_timestamp": 1743913360,
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposer": "0x53692Dbf47fCE6Fb3d54fDEd6A4834be981F557c",
+    "bond_currency": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    "proposal_bond": 100000000,
+    "reward_amount": 2000000,
+    "updates": [],
+    "tags": [
+      "Sports",
+      "MLB",
+      "Games"
+    ],
+    "end_date_iso": "2025-04-12T00:00:00Z",
+    "game_start_time": "2025-04-05T23:10:00Z",
+    "tokens": [
+      {
+        "token_id": "103019511527475130516873852906291079939114943269791568394130815152922185053546",
+        "outcome": "New York Mets",
+        "price": 1,
+        "winner": true
+      },
+      {
+        "token_id": "47628918152561428942088867876753617701333784975167054843908318477186165502979",
+        "outcome": "Toronto Blue Jays",
+        "price": 0,
+        "winner": false
+      }
+    ],
+    "neg_risk_market_id": "",
+    "neg_risk_request_id": ""
+  },
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [],
+    "market_price_info": "The recommendation aligns with market sentiment, as indicated by the Polymarket token prices, which strongly favor the New York Mets outcome.",
+    "tokens": [],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p2",
+        "overseer_satisfaction_level": "satisfied",
+        "prompt_updated": false,
+        "critique": "The response from the perplexity solver is thorough and well-reasoned. It confirms the event's occurrence and outcome based on multiple reliable sources, including AP and Fox Sports, which report that the New York Mets won the game. The response effectively uses these sources to justify the recommendation of p2, corresponding to a Mets win, as outlined in the ancillary data. The solver also correctly identifies that the game was not postponed or canceled, which matches the conditions for resolution. There is no evidence of notable omissions or errors in the response.",
+        "system_prompt_before": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743967089 Current Date and Time: 2025-04-06 19:18:09 UTC",
+        "system_prompt_after": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743967089 Current Date and Time: 2025-04-06 19:18:09 UTC"
+      }
+    ]
+  }
+}

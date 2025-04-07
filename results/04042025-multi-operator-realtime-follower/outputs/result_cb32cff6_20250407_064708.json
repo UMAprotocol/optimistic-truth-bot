@@ -1,0 +1,150 @@
+{
+  "query_id": "0xcb32cff6c16ec809fd6862cd71bd291abd3af6bbcd3b8856571e4cec6a06de64",
+  "short_id": "cb32cff6",
+  "reason": "The response accurately checks the specified conditions and provides a correct recommendation based on the data.",
+  "market_alignment": "The recommendation aligns with market data, which shows a strong preference for the 'Yes' outcome with a confidence of 96.5%.",
+  "routing_attempts": 1,
+  "attempted_solvers": [
+    "code_runner"
+  ],
+  "user_prompt": "user:\n\nancillary_data:\nq: title: Will Bitcoin dip to $75k in April?, description: This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTCUSDT) between April 1, 2025, 00:00 and April 30, 2025, 23:59 in the ET timezone has a final \"Low\" price of $75,000 or lower. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTCUSDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTCUSDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1744008403 Current Date and Time: 2025-04-07 06:46:43 UTC",
+  "question_id_short": "cb32cff6",
+  "processed_file": "questionId_cb32cff6.json",
+  "timestamp": 1744008428.7174466,
+  "disputed": false,
+  "recommendation_overridden": false,
+  "router_result": {
+    "solvers": [
+      "code_runner"
+    ],
+    "reason": "The query specifically requires checking historical cryptocurrency prices from Binance for the BTCUSDT trading pair to determine if the price dipped to $75k or lower during April 2025. The code_runner is equipped to fetch this precise data from the Binance API, which is exactly the data source specified in the query.",
+    "multi_solver_strategy": "",
+    "response": "```decision\n{\n  \"solvers\": [\"code_runner\"],\n  \"reason\": \"The query specifically requires checking historical cryptocurrency prices from Binance for the BTCUSDT trading pair to determine if the price dipped to $75k or lower during April 2025. The code_runner is equipped to fetch this precise data from the Binance API, which is exactly the data source specified in the query.\"\n}\n```"
+  },
+  "solver_results": [
+    {
+      "solver": "code_runner",
+      "solver_result": {
+        "recommendation": "p2",
+        "response": "Code execution successful. Recommendation found: p2.\n\nOutput:\nrecommendation: p2\n",
+        "solver": "code_runner",
+        "code_file": "multi_operator/solvers/code_runner/executed_functions/crypto_20250407_064646.py",
+        "code": "import requests\nfrom datetime import datetime, timedelta\nimport pytz\nfrom dotenv import load_dotenv\nimport os\n\n# Load environment variables from .env file\nload_dotenv()\n\ndef check_btc_dip_to_75k():\n    \"\"\"\n    Checks if Bitcoin price on Binance dipped to $75,000 or lower in April 2025.\n    Uses the Binance API to fetch historical 1-minute candle data for the BTCUSDT pair.\n    \"\"\"\n    # Define the time period for the query\n    start_date = datetime(2025, 4, 1, 0, 0, 0, tzinfo=pytz.timezone(\"US/Eastern\"))\n    end_date = datetime(2025, 4, 30, 23, 59, 59, tzinfo=pytz.timezone(\"US/Eastern\"))\n    start_time_ms = int(start_date.timestamp() * 1000)\n    end_time_ms = int(end_date.timestamp() * 1000)\n\n    # Binance API endpoint for historical klines\n    url = \"https://api.binance.com/api/v3/klines\"\n    params = {\n        \"symbol\": \"BTCUSDT\",\n        \"interval\": \"1m\",\n        \"startTime\": start_time_ms,\n        \"endTime\": end_time_ms,\n        \"limit\": 1000  # Maximum limit per API call\n    }\n\n    try:\n        while True:\n            response = requests.get(url, params=params)\n            response.raise_for_status()\n            data = response.json()\n\n            if not data:\n                break\n\n            # Check if any candle's low price is $75,000 or lower\n            for candle in data:\n                low_price = float(candle[3])\n                if low_price <= 75000:\n                    return \"Yes\"\n\n            # Update startTime for the next batch of data\n            last_candle_time = int(data[-1][6])\n            params[\"startTime\"] = last_candle_time + 1\n\n            if last_candle_time >= end_time_ms:\n                break\n\n    except requests.RequestException as e:\n        print(f\"Error fetching data from Binance: {e}\")\n        return \"Error\"\n\n    return \"No\"\n\ndef main():\n    result = check_btc_dip_to_75k()\n    if result == \"Yes\":\n        print(\"recommendation: p2\")  # Yes, Bitcoin dipped to $75k or lower\n    elif result == \"No\":\n        print(\"recommendation: p1\")  # No, Bitcoin did not dip to $75k or lower\n    else:\n        print(\"recommendation: p3\")  # Unknown or error\n\nif __name__ == \"__main__\":\n    main()",
+        "code_output": "recommendation: p2\n",
+        "response_metadata": {
+          "query_type": "crypto",
+          "created_timestamp": 1744008422,
+          "created_datetime": "2025-04-07T06:47:02",
+          "api_response_time_seconds": 15.274296760559082,
+          "execution_successful": true,
+          "attempts": 1,
+          "attempts_info": []
+        }
+      },
+      "recommendation": "p2",
+      "response": "Code execution successful. Recommendation found: p2.\n\nOutput:\nrecommendation: p2\n",
+      "attempt": 1,
+      "execution_successful": true,
+      "overseer_result": {
+        "decision": {
+          "verdict": "SATISFIED",
+          "require_rerun": false,
+          "reason": "The response accurately checks the specified conditions and provides a correct recommendation based on the data.",
+          "critique": "The code provided by the solver effectively queries the Binance API for the BTCUSDT pair's 1-minute candle data within the specified date range. It correctly checks for any instance where the 'Low' price hits $75,000 or lower and returns a recommendation based on this check. The logic for handling API responses, including error handling and pagination of data, is appropriate and ensures comprehensive data coverage. The mapping of outcomes to recommendation codes is correctly implemented. The response also aligns with the market sentiment, which strongly favors a 'Yes' outcome.",
+          "market_alignment": "The recommendation aligns with market data, which shows a strong preference for the 'Yes' outcome with a confidence of 96.5%.",
+          "prompt_update": ""
+        },
+        "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately checks the specified conditions and provides a correct recommendation based on the data.\",\n  \"critique\": \"The code provided by the solver effectively queries the Binance API for the BTCUSDT pair's 1-minute candle data within the specified date range. It correctly checks for any instance where the 'Low' price hits $75,000 or lower and returns a recommendation based on this check. The logic for handling API responses, including error handling and pagination of data, is appropriate and ensures comprehensive data coverage. The mapping of outcomes to recommendation codes is correctly implemented. The response also aligns with the market sentiment, which strongly favors a 'Yes' outcome.\",\n  \"market_alignment\": \"The recommendation aligns with market data, which shows a strong preference for the 'Yes' outcome with a confidence of 96.5%.\",\n  \"prompt_update\": \"\"\n}\n```"
+      }
+    }
+  ],
+  "overseer_result": {
+    "decision": {
+      "verdict": "SATISFIED",
+      "require_rerun": false,
+      "reason": "The response accurately checks the specified conditions and provides a correct recommendation based on the data.",
+      "critique": "The code provided by the solver effectively queries the Binance API for the BTCUSDT pair's 1-minute candle data within the specified date range. It correctly checks for any instance where the 'Low' price hits $75,000 or lower and returns a recommendation based on this check. The logic for handling API responses, including error handling and pagination of data, is appropriate and ensures comprehensive data coverage. The mapping of outcomes to recommendation codes is correctly implemented. The response also aligns with the market sentiment, which strongly favors a 'Yes' outcome.",
+      "market_alignment": "The recommendation aligns with market data, which shows a strong preference for the 'Yes' outcome with a confidence of 96.5%.",
+      "prompt_update": ""
+    },
+    "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately checks the specified conditions and provides a correct recommendation based on the data.\",\n  \"critique\": \"The code provided by the solver effectively queries the Binance API for the BTCUSDT pair's 1-minute candle data within the specified date range. It correctly checks for any instance where the 'Low' price hits $75,000 or lower and returns a recommendation based on this check. The logic for handling API responses, including error handling and pagination of data, is appropriate and ensures comprehensive data coverage. The mapping of outcomes to recommendation codes is correctly implemented. The response also aligns with the market sentiment, which strongly favors a 'Yes' outcome.\",\n  \"market_alignment\": \"The recommendation aligns with market data, which shows a strong preference for the 'Yes' outcome with a confidence of 96.5%.\",\n  \"prompt_update\": \"\"\n}\n```"
+  },
+  "recommendation": "p2",
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/bitcoin+colors.jpeg",
+  "condition_id": "0x2dded342861dd48b5a239c51a9b7b1cfee20cb1641c875eec3388807cea843b8",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "proposed_price_outcome": "p2",
+  "resolved_price_outcome": "p2",
+  "tags": [
+    "Crypto",
+    "Bitcoin",
+    "Crypto Prices",
+    "Recurring"
+  ],
+  "end_date_iso": "2025-04-30T00:00:00Z",
+  "game_start_time": null,
+  "proposal_metadata": {
+    "query_id": "0xcb32cff6c16ec809fd6862cd71bd291abd3af6bbcd3b8856571e4cec6a06de64",
+    "transaction_hash": "0xb8efb91b8a5c80b85165e2a3b2f726910e0b00a345ae32abf55319d990ada81e",
+    "block_number": 69997822,
+    "request_transaction_block_time": 1744008365,
+    "ancillary_data": "q: title: Will Bitcoin dip to $75k in April?, description: This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTCUSDT) between April 1, 2025, 00:00 and April 30, 2025, 23:59 in the ET timezone has a final \"Low\" price of $75,000 or lower. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTCUSDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTCUSDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.",
+    "ancillary_data_hex": "0x713a207469746c653a2057696c6c20426974636f696e2064697020746f202437356b20696e20417072696c3f2c206465736372697074696f6e3a2054686973206d61726b65742077696c6c20696d6d6564696174656c79207265736f6c766520746f20225965732220696620616e792042696e616e63652031206d696e7574652063616e646c6520666f7220426974636f696e20284254435553445429206265747765656e20417072696c20312c20323032352c2030303a303020616e6420417072696c2033302c20323032352c2032333a353920696e207468652045542074696d657a6f6e652068617320612066696e616c20224c6f7722207072696365206f66202437352c303030206f72206c6f7765722e204f74686572776973652c2074686973206d61726b65742077696c6c207265736f6c766520746f20224e6f2e220a0a546865207265736f6c7574696f6e20736f7572636520666f722074686973206d61726b65742069732042696e616e63652c207370656369666963616c6c7920746865204254435553445420224c6f77222070726963657320617661696c61626c652061742068747470733a2f2f7777772e62696e616e63652e636f6d2f656e2f74726164652f4254435f555344542c2077697468207468652063686172742073657474696e6773206f6e2022316d2220666f72206f6e652d6d696e7574652063616e646c65732073656c6563746564206f6e2074686520746f70206261722e0a0a506c65617365206e6f7465207468617420746865206f7574636f6d65206f662074686973206d61726b657420646570656e647320736f6c656c79206f6e2074686520707269636520646174612066726f6d207468652042696e616e636520425443555344542074726164696e6720706169722e205072696365732066726f6d206f746865722065786368616e6765732c20646966666572656e742074726164696e672070616972732c206f722073706f74206d61726b6574732077696c6c206e6f7420626520636f6e7369646572656420666f7220746865207265736f6c7574696f6e206f662074686973206d61726b65742e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204e6f2c20703220746f205965732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a39313433306361643264333937353736363439393731376661306436366137386438313465356335",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.",
+    "proposed_price": 1000000000000000000,
+    "proposed_price_outcome": "p2",
+    "resolved_price": null,
+    "resolved_price_outcome": null,
+    "request_timestamp": 1743465787,
+    "expiration_timestamp": 1744015565,
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposer": "0xcf12F5b99605CB299Fb11d5EfF4fB304De008d02",
+    "bond_currency": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    "proposal_bond": 500000000,
+    "reward_amount": 5000000,
+    "updates": [],
+    "tags": [
+      "Crypto",
+      "Bitcoin",
+      "Crypto Prices",
+      "Recurring"
+    ],
+    "end_date_iso": "2025-04-30T00:00:00Z",
+    "game_start_time": null,
+    "tokens": [
+      {
+        "token_id": "45693261482357312850117814534660612122154813346306357672637727226880855179825",
+        "outcome": "Yes",
+        "price": 0.9655,
+        "winner": false
+      },
+      {
+        "token_id": "94914803835916666897113351793578821029532008229413144729049079041265302720624",
+        "outcome": "No",
+        "price": 0.0345,
+        "winner": false
+      }
+    ],
+    "neg_risk_market_id": "",
+    "neg_risk_request_id": ""
+  },
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [],
+    "market_price_info": "The recommendation aligns with market data, which shows a strong preference for the 'Yes' outcome with a confidence of 96.5%.",
+    "tokens": [],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p2",
+        "overseer_satisfaction_level": "satisfied",
+        "prompt_updated": false,
+        "critique": "The code provided by the solver effectively queries the Binance API for the BTCUSDT pair's 1-minute candle data within the specified date range. It correctly checks for any instance where the 'Low' price hits $75,000 or lower and returns a recommendation based on this check. The logic for handling API responses, including error handling and pagination of data, is appropriate and ensures comprehensive data coverage. The mapping of outcomes to recommendation codes is correctly implemented. The response also aligns with the market sentiment, which strongly favors a 'Yes' outcome.",
+        "system_prompt_before": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1744008403 Current Date and Time: 2025-04-07 06:46:43 UTC",
+        "system_prompt_after": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1744008403 Current Date and Time: 2025-04-07 06:46:43 UTC"
+      }
+    ]
+  }
+}

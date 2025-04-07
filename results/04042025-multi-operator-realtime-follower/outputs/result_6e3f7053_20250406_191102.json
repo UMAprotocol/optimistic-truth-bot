@@ -1,0 +1,147 @@
+{
+  "query_id": "0x6e3f7053b15f4c25e38e95cc1914d5b27ebcb959230cf6574c3734cb06b6a7bf",
+  "short_id": "6e3f7053",
+  "reason": "The response accurately reflects the outcome of the event and provides a clear recommendation based on the specified conditions.",
+  "market_alignment": "The recommendation aligns with market sentiment, as indicated by the Polymarket prices, which strongly favor the 'No' outcome.",
+  "routing_attempts": 1,
+  "attempted_solvers": [
+    "perplexity"
+  ],
+  "user_prompt": "user:\n\nancillary_data:\nq: title: Will Duke win by 6+ points against Houston?, description: This market refers to the CBB game between Duke and Houston scheduled for April 5, 8:49 PM ET.\n\nThis market will resolve to \"Yes\" if Duke wins against Houston by 5.5 or more points. Otherwise, this market will resolve to \"No\".\n\nIf this game is cancelled, or postponed past April 15, this market will resolve to \"No\".\n\nThe resolution source will be https://www.ncaa.com/\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.\n\n",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743966598 Current Date and Time: 2025-04-06 19:09:58 UTC",
+  "question_id_short": "6e3f7053",
+  "processed_file": "questionId_6e3f7053.json",
+  "timestamp": 1743966662.063948,
+  "disputed": false,
+  "recommendation_overridden": false,
+  "router_result": {
+    "solvers": [
+      "perplexity"
+    ],
+    "reason": "The question involves predicting the outcome of a future college basketball game between Duke and Houston, which is not covered by the specific APIs available to code_runner. Perplexity is better suited for this task as it can provide general information, historical context about the teams, and interpret complex information related to sports predictions, even though it cannot predict future events directly.",
+    "multi_solver_strategy": "",
+    "response": "```decision\n{\n  \"solvers\": [\"perplexity\"],\n  \"reason\": \"The question involves predicting the outcome of a future college basketball game between Duke and Houston, which is not covered by the specific APIs available to code_runner. Perplexity is better suited for this task as it can provide general information, historical context about the teams, and interpret complex information related to sports predictions, even though it cannot predict future events directly.\"\n}\n```"
+  },
+  "solver_results": [
+    {
+      "solver": "perplexity",
+      "solver_result": {
+        "recommendation": "p1",
+        "response": "<think>\nOkay, let's tackle this query. The user is asking if Duke will win by 6+ points against Houston in their game on April 5th. The resolution conditions are clear: \"Yes\" (p2) if Duke wins by 5.5 or more, \"No\" (p1) otherwise. The event date is in the past (April 5, 2025), so I need to check the outcome.\n\nLooking at the search results, multiple sources [1][2][4][5][7][9][10][11][12] report that Houston won the game 70-67. That's a 3-point victory. Since Duke lost by 3, they didn't cover the 5.5-point spread. Therefore, the market should resolve to \"No\" (p1). All sources confirm the final score, so there's no ambiguity. The answer is p1.\n</think>\n\nrecommendation: p1",
+        "solver": "perplexity",
+        "response_metadata": {
+          "model": "sonar-deep-research",
+          "created_timestamp": 1743966652,
+          "created_datetime": "2025-04-06T19:10:52",
+          "api_response_time_seconds": 50.69805073738098,
+          "completion_tokens": 197,
+          "prompt_tokens": 1059,
+          "total_tokens": 1256
+        }
+      },
+      "recommendation": "p1",
+      "response": "<think>\nOkay, let's tackle this query. The user is asking if Duke will win by 6+ points against Houston in their game on April 5th. The resolution conditions are clear: \"Yes\" (p2) if Duke wins by 5.5 or more, \"No\" (p1) otherwise. The event date is in the past (April 5, 2025), so I need to check the outcome.\n\nLooking at the search results, multiple sources [1][2][4][5][7][9][10][11][12] report that Houston won the game 70-67. That's a 3-point victory. Since Duke lost by 3, they didn't cover the 5.5-point spread. Therefore, the market should resolve to \"No\" (p1). All sources confirm the final score, so there's no ambiguity. The answer is p1.\n</think>\n\nrecommendation: p1",
+      "attempt": 1,
+      "execution_successful": true,
+      "overseer_result": {
+        "decision": {
+          "verdict": "SATISFIED",
+          "require_rerun": false,
+          "reason": "The response accurately reflects the outcome of the event and provides a clear recommendation based on the specified conditions.",
+          "critique": "The response from the perplexity solver is thorough and aligns well with the requirements of the query. It correctly identifies the outcome of the Duke vs. Houston game, verifies it with multiple sources, and makes a recommendation based on the event's result relative to the specified conditions. The response effectively uses the provided resolution source and adheres to the ancillary data conditions. There are no notable omissions or errors, and the response addresses all aspects of the query.",
+          "market_alignment": "The recommendation aligns with market sentiment, as indicated by the Polymarket prices, which strongly favor the 'No' outcome.",
+          "prompt_update": ""
+        },
+        "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately reflects the outcome of the event and provides a clear recommendation based on the specified conditions.\",\n  \"critique\": \"The response from the perplexity solver is thorough and aligns well with the requirements of the query. It correctly identifies the outcome of the Duke vs. Houston game, verifies it with multiple sources, and makes a recommendation based on the event's result relative to the specified conditions. The response effectively uses the provided resolution source and adheres to the ancillary data conditions. There are no notable omissions or errors, and the response addresses all aspects of the query.\",\n  \"market_alignment\": \"The recommendation aligns with market sentiment, as indicated by the Polymarket prices, which strongly favor the 'No' outcome.\",\n  \"prompt_update\": \"\"\n}\n```"
+      }
+    }
+  ],
+  "overseer_result": {
+    "decision": {
+      "verdict": "SATISFIED",
+      "require_rerun": false,
+      "reason": "The response accurately reflects the outcome of the event and provides a clear recommendation based on the specified conditions.",
+      "critique": "The response from the perplexity solver is thorough and aligns well with the requirements of the query. It correctly identifies the outcome of the Duke vs. Houston game, verifies it with multiple sources, and makes a recommendation based on the event's result relative to the specified conditions. The response effectively uses the provided resolution source and adheres to the ancillary data conditions. There are no notable omissions or errors, and the response addresses all aspects of the query.",
+      "market_alignment": "The recommendation aligns with market sentiment, as indicated by the Polymarket prices, which strongly favor the 'No' outcome.",
+      "prompt_update": ""
+    },
+    "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response accurately reflects the outcome of the event and provides a clear recommendation based on the specified conditions.\",\n  \"critique\": \"The response from the perplexity solver is thorough and aligns well with the requirements of the query. It correctly identifies the outcome of the Duke vs. Houston game, verifies it with multiple sources, and makes a recommendation based on the event's result relative to the specified conditions. The response effectively uses the provided resolution source and adheres to the ancillary data conditions. There are no notable omissions or errors, and the response addresses all aspects of the query.\",\n  \"market_alignment\": \"The recommendation aligns with market sentiment, as indicated by the Polymarket prices, which strongly favor the 'No' outcome.\",\n  \"prompt_update\": \"\"\n}\n```"
+  },
+  "recommendation": "p1",
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-duke-win-by-6-points-against-houston-sGB3mmsXkGRP.png",
+  "condition_id": "0x3d46cbdad697251b7760417e331c7c9ac5b344272156623b1c550bc3bd0c645f",
+  "proposed_price": 0,
+  "resolved_price": 0,
+  "proposed_price_outcome": "p1",
+  "resolved_price_outcome": "p1",
+  "tags": [
+    "Sports",
+    "March Madness",
+    "NCAA",
+    "Final 4"
+  ],
+  "end_date_iso": "2025-04-06T00:00:00Z",
+  "game_start_time": null,
+  "proposal_metadata": {
+    "query_id": "0x6e3f7053b15f4c25e38e95cc1914d5b27ebcb959230cf6574c3734cb06b6a7bf",
+    "transaction_hash": "0x8f0b68e553c6c0a498ed425300ada9c5daf7c40639260d6b555b186da00458de",
+    "block_number": 69952525,
+    "request_transaction_block_time": 1743911512,
+    "ancillary_data": "q: title: Will Duke win by 6+ points against Houston?, description: This market refers to the CBB game between Duke and Houston scheduled for April 5, 8:49 PM ET.\n\nThis market will resolve to \"Yes\" if Duke wins against Houston by 5.5 or more points. Otherwise, this market will resolve to \"No\".\n\nIf this game is cancelled, or postponed past April 15, this market will resolve to \"No\".\n\nThe resolution source will be https://www.ncaa.com/",
+    "ancillary_data_hex": "0x713a207469746c653a2057696c6c2044756b652077696e20627920362b20706f696e747320616761696e737420486f7573746f6e3f2c206465736372697074696f6e3a2054686973206d61726b65742072656665727320746f20746865204342422067616d65206265747765656e2044756b6520616e6420486f7573746f6e207363686564756c656420666f7220417072696c20352c20383a343920504d2045542e0a0a54686973206d61726b65742077696c6c207265736f6c766520746f2022596573222069662044756b652077696e7320616761696e737420486f7573746f6e20627920352e35206f72206d6f726520706f696e74732e204f74686572776973652c2074686973206d61726b65742077696c6c207265736f6c766520746f20224e6f222e0a0a496620746869732067616d652069732063616e63656c6c65642c206f7220706f7374706f6e6564207061737420417072696c2031352c2074686973206d61726b65742077696c6c207265736f6c766520746f20224e6f222e0a0a546865207265736f6c7574696f6e20736f757263652077696c6c2062652068747470733a2f2f7777772e6e6361612e636f6d2f207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204e6f2c20703220746f205965732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a39313433306361643264333937353736363439393731376661306436366137386438313465356335",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.",
+    "proposed_price": 0,
+    "proposed_price_outcome": "p1",
+    "resolved_price": null,
+    "resolved_price_outcome": null,
+    "request_timestamp": 1743531893,
+    "expiration_timestamp": 1743918712,
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposer": "0xcf12F5b99605CB299Fb11d5EfF4fB304De008d02",
+    "bond_currency": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    "proposal_bond": 500000000,
+    "reward_amount": 5000000,
+    "updates": [],
+    "tags": [
+      "Sports",
+      "March Madness",
+      "NCAA",
+      "Final 4"
+    ],
+    "end_date_iso": "2025-04-06T00:00:00Z",
+    "game_start_time": null,
+    "tokens": [
+      {
+        "token_id": "75540547739254885106413751615563796389525187750737108981785651107253990696552",
+        "outcome": "Yes",
+        "price": 0,
+        "winner": false
+      },
+      {
+        "token_id": "104773769250963585884102798520927415132064971212699523715235989554301534983864",
+        "outcome": "No",
+        "price": 1,
+        "winner": true
+      }
+    ],
+    "neg_risk_market_id": "",
+    "neg_risk_request_id": ""
+  },
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [],
+    "market_price_info": "The recommendation aligns with market sentiment, as indicated by the Polymarket prices, which strongly favor the 'No' outcome.",
+    "tokens": [],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p1",
+        "overseer_satisfaction_level": "satisfied",
+        "prompt_updated": false,
+        "critique": "The response from the perplexity solver is thorough and aligns well with the requirements of the query. It correctly identifies the outcome of the Duke vs. Houston game, verifies it with multiple sources, and makes a recommendation based on the event's result relative to the specified conditions. The response effectively uses the provided resolution source and adheres to the ancillary data conditions. There are no notable omissions or errors, and the response addresses all aspects of the query.",
+        "system_prompt_before": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743966598 Current Date and Time: 2025-04-06 19:09:58 UTC",
+        "system_prompt_after": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1743966598 Current Date and Time: 2025-04-06 19:09:58 UTC"
+      }
+    ]
+  }
+}
