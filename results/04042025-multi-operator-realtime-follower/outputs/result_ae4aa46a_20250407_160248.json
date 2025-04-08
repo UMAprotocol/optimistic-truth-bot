@@ -74,9 +74,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/bitcoin-up-or-down-on-april-1-kgpxpV7H_bO-.jpg",
   "condition_id": "0xa37892ebf9904cd1579f1fb4a2a43fb9d67b0a0b0e2b698235dbb8cc1ea4f84f",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "proposed_price_outcome": "p1",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p1",
   "tags": [
     "Crypto",
     "Bitcoin",
