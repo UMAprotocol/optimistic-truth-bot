@@ -1158,6 +1158,7 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
 async function loadActiveProcesses() {
     try {
         const response = await fetch('/api/processes');
+        
         if (response.ok) {
             const processes = await response.json();
             
@@ -1203,8 +1204,16 @@ async function loadActiveProcesses() {
             if (shouldUpdateHistoryTable) {
                 updateCommandHistoryTable();
             }
+        } else if (response.status === 403) {
+            // 403 Forbidden response is expected when experiment runner is disabled
+            // Set empty processes array and update UI
+            activeProcesses = [];
+            updateProcessesTable();
+            
+            // Don't log as error to avoid console spam
+            console.log('Process management disabled on this server');
         } else {
-            console.error('Failed to load processes');
+            console.error('Failed to load processes:', response.status, response.statusText);
         }
     } catch (error) {
         console.error('Error loading processes:', error);
@@ -1501,12 +1510,22 @@ function initializeCharts() {
             resolutionChart = null;
         }
         
+        // Get chart elements and check if they exist before setting properties
+        const recommendationChartEl = document.getElementById('recommendationChart');
+        const resolutionChartEl = document.getElementById('resolutionChart');
+        
+        // Only proceed if the chart elements exist
+        if (!recommendationChartEl || !resolutionChartEl) {
+            console.warn('Chart elements not found in the DOM, skipping chart initialization');
+            return;
+        }
+        
         // Set fixed height to prevent excessive resizing
-        document.getElementById('recommendationChart').height = 200;
-        document.getElementById('resolutionChart').height = 200;
+        recommendationChartEl.height = 200;
+        resolutionChartEl.height = 200;
         
         // Initialize recommendation chart
-        const recommendationChartCtx = document.getElementById('recommendationChart').getContext('2d');
+        const recommendationChartCtx = recommendationChartEl.getContext('2d');
         recommendationChart = new Chart(recommendationChartCtx, {
             type: 'pie',
             data: {
@@ -1550,7 +1569,7 @@ function initializeCharts() {
         });
         
         // Initialize resolution chart
-        const resolutionChartCtx = document.getElementById('resolutionChart').getContext('2d');
+        const resolutionChartCtx = resolutionChartEl.getContext('2d');
         resolutionChart = new Chart(resolutionChartCtx, {
             type: 'pie',
             data: {
@@ -2467,7 +2486,14 @@ async function loadExperimentData(directory, source) {
                 analyticsTabs.style.display = 'none';
             }
             
+            // Store the original content for later restoration
             if (analyticsTabContent) {
+                // Save the original content if not already saved
+                if (!analyticsTabContent.hasAttribute('data-original-content')) {
+                    analyticsTabContent.setAttribute('data-original-content', analyticsTabContent.innerHTML);
+                }
+                
+                // Show loading indicator
                 analyticsTabContent.innerHTML = `
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary mb-3" role="status">
@@ -2495,8 +2521,8 @@ async function loadExperimentData(directory, source) {
             resultsTableTitle.textContent = `${currentExperiment.title || directory} Results`;
         }
         
-        // Initialize charts for this experiment
-        initializeCharts();
+        // REMOVED: Initialize charts for this experiment BEFORE data loading
+        // initializeCharts();
         
         // Check the source of the experiment data
         const isMongoDBSource = source === 'mongodb' || 
@@ -2797,6 +2823,12 @@ async function loadExperimentData(directory, source) {
                 if (analyticsTabs) {
                     analyticsTabs.style.display = 'flex';
                 }
+                
+                // Restore the original analytics tab content structure
+                const analyticsTabContent = document.getElementById('analyticsTabContent');
+                if (analyticsTabContent && analyticsTabContent.hasAttribute('data-original-content')) {
+                    analyticsTabContent.innerHTML = analyticsTabContent.getAttribute('data-original-content');
+                }
             }
             
             document.getElementById('filterControls').style.display = 'flex';
@@ -2809,6 +2841,9 @@ async function loadExperimentData(directory, source) {
             
             // Apply the current filter
             applyTableFilter(currentFilter);
+            
+            // ADDED: Initialize charts AFTER the analytics tabs are shown
+            initializeCharts();
             
             // Calculate and display analytics
             const analytics = calculateAnalytics(currentData);
@@ -4554,6 +4589,11 @@ function updateTagAccuracyDisplay(tagStats) {
     
     if (!tagAccuracyTableBody || !tagsTab) return;
     
+    // Ensure tagStats is an object
+    if (!tagStats || typeof tagStats !== 'object') {
+        tagStats = {};
+    }
+    
     // Only enable tag tab if we have tag stats
     const tagCount = Object.keys(tagStats).length;
     if (tagCount === 0) {
@@ -4584,20 +4624,41 @@ function updateTagAccuracyDisplay(tagStats) {
     
     // Create rows for each tag
     tagAccuracyTableBody.innerHTML = sortedTags.map(tag => {
-        const stats = tagStats[tag];
-        const accuracyClass = stats.accuracyPercent >= 80 ? 'high-accuracy' : 
-                             (stats.accuracyPercent >= 50 ? 'medium-accuracy' : 'low-accuracy');
+        const stats = tagStats[tag] || { total: 0, correct: 0, incorrect: 0, accuracyPercent: 0 };
+        
+        // Ensure we have valid numbers
+        const total = stats.total || 0;
+        const correct = stats.correct || 0;
+        const incorrect = stats.incorrect || 0;
+        
+        // Recalculate accuracy to ensure it's correct
+        const accuracyPercent = total > 0 ? (correct / total) * 100 : 0;
+        
+        const accuracyClass = accuracyPercent >= 80 ? 'high-accuracy' : 
+                             (accuracyPercent >= 50 ? 'medium-accuracy' : 'low-accuracy');
         
         return `
             <tr>
                 <td><span class="tag-badge">${tag}</span></td>
-                <td>${stats.total}</td>
-                <td class="accuracy-cell ${accuracyClass}">${stats.accuracyPercent.toFixed(1)}%</td>
-                <td>${stats.correct}</td>
-                <td>${stats.incorrect}</td>
+                <td>${total}</td>
+                <td class="accuracy-cell ${accuracyClass}">${accuracyPercent.toFixed(1)}%</td>
+                <td>${correct}</td>
+                <td>${incorrect}</td>
             </tr>
         `;
     }).join('');
+    
+    // Add click handler to show the tag tab when clicking on a tag badge in the UI
+    document.querySelectorAll('.tag-badge').forEach(badge => {
+        badge.style.cursor = 'pointer';
+        badge.title = 'View tag accuracy statistics';
+        
+        badge.addEventListener('click', (event) => {
+            event.stopPropagation();
+            // Switch to the tags tab
+            document.getElementById('tags-tab')?.click();
+        });
+    });
 }
 
 // Format stage names for better readability

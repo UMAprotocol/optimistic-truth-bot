@@ -185,3 +185,59 @@ The Multi-Operator output format maintains backward compatibility with the previ
 3. `transaction_hash` must be in `proposal_metadata` only 
 4. Fields like tags, prices, etc. are duplicated at both levels for compatibility
 5. The `recommendation` field must contain the final p1/p2/p3/p4 value, not the overseer verdict 
+
+## API Key Configuration
+
+The Multi-Operator system now supports providing multiple API keys for the Code Runner solver to use when generating and executing code. This enables the system to access a wider range of data sources and APIs.
+
+### Configuration Options
+
+You can configure API keys in two ways:
+
+1. **Configuration File**: You can create a JSON or .env-style configuration file that contains API keys. For example:
+
+   **JSON format (api_keys.json)**:
+   ```json
+   {
+     "api_keys": {
+       "SPORTS_DATA_IO_MLB_API_KEY": "your-mlb-api-key",
+       "SPORTS_DATA_IO_NBA_API_KEY": "your-nba-api-key",
+       "SPORTS_DATA_IO_NFL_API_KEY": "your-nfl-api-key",
+       "WEATHER_API_KEY": "your-weather-api-key"
+     }
+   }
+   ```
+
+   **OR .env-style format (api_keys.env)**:
+   ```
+   SPORTS_DATA_IO_MLB_API_KEY=your-mlb-api-key
+   SPORTS_DATA_IO_NBA_API_KEY=your-nba-api-key
+   SPORTS_DATA_IO_NFL_API_KEY=your-nfl-api-key
+   WEATHER_API_KEY=your-weather-api-key
+   ```
+
+2. **Environment Variables**: The system will also look for API keys in environment variables.
+
+### Running with API Key Configuration
+
+To run the proposal processor with your API key configuration:
+
+```bash
+python run_processor.py --api-keys-config path/to/your/api_keys.json
+```
+
+or
+
+```bash
+python run_processor.py --api-keys-config path/to/your/api_keys.env
+```
+
+### Naming Conventions
+
+For API keys, follow these naming conventions for automatic recognition:
+
+- Sports Data IO API keys should follow the pattern: `SPORTS_DATA_IO_[LEAGUE]_API_KEY`
+  - Examples: `SPORTS_DATA_IO_MLB_API_KEY`, `SPORTS_DATA_IO_NFL_API_KEY`, `SPORTS_DATA_IO_NBA_API_KEY`
+- Other API keys should use descriptive names like `WEATHER_API_KEY`, `NEWS_API_KEY`, etc.
+
+The Code Runner will detect the purpose of each API key based on its name and make it available to the generated code. 

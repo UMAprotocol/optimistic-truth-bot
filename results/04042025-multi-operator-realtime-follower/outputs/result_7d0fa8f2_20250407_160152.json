@@ -74,9 +74,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/ethereum-up-or-down-on-april-1-22HYPyE9QF5B.jpg",
   "condition_id": "0x5fe89d939fe9dff25fb9439f784a94b95d4c95893b58515974ee95eda26a30eb",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "proposed_price_outcome": "p1",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p1",
   "tags": [
     "Crypto",
     "Ethereum",

@@ -52,6 +52,7 @@ class MultiOperatorProcessor:
         start_block_number=0,
         poll_interval=30,
         verbose=False,
+        api_keys_config=None,
     ):
         """
         Initialize the processor.
@@ -64,15 +65,20 @@ class MultiOperatorProcessor:
             start_block_number: Block number to start processing from
             poll_interval: Interval in seconds to poll for new proposals
             verbose: Whether to print verbose output
+            api_keys_config: Path to a configuration file containing API keys for code runner
         """
         # Load environment variables
         load_dotenv()
         self.verbose = verbose
+        self.api_keys_config = api_keys_config
 
         # Set up logging
         self.logger = setup_logging(
             "multi_operator_processor", "logs/multi_operator_processor.log"
         )
+
+        # Initialize logging state variables
+        self._last_scan_log_hour = datetime.now().hour
 
         # Verify API keys
         self.perplexity_api_key = os.getenv("PERPLEXITY_API_KEY")
@@ -200,7 +206,9 @@ class MultiOperatorProcessor:
                 api_key=self.perplexity_api_key, verbose=self.verbose
             ),
             "code_runner": CodeRunnerSolver(
-                api_key=self.openai_api_key, verbose=self.verbose
+                api_key=self.openai_api_key,
+                verbose=self.verbose,
+                config_file=self.api_keys_config,
             ),
         }
         self.logger.info(f"Initialized {len(self.solvers)} solvers")
@@ -802,9 +810,8 @@ SUMMARY:
 
                 # Add timestamp to scan log message only once per hour when no proposals are found
                 current_hour = datetime.now().hour
-                if (
-                    not new_proposals
-                    and not hasattr(self, "_last_scan_log_hour")
+                if not new_proposals and (
+                    not hasattr(self, "_last_scan_log_hour")
                     or self._last_scan_log_hour != current_hour
                 ):
                     self._last_scan_log_hour = current_hour
@@ -1140,11 +1147,18 @@ def main():
         action="store_true",
         help="Enable verbose output with detailed logs",
     )
+    parser.add_argument(
+        "--api-keys-config",
+        type=str,
+        help="Path to a configuration file containing API keys for code runner",
+    )
 
     args = parser.parse_args()
 
     print(f"🤖 UMA Multi-Operator Proposal Processor 🤖")
     print(f"Monitoring directory: {args.proposals_dir}")
+    if args.api_keys_config:
+        print(f"Using API keys config: {args.api_keys_config}")
 
     processor = MultiOperatorProcessor(
         proposals_dir=args.proposals_dir,
@@ -1154,6 +1168,7 @@ def main():
         start_block_number=args.start_block,
         poll_interval=args.poll_interval,
         verbose=args.verbose,
+        api_keys_config=args.api_keys_config,
     )
 
     processor.run()

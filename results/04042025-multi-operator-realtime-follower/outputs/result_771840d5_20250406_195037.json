@@ -71,9 +71,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-issue-an-executive-order-on-february-14-IRIODX3MAqwP.jpg",
   "condition_id": "0xb030d9cb4bfc8073cbc3db356cdf3f00b02c07477774476bcef6fa6d08e42298",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": -57896044618658097711785492504343953926634992332820282019728792003956564819968,
   "proposed_price_outcome": "p1",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p4",
   "tags": [
     "Politics",
     "Trump",

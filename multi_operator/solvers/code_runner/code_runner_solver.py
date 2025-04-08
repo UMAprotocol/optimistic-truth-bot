@@ -24,7 +24,14 @@ class CodeRunnerSolver(BaseSolver):
     Uses ChatGPT to generate and execute code for solving prediction market questions.
     """
 
-    def __init__(self, api_key: str, verbose: bool = False, max_retries: int = 3):
+    def __init__(
+        self,
+        api_key: str,
+        verbose: bool = False,
+        max_retries: int = 3,
+        additional_api_keys: Dict[str, str] = None,
+        config_file: str = None,
+    ):
         """
         Initialize the Code Runner solver.
 
@@ -32,6 +39,8 @@ class CodeRunnerSolver(BaseSolver):
             api_key: OpenAI API key for ChatGPT
             verbose: Whether to print verbose output
             max_retries: Maximum number of retries for code generation and execution
+            additional_api_keys: Dictionary of additional API keys to make available to generated code
+            config_file: Path to a configuration file that contains API keys
         """
         super().__init__(api_key, verbose)
         self.logger = logging.getLogger("code_runner_solver")
@@ -47,6 +56,86 @@ class CodeRunnerSolver(BaseSolver):
         self.sample_functions_dir = Path(
             "multi_operator/solvers/code_runner/sample_functions"
         )
+
+        # Set up available API keys
+        self.available_api_keys = set()
+
+        # Add default API keys
+        self.available_api_keys.add("SPORTS_DATA_IO_MLB_API_KEY")
+
+        # Load API keys from config file if provided
+        if config_file:
+            self._load_api_keys_from_config(config_file)
+
+        # Add additional API keys passed directly to the constructor
+        if additional_api_keys:
+            if isinstance(additional_api_keys, dict):
+                # If it's a dictionary, just take the keys
+                self.available_api_keys.update(additional_api_keys.keys())
+            elif isinstance(additional_api_keys, (list, set)):
+                # If it's already a list or set, add them directly
+                self.available_api_keys.update(additional_api_keys)
+
+        if self.verbose:
+            self.logger.info(
+                f"Available API keys: {sorted(list(self.available_api_keys))}"
+            )
+
+    def _load_api_keys_from_config(self, config_file: str):
+        """
+        Load API key names from a configuration file.
+
+        Args:
+            config_file: Path to the configuration file
+        """
+        config_path = Path(config_file)
+
+        if not config_path.exists():
+            self.logger.warning(f"Config file not found: {config_file}")
+            return
+
+        try:
+            if config_path.suffix.lower() == ".json":
+                with open(config_path, "r") as f:
+                    config_data = json.load(f)
+
+                # Handle different JSON structures
+                if isinstance(config_data, list):
+                    # A simple list of API key names
+                    self.available_api_keys.update(config_data)
+                elif isinstance(config_data, dict):
+                    if "api_keys" in config_data:
+                        if isinstance(config_data["api_keys"], dict):
+                            # Dictionary with key-value pairs
+                            self.available_api_keys.update(
+                                config_data["api_keys"].keys()
+                            )
+                        elif isinstance(config_data["api_keys"], list):
+                            # List of key names
+                            self.available_api_keys.update(config_data["api_keys"])
+                    elif "available_api_keys" in config_data:
+                        # Explicit list of available keys
+                        self.available_api_keys.update(
+                            config_data["available_api_keys"]
+                        )
+                    else:
+                        # Assume all top-level keys are API key names
+                        self.available_api_keys.update(config_data.keys())
+            else:
+                # Assume it's a .env style file
+                with open(config_path, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            if "=" in line:
+                                # It's a key=value format, just take the key
+                                key, _ = line.split("=", 1)
+                                self.available_api_keys.add(key.strip())
+                            else:
+                                # It's just a key name
+                                self.available_api_keys.add(line.strip())
+        except Exception as e:
+            self.logger.error(f"Error loading config file: {e}")
 
     def solve(
         self, user_prompt: str, system_prompt: Optional[str] = None
@@ -404,8 +493,19 @@ IMPORTANT REQUIREMENTS:
 1. DO NOT use command-line arguments. Extract all necessary information from the question itself.
 2. Load environment variables from .env files using the python-dotenv package.
 3. For API keys, use the following environment variables:
-   - For Sports Data IO: SPORTS_DATA_IO_MLB_API_KEY
-   - For other APIs: Look for appropriate environment variables
+"""
+            # Add information about all available API keys
+            for api_key_name in sorted(self.available_api_keys):
+                if api_key_name.startswith("SPORTS_DATA_IO"):
+                    sports_league = api_key_name.replace("SPORTS_DATA_IO_", "").replace(
+                        "_API_KEY", ""
+                    )
+                    code_gen_prompt += f"   - For Sports Data IO {sports_league} data: {api_key_name}\n"
+                else:
+                    code_gen_prompt += f"   - For {api_key_name.lower().replace('_', ' ')}: {api_key_name}\n"
+
+            code_gen_prompt += """
+4. NEVER include actual API key values in the code, always load them from environment variables.
 
 The code should be completely self-contained and runnable with no arguments.
 
@@ -458,11 +558,24 @@ Previous code had the following issues:
 
 Please provide a new, corrected version that:
 1. DOES NOT use command-line arguments - extract all needed info from the question itself
-2. Uses python-dotenv to load environment variables (e.g., SPORTS_DATA_IO_MLB_API_KEY)
-3. Makes the code runnable with no arguments
-4. Handles errors more gracefully with try/except blocks
-5. Returns results in a clear format: "recommendation: p1", "recommendation: p2", etc.
-6. For sports data: Uses RESOLUTION_MAP correctly (keys are outcomes, values are recommendation codes)
+2. Uses python-dotenv to load environment variables 
+"""
+            # Add information about all available API keys
+            for api_key_name in sorted(self.available_api_keys):
+                if api_key_name.startswith("SPORTS_DATA_IO"):
+                    sports_league = api_key_name.replace("SPORTS_DATA_IO_", "").replace(
+                        "_API_KEY", ""
+                    )
+                    code_gen_prompt += f"   - For Sports Data IO {sports_league} data: {api_key_name}\n"
+                else:
+                    code_gen_prompt += f"   - For {api_key_name.lower().replace('_', ' ')}: {api_key_name}\n"
+
+            code_gen_prompt += """
+3. NEVER include actual API key values in the code, always load them from environment variables.
+4. Makes the code runnable with no arguments
+5. Handles errors more gracefully with try/except blocks
+6. Returns results in a clear format: "recommendation: p1", "recommendation: p2", etc.
+7. For sports data: Uses RESOLUTION_MAP correctly (keys are outcomes, values are recommendation codes)
 """
 
         # Add specific advice based on query type
