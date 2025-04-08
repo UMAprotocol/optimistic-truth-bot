@@ -56,26 +56,51 @@ The UI now supports loading analytics data from MongoDB as well as from the file
 
 ### MongoDB Schema
 
-Your MongoDB collection should have documents with the following structure:
+The system now uses a two-collection schema to handle large experiments:
 
-```json
-{
-  "experiment_id": "unique-experiment-identifier",
-  "experiment_title": "Your Experiment Title",
-  "experiment_goal": "Experiment goals or description",
-  "timestamp": "2023-01-01 12:00:00",
-  "prompt": "Your prompt content",
-  "response": "The LLM response",
-  "recommendation": "The final recommendation",
-  "resolution": true,
-  "tags": ["tag1", "tag2"],
-  "metadata": {
-    // Any additional metadata
-  }
-}
-```
+1. **Main Collection** (default: `experiments`):
+   - Stores experiment metadata
+   - One document per experiment
 
-The UI will automatically group documents by `experiment_id` and display them as separate experiments.
+   ```json
+   {
+     "experiment_id": "unique-experiment-identifier",
+     "metadata": {
+       "experiment": {
+         "title": "Your Experiment Title",
+         "goal": "Experiment goals or description",
+         "timestamp": "2023-01-01 12:00:00"
+       },
+       "setup": {
+         // Setup configuration
+       },
+       "modifications": {
+         // Any modifications
+       }
+     }
+   }
+   ```
+
+2. **Outputs Collection** (default: `experiments_outputs`):
+   - Stores individual question outputs
+   - Multiple documents per experiment (one per output)
+   - Each document references its experiment via `experiment_id`
+
+   ```json
+   {
+     "experiment_id": "unique-experiment-identifier",
+     "question_id": "question-identifier",
+     "prompt": "Your prompt content",
+     "response": "The LLM response",
+     "recommendation": "The final recommendation",
+     "resolution": true,
+     "timestamp": "2023-01-01 12:00:00",
+     "tags": ["tag1", "tag2"],
+     "ancillary_data": "Additional data"
+   }
+   ```
+
+The UI automatically joins data from both collections when displaying experiment results.
 
 ### Extended JSON Metadata Support
 

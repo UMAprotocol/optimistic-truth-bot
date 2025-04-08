@@ -67,6 +67,9 @@ MONGODB_DB = os.environ.get("MONGODB_DB", "uma_analytics")
 MONGODB_COLLECTION = os.environ.get("MONGODB_COLLECTION", "prompts")
 MONGO_ONLY_RESULTS = os.environ.get("MONGO_ONLY_RESULTS", "false").lower() == "true"
 
+# Define outputs collection name based on main collection
+MONGODB_OUTPUTS_COLLECTION = f"{MONGODB_COLLECTION}_outputs"
+
 # Experiment runner configuration
 DISABLE_EXPERIMENT_RUNNER = (
     os.environ.get("DISABLE_EXPERIMENT_RUNNER", "false").lower() == "true"
@@ -807,25 +810,40 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
                     # Fetch all analytics from MongoDB
                     collection = db[MONGODB_COLLECTION]
-                    results = list(collection.find(query, {"_id": 0}))
+                    outputs_collection = db[MONGODB_OUTPUTS_COLLECTION]
 
-                    # Group analytics by experiment or other criteria
+                    # Get experiment metadata
+                    experiment_docs = list(collection.find(query, {"_id": 0}))
+
+                    # Initialize experiments dictionary
                     experiments = {}
-                    for result in results:
-                        experiment_id = result.get("experiment_id", "unknown")
+
+                    # First add metadata for all experiments
+                    for exp in experiment_docs:
+                        experiment_id = exp.get("experiment_id", "unknown")
+                        metadata = exp.get("metadata", {})
+
                         if experiment_id not in experiments:
                             experiments[experiment_id] = {
                                 "directory": experiment_id,
                                 "path": f"mongodb/{experiment_id}",
-                                "title": result.get("experiment_title", experiment_id),
-                                "timestamp": result.get("timestamp", ""),
-                                "goal": result.get("experiment_goal", ""),
+                                "title": metadata.get("experiment", {}).get(
+                                    "title", experiment_id
+                                ),
+                                "timestamp": metadata.get("experiment", {}).get(
+                                    "timestamp", ""
+                                ),
+                                "goal": metadata.get("experiment", {}).get("goal", ""),
                                 "count": 0,
-                                "items": [],
+                                "metadata": metadata,
                             }
 
-                        experiments[experiment_id]["count"] += 1
-                        experiments[experiment_id]["items"].append(result)
+                    # Now get output counts for each experiment
+                    for exp_id in experiments:
+                        output_count = outputs_collection.count_documents(
+                            {"experiment_id": exp_id}
+                        )
+                        experiments[exp_id]["count"] = output_count
 
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
@@ -868,66 +886,59 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
                     # Query MongoDB for all entries matching this experiment ID
                     collection = db[MONGODB_COLLECTION]
-                    results = list(
-                        collection.find({"experiment_id": experiment_id}, {"_id": 0})
+                    outputs_collection = db[MONGODB_OUTPUTS_COLLECTION]
+
+                    # Get experiment metadata
+                    exp_metadata = collection.find_one(
+                        {"experiment_id": experiment_id}, {"_id": 0}
                     )
 
-                    # Process results to handle nested structure
+                    # Get all outputs for this experiment
+                    outputs = list(
+                        outputs_collection.find(
+                            {"experiment_id": experiment_id}, {"_id": 0}
+                        )
+                    )
+
+                    # Process results to handle the new structure
                     processed_results = []
 
-                    for result in results:
-                        # Get base experiment metadata
-                        experiment_metadata = result.get("metadata", {}).get(
-                            "experiment", {}
+                    if not exp_metadata:
+                        logger.warning(
+                            f"No metadata found for experiment {experiment_id}"
                         )
+                        exp_metadata = {"experiment_id": experiment_id, "metadata": {}}
 
-                        # Extract outputs - each key is a short ID with all the output data
-                        outputs = result.get("outputs", {})
+                    # Extract experiment metadata
+                    experiment_metadata = exp_metadata.get("metadata", {}).get(
+                        "experiment", {}
+                    )
 
-                        # If we have outputs, process each one as a separate item
-                        if outputs and isinstance(outputs, dict):
-                            for short_id, output_data in outputs.items():
-                                if not isinstance(output_data, dict):
-                                    continue
-
-                                # Create processed item with experiment metadata and output data
-                                processed_item = {
-                                    # Add experiment metadata
-                                    "experiment_id": result.get("experiment_id", ""),
-                                    "experiment_title": experiment_metadata.get(
-                                        "title", ""
-                                    ),
-                                    "experiment_goal": experiment_metadata.get(
-                                        "goal", ""
-                                    ),
-                                    "timestamp": output_data.get(
-                                        "timestamp",
-                                        experiment_metadata.get("timestamp", ""),
-                                    ),
-                                    # Ensure critical fields for title extraction are present
-                                    "ancillary_data": output_data.get(
-                                        "ancillary_data", ""
-                                    ),
-                                    "question_id_short": output_data.get(
-                                        "question_id_short", short_id
-                                    ),
-                                    # Add all output data fields
-                                    **output_data,
-                                    # Add metadata for reference
-                                    "metadata": {
-                                        "experiment": experiment_metadata,
-                                        "setup": result.get("metadata", {}).get(
-                                            "setup", {}
-                                        ),
-                                        "modifications": result.get("metadata", {}).get(
-                                            "modifications", {}
-                                        ),
-                                    },
-                                }
-                                processed_results.append(processed_item)
-                        else:
-                            # If no outputs, just add the document as is
-                            processed_results.append(result)
+                    # Process each output
+                    for output in outputs:
+                        # Create processed item with experiment metadata and output data
+                        processed_item = {
+                            # Add experiment metadata
+                            "experiment_id": experiment_id,
+                            "experiment_title": experiment_metadata.get("title", ""),
+                            "experiment_goal": experiment_metadata.get("goal", ""),
+                            "timestamp": output.get(
+                                "timestamp", experiment_metadata.get("timestamp", "")
+                            ),
+                            # Add output data
+                            **output,
+                            # Add metadata for reference
+                            "metadata": {
+                                "experiment": experiment_metadata,
+                                "setup": exp_metadata.get("metadata", {}).get(
+                                    "setup", {}
+                                ),
+                                "modifications": exp_metadata.get("metadata", {}).get(
+                                    "modifications", {}
+                                ),
+                            },
+                        }
+                        processed_results.append(processed_item)
 
                     # Log the processed results
                     logger.info(
@@ -1051,8 +1062,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         db = get_mongodb_connection()
                         if db is not None:
                             collection = db[MONGODB_COLLECTION]
+                            outputs_collection = db[MONGODB_OUTPUTS_COLLECTION]
 
-                            # Get experiments by using distinct on experiment_id
+                            # Get all unique experiments
                             experiments = collection.find(
                                 {},
                                 {
@@ -1072,9 +1084,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                 metadata = exp.get("metadata", {}).get("experiment", {})
 
                                 # Count outputs for this experiment
-                                output_count = 0
-                                if "outputs" in exp:
-                                    output_count = len(exp.get("outputs", {}))
+                                output_count = outputs_collection.count_documents(
+                                    {"experiment_id": experiment_id}
+                                )
 
                                 results.append(
                                     {
