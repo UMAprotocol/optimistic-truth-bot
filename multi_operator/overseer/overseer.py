@@ -313,17 +313,35 @@ SOLVER PERFORMANCE SUMMARY:
                 )
 
                 # Add more details for code_runner solver
-                if solver_name == "code_runner" and "code_output" in attempt.get(
-                    "solver_result", {}
-                ):
-                    output_snippet = attempt.get("solver_result", {}).get(
-                        "code_output", ""
-                    )
-                    if output_snippet:
-                        # Truncate long outputs
-                        if len(output_snippet) > 200:
-                            output_snippet = output_snippet[:200] + "..."
-                        reroute_prompt += f"\n  Output: {output_snippet}"
+                if solver_name == "code_runner":
+                    # Add code output if available
+                    if "code_output" in attempt.get("solver_result", {}):
+                        output_snippet = attempt.get("solver_result", {}).get(
+                            "code_output", ""
+                        )
+                        if output_snippet:
+                            # Truncate long outputs
+                            if len(output_snippet) > 200:
+                                output_snippet = output_snippet[:200] + "..."
+                            reroute_prompt += f"\n  Output: {output_snippet}"
+                    
+                    # Add code itself for analysis
+                    if "code" in attempt.get("solver_result", {}):
+                        code_snippet = attempt.get("solver_result", {}).get(
+                            "code", ""
+                        )
+                        if code_snippet:
+                            # Extract the critical parts like dates and variable definitions
+                            import re
+                            date_patterns = re.findall(r'date\d*\s*=\s*["\'](\d{4}-\d{2}-\d{2})["\']', code_snippet)
+                            if date_patterns:
+                                reroute_prompt += f"\n  Dates in code: {', '.join(date_patterns)}"
+                            
+                            # Add info about the market description from user prompt to check date consistency
+                            query_snippet = user_prompt[:500] if len(user_prompt) > 500 else user_prompt
+                            market_dates = re.findall(r'(\d{2}\s*[A-Za-z]{3}\s*[\']?\d{2})', query_snippet)
+                            if market_dates:
+                                reroute_prompt += f"\n  Dates in market description: {', '.join(market_dates)}"
 
         reroute_prompt += f"""
 

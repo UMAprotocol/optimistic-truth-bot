@@ -69,7 +69,45 @@ NOTE: No market price information is available for this query. In your evaluatio
 
     # Add specific evaluation criteria for code_runner
     if "code_runner" in solver_name.lower():
-        prompt += """
+        # Extract code from solver response for more precise validation
+        code_block = None
+        if "```" in solver_response:
+            import re
+            code_blocks = re.findall(r'```(?:python)?(.*?)```', solver_response, re.DOTALL)
+            if code_blocks:
+                code_block = code_blocks[0].strip()
+        
+        # Extract dates from the market description for verification
+        dates_in_description = []
+        import re
+        # Look for dates in various formats
+        date_patterns = [
+            r'(\d{2}\s+[A-Za-z]{3}\s+[\']?\d{2})', # 03 Apr '25
+            r'(\d{1,2}\s+[A-Za-z]+\s+\d{4})',      # 3 April 2025
+            r'([A-Za-z]+\s+\d{1,2},?\s+\d{4})',    # April 3, 2025
+            r'(\d{4}-\d{2}-\d{2})'                 # 2025-04-03
+        ]
+        
+        for pattern in date_patterns:
+            matches = re.findall(pattern, user_prompt)
+            dates_in_description.extend(matches)
+        
+        # Compare with code output
+        dates_in_output = []
+        if "BTC price on" in solver_response or "price on" in solver_response:
+            date_output_patterns = re.findall(r'(?:BTC|ETH|price) (?:price )?on (\d{4}-\d{2}-\d{2})', solver_response)
+            dates_in_output.extend(date_output_patterns)
+        
+        date_validation_info = ""
+        if dates_in_description and dates_in_output:
+            date_validation_info = f"""
+DATES IN MARKET DESCRIPTION: {', '.join(dates_in_description)}
+DATES IN CODE OUTPUT: {', '.join(dates_in_output)}
+
+You must verify that these dates match conceptually (e.g., "03 Apr '25" should correspond to "2025-04-03").
+"""
+        
+        prompt += f"""
 ADDITIONAL CODE EVALUATION CRITERIA:
 For code runner solutions, please evaluate:
 1. Whether the code correctly extracts and interprets the data needed from APIs
@@ -77,6 +115,12 @@ For code runner solutions, please evaluate:
 3. If the code handles edge cases and errors appropriately
 4. If the API calls and data processing approach are sensible
 5. Whether the code correctly maps outcomes to recommendation codes (p1, p2, p3, p4)
+6. CRITICAL: Whether dates and times in the code match those specified in the market description exactly (pay close attention to date formats, timezones, and potential month/day swaps)
+7. CRITICAL: Whether the code outputs align with the expected results based on the market description (check for any discrepancies between output values and what should be expected)
+
+IMPORTANT: Be particularly vigilant about date-related errors. Check if the dates in the code output match exactly those mentioned in the market description. If there's any date mismatch (e.g., using March instead of April, or 2024 instead of 2025), this is an immediate FAILURE that requires a retry.
+{date_validation_info}
+VALIDATION REQUIREMENT: You MUST closely check any dates in the code output against those mentioned in the market description. If you detect ANY discrepancy (wrong month, wrong year, wrong day), you MUST return verdict "RETRY" and explicitly mention the date error in your critique.
 
 Your critique should focus both on the code correctness AND whether the final recommendation is justified by the data.
 """
