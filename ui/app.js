@@ -2408,10 +2408,10 @@ function displayExperimentsTable() {
             <td>
                 <div>
                     <span class="experiment-date">${sourceIcon}${formattedDate}</span>
+                    ${experiment.count ? `<span class="badge bg-primary ms-1">${experiment.count} items</span>` : ''}
                     <span class="experiment-title">${experiment.title || experiment.directory}</span>
                 </div>
                 ${experimentGoal ? `<div class="experiment-description">${experimentGoal}</div>` : ''}
-                ${experiment.count ? `<div class="badge bg-primary ms-2">${experiment.count} items</div>` : ''}
             </td>
         </tr>
     `}).join('');
@@ -3468,7 +3468,7 @@ function updateTableWithData(dataArray) {
             currentData.indexOf(item) : currentData.indexOf(item);
         
         // Build the row based on selected columns
-        let row = `<tr class="result-row ${recommendation?.toLowerCase() === 'p4' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">`;
+        let row = `<tr class="result-row ${recommendation?.toLowerCase() === 'p4' || recommendation?.toLowerCase() === 'p3' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">`;
         
         // Add icon as the first cell if available
         if (item.icon) {
