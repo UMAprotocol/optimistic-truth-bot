@@ -132,12 +132,18 @@ Please evaluate this response and recommendation according to the following crit
 3. Is the recommendation (p1, p2, p3, p4) consistent with the information provided?
 4. Does the response answer all aspects of the query?
 5. Are there any notable omissions or errors in the response?
-6. IMPORTANT: Does the recommendation align with market sentiment? (Or explicitly note the absence of market data if none is available)
+6. CRITICALLY IMPORTANT: Does the recommendation align with market sentiment? If there is a STRONG market sentiment (>85% confidence) that contradicts the solver's recommendation, this is a serious issue requiring immediate action.
 
 Based on your evaluation, determine one of the following verdicts:
 - SATISFIED: The response is accurate and complete, and the recommendation is justified.
 - RETRY: The response needs improvement or contains inaccuracies that should be addressed.
 - DEFAULT_TO_P4: The response quality is unsatisfactory, and the system should default to a p4 recommendation.
+
+Special Market Alignment Rule:
+If the market STRONGLY favors a specific outcome (>85% confidence) but the solver recommendation contradicts this without compelling evidence, you MUST:
+1. Set verdict to DEFAULT_TO_P4
+2. Explicitly note this market/solver disagreement in your critique
+3. In prompt_update, suggest trying a different solver because the current one is producing results that conflict with strong market signals
 
 IMPORTANT: Return your evaluation in a specific format:
 ```decision

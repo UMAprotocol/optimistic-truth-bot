@@ -18,6 +18,16 @@ A system for using large language models to resolve Optimistic Oracle proposals 
   - `proposal_replayer.py`: Processes saved proposals with the Perplexity API
   - See [proposal_replayer/README.md](proposal_replayer/README.md) for more details
 
+- **api/**: API for querying Oracle outputs from MongoDB
+  - `main.py`: FastAPI application with endpoints for querying Oracle outputs
+  - `test_api.py`: Test script for API functionality
+  - See [api/README.md](api/README.md) for more details
+
+- **database_utilities/**: Tools for MongoDB integration
+  - `output_watcher.py`: Watches for new output files and adds them to MongoDB
+  - `results_to_mongodb.py`: Imports result files to MongoDB
+  - See [database_utilities/README.md](database_utilities/README.md) for more details
+
 - **Common Files**:
   - `common.py`: Shared utilities and constants
   - `prompt.py`: Prompt creation and formatting for API calls
@@ -48,6 +58,17 @@ python proposal_replayer/proposal_fetcher.py --start-block 68945138
 ```bash
 python proposal_replayer/proposal_replayer.py
 ```
+
+## Running the API Server
+
+To start the API server for querying Oracle outputs from MongoDB:
+
+```bash
+cd api
+./run_api.sh
+```
+
+The API will be available at http://localhost:8000. See [api/README.md](api/README.md) for detailed endpoint documentation.
 
 ## Utility Commands
 

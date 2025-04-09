@@ -251,6 +251,42 @@ class Overseer:
             "reason": "No re-routing needed",
         }
 
+        # Check for market contradictions first 
+        for solver_result in solver_results:
+            overseer_result = solver_result.get("overseer_result", {})
+            overseer_decision = overseer_result.get("decision", {})
+            market_alignment = overseer_decision.get("market_alignment", "")
+            recommendation = solver_result.get("recommendation", "")
+            
+            # If market strongly contradicts solver and we have multiple attempts
+            if ("STRONGLY" in market_alignment and 
+                "contradicts" in market_alignment.lower() or 
+                "does not align" in market_alignment.lower() or
+                "not align" in market_alignment.lower()) and len(solver_results) > 1:
+                
+                solver_name = solver_result.get("solver", "unknown")
+                # If the same solver has given the same contradicting result multiple times
+                consistent_contradiction = False
+                contradicting_results = 0
+                
+                for r in solver_results:
+                    if r.get("solver") == solver_name and r.get("recommendation") == recommendation:
+                        contradicting_results += 1
+                
+                if contradicting_results >= 2:
+                    # This solver consistently contradicts market sentiment
+                    self.logger.info(
+                        f"Solver {solver_name} consistently contradicts strong market sentiment ({contradicting_results} times)"
+                    )
+                    
+                    result["should_reroute"] = True
+                    result["excluded_solvers"].append(solver_name)
+                    result["routing_guidance"] = f"The {solver_name} solver has repeatedly produced results that contradict strong market signals. Try other solvers or a combination approach."
+                    result["reason"] = f"Multiple contradictions ({contradicting_results}) between {solver_name} solver and strong market sentiment."
+                    
+                    # No need to check other criteria, return immediately
+                    return result
+
         # Check if any solvers have consistently failed
         failing_solvers = []
         for solver_name in attempted_solvers:

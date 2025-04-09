@@ -455,6 +455,8 @@ SUMMARY:
                         overseer_decision = overseer_result["decision"]
                         verdict = overseer_decision.get("verdict", "DEFAULT_TO_P4")
                         require_rerun = overseer_decision.get("require_rerun", False)
+                        market_alignment = overseer_decision.get("market_alignment", "")
+                        prompt_update = overseer_decision.get("prompt_update", "")
 
                         self.logger.info(
                             f"Overseer verdict for {solver_name}: {verdict}, require_rerun: {require_rerun}"
@@ -482,6 +484,28 @@ SUMMARY:
                                 print(f"Requires rerun: Yes")
                             print("-" * 40)
 
+                        # Check for market alignment issues that require re-routing
+                        market_misalignment = False
+                        if ("STRONGLY" in market_alignment and 
+                            ("does not align" in market_alignment.lower() or 
+                             "not align" in market_alignment.lower() or
+                             "contradicts" in market_alignment.lower())):
+                            
+                            # If we see strong market misalignment, check if we should switch solvers
+                            if "try a different solver" in prompt_update.lower() or "try another solver" in prompt_update.lower():
+                                self.logger.info(
+                                    f"Strong market misalignment detected with {solver_name} solver - re-routing recommended"
+                                )
+                                
+                                # Store the current result for the re-routing decision later
+                                solver_results.append(current_solver_result)
+                                all_solver_results.append(current_solver_result)
+                                
+                                # Set a flag to indicate we need to break from this solver and try a different one
+                                market_misalignment = True
+                                final_solver_result = current_solver_result
+                                break
+                        
                         if verdict == "SATISFIED":
                             # Overseer is satisfied with the result
                             final_solver_result = current_solver_result
@@ -490,9 +514,9 @@ SUMMARY:
                             verdict == "RETRY"
                             and require_rerun
                             and current_attempt < max_attempts
+                            and not market_misalignment
                         ):
                             # Update the system prompt if the overseer provided additional guidance
-                            prompt_update = overseer_decision.get("prompt_update", "")
                             if prompt_update:
                                 updated_system_prompt = f"{updated_system_prompt}\n\nADDITIONAL INSTRUCTIONS: {prompt_update}"
                                 self.logger.info(
