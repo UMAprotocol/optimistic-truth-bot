@@ -304,6 +304,35 @@ class ExperimentObserver:
 
     def check_for_new_experiments(self):
         """Check for new experiment directories and start watching them."""
+        # Special case: if watch_dir itself contains metadata.json and outputs directory,
+        # treat the watch_dir itself as an experiment
+        if (self.watch_dir / "metadata.json").exists() and (self.watch_dir / "outputs").exists():
+            # Check if we're already watching this
+            watch_dir_str = str(self.watch_dir)
+            if watch_dir_str not in self.watched_experiments:
+                logger.info(f"Watch directory itself appears to be an experiment: {self.watch_dir}")
+                outputs_dir = self.watch_dir / "outputs"
+                
+                try:
+                    # Schedule watching the outputs directory
+                    self.observer.schedule(
+                        self.handler, str(outputs_dir), recursive=False
+                    )
+                    logger.info(f"Watching outputs directory: {outputs_dir}")
+                    
+                    # Process existing files
+                    for file_path in outputs_dir.glob("*.json"):
+                        if file_path.name != "metadata.json":  # Skip metadata.json
+                            logger.info(f"Processing existing file: {file_path}")
+                            event = FileCreatedEvent(str(file_path))
+                            self.handler.on_created(event)
+                    
+                    self.watched_experiments.add(watch_dir_str)
+                    
+                except Exception as e:
+                    logger.error(f"Error scheduling observer for {outputs_dir}: {e}")
+            
+        # Process subdirectories as usual
         current_experiments = self.find_experiments()
 
         for experiment in current_experiments:
