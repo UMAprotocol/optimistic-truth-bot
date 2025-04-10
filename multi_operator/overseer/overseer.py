@@ -109,7 +109,7 @@ class Overseer:
         self.logger.info(f"Overseer verdict: {decision.get('verdict', 'Unknown')}")
         self.logger.info(f"Require rerun: {decision.get('require_rerun', False)}")
 
-        return {"decision": decision, "response": response_text}
+        return {"decision": decision, "response": response_text, "prompt": overseer_prompt}
 
     def extract_decision(self, response_text: str) -> Dict[str, Any]:
         """
