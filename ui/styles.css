@@ -343,6 +343,26 @@ header .bi {
     color: #6c757d;
     margin-top: 5px;
     padding-left: 0;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease-in-out, margin-top 0.3s ease-in-out;
+}
+
+.experiment-description.expanded {
+    height: auto;
+    margin-top: 5px;
+    padding-bottom: 3px;
+}
+
+.experiment-toggle {
+    margin-left: 5px;
+    color: var(--primary-color);
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.experiment-toggle.expanded {
+    transform: rotate(180deg);
 }
 
 /* Fix table padding */
