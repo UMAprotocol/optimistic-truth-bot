@@ -2948,12 +2948,13 @@ function displayExperimentMetadata() {
         '<i class="bi bi-database-fill" title="MongoDB Data Source"></i>' : 
         '<i class="bi bi-folder-fill" title="Filesystem Data Source"></i>';
     
-    // Extract the experiment info from metadata
+    // Extract the experiment info from metadata - handle both MongoDB and filesystem structures
     const experimentInfo = currentExperiment.metadata?.experiment || {};
     
-    // Get system prompt from metadata or modifications
+    // Get system prompt from metadata - handle various structures
     const systemPrompt = experimentInfo.system_prompt || 
-                       (currentExperiment.metadata?.modifications?.system_prompt);
+                       (currentExperiment.metadata?.modifications?.system_prompt) ||
+                       (currentExperiment.metadata?.experiment?.system_prompt);
     
     // Basic metadata display
     let metadata = `
