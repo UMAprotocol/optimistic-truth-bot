@@ -1023,6 +1023,20 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         for dir_path in RESULTS_DIR.iterdir():
                             if dir_path.is_dir():
                                 metadata_file = dir_path / "metadata.json"
+                                outputs_dir = dir_path / "outputs"
+
+                                # Count the number of JSON files in the outputs directory
+                                file_count = 0
+                                if outputs_dir.exists() and outputs_dir.is_dir():
+                                    file_count = len(
+                                        [
+                                            f
+                                            for f in outputs_dir.iterdir()
+                                            if f.is_file()
+                                            and f.suffix.lower() == ".json"
+                                        ]
+                                    )
+
                                 if metadata_file.exists():
                                     with open(metadata_file, "r") as f:
                                         metadata = json.load(f)
@@ -1039,6 +1053,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                         "goal": metadata.get("experiment", {}).get(
                                             "goal", ""
                                         ),
+                                        "count": file_count,
                                         "metadata": metadata,
                                         "source": "filesystem",
                                     }
@@ -1052,6 +1067,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                             "title": dir_path.name,
                                             "timestamp": "",
                                             "goal": "",
+                                            "count": file_count,
                                             "source": "filesystem",
                                         }
                                     )
