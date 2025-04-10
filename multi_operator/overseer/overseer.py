@@ -301,11 +301,23 @@ class Overseer:
                 or not r.get("execution_successful", True)
             ]
 
-            # If the solver has failed consistently, add to failing solvers
+            # Check for p3/p4 results (these may need special handling)
+            p3_p4_attempts = [
+                r for r in solver_attempts
+                if r.get("recommendation", "").lower() in ["p3", "p4"]
+            ]
+            
+            # If the solver has failed consistently or returned p3/p4 multiple times, add to failing solvers
             if len(failed_attempts) >= min(len(solver_attempts), max_solver_attempts):
                 failing_solvers.append(solver_name)
                 self.logger.info(
                     f"Solver {solver_name} has failed consistently ({len(failed_attempts)}/{len(solver_attempts)})"
+                )
+            # If solver has returned p3/p4 at least twice, consider trying a different approach
+            elif len(p3_p4_attempts) >= 2:
+                failing_solvers.append(solver_name)
+                self.logger.info(
+                    f"Solver {solver_name} has returned p3/p4 multiple times ({len(p3_p4_attempts)}/{len(solver_attempts)}), suggesting a different solver"
                 )
 
         # If no consistently failing solvers, return default

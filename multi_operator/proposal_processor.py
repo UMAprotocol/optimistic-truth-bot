@@ -115,6 +115,9 @@ class MultiOperatorProcessor:
         self.min_attempts = min_attempts
         self.start_block_number = start_block_number
         self.poll_interval = poll_interval
+        
+        # Set some important constants
+        self.P3_P4_RECOMMENDATIONS = ["p3", "p4"]  # Special recommendations requiring minimum attempts
 
         # Load solver system prompt
         self.load_solver_prompt()
@@ -506,36 +509,57 @@ SUMMARY:
                              "not align" in market_alignment.lower() or
                              "contradicts" in market_alignment.lower())):
                             
-                            # If we see strong market misalignment, check if we should switch solvers
-                            if "try a different solver" in prompt_update.lower() or "try another solver" in prompt_update.lower():
-                                self.logger.info(
-                                    f"Strong market misalignment detected with {solver_name} solver - re-routing recommended"
-                                )
-                                
-                                # Store the current result for the re-routing decision later
-                                solver_results.append(current_solver_result)
-                                all_solver_results.append(current_solver_result)
-                                
-                                # Set a flag to indicate we need to break from this solver and try a different one
-                                market_misalignment = True
-                                final_solver_result = current_solver_result
+                            # If we see strong market misalignment, this is a serious issue
+                            # We should always consider trying a different solver, even if not explicitly mentioned
+                            self.logger.info(
+                                f"Strong market misalignment detected with {solver_name} solver - re-routing recommended"
+                            )
+                            
+                            # Store the current result for the re-routing decision later
+                            solver_results.append(current_solver_result)
+                            all_solver_results.append(current_solver_result)
+                            
+                            # Set a flag to indicate we need to break from this solver and try a different one
+                            market_misalignment = True
+                            final_solver_result = current_solver_result
+                            
+                            # If this is our first attempt, force re-routing to try to honor min_attempts with different solvers
+                            if current_attempt == 1 or current_routing_attempt < max_routing_attempts:
+                                self.logger.info(f"Early market misalignment detected - will try re-routing to different solver")
                                 break
                         
-                        if verdict == "SATISFIED":
+                        # Check if recommendation is p3 or p4, requiring minimum attempts
+                        recommendation = current_solver_result.get("recommendation", "")
+                        recommendation_is_special = recommendation.lower() in self.P3_P4_RECOMMENDATIONS
+                        should_enforce_min_attempts = recommendation_is_special and current_attempt < self.min_attempts
+                        
+                        if verdict == "SATISFIED" and not should_enforce_min_attempts:
                             # Overseer is satisfied with the result
                             final_solver_result = current_solver_result
                             break
                         elif (
-                            verdict == "RETRY"
-                            and require_rerun
+                            (verdict == "RETRY" or should_enforce_min_attempts)
+                            and (require_rerun or should_enforce_min_attempts)
                             and current_attempt < max_attempts
                             and not market_misalignment
                         ):
+                            # Force another attempt if we got p3/p4 and haven't reached min_attempts
+                            if should_enforce_min_attempts:
+                                self.logger.info(
+                                    f"Recommendation {recommendation} requires minimum {self.min_attempts} attempts, currently at {current_attempt}. Enforcing another attempt."
+                                )
+                            
                             # Update the system prompt if the overseer provided additional guidance
                             if prompt_update:
                                 updated_system_prompt = f"{updated_system_prompt}\n\nADDITIONAL INSTRUCTIONS: {prompt_update}"
                                 self.logger.info(
                                     f"Updated system prompt for {solver_name} retry"
+                                )
+                            elif should_enforce_min_attempts:
+                                # Add guidance for p3/p4 cases
+                                updated_system_prompt = f"{updated_system_prompt}\n\nADDITIONAL INSTRUCTIONS: Your previous response returned {recommendation}. Please try again with a different approach or by checking alternative data sources. If the issue is with data availability or API access, consider whether the market conditions provided in the prompt could help inform the recommendation."
+                                self.logger.info(
+                                    f"Added special guidance for {recommendation} retry"
                                 )
 
                             # Store the current result and try again
@@ -578,7 +602,20 @@ SUMMARY:
                     # Update excluded solvers and overseer guidance
                     excluded_solvers = reroute_result.get("excluded_solvers", [])
                     overseer_guidance = reroute_result.get("routing_guidance", "")
+                    
+                    # Add specific guidance for p3/p4 cases if needed
+                    for solver_result in solver_results:
+                        if solver_result.get("recommendation", "").lower() in self.P3_P4_RECOMMENDATIONS:
+                            if not overseer_guidance:
+                                overseer_guidance = "The previous solver(s) returned p3 or p4 recommendations. Please consider using a different approach or combination of solvers that might have access to the required data."
+                            break
 
+                    # Add specific guidance for market misalignment cases
+                    if "strong" in overseer_guidance.lower() and "market" in overseer_guidance.lower():
+                        if "perplexity" not in overseer_guidance.lower():
+                            # If market alignment issues detected but perplexity not specifically mentioned, suggest trying it
+                            overseer_guidance += " Consider including the perplexity solver which may have more current information about this event."
+                    
                     self.logger.info(
                         f"Re-routing with excluded solvers: {excluded_solvers}"
                     )
@@ -1188,13 +1225,13 @@ def main():
     parser.add_argument(
         "--max-attempts",
         type=int,
-        default=3,
+        default=4,
         help="Maximum number of attempts to process a proposal",
     )
     parser.add_argument(
         "--min-attempts",
         type=int,
-        default=2,
+        default=3,
         help="Minimum number of attempts before defaulting to p4",
     )
     parser.add_argument(
