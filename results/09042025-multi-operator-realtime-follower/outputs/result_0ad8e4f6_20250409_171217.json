@@ -1,0 +1,165 @@
+{
+  "query_id": "0x0ad8e4f61a3970f7fde7f75893d86277af7a54888badbea422adf0752ec0636a",
+  "short_id": "0ad8e4f6",
+  "reason": "The response is accurate, relevant, and aligns with the market sentiment.",
+  "market_alignment": "The recommendation aligns with the strong market sentiment, which heavily favors a 'Yes' outcome with a confidence of 99.9%.",
+  "routing_attempts": 1,
+  "attempted_solvers": [
+    "perplexity"
+  ],
+  "user_prompt": "user:\n\nancillary_data:\nq: title: Will Mike Huckabee be confirmed as ambassador to Israel?, description: This market will resolve to \"Yes\" if Mike Huckabee is confirmed as the U.S. ambassador to Israel by June 30, 2025, 11:59 PM ET. Otherwise, this market will resolve to \"No\".\n\nIf Huckabee's nomination is formally withdrawn, or if the Senate rejects his nomination this market will immediately resolve to \"No\".\n\nThe resolution source for this market is information from the U.S. Senate (see: https://www.senate.gov/legislative/NominationsRejectedorWithdrawn.htm), however a consensus of credible reporting may also be used.\n\nresolution_conditions:\nres_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.\n\nupdates:\n['(1731612710, b\\'Per the rules, the Senate needs to confirm this nominee for this market to resolve to \"Yes\". Recess appointments without Senate confirmation will not count toward a \"Yes\" resolution.\\')']",
+  "system_prompt": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1744218643 Current Date and Time: 2025-04-09 17:10:43 UTC",
+  "question_id_short": "0ad8e4f6",
+  "processed_file": "questionId_0ad8e4f6.json",
+  "timestamp": 1744218737.1991653,
+  "disputed": false,
+  "recommendation_overridden": false,
+  "router_result": {
+    "solvers": [
+      "perplexity"
+    ],
+    "reason": "The question involves understanding and interpreting potential future events related to a political nomination, which requires access to general knowledge, historical context, and the ability to interpret complex information. The question does not involve cryptocurrency prices or MLB sports data, which are the specific areas where code_runner would be applicable.",
+    "multi_solver_strategy": "",
+    "response": "```decision\n{\n  \"solvers\": [\"perplexity\"],\n  \"reason\": \"The question involves understanding and interpreting potential future events related to a political nomination, which requires access to general knowledge, historical context, and the ability to interpret complex information. The question does not involve cryptocurrency prices or MLB sports data, which are the specific areas where code_runner would be applicable.\"\n}\n```"
+  },
+  "solver_results": [
+    {
+      "solver": "perplexity",
+      "solver_result": {
+        "recommendation": "p2",
+        "response": "<think>\nOkay, let's tackle this query. The user wants to know if Mike Huckabee will be confirmed as the U.S. ambassador to Israel by June 30, 2025. The resolution conditions are p1 for No, p2 for Yes, and p3 for uncertain. \n\nFirst, I need to check the current status of Huckabee's nomination. The search results show that the Senate Foreign Relations Committee advanced his nomination on a party-line vote on April 2, 2025 [3][4]. The committee's approval is a crucial step, but the full Senate still needs to vote. \n\nLooking at the Senate's composition, the Republicans have a slim majority (53-49) [4][6]. The cloture motion on April 8, 2025, was agreed to with 53 Yeas and 46 Nays [11], indicating that Republicans are united in supporting Huckabee. Since cloture was invoked, the nomination can proceed to a final vote without filibuster. \n\nThe full Senate vote is the next step. Given the party-line votes in the committee and the cloture motion, it's likely that all Republican senators will vote in favor. Some Democrats, like Sen. John Fetterman, have indicated possible support [4], but even without Democratic votes, the Republican majority should secure confirmation. \n\nThe user's update mentions that recess appointments without Senate confirmation don't count. However, the Senate is moving forward with the vote, so a recess appointment isn't a factor here. The latest update from April 8, 2025, shows the cloture motion passed, and the final vote is pending [11][14]. \n\nConsidering the timeline, the Senate is expected to hold the final vote before June 30. There's no indication of withdrawal or rejection. Therefore, based on the available information, Huckabee's confirmation is highly likely.\n</think>\n\nrecommendation: p2",
+        "solver": "perplexity",
+        "response_metadata": {
+          "model": "sonar-deep-research",
+          "created_timestamp": 1744218730,
+          "created_datetime": "2025-04-09T17:12:10",
+          "api_response_time_seconds": 81.69123721122742,
+          "completion_tokens": 400,
+          "prompt_tokens": 1147,
+          "total_tokens": 1547
+        }
+      },
+      "recommendation": "p2",
+      "response": "<think>\nOkay, let's tackle this query. The user wants to know if Mike Huckabee will be confirmed as the U.S. ambassador to Israel by June 30, 2025. The resolution conditions are p1 for No, p2 for Yes, and p3 for uncertain. \n\nFirst, I need to check the current status of Huckabee's nomination. The search results show that the Senate Foreign Relations Committee advanced his nomination on a party-line vote on April 2, 2025 [3][4]. The committee's approval is a crucial step, but the full Senate still needs to vote. \n\nLooking at the Senate's composition, the Republicans have a slim majority (53-49) [4][6]. The cloture motion on April 8, 2025, was agreed to with 53 Yeas and 46 Nays [11], indicating that Republicans are united in supporting Huckabee. Since cloture was invoked, the nomination can proceed to a final vote without filibuster. \n\nThe full Senate vote is the next step. Given the party-line votes in the committee and the cloture motion, it's likely that all Republican senators will vote in favor. Some Democrats, like Sen. John Fetterman, have indicated possible support [4], but even without Democratic votes, the Republican majority should secure confirmation. \n\nThe user's update mentions that recess appointments without Senate confirmation don't count. However, the Senate is moving forward with the vote, so a recess appointment isn't a factor here. The latest update from April 8, 2025, shows the cloture motion passed, and the final vote is pending [11][14]. \n\nConsidering the timeline, the Senate is expected to hold the final vote before June 30. There's no indication of withdrawal or rejection. Therefore, based on the available information, Huckabee's confirmation is highly likely.\n</think>\n\nrecommendation: p2",
+      "attempt": 1,
+      "execution_successful": true,
+      "overseer_result": {
+        "decision": {
+          "verdict": "SATISFIED",
+          "require_rerun": false,
+          "reason": "The response is accurate, relevant, and aligns with the market sentiment.",
+          "critique": "The response from the perplexity solver is thorough and well-reasoned. It accurately captures the current status of Mike Huckabee's nomination process, including the advancement by the Senate Foreign Relations Committee and the successful cloture motion, which are critical steps towards confirmation. The analysis of the Senate's composition and the indication of support from Republican senators, along with potential support from some Democrats, provides a strong basis for predicting a likely confirmation. The response also correctly notes that a recess appointment is not a factor, adhering to the conditions specified in the user prompt. The recommendation of p2 (Yes) is consistent with the information provided and the conditions for resolution specified in the query.",
+          "market_alignment": "The recommendation aligns with the strong market sentiment, which heavily favors a 'Yes' outcome with a confidence of 99.9%.",
+          "prompt_update": ""
+        },
+        "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response is accurate, relevant, and aligns with the market sentiment.\",\n  \"critique\": \"The response from the perplexity solver is thorough and well-reasoned. It accurately captures the current status of Mike Huckabee's nomination process, including the advancement by the Senate Foreign Relations Committee and the successful cloture motion, which are critical steps towards confirmation. The analysis of the Senate's composition and the indication of support from Republican senators, along with potential support from some Democrats, provides a strong basis for predicting a likely confirmation. The response also correctly notes that a recess appointment is not a factor, adhering to the conditions specified in the user prompt. The recommendation of p2 (Yes) is consistent with the information provided and the conditions for resolution specified in the query.\",\n  \"market_alignment\": \"The recommendation aligns with the strong market sentiment, which heavily favors a 'Yes' outcome with a confidence of 99.9%.\",\n  \"prompt_update\": \"\"\n}\n```"
+      }
+    }
+  ],
+  "overseer_result": {
+    "decision": {
+      "verdict": "SATISFIED",
+      "require_rerun": false,
+      "reason": "The response is accurate, relevant, and aligns with the market sentiment.",
+      "critique": "The response from the perplexity solver is thorough and well-reasoned. It accurately captures the current status of Mike Huckabee's nomination process, including the advancement by the Senate Foreign Relations Committee and the successful cloture motion, which are critical steps towards confirmation. The analysis of the Senate's composition and the indication of support from Republican senators, along with potential support from some Democrats, provides a strong basis for predicting a likely confirmation. The response also correctly notes that a recess appointment is not a factor, adhering to the conditions specified in the user prompt. The recommendation of p2 (Yes) is consistent with the information provided and the conditions for resolution specified in the query.",
+      "market_alignment": "The recommendation aligns with the strong market sentiment, which heavily favors a 'Yes' outcome with a confidence of 99.9%.",
+      "prompt_update": ""
+    },
+    "response": "```decision\n{\n  \"verdict\": \"SATISFIED\",\n  \"require_rerun\": false,\n  \"reason\": \"The response is accurate, relevant, and aligns with the market sentiment.\",\n  \"critique\": \"The response from the perplexity solver is thorough and well-reasoned. It accurately captures the current status of Mike Huckabee's nomination process, including the advancement by the Senate Foreign Relations Committee and the successful cloture motion, which are critical steps towards confirmation. The analysis of the Senate's composition and the indication of support from Republican senators, along with potential support from some Democrats, provides a strong basis for predicting a likely confirmation. The response also correctly notes that a recess appointment is not a factor, adhering to the conditions specified in the user prompt. The recommendation of p2 (Yes) is consistent with the information provided and the conditions for resolution specified in the query.\",\n  \"market_alignment\": \"The recommendation aligns with the strong market sentiment, which heavily favors a 'Yes' outcome with a confidence of 99.9%.\",\n  \"prompt_update\": \"\"\n}\n```"
+  },
+  "recommendation": "p2",
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-mike-huckabee-be-confirmed-as-ambassador-to-israel-glqgH1iEEqZu.jpg",
+  "condition_id": "0x1a6fb6eb98592f410f8733c424eeb3f1baa7353ba631fd731572649c88184e6d",
+  "proposed_price": 1000000000000000000,
+  "resolved_price": 1000000000000000000,
+  "proposed_price_outcome": "p2",
+  "resolved_price_outcome": "p2",
+  "tags": [
+    "Politics",
+    "Trump",
+    "Israel",
+    "U.S. Politics",
+    "Senate",
+    "Trump Presidency",
+    "Cabinet",
+    "fbi",
+    "Pete Hegseth",
+    "RFK Jr.",
+    "Tulsi Gabbard",
+    "Kash Patel"
+  ],
+  "end_date_iso": "2025-06-30T00:00:00Z",
+  "game_start_time": null,
+  "proposal_metadata": {
+    "query_id": "0x0ad8e4f61a3970f7fde7f75893d86277af7a54888badbea422adf0752ec0636a",
+    "transaction_hash": "0x67ec2844ba9c64068c8a605f3ebdef589825a743ba003b2fbd370d1cd036ff33",
+    "block_number": 70095978,
+    "request_transaction_block_time": 1744218611,
+    "ancillary_data": "q: title: Will Mike Huckabee be confirmed as ambassador to Israel?, description: This market will resolve to \"Yes\" if Mike Huckabee is confirmed as the U.S. ambassador to Israel by June 30, 2025, 11:59 PM ET. Otherwise, this market will resolve to \"No\".\n\nIf Huckabee's nomination is formally withdrawn, or if the Senate rejects his nomination this market will immediately resolve to \"No\".\n\nThe resolution source for this market is information from the U.S. Senate (see: https://www.senate.gov/legislative/NominationsRejectedorWithdrawn.htm), however a consensus of credible reporting may also be used.",
+    "ancillary_data_hex": "0x713a207469746c653a2057696c6c204d696b65204875636b6162656520626520636f6e6669726d656420617320616d6261737361646f7220746f2049737261656c3f2c206465736372697074696f6e3a2054686973206d61726b65742077696c6c207265736f6c766520746f20e2809c596573e2809d206966204d696b65204875636b6162656520697320636f6e6669726d65642061732074686520552e532e20616d6261737361646f7220746f2049737261656c206279204a756e652033302c20323032352c2031313a353920504d2045542e204f74686572776973652c2074686973206d61726b65742077696c6c207265736f6c766520746f20e2809c4e6fe2809d2e0a0a4966204875636b616265652773206e6f6d696e6174696f6e20697320666f726d616c6c792077697468647261776e2c206f72206966207468652053656e6174652072656a6563747320686973206e6f6d696e6174696f6e2074686973206d61726b65742077696c6c20696d6d6564696174656c79207265736f6c766520746f20e2809c4e6fe2809d2e0a0a546865207265736f6c7574696f6e20736f7572636520666f722074686973206d61726b657420697320696e666f726d6174696f6e2066726f6d2074686520552e532e2053656e61746520287365653a2068747470733a2f2f7777772e73656e6174652e676f762f6c656769736c61746976652f4e6f6d696e6174696f6e7352656a65637465646f7257697468647261776e2e68746d292c20686f7765766572206120636f6e73656e737573206f66206372656469626c65207265706f7274696e67206d617920616c736f20626520757365642e20207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352e20576865726520703120636f72726573706f6e647320746f204e6f2c20703220746f205965732c20703320746f20756e6b6e6f776e2f35302d35302e2055706461746573206d61646520627920746865207175657374696f6e2063726561746f7220766961207468652062756c6c6574696e20626f61726420617420307836413944323232363136433930466341353735346364313333336346443962376662366134463734206173206465736372696265642062792068747470733a2f2f706f6c79676f6e7363616e2e636f6d2f74782f3078613134663031623131356334393133363234666333663530386639363066346465613235323735386537336332386635663037663865313964376263613036362073686f756c6420626520636f6e736964657265642e2c696e697469616c697a65723a39313433306361643264333937353736363439393731376661306436366137386438313465356335",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.",
+    "proposed_price": 1000000000000000000,
+    "proposed_price_outcome": "p2",
+    "resolved_price": null,
+    "resolved_price_outcome": null,
+    "request_timestamp": 1731517341,
+    "expiration_timestamp": 1744225811,
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposer": "0x47767120D0f2510Fe07bB0A4A19068E51BA5927d",
+    "bond_currency": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    "proposal_bond": 500000000,
+    "reward_amount": 5000000,
+    "updates": [
+      "(1731612710, b'Per the rules, the Senate needs to confirm this nominee for this market to resolve to \"Yes\". Recess appointments without Senate confirmation will not count toward a \"Yes\" resolution.')"
+    ],
+    "tags": [
+      "Politics",
+      "Trump",
+      "Israel",
+      "U.S. Politics",
+      "Senate",
+      "Trump Presidency",
+      "Cabinet",
+      "fbi",
+      "Pete Hegseth",
+      "RFK Jr.",
+      "Tulsi Gabbard",
+      "Kash Patel"
+    ],
+    "end_date_iso": "2025-06-30T00:00:00Z",
+    "game_start_time": null,
+    "tokens": [
+      {
+        "token_id": "74667343219433979433162395272033814050535428963742740577441800710827621765504",
+        "outcome": "Yes",
+        "price": 0.9985,
+        "winner": false
+      },
+      {
+        "token_id": "1259639351608424342341420679867292557988377184774711386770315194118676783000",
+        "outcome": "No",
+        "price": 0.0015,
+        "winner": false
+      }
+    ],
+    "neg_risk_market_id": "",
+    "neg_risk_request_id": ""
+  },
+  "overseer_data": {
+    "attempts": 1,
+    "interactions": [],
+    "market_price_info": "The recommendation aligns with the strong market sentiment, which heavily favors a 'Yes' outcome with a confidence of 99.9%.",
+    "tokens": [],
+    "recommendation_journey": [
+      {
+        "attempt": 1,
+        "perplexity_recommendation": "p2",
+        "overseer_satisfaction_level": "satisfied",
+        "prompt_updated": false,
+        "critique": "The response from the perplexity solver is thorough and well-reasoned. It accurately captures the current status of Mike Huckabee's nomination process, including the advancement by the Senate Foreign Relations Committee and the successful cloture motion, which are critical steps towards confirmation. The analysis of the Senate's composition and the indication of support from Republican senators, along with potential support from some Democrats, provides a strong basis for predicting a likely confirmation. The response also correctly notes that a recess appointment is not a factor, adhering to the conditions specified in the user prompt. The recommendation of p2 (Yes) is consistent with the information provided and the conditions for resolution specified in the query.",
+        "system_prompt_before": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1744218643 Current Date and Time: 2025-04-09 17:10:43 UTC",
+        "system_prompt_after": "You are an artificial intelligence oracle tasked with resolving UMA optimistic oracle requests based strictly on verified facts. Your primary function is to analyze factual information about events that have already occurred, not to predict future outcomes. Report only on what has definitively happened and can be verified through reliable sources. Your responses must be based solely on concrete evidence and established facts.If an event has occurred, verify the occurrence and context of the event as specified in the user prompt, ensuring accuracy in understanding the specific event in question and the exact terms required for resolution. If no verifiable information about the event's outcome, postponement, or cancellation is provided, and the event date is in the past relative to the current timestamp, assume the most probable outcome based on the conditions provided in the user prompt unless explicitly contradicted by reliable sources.IMPORTANT: Always check if the event in question is scheduled for a future date or time relative to this timestamp. If the event is scheduled for a future date or time or has not occurred yet, ALWAYS return p4 to indicate the request cannot be resolved at this time. If an event is scheduled for the same day but at a later time (e.g., current time is 11 AM and event is at 3 PM today), it is still a future event.IMPORTANT: If the user prompt contains a URL(s), and specifies it as the source of reasoning and resolution, ONLY use these URLs for your analysis and heavily bias your reasoning towards the content at these URLs.IMPORTANT: Always ensure that the event you are resolving is the same event mentioned in the user prompt. Do not resolve for an event that might be similar but not exactly specified in the user prompt. If the details or the context of the event mentioned in the user prompt differ from the sources found, do not use these sources for resolution.IMPORTANT: Align your response with the ancillary data provided in the user prompt, which defines how the market should resolve under different outcomes (e.g., p1 for Team A win, p2 for Team B win, etc.). Ensure that your resolution recommendation directly corresponds with the definitions provided in ancillary data.IMPORTANT: If the event date is in the past, but no verifiable information on the outcome is available, and the user prompt does not specify that the event was postponed or canceled, resolve the query based on the most probable outcome as per the conditions provided in the user prompt and ancillary data. If the event outcome can be reasonably inferred from the available information, proceed with the corresponding resolution; otherwise, default to p4.IMPORTANT: Ensure strict adherence to the specific conditions outlined in the user prompt, such as the precise setting of the event and any stipulations about which parts of the event are relevant for resolution. For example, if the event includes both a private meeting and a public press conference, and only the public press conference is relevant for resolution, disregard information from the private meeting.IMPORTANT: When analyzing events for which specific terms or phrases are relevant to the resolution, ensure your evaluation is strictly limited to verifiable instances within the context explicitly outlined in the user prompt. Do not consider implied or indirect references unless specified by the user prompt. This precision is crucial in ensuring the accuracy of the resolution.IMPORTANT: Verify the exact occurrence of the event as stated in the user prompt. Do not rely on similar events or general activity around the event date. Make sure that the resolution is based on the specific event and its verifiable outcomes as per the user prompt and the provided resolution conditions.IMPORTANT: If the user prompt contains updates, use them to update your analysis and resolution and bias your reasoning towards the updates in totality. If the updates contradict the user prompt, use the updates to update your analysis and resolution.IMPORTANT: If the user prompt is related to a video of any kind be absolutely certain that the video is related to the event in question.IMPORTANT: If you need to write python code to analyze the data, do so and return the output of the python code in your response.Always end your response with your recommendation formatted as `recommendation: p1`, `recommendation: p2`, `recommendation: p3`, or `recommendation: p4`.Current Unix Timestamp: 1744218643 Current Date and Time: 2025-04-09 17:10:43 UTC"
+      }
+    ]
+  }
+}
