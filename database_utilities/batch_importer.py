@@ -23,7 +23,9 @@ Requirements:
 import os
 import sys
 import json
+import time
 import argparse
+import re
 from pathlib import Path
 from dotenv import load_dotenv
 from pymongo import MongoClient, UpdateOne
@@ -124,18 +126,63 @@ def sanitize_for_mongodb(data):
     return data
 
 
+def extract_question_id(file_name):
+    """
+    Extract the question_id from various file naming patterns.
+    Supports formats like:
+    - short_id.json (e.g., 025eb1be.json)
+    - output_short_id.json (e.g., output_05c5a914.json)
+    - result_short_id_timestamp.json (e.g., result_e5373cc5_20250402_102821.json)
+    """
+    stem = Path(file_name).stem
+
+    # Pattern 1: short_id
+    if re.match(r"^[0-9a-f]{8}$", stem):
+        return stem
+
+    # Pattern 2: output_short_id
+    output_match = re.match(r"^output_([0-9a-f]{8})$", stem)
+    if output_match:
+        return output_match.group(1)
+
+    # Pattern 3: result_short_id_timestamp
+    result_match = re.match(r"^result_([0-9a-f]{8})_", stem)
+    if result_match:
+        return result_match.group(1)
+
+    # Return the stem as a fallback
+    return stem
+
+
 def load_output_files(outputs_dir):
     """Load all JSON output files from outputs directory."""
     output_files = {}
 
     for file_path in outputs_dir.glob("*.json"):
         try:
+            # Skip metadata files
+            if file_path.stem == "metadata":
+                continue
+                
+            # Extract question_id using the same approach as output_watcher.py
+            question_id = extract_question_id(file_path.name)
+            
+            # Extract timestamp if available
+            timestamp_match = re.search(r'_(\d{8}_\d{6})', file_path.stem)
+            timestamp = timestamp_match.group(1) if timestamp_match else "unknown"
+            
             with open(file_path, "r") as f:
-                question_id = file_path.stem
                 data = json.load(f)
                 # Sanitize data for MongoDB
                 sanitize_for_mongodb(data)
+                
+                # Add metadata fields
+                data["last_updated"] = timestamp
+                data["last_updated_timestamp"] = int(time.time())
+                data["source_file"] = str(file_path)
+                
                 output_files[question_id] = data
+                
         except json.JSONDecodeError:
             logger.warning(f"Invalid JSON in {file_path}, skipping file")
             continue
@@ -213,34 +260,63 @@ def import_experiment(experiment_dir, database_name, collection_name, client=Non
         if outputs:
             outputs_collection = db[f"{collection_name}_outputs"]
             bulk_operations = []
+            skipped_count = 0
 
             for question_id, output_data in outputs.items():
                 # Add experiment_id reference to each output
                 output_data["experiment_id"] = experiment_id
                 output_data["question_id"] = question_id
 
-                # Create bulk upsert operation
-                bulk_operations.append(
-                    UpdateOne(
-                        {"experiment_id": experiment_id, "question_id": question_id},
-                        {"$set": output_data},
-                        upsert=True,
-                    )
+                # Check if document already exists and if content is different
+                existing_doc = outputs_collection.find_one(
+                    {"experiment_id": experiment_id, "question_id": question_id}
                 )
+                
+                if existing_doc:
+                    # Create comparison copies without metadata fields
+                    existing_copy = {k: v for k, v in existing_doc.items() 
+                                   if k not in ["_id", "last_updated", "last_updated_timestamp", "source_file"]}
+                    new_copy = {k: v for k, v in output_data.items() 
+                               if k not in ["last_updated", "last_updated_timestamp", "source_file"]}
+                    
+                    # Only update if content has changed
+                    if existing_copy != new_copy:
+                        bulk_operations.append(
+                            UpdateOne(
+                                {"experiment_id": experiment_id, "question_id": question_id},
+                                {"$set": output_data}
+                            )
+                        )
+                    else:
+                        skipped_count += 1
+                else:
+                    # Document doesn't exist, create insertion operation
+                    bulk_operations.append(
+                        UpdateOne(
+                            {"experiment_id": experiment_id, "question_id": question_id},
+                            {"$set": output_data},
+                            upsert=True
+                        )
+                    )
 
             # Execute bulk operations in batches to prevent command size issues
-            batch_size = 100
-            for i in range(0, len(bulk_operations), batch_size):
-                batch = bulk_operations[i : i + batch_size]
-                if batch:
-                    batch_result = outputs_collection.bulk_write(batch)
-                    logger.info(
-                        f"Batch {i//batch_size + 1}: Upserted {batch_result.upserted_count}, Modified {batch_result.modified_count} outputs"
-                    )
+            if bulk_operations:
+                batch_size = 100
+                for i in range(0, len(bulk_operations), batch_size):
+                    batch = bulk_operations[i : i + batch_size]
+                    if batch:
+                        batch_result = outputs_collection.bulk_write(batch)
+                        logger.info(
+                            f"Batch {i//batch_size + 1}: Upserted {batch_result.upserted_count}, Modified {batch_result.modified_count} outputs"
+                        )
 
-            logger.info(
-                f"Processed {len(outputs)} outputs for experiment {experiment_id}"
-            )
+                logger.info(
+                    f"Processed {len(outputs)} outputs for experiment {experiment_id} (Skipped {skipped_count} unchanged documents)"
+                )
+            else:
+                logger.info(
+                    f"No updates needed for {len(outputs)} outputs in experiment {experiment_id} (all {skipped_count} documents unchanged)"
+                )
 
         if should_close:
             client.close()

@@ -927,16 +927,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                             ),
                             # Add output data
                             **output,
-                            # Add metadata for reference
-                            "metadata": {
-                                "experiment": experiment_metadata,
-                                "setup": exp_metadata.get("metadata", {}).get(
-                                    "setup", {}
-                                ),
-                                "modifications": exp_metadata.get("metadata", {}).get(
-                                    "modifications", {}
-                                ),
-                            },
+                            # Add complete metadata for reference - include all fields from original metadata
+                            "metadata": exp_metadata.get("metadata", {}),
                         }
                         processed_results.append(processed_item)
 

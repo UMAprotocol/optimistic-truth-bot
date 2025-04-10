@@ -181,6 +181,10 @@ def process_output_file(file_path, db, collection_name):
 
         # Extract question_id from the filename
         question_id = extract_question_id(file_path.name)
+        
+        # Extract timestamp from filename if available (for logging purposes)
+        timestamp_match = re.search(r'_(\d{8}_\d{6})', file_path.stem)
+        timestamp = timestamp_match.group(1) if timestamp_match else "unknown"
 
         # Load the JSON data
         with open(file_path, "r") as f:
@@ -190,28 +194,45 @@ def process_output_file(file_path, db, collection_name):
         # Ensure experiment metadata exists
         ensure_experiment_metadata(db, collection_name, experiment_id, experiment_dir)
 
-        # Add experiment_id and question_id to the output data
+        # Add experiment_id, question_id, and last updated time
         data["experiment_id"] = experiment_id
         data["question_id"] = question_id
+        data["last_updated"] = timestamp
+        data["last_updated_timestamp"] = int(time.time())
+        data["source_file"] = str(file_path)
 
         # Store the output in the outputs collection
         outputs_collection = db[f"{collection_name}_outputs"]
-
-        # Upsert the output document
-        result = outputs_collection.update_one(
-            {"experiment_id": experiment_id, "question_id": question_id},
-            {"$set": data},
-            upsert=True,
+        
+        # Check if document already exists and if it's different
+        existing_doc = outputs_collection.find_one(
+            {"experiment_id": experiment_id, "question_id": question_id}
         )
-
-        if result.upserted_id:
-            logger.info(
-                f"Created new output {question_id} for experiment {experiment_id}"
-            )
+        
+        # If document exists, compare for changes
+        if existing_doc:
+            # Create comparison copies without metadata fields
+            existing_copy = {k: v for k, v in existing_doc.items() 
+                           if k not in ["_id", "last_updated", "last_updated_timestamp", "source_file"]}
+            new_copy = {k: v for k, v in data.items() 
+                       if k not in ["last_updated", "last_updated_timestamp", "source_file"]}
+            
+            # Only update if content has changed
+            if existing_copy != new_copy:
+                result = outputs_collection.update_one(
+                    {"experiment_id": experiment_id, "question_id": question_id},
+                    {"$set": data}
+                )
+                logger.info(f"Updated output {question_id} for experiment {experiment_id} (file: {timestamp})")
+                return True
+            else:
+                logger.info(f"Skipping update for {question_id} - content unchanged (file: {timestamp})")
+                return False
         else:
-            logger.info(f"Updated output {question_id} for experiment {experiment_id}")
-
-        return True
+            # Document doesn't exist, insert it
+            result = outputs_collection.insert_one(data)
+            logger.info(f"Created new output {question_id} for experiment {experiment_id} (file: {timestamp})")
+            return True
 
     except json.JSONDecodeError:
         logger.warning(f"Invalid JSON in {file_path}, skipping file")
