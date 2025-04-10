@@ -71,9 +71,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-reduce-majority-of-tariffs-in-april-g7gOj6oek1Qk.jpg",
   "condition_id": "0x1015c94a1566663fb5afcf55bad17e25c750d323430fc1f53cb46f7d19726315",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "proposed_price_outcome": "p2",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p2",
   "tags": [
     "Politics",
     "Trump",
