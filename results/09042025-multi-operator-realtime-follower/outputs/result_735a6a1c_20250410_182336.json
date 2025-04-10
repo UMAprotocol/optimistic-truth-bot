@@ -401,7 +401,7 @@
   "condition_id": "0x4b774c74e8672a632d6c12d04620f0c19a3ea10e74871a0239c9392805b70a90",
   "proposed_price": 0,
   "resolved_price": null,
-  "proposed_price_outcome": "p4",
+  "proposed_price_outcome": "p1",
   "resolved_price_outcome": null,
   "tags": [
     "Weather",

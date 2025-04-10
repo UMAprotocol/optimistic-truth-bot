@@ -71,9 +71,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-reduce-or-pause-tariffs-on-taiwan-before-june-gPo46cBt1Exb.jpg",
   "condition_id": "0x6219a8271764af7c7297ecd8379478f86fbb25e1ab6a3f92d78e66c2013a6ab5",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "proposed_price_outcome": "p2",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p2",
   "tags": [
     "Politics",
     "Trump",

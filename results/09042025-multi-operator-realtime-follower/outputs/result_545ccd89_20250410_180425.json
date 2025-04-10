@@ -77,9 +77,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-reduce-or-pause-tariffs-on-pakistan-before-june-PrfDmJl04kr3.jpg",
   "condition_id": "0xc98ddbc7a1e0250b2b67a0c932f709c1e4e7bddaef2347bccc6df4d46445464a",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "proposed_price_outcome": "p2",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p2",
   "tags": [
     "Politics",
     "Trump",
