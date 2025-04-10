@@ -239,9 +239,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/super+cool+basketball+in+red+and+blue+wow.png",
   "condition_id": "0x50f5e3695d9786ba326e83b25e53cbc263eaa0b5e271318b598bdca6b4790bc8",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "proposed_price_outcome": "p1",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p1",
   "tags": [
     "Sports",
     "NBA",
