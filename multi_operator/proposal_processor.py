@@ -196,11 +196,7 @@ class MultiOperatorProcessor:
         """Initialize the router, solver, and overseer components."""
         self.logger.info("Initializing components")
 
-        # Initialize router
-        self.router = Router(api_key=self.openai_api_key, verbose=self.verbose)
-        self.logger.info("Router initialized")
-
-        # Initialize solvers
+        # Initialize solvers first to get the available API keys
         self.solvers = {
             "perplexity": PerplexitySolver(
                 api_key=self.perplexity_api_key, verbose=self.verbose
@@ -212,6 +208,25 @@ class MultiOperatorProcessor:
             ),
         }
         self.logger.info(f"Initialized {len(self.solvers)} solvers")
+        
+        # Get available API keys and data sources from the code_runner solver
+        available_api_keys = []
+        data_sources = {}
+        if "code_runner" in self.solvers:
+            code_runner = self.solvers["code_runner"]
+            if hasattr(code_runner, "available_api_keys"):
+                available_api_keys = list(code_runner.available_api_keys)
+            if hasattr(code_runner, "data_sources"):
+                data_sources = code_runner.data_sources
+        
+        # Initialize router with available API keys and data sources
+        self.router = Router(
+            api_key=self.openai_api_key, 
+            verbose=self.verbose, 
+            available_api_keys=available_api_keys,
+            data_sources=data_sources
+        )
+        self.logger.info(f"Router initialized with {len(available_api_keys)} available API keys and {len(data_sources)} data sources")
 
         # Initialize overseer
         self.overseer = Overseer(api_key=self.openai_api_key, verbose=self.verbose)
@@ -623,9 +638,10 @@ SUMMARY:
                     "router_result": route_result,
                     "solver_results": solver_results,
                     "overseer_result": overseer_result,
-                    "recommendation": overseer_decision.get(
-                        "verdict", combined_recommendation
-                    ),
+                    # Get the recommendation based on verdict
+                    "recommendation": combined_recommendation if overseer_decision.get("verdict") == "SATISFIED" else 
+                                     "p4" if overseer_decision.get("verdict") == "DEFAULT_TO_P4" else 
+                                     combined_recommendation,
                     "reason": overseer_decision.get(
                         "reason", "Evaluated by overseer from multiple solver results"
                     ),
@@ -668,9 +684,10 @@ SUMMARY:
                     "router_result": route_result,
                     "solver_results": solver_results,
                     "overseer_result": overseer_result,
-                    "recommendation": overseer_decision.get(
-                        "verdict", solver_result.get("recommendation", "p4")
-                    ),
+                    # Get the recommendation based on verdict
+                    "recommendation": solver_result.get("recommendation", "p4") if overseer_decision.get("verdict") == "SATISFIED" else 
+                                     "p4" if overseer_decision.get("verdict") == "DEFAULT_TO_P4" else 
+                                     solver_result.get("recommendation", "p4"),
                     "reason": overseer_decision.get("reason", "Evaluated by overseer"),
                     "market_alignment": overseer_decision.get(
                         "market_alignment", "No market alignment information provided"
@@ -935,6 +952,24 @@ SUMMARY:
             for nested_key in ["router_result", "solver_results", "overseer_result"]:
                 if nested_key in result:
                     clean_result[nested_key] = result[nested_key]
+                    
+            # Add router prompt and output if available
+            if "router_result" in result:
+                router_result = result["router_result"]
+                if "prompt" in router_result:
+                    clean_result["router_prompt"] = router_result["prompt"]
+                    
+            # Add overseer prompts if available
+            if "overseer_result" in result:
+                overseer_result = result["overseer_result"]
+                if "prompt" in overseer_result:
+                    clean_result["overseer_prompt"] = overseer_result["prompt"]
+                    
+            # Add solver overseer prompts
+            if "solver_results" in result:
+                for i, solver_result in enumerate(result["solver_results"]):
+                    if "overseer_result" in solver_result and "prompt" in solver_result["overseer_result"]:
+                        clean_result[f"solver_{i+1}_overseer_prompt"] = solver_result["overseer_result"]["prompt"]
 
             # Only include all_solver_results if it's different from solver_results
             if "all_solver_results" in result and "solver_results" in result:
@@ -1078,12 +1113,20 @@ SUMMARY:
                 # Update the final recommendation to match the last journey entry
                 if recommendation_journey:
                     final_journey_entry = recommendation_journey[-1]
-                    final_recommendation = final_journey_entry.get(
-                        "perplexity_recommendation", ""
-                    )
-                    if final_recommendation and final_recommendation.startswith("p"):
+                    
+                    # Get the correct recommendation based on overseer verdict
+                    final_verdict = final_journey_entry.get("overseer_satisfaction_level", "")
+                    final_recommendation = final_journey_entry.get("perplexity_recommendation", "")
+                    
+                    # Use the correct recommendation based on the verdict
+                    if final_verdict == "satisfied" and final_recommendation.startswith("p"):
                         clean_result["recommendation"] = final_recommendation
-                        # Also update proposed_price_outcome to match final recommendation
+                        clean_result["proposed_price_outcome"] = final_recommendation
+                    elif final_verdict == "default_to_p4":
+                        clean_result["recommendation"] = "p4"
+                        clean_result["proposed_price_outcome"] = "p4"
+                    elif final_recommendation.startswith("p"):
+                        clean_result["recommendation"] = final_recommendation
                         clean_result["proposed_price_outcome"] = final_recommendation
 
                 # Create overseer_data structure similar to 1ac9ab6e.json

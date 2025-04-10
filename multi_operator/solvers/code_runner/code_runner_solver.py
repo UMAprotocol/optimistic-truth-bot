@@ -83,7 +83,7 @@ class CodeRunnerSolver(BaseSolver):
 
     def _load_api_keys_from_config(self, config_file: str):
         """
-        Load API key names from a configuration file.
+        Load API key names and endpoints from a configuration file.
 
         Args:
             config_file: Path to the configuration file
@@ -99,12 +99,39 @@ class CodeRunnerSolver(BaseSolver):
                 with open(config_path, "r") as f:
                     config_data = json.load(f)
 
+                # Initialize data sources dictionary if not already present
+                if not hasattr(self, "data_sources"):
+                    self.data_sources = {}
+
                 # Handle different JSON structures
                 if isinstance(config_data, list):
-                    # A simple list of API key names
+                    # Legacy format: A simple list of API key names
                     self.available_api_keys.update(config_data)
                 elif isinstance(config_data, dict):
-                    if "api_keys" in config_data:
+                    # Handle new structured format
+                    if "data_sources" in config_data and isinstance(config_data["data_sources"], list):
+                        for source in config_data["data_sources"]:
+                            # Extract API keys
+                            if "api_keys" in source and isinstance(source["api_keys"], list):
+                                self.available_api_keys.update(source["api_keys"])
+                            
+                            # Store the entire data source configuration
+                            if "name" in source:
+                                source_name = source["name"]
+                                self.data_sources[source_name] = source
+                                
+                                # Log the loaded data source
+                                if self.verbose:
+                                    self.logger.info(f"Loaded data source: {source_name}")
+                                    
+                                    # Log endpoints if available
+                                    if "endpoints" in source:
+                                        endpoints = source["endpoints"]
+                                        for endpoint_type, url in endpoints.items():
+                                            self.logger.info(f"  - {endpoint_type} endpoint: {url}")
+                    
+                    # Legacy format handling
+                    elif "api_keys" in config_data:
                         if isinstance(config_data["api_keys"], dict):
                             # Dictionary with key-value pairs
                             self.available_api_keys.update(
@@ -134,8 +161,27 @@ class CodeRunnerSolver(BaseSolver):
                             else:
                                 # It's just a key name
                                 self.available_api_keys.add(line.strip())
+                                
+            # Log summary of available data sources
+            if hasattr(self, "data_sources") and self.data_sources:
+                self.logger.info(f"Loaded {len(self.data_sources)} data sources")
+                
+                # Group sources by category
+                categories = {}
+                for source_name, source in self.data_sources.items():
+                    category = source.get("category", "other")
+                    if category not in categories:
+                        categories[category] = []
+                    categories[category].append(source_name)
+                
+                # Log by category
+                for category, sources in categories.items():
+                    self.logger.info(f"  - {category.capitalize()}: {', '.join(sources)}")
+        
         except Exception as e:
             self.logger.error(f"Error loading config file: {e}")
+            import traceback
+            self.logger.error(traceback.format_exc())
 
     def solve(
         self, user_prompt: str, system_prompt: Optional[str] = None
@@ -494,18 +540,54 @@ IMPORTANT REQUIREMENTS:
 2. Load environment variables from .env files using the python-dotenv package.
 3. For API keys, use the following environment variables:
 """
-            # Add information about all available API keys
+            # Add information about all available API keys and data sources
             for api_key_name in sorted(self.available_api_keys):
-                if api_key_name.startswith("SPORTS_DATA_IO"):
-                    sports_league = api_key_name.replace("SPORTS_DATA_IO_", "").replace(
-                        "_API_KEY", ""
-                    )
-                    code_gen_prompt += f"   - For Sports Data IO {sports_league} data: {api_key_name}\n"
-                else:
-                    code_gen_prompt += f"   - For {api_key_name.lower().replace('_', ' ')}: {api_key_name}\n"
+                code_gen_prompt += f"   - {api_key_name}\n"
+                
+            code_gen_prompt += "\n4. Available Data Sources Information:\n"
+            
+            # Add information about data sources if available
+            if hasattr(self, "data_sources") and self.data_sources:
+                # Add data source information based on the query type
+                if query_type == "crypto":
+                    crypto_sources = [s for s in self.data_sources.values() if s.get("category") == "crypto"]
+                    if crypto_sources:
+                        code_gen_prompt += "   Cryptocurrency Data Sources:\n"
+                        for source in crypto_sources:
+                            name = source.get("name", "Unknown")
+                            code_gen_prompt += f"   - {name}:\n"
+                            
+                            # Add endpoints information
+                            if "endpoints" in source:
+                                for endpoint_type, url in source["endpoints"].items():
+                                    code_gen_prompt += f"     * {endpoint_type}: {url}\n"
+                                    
+                                    # Add specific usage examples for Binance proxy
+                                    if "proxy" in endpoint_type.lower() and "binance" in url.lower():
+                                        code_gen_prompt += "     * RECOMMENDED: Use this proxy endpoint first for better reliability\n"
+                                        code_gen_prompt += f"     * Example: {url}?symbol=BTCUSDT&interval=1m&limit=1&startTime=TIMESTAMP&endTime=TIMESTAMP\n"
+                
+                elif query_type == "sports_mlb" or query_type.startswith("sports_"):
+                    sports_type = query_type.replace("sports_", "").upper()
+                    sports_sources = [
+                        s for s in self.data_sources.values() 
+                        if s.get("category") == "sports" and 
+                        (sports_type in s.get("name", "") or sports_type in s.get("subcategory", ""))
+                    ]
+                    
+                    if sports_sources:
+                        code_gen_prompt += f"   Sports Data Sources for {sports_type}:\n"
+                        for source in sports_sources:
+                            name = source.get("name", "Unknown")
+                            code_gen_prompt += f"   - {name}:\n"
+                            
+                            # Add endpoints information
+                            if "endpoints" in source:
+                                for endpoint_type, url in source["endpoints"].items():
+                                    code_gen_prompt += f"     * {endpoint_type}: {url}\n"
 
             code_gen_prompt += """
-4. NEVER include actual API key values in the code, always load them from environment variables.
+5. NEVER include actual API key values in the code, always load them from environment variables.
 
 The code should be completely self-contained and runnable with no arguments.
 
@@ -537,7 +619,11 @@ Your code should:
 6. Handle errors gracefully
 7. Return results in a clear format (either JSON or plaintext with a 'recommendation: X' line)
 
-For crypto queries, use Binance API. For MLB sports data, use Sports Data IO API with the SPORTS_DATA_IO_MLB_API_KEY environment variable.
+For crypto queries:
+- Primary Binance API: {self._get_endpoint_info("crypto", "primary")}
+{f"- Recommended proxy endpoint: {self._get_endpoint_info('crypto', 'proxy')}" if self._get_endpoint_info("crypto", "proxy") != "Not available" else ""}
+
+For sports data queries, use the appropriate Sports Data IO endpoints for the specific league.
 """
         else:
             # Subsequent attempts provide the error and ask for fixes
@@ -562,14 +648,8 @@ Please provide a new, corrected version that:
 """
             # Add information about all available API keys
             for api_key_name in sorted(self.available_api_keys):
-                if api_key_name.startswith("SPORTS_DATA_IO"):
-                    sports_league = api_key_name.replace("SPORTS_DATA_IO_", "").replace(
-                        "_API_KEY", ""
-                    )
-                    code_gen_prompt += f"   - For Sports Data IO {sports_league} data: {api_key_name}\n"
-                else:
-                    code_gen_prompt += f"   - For {api_key_name.lower().replace('_', ' ')}: {api_key_name}\n"
-
+                code_gen_prompt += f"   - {api_key_name}\n"
+                
             code_gen_prompt += """
 3. NEVER include actual API key values in the code, always load them from environment variables.
 4. Makes the code runnable with no arguments
@@ -1095,6 +1175,42 @@ Return ONLY the Python code without explanation.
             self.logger.error(f"Error generating improved code: {e}")
             return None
 
+    def _get_endpoint_info(self, category: str, endpoint_type: str) -> str:
+        """
+        Get endpoint information for a specific category and type.
+        
+        Args:
+            category: The category of data source (e.g., "crypto", "sports")
+            endpoint_type: The type of endpoint (e.g., "primary", "proxy")
+            
+        Returns:
+            The endpoint URL or a default value if not found
+        """
+        # Default values for common endpoints
+        defaults = {
+            "crypto": {
+                "primary": "https://api.binance.com/api/v3",
+                "proxy": "Not available"
+            },
+            "sports": {
+                "primary": "https://api.sportsdata.io/v3"
+            }
+        }
+        
+        # Check if we have data sources
+        if not hasattr(self, "data_sources") or not self.data_sources:
+            return defaults.get(category, {}).get(endpoint_type, "Not available")
+            
+        # Look for matching data sources
+        for source in self.data_sources.values():
+            if source.get("category") == category:
+                endpoints = source.get("endpoints", {})
+                if endpoint_type in endpoints:
+                    return endpoints[endpoint_type]
+                    
+        # Return default if not found
+        return defaults.get(category, {}).get(endpoint_type, "Not available")
+        
     def get_name(self) -> str:
         """
         Get the name of the solver.

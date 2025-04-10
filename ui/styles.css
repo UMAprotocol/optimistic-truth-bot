@@ -1822,6 +1822,36 @@ select[multiple] {
     background-color: #eee;
 }
 
+/* Router and Overseer response styling */
+.router-response, .overseer-response {
+    white-space: pre-wrap;
+    font-size: 0.85rem;
+    font-family: monospace;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 1rem;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.router-response code, .overseer-response code {
+    background-color: #e9ecef;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+}
+
+/* Execution status styling */
+.execution-successful {
+    color: #0f5132;
+    font-weight: 500;
+}
+
+.execution-failed {
+    color: #842029;
+    font-weight: 500;
+}
+
 /* JSON and Hex data styling */
 .json-data, .hex-data {
     white-space: pre-wrap;
@@ -1968,4 +1998,160 @@ select[multiple] {
 
 .tx-link:hover {
     text-decoration: underline;
+}
+
+.source-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.all-solvers-badge {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.primary-solver-badge {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.recommendation-journey table {
+    font-size: 0.9rem;
+}
+
+.recommendation-journey th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Satisfaction level styling */
+.satisfaction-satisfied {
+    color: #0f5132;
+    font-weight: 500;
+    padding: 2px 5px;
+    background-color: #d1e7dd;
+    border-radius: 3px;
+}
+
+.satisfaction-not-satisfied {
+    color: #842029;
+    font-weight: 500;
+    padding: 2px 5px;
+    background-color: #f8d7da;
+    border-radius: 3px;
+}
+
+.satisfaction-retry {
+    color: #664d03;
+    font-weight: 500;
+    padding: 2px 5px;
+    background-color: #fff3cd;
+    border-radius: 3px;
+}
+
+.satisfaction-default {
+    color: #0c5460;
+    font-weight: 500;
+    padding: 2px 5px;
+    background-color: #d1ecf1;
+    border-radius: 3px;
+}
+
+/* Market info styling */
+.overseer-data .market-price-info {
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 4px solid #0d6efd;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Add styles for collapsible content in modals */
+.content-collapsible {
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    overflow: hidden;
+    max-height: 1000px;
+    opacity: 1;
+}
+
+.content-collapsible.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.toggle-content-btn {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+}
+
+/* Styles for pre elements in modal */
+.router-prompt-text, 
+.router-prompt-data, 
+.router-response, 
+.overseer-prompt, 
+.overseer-response,
+.system-prompt {
+    max-height: 500px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Styles for critique cells in recommendation journey */
+.critique-cell {
+    position: relative;
+    max-width: 400px;
+}
+
+.critique-preview {
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.critique-preview.hidden {
+    display: none;
+}
+
+.critique-full {
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    background-color: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.toggle-critique-btn {
+    padding: 0;
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+
+.recommendation-journey table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.recommendation-journey th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.recommendation-journey td {
+    vertical-align: top;
+    word-wrap: break-word;
 } 

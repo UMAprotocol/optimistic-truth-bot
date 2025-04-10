@@ -16,20 +16,41 @@ class Router:
     Decides which solver to use for a given proposal based on ChatGPT analysis.
     """
 
-    def __init__(self, api_key: str, verbose: bool = False):
+    def __init__(
+        self, 
+        api_key: str, 
+        verbose: bool = False, 
+        available_api_keys: Optional[List[str]] = None,
+        data_sources: Optional[Dict[str, Any]] = None
+    ):
         """
         Initialize the router.
 
         Args:
             api_key: OpenAI API key for ChatGPT
             verbose: Whether to print verbose output
+            available_api_keys: List of API keys available to the code_runner
+            data_sources: Dictionary of data sources with their detailed configuration
         """
         self.api_key = api_key
         self.verbose = verbose
         self.logger = logging.getLogger("router")
+        
+        # Store available API keys
+        self.available_api_keys = available_api_keys or []
+        
+        # Store data sources
+        self.data_sources = data_sources or {}
 
         # List of available solvers
         self.available_solvers = ["perplexity", "code_runner"]
+        
+        # Log the available data sources
+        if self.data_sources and self.verbose:
+            self.logger.info(f"Router initialized with {len(self.data_sources)} data sources")
+            for source_name, source in self.data_sources.items():
+                category = source.get("category", "unknown")
+                self.logger.info(f"  - {source_name} ({category})")
 
     def get_router_prompt(
         self,
@@ -67,7 +88,135 @@ class Router:
             available_solvers = ["perplexity"]
 
         solvers_str = ", ".join(available_solvers)
+        
+        # Generate information about available data sources
+        data_source_details = ""
+        sports_guidelines = ""
+        crypto_guidelines = ""
+        data_source_examples = []
+        categories = {}
+        
+        # Process data sources if available
+        if self.data_sources:
+            # Group data sources by category
+            for source_name, source in self.data_sources.items():
+                category = source.get("category", "other")
+                if category not in categories:
+                    categories[category] = []
+                categories[category].append(source)
+            
+            # Create details section for each category
+            for category, sources in categories.items():
+                data_source_details += f"  * Available {category.capitalize()} Data Sources:\n"
+                
+                for source in sources:
+                    name = source.get("name", "Unknown")
+                    description = source.get("description", "")
+                    subcategory = source.get("subcategory", "")
+                    
+                    # Add the source name and description
+                    source_info = f"    - {name}"
+                    if subcategory:
+                        source_info += f" ({subcategory})"
+                    data_source_details += f"{source_info}: {description}\n"
+                    
+                    # Add endpoints info if available and verbose mode is on
+                    if "endpoints" in source and self.verbose:
+                        endpoints = source["endpoints"]
+                        for endpoint_type, url in endpoints.items():
+                            data_source_details += f"      {endpoint_type}: {url}\n"
+                    
+                    # Collect example queries for guidelines
+                    if "example_queries" in source and isinstance(source["example_queries"], list):
+                        for query in source["example_queries"]:
+                            data_source_examples.append(query)
+            
+            # Create specific guidelines for different categories
+            if "sports" in categories:
+                sports_examples = []
+                for source in categories["sports"]:
+                    subcategory = source.get("subcategory", "")
+                    name = source.get("name", "")
+                    if subcategory:
+                        if "example_queries" in source and len(source["example_queries"]) > 0:
+                            example = source["example_queries"][0]
+                            sports_examples.append(f"{subcategory} (e.g., \"{example}\")")
+                        else:
+                            sports_examples.append(subcategory)
+                
+                if sports_examples:
+                    sports_guidelines = "\n  * Specifically for: " + ", ".join(sports_examples)
+            
+            # Create crypto guidelines
+            if "crypto" in categories:
+                crypto_examples = []
+                for source in categories["crypto"]:
+                    if "example_queries" in source and len(source["example_queries"]) > 0:
+                        crypto_examples.extend(source["example_queries"])
+                
+                if crypto_examples:
+                    crypto_guidelines = "\n  * Including: " + ", ".join([f'"{ex}"' for ex in crypto_examples[:2]])
+        
+        # Fall back to API key parsing if no data sources
+        elif self.available_api_keys:
+            # Keep track of which sports leagues are available
+            available_sports = {
+                "MLB": False,
+                "NBA": False,
+                "NFL": False,
+                "NHL": False,
+                "SOCCER": False,
+                "NCAA": False
+            }
+            
+            data_source_details = "  * Currently available data sources based on API keys:\n"
+            for api_key in self.available_api_keys:
+                # Parse the API key to generate a human-readable description
+                if "MLB" in api_key:
+                    data_source_details += "    - MLB (Major League Baseball) data\n"
+                    available_sports["MLB"] = True
+                elif "NBA" in api_key:
+                    data_source_details += "    - NBA (National Basketball Association) data\n"
+                    available_sports["NBA"] = True
+                elif "NFL" in api_key:
+                    data_source_details += "    - NFL (National Football League) data\n"
+                    available_sports["NFL"] = True
+                elif "NHL" in api_key:
+                    data_source_details += "    - NHL (National Hockey League) data\n"
+                    available_sports["NHL"] = True
+                elif "SOCCER" in api_key or "FIFA" in api_key:
+                    data_source_details += "    - Soccer/Football data\n"
+                    available_sports["SOCCER"] = True
+                elif "NCAA" in api_key:
+                    data_source_details += "    - NCAA (College sports) data\n"
+                    available_sports["NCAA"] = True
+                elif "BINANCE" in api_key:
+                    data_source_details += "    - Binance cryptocurrency price data\n"
+                else:
+                    # Generic entry for unrecognized keys
+                    data_source_details += f"    - {api_key.replace('_API_KEY', '').replace('SPORTS_DATA_IO_', '')} data\n"
+            
+            # Generate specific examples for the guidelines
+            sports_examples = []
+            for sport, available in available_sports.items():
+                if available:
+                    if sport == "MLB":
+                        sports_examples.append("MLB baseball games (e.g., \"Did the Yankees win yesterday?\")")
+                    elif sport == "NBA":
+                        sports_examples.append("NBA basketball games (e.g., \"What was the Lakers score on Tuesday?\")")
+                    elif sport == "NFL":
+                        sports_examples.append("NFL football games (e.g., \"Did the Eagles cover the spread against the Cowboys?\")")
+                    elif sport == "NHL":
+                        sports_examples.append("NHL hockey games (e.g., \"Who won the Maple Leafs vs Bruins game?\")")
+                    elif sport == "SOCCER":
+                        sports_examples.append("Soccer/Football matches (e.g., \"What was the score in the Manchester United game?\")")
+                    elif sport == "NCAA":
+                        sports_examples.append("College sports (e.g., \"Did Duke win their last basketball game?\")")
+            
+            if sports_examples:
+                sports_guidelines = "\n  * Specifically for: " + ", ".join(sports_examples)
 
+        # Build the prompt
         prompt = f"""You are an expert router for UMA's optimistic oracle system. Your task is to analyze the provided query and decide which AI solver is best suited to handle it.
 
 Available solvers: {solvers_str}
@@ -81,8 +230,8 @@ Solver descriptions:
 
 - code_runner: Executes code to fetch real-time data from specific APIs. Currently supports:
   * Binance API: Can fetch cryptocurrency prices at specific times/dates with timezone conversion
-  * Sports Data IO: Can retrieve MLB game results, scores, team performance and game status
-  * Best for questions requiring precise, current data from these specific sources
+  * Sports Data IO: Can retrieve sports data from various leagues
+{data_source_details}  * Best for questions requiring precise, current data from these specific sources
   * Limited to only these data sources - cannot access other APIs or general information
 
 USER PROMPT:
@@ -92,7 +241,7 @@ Please analyze the prompt carefully, considering:
 1. The complexity of the query
 2. The type of information needed
 3. Whether the question requires specialized knowledge or data access
-4. Whether the question specifically involves cryptocurrency prices or MLB sports data
+4. Whether the question specifically involves cryptocurrency prices or sports data
 5. Whether multiple approaches might be complementary
 
 IMPORTANT: You SHOULD select MULTIPLE solvers when appropriate. For complementary approaches, multiple solvers can provide different perspectives on the same question.
@@ -115,14 +264,14 @@ Please take this guidance into account when making your decision.
 NOTE: The following solvers have been EXCLUDED due to previous failures or overseer feedback: {excluded_str}
 """
 
-        prompt += """
+        prompt += f"""
 Return your answer in a specific format:
 ```decision
-{
+{{
   "solvers": ["solver_name1", "solver_name2"],
   "reason": "Brief explanation of why these solvers are best suited",
   "multi_solver_strategy": "Optional explanation of how these solvers complement each other"
-}
+}}
 ```
 
 Where:
@@ -132,8 +281,8 @@ Where:
 
 Guidelines for solver selection:
 - Use code_runner when the question specifically asks for:
-  * Current or historical cryptocurrency prices from Binance (e.g., "What was the price of BTC on March 30th at 12pm ET?")
-  * MLB game results, scores or team performance (e.g., "Did the Blue Jays win against the Orioles on April 1st?")
+  * Current or historical cryptocurrency prices from Binance (e.g., "What was the price of BTC on March 30th at 12pm ET?"){crypto_guidelines}
+  * Sports data results, scores or team performance from available sources (e.g., "Did the Blue Jays win against the Orioles on April 1st?"){sports_guidelines}
   
 - Use perplexity when the question requires:
   * General knowledge or context not limited to specific data points
@@ -147,6 +296,8 @@ Guidelines for solver selection:
 
 Remember: code_runner is highly accurate for the supported data types but limited in scope. Perplexity has broader knowledge but may not have the most current information.
 """
+        
+        # We don't need this anymore since we're directly embedding values in f-strings
         return prompt
 
     def route(
@@ -241,6 +392,7 @@ Remember: code_runner is highly accurate for the supported data types but limite
             "reason": decision.get("reason", "Default selection"),
             "multi_solver_strategy": decision.get("multi_solver_strategy", ""),
             "response": response_text,
+            "prompt": router_prompt  # Save the router prompt for debugging
         }
 
     def extract_decision(

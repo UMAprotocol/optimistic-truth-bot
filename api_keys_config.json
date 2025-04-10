@@ -1,5 +1,74 @@
-[
-  "SPORTS_DATA_IO_MLB_API_KEY",
-  "SPORTS_DATA_IO_NBA_API_KEY",
-  "SPORTS_DATA_IO_NFL_API_KEY"
-]
+{
+  "data_sources": [
+    {
+      "name": "Binance",
+      "category": "crypto",
+      "api_keys": ["BINANCE_API_KEY"],
+      "endpoints": {
+        "primary": "https://api.binance.com/api/v3",
+        "proxy": "https://minimal-ubuntu-production.up.railway.app/binance-proxy"
+      },
+      "description": "Provides cryptocurrency price data for Bitcoin, Ethereum, and other cryptocurrencies",
+      "example_queries": [
+        "What was the price of BTC on April 9th at noon ET?",
+        "Was Ethereum higher or lower at the end of yesterday than at the start?"
+      ]
+    },
+    {
+      "name": "Sports Data IO - MLB",
+      "category": "sports",
+      "subcategory": "baseball",
+      "api_keys": ["SPORTS_DATA_IO_MLB_API_KEY"],
+      "endpoints": {
+        "primary": "https://api.sportsdata.io/v3/mlb"
+      },
+      "description": "MLB baseball scores, statistics, and game data",
+      "example_queries": [
+        "Did the Yankees win yesterday?",
+        "What was the score of the Dodgers game?"
+      ]
+    },
+    {
+      "name": "Sports Data IO - NBA",
+      "category": "sports",
+      "subcategory": "basketball",
+      "api_keys": ["SPORTS_DATA_IO_NBA_API_KEY"],
+      "endpoints": {
+        "primary": "https://api.sportsdata.io/v3/nba"
+      },
+      "description": "NBA basketball scores, statistics, and game data",
+      "example_queries": [
+        "Who won the Lakers vs Warriors game?",
+        "What was the final score of the Celtics game on Tuesday?"
+      ]
+    },
+    {
+      "name": "Sports Data IO - NFL",
+      "category": "sports",
+      "subcategory": "football",
+      "api_keys": ["SPORTS_DATA_IO_NFL_API_KEY"],
+      "endpoints": {
+        "primary": "https://api.sportsdata.io/v3/nfl"
+      },
+      "description": "NFL football scores, statistics, and game data",
+      "example_queries": [
+        "Did the Eagles cover the spread against the Cowboys?",
+        "What was the final score of the Chiefs game?"
+      ]
+    },
+    {
+      "name": "Sports Data IO - NHL",
+      "category": "sports",
+      "subcategory": "hockey",
+      "api_keys": ["SPORTS_DATA_IO_NHL_API_KEY"],
+      "endpoints": {
+        "primary": "https://api.sportsdata.io/v3/nhl"
+      },
+      "description": "NHL hockey scores, statistics, and game data",
+      "example_queries": [
+        "Did the Maple Leafs win yesterday?",
+        "What was the score of the Rangers vs Bruins game?"
+      ]
+    }
+  ]
+}

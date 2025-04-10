@@ -3714,6 +3714,23 @@ function showDetails(data, index) {
             `;
         }
         
+        // Add router prompt if available
+        if (data.router_prompt) {
+            content += `
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>Router Prompt</strong>
+                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="router-prompt-content">
+                            <i class="bi bi-arrows-expand"></i> Toggle
+                        </button>
+                    </div>
+                    <div class="card-body content-collapsible collapsed" id="router-prompt-content">
+                        <pre class="router-prompt-text">${data.router_prompt}</pre>
+                    </div>
+                </div>
+            `;
+        }
+        
         // Add router result
         if (data.router_result) {
             const routerResult = data.router_result;
@@ -3737,16 +3754,73 @@ function showDetails(data, index) {
                                 <strong>Multi-Solver Strategy:</strong> ${routerResult.multi_solver_strategy}
                             </div>
                         ` : ''}
+                        
+                        ${routerResult.prompt ? `
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Router Prompt Data:</strong>
+                                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="router-prompt-data">
+                                        <i class="bi bi-arrows-expand"></i> Toggle
+                                    </button>
+                                </div>
+                                <pre class="router-prompt-data mt-2 content-collapsible collapsed" id="router-prompt-data">${formatCodeBlocks(routerResult.prompt)}</pre>
+                            </div>
+                        ` : ''}
+                        
+                        ${routerResult.response ? `
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Router Response:</strong>
+                                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="router-response-content">
+                                        <i class="bi bi-arrows-expand"></i> Toggle
+                                    </button>
+                                </div>
+                                <pre class="router-response mt-2 content-collapsible collapsed" id="router-response-content">${formatCodeBlocks(routerResult.response)}</pre>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
         }
         
         // Add solver results
-        if (data.solver_results && Array.isArray(data.solver_results) && data.solver_results.length > 0) {
+        if ((data.solver_results && Array.isArray(data.solver_results) && data.solver_results.length > 0) || 
+            (data.all_solver_results && Array.isArray(data.all_solver_results) && data.all_solver_results.length > 0)) {
             content += `<h5 class="mb-3">Solver Results</h5>`;
             
-            data.solver_results.forEach((solverResult, index) => {
+            // Create a merged array of solver results
+            const solverResultsToRender = [];
+            
+            // First add all solver_results if available
+            if (data.solver_results && Array.isArray(data.solver_results) && data.solver_results.length > 0) {
+                // Add a source property to each result
+                data.solver_results.forEach(result => {
+                    solverResultsToRender.push({
+                        ...result,
+                        _resultSource: 'solver_results'
+                    });
+                });
+            }
+            
+            // Then add all_solver_results that aren't already included
+            if (data.all_solver_results && Array.isArray(data.all_solver_results) && data.all_solver_results.length > 0) {
+                data.all_solver_results.forEach(result => {
+                    // Check if this solver result is already in the array
+                    const isDuplicate = solverResultsToRender.some(existingResult => 
+                        existingResult.solver === result.solver && 
+                        existingResult.attempt === result.attempt
+                    );
+                    
+                    if (!isDuplicate) {
+                        solverResultsToRender.push({
+                            ...result,
+                            _resultSource: 'all_solver_results'
+                        });
+                    }
+                });
+            }
+            
+            solverResultsToRender.forEach((solverResult, index) => {
                 const executionStatus = solverResult.execution_successful === true ? 
                     '<span class="execution-successful"><i class="bi bi-check-circle-fill"></i> Success</span>' : 
                     '<span class="execution-failed"><i class="bi bi-x-circle-fill"></i> Failed</span>';
@@ -3757,7 +3831,8 @@ function showDetails(data, index) {
                             <div class="solver-name">${solverResult.solver || 'Unknown Solver'}</div>
                             <div class="d-flex align-items-center">
                                 <div class="solver-attempt me-3">Attempt ${solverResult.attempt || index + 1}</div>
-                                <div>${executionStatus}</div>
+                                <div class="me-3">${executionStatus}</div>
+                                ${solverResult._resultSource ? `<div><small class="source-badge ${solverResult._resultSource === 'all_solver_results' ? 'all-solvers-badge' : 'primary-solver-badge'}">${solverResult._resultSource === 'all_solver_results' ? 'Additional Result' : 'Primary Result'}</small></div>` : ''}
                             </div>
                         </div>
                         <div class="solver-body">
@@ -3765,8 +3840,13 @@ function showDetails(data, index) {
                             
                             ${solverResult.response ? `
                                 <div class="mt-2">
-                                    <strong>Response:</strong>
-                                    <pre class="response-text mt-2">${formatCodeBlocks(solverResult.response)}</pre>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong>Response:</strong>
+                                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-response-${index}">
+                                            <i class="bi bi-arrows-expand"></i> Toggle
+                                        </button>
+                                    </div>
+                                    <pre class="response-text mt-2 content-collapsible collapsed" id="solver-response-${index}">${formatCodeBlocks(solverResult.response)}</pre>
                                 </div>
                             ` : ''}
                             
@@ -3774,9 +3854,11 @@ function showDetails(data, index) {
                                 <div class="code-section">
                                     <div class="code-header">
                                         <span>Generated Code</span>
-                                        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${solverResult.solver_result.code.replace(/`/g, '\\`')}\`)">Copy</button>
+                                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-code-${index}">
+                                            <i class="bi bi-arrows-expand"></i> Toggle
+                                        </button>
                                     </div>
-                                    <div class="code-content">
+                                    <div class="code-content content-collapsible collapsed" id="solver-code-${index}">
                                         <pre><code class="language-python">${solverResult.solver_result.code}</code></pre>
                                     </div>
                                 </div>
@@ -3786,9 +3868,11 @@ function showDetails(data, index) {
                                 <div class="code-section">
                                     <div class="code-header">
                                         <span>Generated Code</span>
-                                        <button class="copy-btn" onclick="navigator.clipboard.writeText(\`${solverResult.code.replace(/`/g, '\\`')}\`)">Copy</button>
+                                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="code-${index}">
+                                            <i class="bi bi-arrows-expand"></i> Toggle
+                                        </button>
                                     </div>
-                                    <div class="code-content">
+                                    <div class="code-content content-collapsible collapsed" id="code-${index}">
                                         <pre><code class="language-python">${solverResult.code}</code></pre>
                                     </div>
                                 </div>
@@ -3798,8 +3882,11 @@ function showDetails(data, index) {
                                 <div class="code-section">
                                     <div class="code-header">
                                         <span>Code Output</span>
+                                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="code-output-${index}">
+                                            <i class="bi bi-arrows-expand"></i> Toggle
+                                        </button>
                                     </div>
-                                    <div class="code-content">
+                                    <div class="code-content content-collapsible collapsed" id="code-output-${index}">
                                         <pre><code class="language-plaintext">${solverResult.code_output}</code></pre>
                                     </div>
                                 </div>
@@ -3809,8 +3896,11 @@ function showDetails(data, index) {
                                 <div class="code-section">
                                     <div class="code-header">
                                         <span>Code Output</span>
+                                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="sr-code-output-${index}">
+                                            <i class="bi bi-arrows-expand"></i> Toggle
+                                        </button>
                                     </div>
-                                    <div class="code-content">
+                                    <div class="code-content content-collapsible collapsed" id="sr-code-output-${index}">
                                         <pre><code class="language-plaintext">${solverResult.solver_result.code_output}</code></pre>
                                     </div>
                                 </div>
@@ -3824,6 +3914,36 @@ function showDetails(data, index) {
                                         <div class="mt-1"><strong>Reason:</strong> ${solverResult.overseer_result.decision?.reason || solverResult.overseer_result.reason || 'N/A'}</div>
                                         ${solverResult.overseer_result.decision?.critique || solverResult.overseer_result.critique ? `
                                             <div class="mt-1"><strong>Critique:</strong> ${solverResult.overseer_result.decision?.critique || solverResult.overseer_result.critique}</div>
+                                        ` : ''}
+                                        ${solverResult.overseer_result.decision?.market_alignment ? `
+                                            <div class="mt-1"><strong>Market Alignment:</strong> ${solverResult.overseer_result.decision?.market_alignment}</div>
+                                        ` : ''}
+                                        ${solverResult.overseer_result.decision?.prompt_update ? `
+                                            <div class="mt-1"><strong>Prompt Update:</strong> ${solverResult.overseer_result.decision?.prompt_update}</div>
+                                        ` : ''}
+                                        
+                                        ${solverResult.overseer_result.prompt ? `
+                                            <div class="mt-3">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <strong>Overseer Prompt:</strong>
+                                                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-prompt-${index}">
+                                                        <i class="bi bi-arrows-expand"></i> Toggle
+                                                    </button>
+                                                </div>
+                                                <pre class="overseer-prompt mt-2 content-collapsible collapsed" id="overseer-prompt-${index}">${formatCodeBlocks(solverResult.overseer_result.prompt)}</pre>
+                                            </div>
+                                        ` : ''}
+                                        
+                                        ${solverResult.overseer_result.response ? `
+                                            <div class="mt-3">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <strong>Overseer Response:</strong>
+                                                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-response-${index}">
+                                                        <i class="bi bi-arrows-expand"></i> Toggle
+                                                    </button>
+                                                </div>
+                                                <pre class="overseer-response mt-2 content-collapsible collapsed" id="overseer-response-${index}">${formatCodeBlocks(solverResult.overseer_result.response)}</pre>
+                                            </div>
                                         ` : ''}
                                     </div>
                                 </div>
@@ -3864,6 +3984,185 @@ function showDetails(data, index) {
             
             content += `</div></div>`;
         }
+        
+        // Add all_solver_results if they exist and there are results not shown in solver_results
+        if (data.all_solver_results && Array.isArray(data.all_solver_results) && data.all_solver_results.length > 0) {
+            // Check if solver_results already contains all of these results
+            const solverResultsIds = (data.solver_results && Array.isArray(data.solver_results)) 
+                ? data.solver_results.map(sr => `${sr.solver}_${sr.attempt}`) 
+                : [];
+                
+            // Filter all_solver_results to only show those not already displayed
+            const additionalResults = data.all_solver_results.filter(asr => 
+                !solverResultsIds.includes(`${asr.solver}_${asr.attempt}`)
+            );
+            
+            if (additionalResults.length > 0) {
+                content += `<h5 class="mb-3 mt-4">Additional Solver Results</h5>`;
+                
+                additionalResults.forEach((solverResult, index) => {
+                    const executionStatus = solverResult.execution_successful === true ? 
+                        '<span class="execution-successful"><i class="bi bi-check-circle-fill"></i> Success</span>' : 
+                        '<span class="execution-failed"><i class="bi bi-x-circle-fill"></i> Failed</span>';
+                    
+                    content += `
+                        <div class="solver-card">
+                            <div class="solver-header">
+                                <div class="solver-name">${solverResult.solver || 'Unknown Solver'}</div>
+                                <div class="d-flex align-items-center">
+                                    <div class="solver-attempt me-3">Attempt ${solverResult.attempt || index + 1}</div>
+                                    <div class="me-3">${executionStatus}</div>
+                                    <div><small class="source-badge all-solvers-badge">Additional Result</small></div>
+                                </div>
+                            </div>
+                            <div class="solver-body">
+                                <div><strong>Recommendation:</strong> ${solverResult.recommendation || 'N/A'}</div>
+                                
+                                ${solverResult.response ? `
+                                    <div class="mt-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong>Response:</strong>
+                                            <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="add-solver-response-${index}">
+                                                <i class="bi bi-arrows-expand"></i> Toggle
+                                            </button>
+                                        </div>
+                                        <pre class="response-text mt-2 content-collapsible collapsed" id="add-solver-response-${index}">${formatCodeBlocks(solverResult.response)}</pre>
+                                    </div>
+                                ` : ''}
+                                
+                                ${solverResult.solver_result && solverResult.solver_result.code ? `
+                                    <div class="code-section">
+                                        <div class="code-header">
+                                            <span>Generated Code</span>
+                                            <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="add-solver-code-${index}">
+                                                <i class="bi bi-arrows-expand"></i> Toggle
+                                            </button>
+                                        </div>
+                                        <div class="code-content content-collapsible collapsed" id="add-solver-code-${index}">
+                                            <pre><code class="language-python">${solverResult.solver_result.code}</code></pre>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${solverResult.code ? `
+                                    <div class="code-section">
+                                        <div class="code-header">
+                                            <span>Generated Code</span>
+                                            <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="add-code-${index}">
+                                                <i class="bi bi-arrows-expand"></i> Toggle
+                                            </button>
+                                        </div>
+                                        <div class="code-content content-collapsible collapsed" id="add-code-${index}">
+                                            <pre><code class="language-python">${solverResult.code}</code></pre>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${solverResult.code_output ? `
+                                    <div class="code-section">
+                                        <div class="code-header">
+                                            <span>Code Output</span>
+                                            <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="add-code-output-${index}">
+                                                <i class="bi bi-arrows-expand"></i> Toggle
+                                            </button>
+                                        </div>
+                                        <div class="code-content content-collapsible collapsed" id="add-code-output-${index}">
+                                            <pre><code class="language-plaintext">${solverResult.code_output}</code></pre>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${solverResult.solver_result && solverResult.solver_result.code_output ? `
+                                    <div class="code-section">
+                                        <div class="code-header">
+                                            <span>Code Output</span>
+                                            <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="add-sr-code-output-${index}">
+                                                <i class="bi bi-arrows-expand"></i> Toggle
+                                            </button>
+                                        </div>
+                                        <div class="code-content content-collapsible collapsed" id="add-sr-code-output-${index}">
+                                            <pre><code class="language-plaintext">${solverResult.solver_result.code_output}</code></pre>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${solverResult.overseer_result ? `
+                                    <div class="mt-3">
+                                        <strong>Overseer Evaluation:</strong>
+                                        <div class="overseer-details mt-2">
+                                            <div><strong>Decision:</strong> ${solverResult.overseer_result.decision?.verdict || solverResult.overseer_result.verdict || 'N/A'}</div>
+                                            <div class="mt-1"><strong>Reason:</strong> ${solverResult.overseer_result.decision?.reason || solverResult.overseer_result.reason || 'N/A'}</div>
+                                            ${solverResult.overseer_result.decision?.critique || solverResult.overseer_result.critique ? `
+                                                <div class="mt-1"><strong>Critique:</strong> ${solverResult.overseer_result.decision?.critique || solverResult.overseer_result.critique}</div>
+                                            ` : ''}
+                                            ${solverResult.overseer_result.decision?.market_alignment ? `
+                                                <div class="mt-1"><strong>Market Alignment:</strong> ${solverResult.overseer_result.decision?.market_alignment}</div>
+                                            ` : ''}
+                                            ${solverResult.overseer_result.decision?.prompt_update ? `
+                                                <div class="mt-1"><strong>Prompt Update:</strong> ${solverResult.overseer_result.decision?.prompt_update}</div>
+                                            ` : ''}
+                                            
+                                            ${solverResult.overseer_result.prompt ? `
+                                                <div class="mt-3">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <strong>Overseer Prompt:</strong>
+                                                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="add-overseer-prompt-${index}">
+                                                            <i class="bi bi-arrows-expand"></i> Toggle
+                                                        </button>
+                                                    </div>
+                                                    <pre class="overseer-prompt mt-2 content-collapsible collapsed" id="add-overseer-prompt-${index}">${formatCodeBlocks(solverResult.overseer_result.prompt)}</pre>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            ${solverResult.overseer_result.response ? `
+                                                <div class="mt-3">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <strong>Overseer Response:</strong>
+                                                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="add-overseer-response-${index}">
+                                                            <i class="bi bi-arrows-expand"></i> Toggle
+                                                        </button>
+                                                    </div>
+                                                    <pre class="overseer-response mt-2 content-collapsible collapsed" id="add-overseer-response-${index}">${formatCodeBlocks(solverResult.overseer_result.response)}</pre>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${solverResult.response_metadata ? `
+                                    <div class="mt-3">
+                                        <strong>Response Metadata:</strong>
+                                        <div class="card mt-2">
+                                            <div class="card-body p-0">
+                                                <table class="table meta-table mb-0">
+                                                    ${Object.entries(solverResult.response_metadata).map(([key, value]) => `
+                                                        <tr>
+                                                            <th>${formatKeyName(key)}</th>
+                                                            <td>${formatValue(value, key)}</td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${/* Display all other solver_result fields not already displayed */ ''}
+                                ${solverResult.solver_result && typeof solverResult.solver_result === 'object' ? 
+                                    Object.entries(solverResult.solver_result)
+                                        .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata'].includes(key))
+                                        .map(([key, value]) => `
+                                            <div class="mt-3">
+                                                <strong>${formatKeyName(key)}:</strong>
+                                                <div class="mt-2">${formatValue(value, key)}</div>
+                                            </div>
+                                        `).join('') : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
     }
     
     // Add overseer section for both old and new file structures
@@ -3875,11 +4174,25 @@ function showDetails(data, index) {
             <div class="detail-section">
                 <h4 class="section-title">Overseer Data</h4>
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body overseer-data">
                         ${overseerData.attempts ? `<div><strong>Attempts:</strong> ${overseerData.attempts}</div>` : ''}
                         ${overseerData.market_price_info ? `
                             <div class="mt-2">
-                                <strong>Market Price Info:</strong> ${overseerData.market_price_info}
+                                <strong>Market Price Info:</strong> 
+                                <div class="market-price-info">${overseerData.market_price_info}</div>
+                            </div>
+                        ` : ''}
+                        
+                        ${/* Add overseer prompt if available */
+                        data.overseer_prompt || data.solver_1_overseer_prompt ? `
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Overseer Prompt:</strong>
+                                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="main-overseer-prompt">
+                                        <i class="bi bi-arrows-expand"></i> Toggle
+                                    </button>
+                                </div>
+                                <pre class="overseer-prompt mt-2 content-collapsible collapsed" id="main-overseer-prompt">${formatCodeBlocks(data.overseer_prompt || data.solver_1_overseer_prompt)}</pre>
                             </div>
                         ` : ''}
                         
@@ -3969,16 +4282,52 @@ function showDetails(data, index) {
                                                     <th>Attempt</th>
                                                     <th>Recommendation</th>
                                                     <th>Satisfaction</th>
-                                                    <th>Critique</th>
+                                                    <th style="min-width: 200px; width: 40%;">Critique</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                ${overseerData.recommendation_journey.map(journey => `
+                                                ${overseerData.recommendation_journey.map((journey, jIdx) => `
                                                     <tr>
                                                         <td>${journey.attempt}</td>
                                                         <td>${journey.perplexity_recommendation || 'N/A'}</td>
                                                         <td>${formatSatisfactionLevel(journey.overseer_satisfaction_level)}</td>
-                                                        <td>${journey.critique || 'N/A'}</td>
+                                                        <td class="critique-cell">
+                                                            <div class="critique-preview" id="critique-preview-${jIdx}">
+                                                                ${journey.critique ? journey.critique.substring(0, 120) + (journey.critique.length > 120 ? '...' : '') : 'N/A'}
+                                                            </div>
+                                                            <div class="critique-full content-collapsible collapsed" id="critique-full-${jIdx}">
+                                                                ${journey.critique || 'N/A'}
+                                                            </div>
+                                                            ${journey.critique && journey.critique.length > 120 ? `
+                                                                <button class="btn btn-sm btn-link toggle-critique-btn" 
+                                                                    data-preview="critique-preview-${jIdx}" 
+                                                                    data-target="critique-full-${jIdx}">
+                                                                    Show more
+                                                                </button>
+                                                            ` : ''}
+                                                        </td>
+                                                        <td>
+                                                            ${journey.system_prompt_before ? `
+                                                                <button class="btn btn-sm btn-outline-secondary toggle-content-btn mb-1" 
+                                                                    data-target="system-prompt-before-${jIdx}">
+                                                                    Before Prompt
+                                                                </button>
+                                                                <div class="content-collapsible collapsed" id="system-prompt-before-${jIdx}">
+                                                                    <pre class="system-prompt mt-2">${journey.system_prompt_before}</pre>
+                                                                </div>
+                                                            ` : ''}
+                                                            
+                                                            ${journey.system_prompt_after ? `
+                                                                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" 
+                                                                    data-target="system-prompt-after-${jIdx}">
+                                                                    After Prompt
+                                                                </button>
+                                                                <div class="content-collapsible collapsed" id="system-prompt-after-${jIdx}">
+                                                                    <pre class="system-prompt mt-2">${journey.system_prompt_after}</pre>
+                                                                </div>
+                                                            ` : ''}
+                                                        </td>
                                                     </tr>
                                                 `).join('')}
                                             </tbody>
@@ -4006,14 +4355,24 @@ function showDetails(data, index) {
                                                     ${interaction.recommendation ? `<div class="mb-2"><strong>Recommendation:</strong> ${interaction.recommendation}</div>` : ''}
                                                     ${interaction.response ? `
                                                         <div class="mb-2">
-                                                            <strong>Response:</strong>
-                                                            <pre class="response-text mt-2">${formatCodeBlocks(interaction.response)}</pre>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <strong>Response:</strong>
+                                                                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="interaction-response-${i}">
+                                                                    <i class="bi bi-arrows-expand"></i> Toggle
+                                                                </button>
+                                                            </div>
+                                                            <pre class="response-text mt-2 content-collapsible collapsed" id="interaction-response-${i}">${formatCodeBlocks(interaction.response)}</pre>
                                                         </div>
                                                     ` : ''}
                                                     ${interaction.metadata ? `
                                                         <div class="mt-3">
-                                                            <strong>Metadata:</strong>
-                                                            <pre class="mt-2 metadata-json">${JSON.stringify(interaction.metadata, null, 2)}</pre>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <strong>Metadata:</strong>
+                                                                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="interaction-metadata-${i}">
+                                                                    <i class="bi bi-arrows-expand"></i> Toggle
+                                                                </button>
+                                                            </div>
+                                                            <pre class="mt-2 metadata-json content-collapsible collapsed" id="interaction-metadata-${i}">${JSON.stringify(interaction.metadata, null, 2)}</pre>
                                                         </div>
                                                     ` : ''}
                                                 </div>
@@ -4051,9 +4410,40 @@ function showDetails(data, index) {
                                                     <td>${overseerData.decision.market_alignment}</td>
                                                 </tr>
                                             ` : ''}
+                                            ${overseerData.decision.prompt_update ? `
+                                                <tr>
+                                                    <th>Prompt Update</th>
+                                                    <td>${overseerData.decision.prompt_update}</td>
+                                                </tr>
+                                            ` : ''}
                                         </table>
                                     </div>
                                 </div>
+                                
+                                ${overseerData.decision.response ? `
+                                    <div class="mt-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong>Decision Response:</strong>
+                                            <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="decision-response">
+                                                <i class="bi bi-arrows-expand"></i> Toggle
+                                            </button>
+                                        </div>
+                                        <pre class="overseer-response mt-2 content-collapsible collapsed" id="decision-response">${formatCodeBlocks(overseerData.decision.response)}</pre>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        ${/* Show overseer response if available at root level */
+                        overseerData.response && !overseerData.decision?.response ? `
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Overseer Response:</strong>
+                                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-root-response">
+                                        <i class="bi bi-arrows-expand"></i> Toggle
+                                    </button>
+                                </div>
+                                <pre class="overseer-response mt-2 content-collapsible collapsed" id="overseer-root-response">${formatCodeBlocks(overseerData.response)}</pre>
                             </div>
                         ` : ''}
                     </div>
@@ -4257,6 +4647,52 @@ function showDetails(data, index) {
     
     // Show the modal
     modal.show();
+    
+    // Add toggle functionality for the collapsible content
+    document.querySelectorAll('.toggle-content-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                targetElement.classList.toggle('collapsed');
+                
+                // Update button icon
+                const icon = this.querySelector('i');
+                if (icon) {
+                    if (targetElement.classList.contains('collapsed')) {
+                        icon.classList.remove('bi-arrows-collapse');
+                        icon.classList.add('bi-arrows-expand');
+                    } else {
+                        icon.classList.remove('bi-arrows-expand');
+                        icon.classList.add('bi-arrows-collapse');
+                    }
+                }
+            }
+        });
+    });
+    
+    // Add toggle functionality for critique content
+    document.querySelectorAll('.toggle-critique-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const previewId = this.getAttribute('data-preview');
+            const targetId = this.getAttribute('data-target');
+            const previewElement = document.getElementById(previewId);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement && previewElement) {
+                targetElement.classList.toggle('collapsed');
+                previewElement.classList.toggle('hidden');
+                
+                // Update button text
+                if (targetElement.classList.contains('collapsed')) {
+                    this.textContent = 'Show more';
+                } else {
+                    this.textContent = 'Show less';
+                }
+            }
+        });
+    });
 }
 
 // Extracts a title from all potential sources
