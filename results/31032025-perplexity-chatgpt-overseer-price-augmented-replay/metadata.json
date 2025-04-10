@@ -1,7 +1,7 @@
 {
   "experiment": {
     "timestamp": "31-03-2025 10:45",
-    "title": "Overseer V2 with Price Augmentation",
+    "title": "Overseer V2 & Price Augment",
     "goal": "Running the V2 Perplexity + ChatGPT overseer code in real time for and give ChatGPT price information from the prediction market so it can identify more clearly if deviations have occurred. Note that only the overseer can see the pricing information, not Perplexity to try and eliminate any bias.",
     "previous_experiment": "28032025-perplexity-chatgpt-overseer-realtime-v2",
     "modifications": {

@@ -323,19 +323,20 @@ header .bi {
 /* Experiment time and title styling */
 .experiment-date {
     color: #6c757d;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    margin-right: 10px;
-    padding-right: 10px;
+    margin-right: 4px;
+    padding-right: 4px;
     border-right: 1px solid #dee2e6;
     display: inline-block;
 }
 
 .experiment-title {
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: #2c3e50;
-    display: inline-block;
+    display: block;
+    margin-top: 3px;
 }
 
 .experiment-description {

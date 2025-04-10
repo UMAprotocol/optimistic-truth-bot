@@ -1,7 +1,7 @@
 {
   "experiment": {
     "timestamp": "08-04-2025 16:30",
-    "title": "Multi-Operator with Realtime Bug Fix 2",
+    "title": "Live Multi-Operator (Bug Fix 2)",
     "goal": "Learning from mistakes to refine overseer prompts and re-running on the previous set of errors. Analyzing failures in prompt responses to improve prompt engineering.",
     "previous_experiment": "08042025-multi-operator-with-realtime-bug-fix",
     "modifications": {

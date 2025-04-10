@@ -1,7 +1,7 @@
 {
   "experiment": {
     "timestamp": "08-04-2025 14:00",
-    "title": "Multi-Operator Router with Realtime Bug Fix",
+    "title": "Live Multi-Operator (Bug Fix)",
     "goal": "Re-running the previous experiment with critical bug fixes and extensions. Resolved issues where the final overseer result was not consistently applied after multiple overseer runs, and addressed insufficient environment configurations. Added code runner refinements for more reliable API integrations.",
     "previous_experiment": "04042025-multi-operator-realtime-follower",
     "modifications": {

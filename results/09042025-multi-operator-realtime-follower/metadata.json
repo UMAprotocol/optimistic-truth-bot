@@ -1,7 +1,7 @@
 {
     "experiment": {
       "timestamp": "09-04-2025 10:30",
-      "title": "Real-time Multi-Operator + Code Runner",
+      "title": "Real-time Multi-Operator 2",
       "goal": "Extending the router system to include specialized code runners that can fetch real-time data from Binance and a selection of sports APIs. This provides direct data access for price and sports game queries, enabling more accurate and automated resolutions.",
       "previous_experiment": "08042025-multi-operator-with-realtime-bug-fix-2",
       "modifications": {

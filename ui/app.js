@@ -1939,20 +1939,18 @@ function formatDisplayDate(dateStr) {
         // Handle formats like "DD-MM-YYYY HH:MM" (e.g., "01-04-2025 21:15")
         if (dateStr.match(/^\d{2}-\d{2}-\d{4}\s\d{2}:\d{2}$/)) {
             const [datePart, timePart] = dateStr.split(' ');
-            const [day, month, year] = datePart.split('-');
-            return `${month}/${day}/${year.slice(-2)} ${timePart}`;
+            return `${datePart} ${timePart}`;
         }
         
         // Handle formats like "DD-MM-YYYY"
         if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
-            const parts = dateStr.split('-');
-            return `${parts[1]}/${parts[0]}/${parts[2].slice(-2)}`;
+            return dateStr;
         }
         
-        // Handle other date formats
+        // Handle other date formats - convert to dd-mm-yy
         const date = new Date(dateStr);
         if (!isNaN(date.getTime())) {
-            return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)}`;
+            return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
         }
         
         return dateStr;
@@ -2403,14 +2401,19 @@ function displayExperimentsTable() {
         // For MongoDB sources, make sure we're using the experiment metadata
         const experimentGoal = experiment.goal || (experiment.metadata && experiment.metadata.experiment?.goal) || '';
         
+        // Only add the toggle button if there's a goal to show
+        const toggleButton = experimentGoal ? 
+            `<i class="bi bi-chevron-down experiment-toggle" title="Show/hide goal"></i>` : '';
+        
         return `
         <tr class="experiment-row" data-directory="${experiment.directory}" data-source="${isMongoDBSource ? 'mongodb' : 'filesystem'}">
             <td>
                 <div>
                     <span class="experiment-date">${sourceIcon}${formattedDate}</span>
-                    ${experiment.count ? `<span class="badge bg-primary ms-1">${experiment.count} items</span>` : ''}
-                    <span class="experiment-title">${experiment.title || experiment.directory}</span>
+                    ${experiment.count ? `<span class="badge bg-primary ms-1" style="font-size: 0.75rem;">${experiment.count} items</span>` : ''}
+                    ${toggleButton}
                 </div>
+                <span class="experiment-title">${experiment.title || experiment.directory}</span>
                 ${experimentGoal ? `<div class="experiment-description">${experimentGoal}</div>` : ''}
             </td>
         </tr>
@@ -2418,16 +2421,50 @@ function displayExperimentsTable() {
     
     // Add click event to rows
     document.querySelectorAll('.experiment-row').forEach(row => {
-        row.addEventListener('click', () => {
+        row.addEventListener('click', (event) => {
             const directory = row.getAttribute('data-directory');
             const source = row.getAttribute('data-source');
+            
+            // Check if the click was on the toggle button
+            if (event.target.classList.contains('experiment-toggle')) {
+                event.stopPropagation(); // Prevent row selection
+                
+                // Toggle description visibility
+                const descriptionEl = row.querySelector('.experiment-description');
+                const toggleEl = row.querySelector('.experiment-toggle');
+                
+                if (descriptionEl) {
+                    descriptionEl.classList.toggle('expanded');
+                    toggleEl.classList.toggle('expanded');
+                }
+                return;
+            }
+            
+            // Otherwise, handle the normal row click (load experiment)
             loadExperimentData(directory, source);
             
             // Highlight the selected row
             document.querySelectorAll('.experiment-row').forEach(r => {
                 r.classList.remove('table-active');
+                
+                // Collapse descriptions when deselecting rows
+                const descEl = r.querySelector('.experiment-description');
+                const togEl = r.querySelector('.experiment-toggle');
+                if (descEl && descEl.classList.contains('expanded')) {
+                    descEl.classList.remove('expanded');
+                    if (togEl) togEl.classList.remove('expanded');
+                }
             });
+            
             row.classList.add('table-active');
+            
+            // Auto-expand the description of the selected row
+            const descriptionEl = row.querySelector('.experiment-description');
+            const toggleEl = row.querySelector('.experiment-toggle');
+            if (descriptionEl) {
+                descriptionEl.classList.add('expanded');
+                if (toggleEl) toggleEl.classList.add('expanded');
+            }
         });
     });
     
