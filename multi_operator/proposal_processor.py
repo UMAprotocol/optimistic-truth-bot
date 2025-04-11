@@ -199,7 +199,44 @@ class MultiOperatorProcessor:
         """Initialize the router, solver, and overseer components."""
         self.logger.info("Initializing components")
 
-        # Initialize solvers first to get the available API keys
+        # First directly load API keys config to ensure we have a consistent view
+        direct_api_keys = []
+        direct_data_sources = {}
+        
+        # Direct load of API config file
+        if self.api_keys_config:
+            try:
+                import json
+                with open(self.api_keys_config, 'r') as f:
+                    config_data = json.load(f)
+                    
+                    # Process data sources if available
+                    if 'data_sources' in config_data:
+                        for source in config_data['data_sources']:
+                            # Extract all API keys
+                            if 'api_keys' in source and isinstance(source['api_keys'], list):
+                                direct_api_keys.extend(source['api_keys'])
+                            
+                            # Store data sources by name
+                            if 'name' in source:
+                                name = source['name']
+                                direct_data_sources[name] = source
+                                
+                                # Force-check for NHL
+                                if 'NHL' in name:
+                                    self.logger.info(f"Found NHL data source: {name}")
+                
+                self.logger.info(f"Directly loaded {len(direct_api_keys)} API keys and {len(direct_data_sources)} data sources from config")
+                
+                # Ensure NHL is in API keys (important fix)
+                nhl_keys = [k for k in direct_api_keys if 'NHL' in k]
+                if nhl_keys:
+                    self.logger.info(f"NHL API keys found: {nhl_keys}")
+                    
+            except Exception as e:
+                self.logger.error(f"Error directly loading API keys config: {e}")
+                
+        # Initialize solvers, possibly using the direct config
         self.solvers = {
             "perplexity": PerplexitySolver(
                 api_key=self.perplexity_api_key, verbose=self.verbose
@@ -208,28 +245,43 @@ class MultiOperatorProcessor:
                 api_key=self.openai_api_key,
                 verbose=self.verbose,
                 config_file=self.api_keys_config,
+                additional_api_keys=direct_api_keys,  # Pass directly loaded keys
             ),
         }
         self.logger.info(f"Initialized {len(self.solvers)} solvers")
         
         # Get available API keys and data sources from the code_runner solver
-        available_api_keys = []
-        data_sources = {}
+        available_api_keys = direct_api_keys.copy() if direct_api_keys else []
+        data_sources = direct_data_sources.copy() if direct_data_sources else {}
+        
+        # Supplement with data from code runner if available
         if "code_runner" in self.solvers:
             code_runner = self.solvers["code_runner"]
             if hasattr(code_runner, "available_api_keys"):
-                available_api_keys = list(code_runner.available_api_keys)
+                for key in code_runner.available_api_keys:
+                    if key not in available_api_keys:
+                        available_api_keys.append(key)
             if hasattr(code_runner, "data_sources"):
-                data_sources = code_runner.data_sources
+                for name, source in code_runner.data_sources.items():
+                    if name not in data_sources:
+                        data_sources[name] = source
         
+        # We already loaded the data sources directly above
+        final_data_sources = data_sources
+                
+        # Ensure NHL API key is in the list of available keys (critical fix)
+        if "SPORTS_DATA_IO_NHL_API_KEY" not in available_api_keys:
+            available_api_keys.append("SPORTS_DATA_IO_NHL_API_KEY")
+            self.logger.info("Explicitly added NHL API key to router's available keys")
+            
         # Initialize router with available API keys and data sources
         self.router = Router(
             api_key=self.openai_api_key, 
             verbose=self.verbose, 
             available_api_keys=available_api_keys,
-            data_sources=data_sources
+            data_sources=final_data_sources
         )
-        self.logger.info(f"Router initialized with {len(available_api_keys)} available API keys and {len(data_sources)} data sources")
+        self.logger.info(f"Router initialized with {len(available_api_keys)} available API keys and {len(final_data_sources)} data sources")
 
         # Initialize overseer
         self.overseer = Overseer(api_key=self.openai_api_key, verbose=self.verbose)
@@ -1002,11 +1054,18 @@ SUMMARY:
                 if "prompt" in overseer_result:
                     clean_result["overseer_prompt"] = overseer_result["prompt"]
                     
-            # Add solver overseer prompts
+            # Add solver overseer prompts and code generation prompts
             if "solver_results" in result:
                 for i, solver_result in enumerate(result["solver_results"]):
+                    # Add solver overseer prompts
                     if "overseer_result" in solver_result and "prompt" in solver_result["overseer_result"]:
                         clean_result[f"solver_{i+1}_overseer_prompt"] = solver_result["overseer_result"]["prompt"]
+                    
+                    # Add code generation prompt for code_runner solver
+                    if solver_result.get("solver") == "code_runner" and "solver_result" in solver_result:
+                        solver_data = solver_result["solver_result"]
+                        if "code_generation_prompt" in solver_data:
+                            clean_result[f"code_runner_prompt"] = solver_data["code_generation_prompt"]
 
             # Only include all_solver_results if it's different from solver_results
             if "all_solver_results" in result and "solver_results" in result:
@@ -1097,76 +1156,307 @@ SUMMARY:
                         elif field == "game_start_time":
                             clean_result[field] = None
 
-            # Create a recommendation_journey structure similar to 1ac9ab6e.json
+            # Create a comprehensive recommendation_journey structure capturing all interactions
             if "solver_results" in clean_result:
                 # Create a recommendation journey from solver results
                 recommendation_journey = []
 
-                # Track attempt number
-                attempt_counter = 1
+                # Get routing information
+                routing_attempts = clean_result.get("routing_attempts", 1)
+                
+                # Track step number (processing sequence) and attempt counters
+                step_counter = 1
+                
+                # Track attempts for each actor type separately
+                # Attempts only increase when the same component is retried
+                attempt_counters = {
+                    "router": {}, # Key will be routing_attempt number
+                    "solver": {}, # Key will be solver name
+                    "overseer": {} # Key will be solver_evaluated
+                }
+                
+                # For each routing attempt (typically just 1, unless rerouting happened)
+                for routing_attempt in range(1, routing_attempts + 1):
+                    # Add router decision for this routing attempt
+                    if "router_result" in clean_result:
+                        router_result = clean_result["router_result"]
+                        selected_solvers = router_result.get("solvers", [])
+                        router_reason = router_result.get("reason", "")
+                        multi_solver_strategy = router_result.get("multi_solver_strategy", "")
+                        
+                        # Track router attempt for this routing phase
+                        if routing_attempt not in attempt_counters["router"]:
+                            attempt_counters["router"][routing_attempt] = 1
+                        
+                        # Only include router steps for the right routing attempt
+                        if routing_attempt == 1 or "rerouting_info" in clean_result:
+                            # Add router entry to the journey
+                            router_entry = {
+                                "actor": "router",
+                                "step": step_counter,
+                                "attempt": attempt_counters["router"][routing_attempt],
+                                "routing_attempt": routing_attempt,
+                                "action": "route",
+                                "selected_solvers": selected_solvers,
+                                "reason": router_reason,
+                                "multi_solver_strategy": multi_solver_strategy,
+                                "system_prompt": clean_result.get("system_prompt", "")
+                            }
+                            recommendation_journey.append(router_entry)
+                            step_counter += 1
+                
+                # Find solver attempts that belong to each routing phase
+                solver_results_by_routing = {}
+                
+                # Group solver results by routing phase
                 for solver_result in clean_result["solver_results"]:
-                    if (
-                        "overseer_result" in solver_result
-                        and "decision" in solver_result["overseer_result"]
-                    ):
-                        overseer_decision = solver_result["overseer_result"]["decision"]
-
-                        # Create journey entry
-                        journey_entry = {
-                            "attempt": attempt_counter,
-                            "perplexity_recommendation": solver_result.get(
-                                "recommendation", ""
-                            ),
-                            "overseer_satisfaction_level": overseer_decision.get(
-                                "verdict", ""
-                            ).lower(),
-                            "prompt_updated": bool(
-                                overseer_decision.get("prompt_update", "")
-                            ),
-                            "critique": overseer_decision.get("critique", ""),
+                    solver_metadata = solver_result.get("solver_metadata", {})
+                    routing_phase = solver_metadata.get("routing_attempt", 1)
+                    
+                    if routing_phase not in solver_results_by_routing:
+                        solver_results_by_routing[routing_phase] = []
+                    
+                    solver_results_by_routing[routing_phase].append(solver_result)
+                
+                # Process solver results for each routing phase
+                for routing_phase in range(1, routing_attempts + 1):
+                    # Get solver results for this routing phase
+                    phase_solver_results = solver_results_by_routing.get(routing_phase, [])
+                    
+                    # For the common case where we don't have explicit routing information
+                    if not phase_solver_results and routing_phase == 1:
+                        phase_solver_results = clean_result["solver_results"]
+                    
+                    # Process each solver result in this routing phase
+                    for solver_result in phase_solver_results:
+                        solver_name = solver_result.get("solver", "unknown")
+                        recommendation = solver_result.get("recommendation", "")
+                        solver_attempt = solver_result.get("attempt", 1)  # Get from metadata if available
+                        
+                        # Initialize attempt counter for this solver if needed
+                        if solver_name not in attempt_counters["solver"]:
+                            attempt_counters["solver"][solver_name] = 1
+                        
+                        # Create solver entry
+                        solver_entry = {
+                            "actor": solver_name,
+                            "step": step_counter,
+                            "attempt": attempt_counters["solver"][solver_name],
+                            "routing_attempt": routing_phase,
+                            "action": "solve",
+                            "recommendation": recommendation,
+                            "execution_successful": solver_result.get("execution_successful", True)
                         }
-
-                        # Add system prompt information if available
-                        if "system_prompt" in result:
-                            journey_entry["system_prompt_before"] = result[
-                                "system_prompt"
-                            ]
-
-                            # If prompt was updated, include the updated prompt
-                            if (
-                                journey_entry["prompt_updated"]
-                                and "prompt_update" in overseer_decision
-                            ):
-                                updated_prompt = f"{result['system_prompt']}\n\nADDITIONAL INSTRUCTIONS: {overseer_decision['prompt_update']}"
-                                journey_entry["system_prompt_after"] = updated_prompt
-                            else:
-                                journey_entry["system_prompt_after"] = result[
-                                    "system_prompt"
-                                ]
-
-                        recommendation_journey.append(journey_entry)
-                        attempt_counter += 1
-
-                # Update the final recommendation to match the last journey entry
-                if recommendation_journey:
-                    final_journey_entry = recommendation_journey[-1]
+                        
+                        # Add specific solver data
+                        if solver_name == "code_runner":
+                            if "solver_result" in solver_result:
+                                code = solver_result["solver_result"].get("code", "")
+                                code_output = solver_result["solver_result"].get("code_output", "")
+                                if code:
+                                    solver_entry["code_generated"] = True
+                                    # Include a code snippet (first few lines)
+                                    code_lines = code.split("\n")
+                                    if len(code_lines) > 3:
+                                        solver_entry["code_snippet"] = "\n".join(code_lines[:3]) + "..."
+                                if code_output:
+                                    solver_entry["execution_result"] = (
+                                        code_output[:200] + "..." if len(code_output) > 200 else code_output
+                                    )
+                        
+                        recommendation_journey.append(solver_entry)
+                        step_counter += 1
+                        
+                        # Add overseer evaluation for each solver result
+                        if (
+                            "overseer_result" in solver_result
+                            and "decision" in solver_result["overseer_result"]
+                        ):
+                            overseer_decision = solver_result["overseer_result"]["decision"]
+                            verdict = overseer_decision.get("verdict", "").lower()
+                            require_rerun = overseer_decision.get("require_rerun", False)
+                            
+                            # Track overseer attempt for this solver
+                            if solver_name not in attempt_counters["overseer"]:
+                                attempt_counters["overseer"][solver_name] = 1
+                            
+                            # Create overseer entry
+                            overseer_entry = {
+                                "actor": "overseer",
+                                "step": step_counter,
+                                "attempt": attempt_counters["overseer"][solver_name],
+                                "routing_attempt": routing_phase,
+                                "action": "evaluate",
+                                "solver_evaluated": solver_name,
+                                "verdict": verdict,
+                                "prompt_updated": bool(overseer_decision.get("prompt_update", "")),
+                                "critique": overseer_decision.get("critique", ""),
+                                "market_alignment": overseer_decision.get("market_alignment", ""),
+                                "require_rerun": require_rerun
+                            }
+                            
+                            # Add system prompt update information if available
+                            if "system_prompt" in result and overseer_entry["prompt_updated"]:
+                                overseer_entry["system_prompt_before"] = result["system_prompt"]
+                                if "prompt_update" in overseer_decision:
+                                    updated_prompt = f"{result['system_prompt']}\n\nADDITIONAL INSTRUCTIONS: {overseer_decision['prompt_update']}"
+                                    overseer_entry["system_prompt_after"] = updated_prompt
+                            
+                            recommendation_journey.append(overseer_entry)
+                            step_counter += 1
+                            
+                            # If this is a retry situation, increment the solver attempt counter
+                            if require_rerun or verdict.lower() == "retry":
+                                attempt_counters["solver"][solver_name] += 1
+                            
+                            # Always increment overseer attempt counter after evaluation
+                            attempt_counters["overseer"][solver_name] += 1
                     
-                    # Get the correct recommendation based on overseer verdict
-                    final_verdict = final_journey_entry.get("overseer_satisfaction_level", "")
-                    final_recommendation = final_journey_entry.get("perplexity_recommendation", "")
-                    
-                    # Use the correct recommendation based on the verdict
-                    if final_verdict == "satisfied" and final_recommendation.startswith("p"):
-                        clean_result["recommendation"] = final_recommendation
-                        clean_result["proposed_price_outcome"] = final_recommendation
-                    elif final_verdict == "default_to_p4":
-                        clean_result["recommendation"] = "p4"
-                        clean_result["proposed_price_outcome"] = "p4"
-                    elif final_recommendation.startswith("p"):
-                        clean_result["recommendation"] = final_recommendation
-                        clean_result["proposed_price_outcome"] = final_recommendation
+                    # Add re-routing information at the end of each routing phase (except the last)
+                    if routing_phase < routing_attempts and "rerouting_info" in clean_result:
+                        rerouting_info = clean_result["rerouting_info"]
+                        excluded_solvers = rerouting_info.get("excluded_solvers", [])
+                        routing_guidance = rerouting_info.get("overseer_guidance", "")
+                        
+                        if excluded_solvers or routing_guidance:
+                            rerouting_entry = {
+                                "actor": "overseer",
+                                "step": step_counter,
+                                "attempt": 1,  # Rerouting is a new action, not a retry
+                                "routing_attempt": routing_phase,
+                                "action": "reroute",
+                                "excluded_solvers": excluded_solvers,
+                                "routing_guidance": routing_guidance
+                            }
+                            recommendation_journey.append(rerouting_entry)
+                            step_counter += 1
+                            
+                            # Increment routing attempt counter
+                            attempt_counters["router"][routing_phase + 1] = 1
 
-                # Create overseer_data structure similar to 1ac9ab6e.json
+                # Find the final result as determined by the last overseer evaluation
+                final_overseer_entries = [entry for entry in recommendation_journey 
+                                        if entry.get("actor") == "overseer" and entry.get("action") == "evaluate"]
+                
+                if final_overseer_entries:
+                    final_overseer_entry = final_overseer_entries[-1]
+                    solver_evaluated = final_overseer_entry.get("solver_evaluated", "")
+                    verdict = final_overseer_entry.get("verdict", "")
+                    
+                    # Find the corresponding solver entry
+                    solver_entries = [entry for entry in recommendation_journey 
+                                     if entry.get("actor") == solver_evaluated and entry.get("action") == "solve"]
+                    
+                    if solver_entries:
+                        final_solver_entry = solver_entries[-1]
+                        recommendation = final_solver_entry.get("recommendation", "")
+                        
+                        # Use the correct recommendation based on the verdict
+                        if verdict == "satisfied" and recommendation.startswith("p"):
+                            clean_result["recommendation"] = recommendation
+                            clean_result["proposed_price_outcome"] = recommendation
+                        elif verdict == "default_to_p4":
+                            clean_result["recommendation"] = "p4"
+                            clean_result["proposed_price_outcome"] = "p4"
+                        elif recommendation.startswith("p"):
+                            clean_result["recommendation"] = recommendation
+                            clean_result["proposed_price_outcome"] = recommendation
+                
+                # Create backward-compatible recommendation_journey for UI compatibility
+                backward_compatible_journey = []
+                
+                # Group entries by solver name and attempt
+                solver_attempt_groups = {}
+                
+                # First, organize entries by solver and attempt for easy mapping
+                for entry in recommendation_journey:
+                    # We only care about solver and overseer entries for backward compatibility
+                    if entry.get("actor") in ["perplexity", "code_runner"] and entry.get("action") == "solve":
+                        solver_name = entry.get("actor")
+                        routing_attempt = entry.get("routing_attempt", 1)
+                        solver_attempt = entry.get("attempt", 1)
+                        
+                        key = f"{routing_attempt}_{solver_name}_{solver_attempt}"
+                        if key not in solver_attempt_groups:
+                            solver_attempt_groups[key] = {"solver": None, "overseer": None}
+                            
+                        solver_attempt_groups[key]["solver"] = entry
+                        
+                    elif entry.get("actor") == "overseer" and entry.get("action") == "evaluate":
+                        solver_name = entry.get("solver_evaluated", "")
+                        routing_attempt = entry.get("routing_attempt", 1)
+                        # We need to link to the solver attempt that was just evaluated
+                        # In the new structure, this is the current solver attempt
+                        solver_attempt = attempt_counters["solver"].get(solver_name, 1)
+                        
+                        key = f"{routing_attempt}_{solver_name}_{solver_attempt}"
+                        if key not in solver_attempt_groups:
+                            solver_attempt_groups[key] = {"solver": None, "overseer": None}
+                            
+                        solver_attempt_groups[key]["overseer"] = entry
+                
+                # Now create backward compatible entries from the grouped data
+                compatibility_attempt_counter = 1
+                
+                for key, group in sorted(solver_attempt_groups.items()):
+                    solver_entry = group["solver"]
+                    overseer_entry = group["overseer"]
+                    
+                    # Skip incomplete groups
+                    if not solver_entry or not overseer_entry:
+                        continue
+                    
+                    # Create backward compatible entry
+                    compatible_entry = {
+                        "attempt": compatibility_attempt_counter,
+                        "overseer_satisfaction_level": overseer_entry.get("verdict", ""),
+                        "prompt_updated": overseer_entry.get("prompt_updated", False),
+                        "critique": overseer_entry.get("critique", "")
+                    }
+                    
+                    # Use solver-specific recommendation field for backward compatibility
+                    solver_type = solver_entry.get("actor", "perplexity")
+                    if solver_type == "perplexity":
+                        compatible_entry["perplexity_recommendation"] = solver_entry.get("recommendation", "")
+                    elif solver_type == "code_runner":
+                        compatible_entry["code_runner_recommendation"] = solver_entry.get("recommendation", "")
+                        # Old UI will look for perplexity_recommendation, so include it as well for compatibility
+                        compatible_entry["perplexity_recommendation"] = solver_entry.get("recommendation", "")
+                    else:
+                        # For any other solver, default to this format for backward compatibility
+                        compatible_entry["perplexity_recommendation"] = solver_entry.get("recommendation", "")
+                    
+                    # Add system prompt information if available
+                    if "system_prompt_before" in overseer_entry:
+                        compatible_entry["system_prompt_before"] = overseer_entry["system_prompt_before"]
+                    if "system_prompt_after" in overseer_entry:
+                        compatible_entry["system_prompt_after"] = overseer_entry["system_prompt_after"]
+                    
+                    # Add routing attempt information
+                    compatible_entry["routing_attempt"] = overseer_entry.get("routing_attempt", 1)
+                    
+                    backward_compatible_journey.append(compatible_entry)
+                    compatibility_attempt_counter += 1
+                
+                # If we have new journey but couldn't create backward compatible entries,
+                # create a minimal backward compatible entry to avoid breaking UI
+                if recommendation_journey and not backward_compatible_journey:
+                    default_entry = {
+                        "attempt": 1,
+                        "perplexity_recommendation": clean_result.get("recommendation", ""),  # For backward compatibility
+                        "overseer_satisfaction_level": "satisfied",
+                        "prompt_updated": False,
+                        "critique": "Auto-generated entry for backward compatibility",
+                        "solver_used": clean_result.get("attempted_solvers", ["unknown"])[0]  # Include which solver was used
+                    }
+                    
+                    if "system_prompt" in clean_result:
+                        default_entry["system_prompt_before"] = clean_result["system_prompt"]
+                        default_entry["system_prompt_after"] = clean_result["system_prompt"]
+                        
+                    backward_compatible_journey.append(default_entry)
+
+                # Create overseer_data structure with both the detailed and backward-compatible journey
                 overseer_data = {
                     "attempts": len(recommendation_journey),
                     "interactions": [],  # Detailed interaction data would go here
@@ -1174,7 +1464,8 @@ SUMMARY:
                         "market_alignment", "No market price information available"
                     ),
                     "tokens": result.get("tokens", []),
-                    "recommendation_journey": recommendation_journey,
+                    "recommendation_journey": backward_compatible_journey,  # For backward compatibility with UI
+                    "detailed_journey": recommendation_journey  # New detailed journey with all components
                 }
 
                 # If we have response_metadata from a solver, include it as final_response_metadata

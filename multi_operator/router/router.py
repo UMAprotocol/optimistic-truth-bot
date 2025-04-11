@@ -169,7 +169,24 @@ class Router:
                 "NCAA": False
             }
             
+            # Hard-coded check - force NHL to be included in the prompt
+            # This is a critical fix to ensure router knows about NHL capabilities
+            for api_key in self.available_api_keys:
+                if "NHL" in api_key:
+                    available_sports["NHL"] = True
+            
+            # Explicit check for NHL API key
+            if "SPORTS_DATA_IO_NHL_API_KEY" in self.available_api_keys:
+                available_sports["NHL"] = True
+            
             data_source_details = "  * Currently available data sources based on API keys:\n"
+            
+            # Always include NHL in data sources if we have the key in available_api_keys
+            if any("NHL" in api_key for api_key in self.available_api_keys) or available_sports["NHL"]:
+                data_source_details += "    - NHL (National Hockey League) data\n"
+                available_sports["NHL"] = True
+            
+            # Process other API keys
             for api_key in self.available_api_keys:
                 # Parse the API key to generate a human-readable description
                 if "MLB" in api_key:
@@ -182,8 +199,8 @@ class Router:
                     data_source_details += "    - NFL (National Football League) data\n"
                     available_sports["NFL"] = True
                 elif "NHL" in api_key:
-                    data_source_details += "    - NHL (National Hockey League) data\n"
-                    available_sports["NHL"] = True
+                    # Already added above
+                    pass
                 elif "SOCCER" in api_key or "FIFA" in api_key:
                     data_source_details += "    - Soccer/Football data\n"
                     available_sports["SOCCER"] = True
@@ -192,7 +209,7 @@ class Router:
                     available_sports["NCAA"] = True
                 elif "BINANCE" in api_key:
                     data_source_details += "    - Binance cryptocurrency price data\n"
-                else:
+                elif not any(sport in api_key for sport in ["MLB", "NBA", "NFL", "NHL", "SOCCER", "NCAA", "BINANCE"]):
                     # Generic entry for unrecognized keys
                     data_source_details += f"    - {api_key.replace('_API_KEY', '').replace('SPORTS_DATA_IO_', '')} data\n"
             
@@ -207,14 +224,46 @@ class Router:
                     elif sport == "NFL":
                         sports_examples.append("NFL football games (e.g., \"Did the Eagles cover the spread against the Cowboys?\")")
                     elif sport == "NHL":
-                        sports_examples.append("NHL hockey games (e.g., \"Who won the Maple Leafs vs Bruins game?\")")
+                        sports_examples.append("NHL hockey games (e.g., \"Who won the Maple Leafs vs Bruins game?\" or \"Did the Kraken beat the Golden Knights?\")")
                     elif sport == "SOCCER":
                         sports_examples.append("Soccer/Football matches (e.g., \"What was the score in the Manchester United game?\")")
                     elif sport == "NCAA":
                         sports_examples.append("College sports (e.g., \"Did Duke win their last basketball game?\")")
             
+            # Special case check for NHL in API keys or data sources to ensure it's included
+            has_nhl_key = "SPORTS_DATA_IO_NHL_API_KEY" in self.available_api_keys
+            has_nhl_source = False
+            
+            # Look for NHL in structured data sources
+            if self.data_sources:
+                for source_name, source in self.data_sources.items():
+                    if "NHL" in source_name or (source.get("subcategory") == "hockey"):
+                        has_nhl_source = True
+            
+            if (has_nhl_key or has_nhl_source) and "NHL" not in [sport for sport, available in available_sports.items() if available]:
+                sports_examples.append("NHL hockey games (e.g., \"Who won the Maple Leafs vs Bruins game?\" or \"Did the Kraken beat the Golden Knights?\")")
+                available_sports["NHL"] = True
+                # Also add to data source details if not already there
+                if "NHL" not in data_source_details:
+                    data_source_details += "    - NHL (National Hockey League) data\n"
+            
+            # Force include NHL example if it was in the data sources but not picked up
+            nhl_forced = False
+            if self.data_sources:
+                for source_name, source in self.data_sources.items():
+                    if "NHL" in source_name and "NHL" not in sports_guidelines:
+                        nhl_forced = True
+            
             if sports_examples:
                 sports_guidelines = "\n  * Specifically for: " + ", ".join(sports_examples)
+                
+            # Add NHL if we forced it or if we have the NHL API key
+            has_nhl_key = any("NHL" in api_key for api_key in self.available_api_keys) or "SPORTS_DATA_IO_NHL_API_KEY" in self.available_api_keys
+            if (nhl_forced or has_nhl_key) and "hockey" not in sports_guidelines.lower():
+                if sports_guidelines:
+                    sports_guidelines += ", NHL hockey games (e.g., \"Who won the Kraken vs Golden Knights game?\")"
+                else:
+                    sports_guidelines = "\n  * Specifically for: NHL hockey games (e.g., \"Who won the Kraken vs Golden Knights game?\")"
 
         # Build the prompt
         prompt = f"""You are an expert router for UMA's optimistic oracle system. Your task is to analyze the provided query and decide which AI solver is best suited to handle it.
