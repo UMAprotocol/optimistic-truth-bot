@@ -144,9 +144,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/freestyle-chess-grand-slam-paris-winner-mQvysmPBSYqP.jpg",
   "condition_id": "0x1907a51e1d6a2cc9944ba99cd890e8e0d03d14c8ee4125a033e6244228b4e0a6",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "proposed_price_outcome": "p1",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p1",
   "tags": [
     "Sports",
     "Chess"

@@ -144,9 +144,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/earth+on+fire.png",
   "condition_id": "0x4b774c74e8672a632d6c12d04620f0c19a3ea10e74871a0239c9392805b70a90",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "proposed_price_outcome": "p1",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p1",
   "tags": [
     "Weather",
     "climate",

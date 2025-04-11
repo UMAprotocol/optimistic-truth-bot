@@ -77,9 +77,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-trump-reduce-or-pause-tariffs-on-south-africa-before-june-eMxgwMADwuAY.jpg",
   "condition_id": "0xbd044d36e858baef2fc7d809acc0c38109dc8e12a7b519e15ee18c8c5b55b938",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": 1000000000000000000,
   "proposed_price_outcome": "p2",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p2",
   "tags": [
     "Politics",
     "Trump",
