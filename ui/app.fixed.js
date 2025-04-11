@@ -3898,17 +3898,6 @@ function showDetails(data, index) {
                                     </div>
                                     <pre class="response-text mt-2 content-collapsible collapsed" id="code-generation-prompt-${index}">${formatCodeBlocks(solverResult.code_generation_prompt || solverResult.solver_result?.code_generation_prompt || solverResult.code_runner_prompt)}</pre>
                                 </div>
-                                <script>
-                                // Mark these fields as already handled to prevent duplicate display
-                                if (solverResult.solver_result) {
-                                    if (solverResult.solver_result.code_generation_prompt) {
-                                        delete solverResult.solver_result.code_generation_prompt;
-                                    }
-                                    if (solverResult.solver_result.code_runner_prompt) {
-                                        delete solverResult.solver_result.code_runner_prompt;
-                                    }
-                                }
-                                </script>
                             ` : ''}
                             
                             ${solverResult.solver_result && solverResult.solver_result.code ? `
@@ -4031,7 +4020,7 @@ function showDetails(data, index) {
                             ${/* Display all other solver_result fields not already displayed */ ''}
                             ${solverResult.solver_result && typeof solverResult.solver_result === 'object' ? 
                                 Object.entries(solverResult.solver_result)
-                                    .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata'].includes(key))
+                                    .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata', 'code_generation_prompt', 'code_runner_prompt'].includes(key))
                                     .map(([key, value]) => `
                                         <div class="mt-3">
                                             <strong>${formatKeyName(key)}:</strong>
@@ -4101,17 +4090,6 @@ function showDetails(data, index) {
                                         </div>
                                         <pre class="response-text mt-2 content-collapsible collapsed" id="add-code-generation-prompt-${index}">${formatCodeBlocks(solverResult.code_generation_prompt || solverResult.solver_result?.code_generation_prompt || solverResult.code_runner_prompt)}</pre>
                                     </div>
-                                    <script>
-                                    // Mark these fields as already handled to prevent duplicate display
-                                    if (solverResult.solver_result) {
-                                        if (solverResult.solver_result.code_generation_prompt) {
-                                            delete solverResult.solver_result.code_generation_prompt;
-                                        }
-                                        if (solverResult.solver_result.code_runner_prompt) {
-                                            delete solverResult.solver_result.code_runner_prompt;
-                                        }
-                                    }
-                                    </script>
                                 ` : ''}
                                 
                                 ${solverResult.solver_result && solverResult.solver_result.code ? `
@@ -4234,7 +4212,7 @@ function showDetails(data, index) {
                                 ${/* Display all other solver_result fields not already displayed */ ''}
                                 ${solverResult.solver_result && typeof solverResult.solver_result === 'object' ? 
                                     Object.entries(solverResult.solver_result)
-                                        .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata'].includes(key))
+                                        .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata', 'code_generation_prompt', 'code_runner_prompt'].includes(key))
                                         .map(([key, value]) => `
                                             <div class="mt-3">
                                                 <strong>${formatKeyName(key)}:</strong>
@@ -5406,7 +5384,43 @@ async function fetchFileList(dirPath) {
             console.warn('Error with direct directory listing:', err);
         }
         
-        // Final fallback - try a hardcoded list of filenames if nothing else worked
+        // Final fallback - try to list the parent directory
+        try {
+            console.log('Trying to list parent directory as fallback...');
+            const parentPath = dirPath.substring(0, dirPath.lastIndexOf('/'));
+            const parentResponse = await fetch(`/api/files?path=${encodeURIComponent(parentPath)}`);
+            
+            if (parentResponse.ok) {
+                const data = await parentResponse.json();
+                console.log(`Found ${data.count || 0} files in parent directory ${parentPath}`);
+                
+                // Look for subdirectories matching our target
+                const targetDir = dirPath.split('/').pop();
+                const subdirs = data.files.filter(file => file.type === 'directory' && file.name === targetDir);
+                
+                if (subdirs.length > 0) {
+                    console.log(`Found matching subdirectory: ${subdirs[0].path}`);
+                    
+                    // Try to access this directory
+                    const subDirResponse = await fetch(`/api/files?path=${encodeURIComponent(subdirs[0].path)}`);
+                    if (subDirResponse.ok) {
+                        const subDirData = await subDirResponse.json();
+                        const jsonFiles = subDirData.files
+                            .filter(file => file.type === 'file' && (file.file_type === 'json' || file.name.endsWith('.json')))
+                            .map(file => file.name);
+                        
+                        if (jsonFiles.length > 0) {
+                            console.log(`Found ${jsonFiles.length} JSON files in subdirectory`);
+                            return jsonFiles;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Error listing parent directory:', err);
+        }
+        
+        // Last resort - try a hardcoded list of filenames if nothing else worked
         console.warn('Using fallback file list as last resort');
         return [
             'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',

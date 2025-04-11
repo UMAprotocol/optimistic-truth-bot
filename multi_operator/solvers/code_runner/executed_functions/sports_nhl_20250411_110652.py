@@ -16,6 +16,13 @@ if not API_KEY:
         "Please add it to your .env file."
     )
 
+# Mapping of internal team abbreviations to API team keys
+TEAM_ABBREVIATION_MAP = {
+    "VGK": "VEG",  # Vegas Golden Knights
+    "SEA": "SEA",  # Seattle Kraken
+    # Add other teams as needed
+}
+
 # Constants - RESOLUTION MAPPING using internal abbreviations
 RESOLUTION_MAP = {
     "VGK": "p1",  # Golden Knights
@@ -24,31 +31,16 @@ RESOLUTION_MAP = {
     "Too early to resolve": "p4",
 }
 
-def get_team_abbreviation_map():
-    url = f"https://api.sportsdata.io/v3/nhl/scores/json/teams?key={API_KEY}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        teams = response.json()
-        # Build mapping from full team name to API abbreviation
-        return {f"{team['City']} {team['Name']}": team['Key'] for team in teams}
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to fetch team abbreviations: {e}")
-        return {}
-
-def fetch_game_data(date, team1_name, team2_name, team_abbreviation_map):
+def fetch_game_data(date, team1, team2):
     url = f"https://api.sportsdata.io/v3/nhl/stats/json/BoxScoresFinal/{date}?key={API_KEY}"
     try:
         response = requests.get(url)
         response.raise_for_status()
         games = response.json()
 
-        team1_api = team_abbreviation_map.get(team1_name)
-        team2_api = team_abbreviation_map.get(team2_name)
-
-        if not team1_api or not team2_api:
-            logging.warning(f"Abbreviations not found for teams: {team1_name}, {team2_name}")
-            return None
+        # Map internal abbreviations to API abbreviations
+        team1_api = TEAM_ABBREVIATION_MAP.get(team1, team1)
+        team2_api = TEAM_ABBREVIATION_MAP.get(team2, team2)
 
         for game_data in games:
             game_info = game_data.get("Game", {})
@@ -58,11 +50,11 @@ def fetch_game_data(date, team1_name, team2_name, team_abbreviation_map):
             logging.debug(f"Checking game: {home_team} vs {away_team}")
 
             if {home_team, away_team} == {team1_api, team2_api}:
-                game_data["team1"] = team1_api
-                game_data["team2"] = team2_api
+                game_data["team1"] = team1
+                game_data["team2"] = team2
                 return game_data
 
-        logging.warning(f"No matching game found for teams: {team1_name} and {team2_name}")
+        logging.warning(f"No matching game found for teams: {team1} and {team2}")
         return None
 
     except requests.exceptions.RequestException as e:
@@ -93,27 +85,22 @@ def determine_resolution(game):
     elif status in ["Final", "F/OT", "F/SO"]:
         if home_score == away_score:
             return RESOLUTION_MAP["50-50"]
-        winning_team = home_team if home_score > away_score else away_team
-        if winning_team == team1:
-            return RESOLUTION_MAP["VGK"]
-        elif winning_team == team2:
-            return RESOLUTION_MAP["SEA"]
-        else:
-            return RESOLUTION_MAP["50-50"]
+        winning_team_api = home_team if home_score > away_score else away_team
+        # Map API abbreviation back to internal abbreviation
+        winning_team_internal = next(
+            (k for k, v in TEAM_ABBREVIATION_MAP.items() if v == winning_team_api),
+            winning_team_api
+        )
+        return RESOLUTION_MAP.get(winning_team_internal, RESOLUTION_MAP["50-50"])
 
     return RESOLUTION_MAP["Too early to resolve"]
 
 def main():
     date = "2025-04-10"
-    team1_name = "Vegas Golden Knights"
-    team2_name = "Seattle Kraken"
+    team1 = "VGK"
+    team2 = "SEA"
 
-    team_abbreviation_map = get_team_abbreviation_map()
-    if not team_abbreviation_map:
-        print("Failed to retrieve team abbreviations.")
-        return
-
-    game = fetch_game_data(date, team1_name, team2_name, team_abbreviation_map)
+    game = fetch_game_data(date, team1, team2)
     resolution = determine_resolution(game)
 
     print(f"recommendation: {resolution}")

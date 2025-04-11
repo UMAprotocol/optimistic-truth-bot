@@ -2,9 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 import logging
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+import re
 
 # Load API key from .env file
 load_dotenv()
@@ -16,7 +14,7 @@ if not API_KEY:
         "Please add it to your .env file."
     )
 
-# Constants - RESOLUTION MAPPING using internal abbreviations
+# Constants - RESOLUTION MAPPING using team names
 RESOLUTION_MAP = {
     "VGK": "p1",  # Golden Knights
     "SEA": "p2",  # Kraken
@@ -24,16 +22,46 @@ RESOLUTION_MAP = {
     "Too early to resolve": "p4",
 }
 
+# Sensitive data patterns to mask in logs
+SENSITIVE_PATTERNS = [
+    re.compile(r"SPORTS_DATA_IO_NHL_API_KEY\s*=\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
+    re.compile(r"api_key\s*=\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
+    re.compile(r"key\s*=\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
+    re.compile(r"Authorization\s*:\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
+]
+
+class SensitiveDataFilter(logging.Filter):
+    def filter(self, record):
+        original_msg = record.getMessage()
+        masked_msg = original_msg
+        for pattern in SENSITIVE_PATTERNS:
+            masked_msg = pattern.sub("******", masked_msg)
+        record.msg = masked_msg
+        return True
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+
+console_handler.addFilter(SensitiveDataFilter())
+
+logger.addHandler(console_handler)
+
 def get_team_abbreviation_map():
     url = f"https://api.sportsdata.io/v3/nhl/scores/json/teams?key={API_KEY}"
     try:
         response = requests.get(url)
         response.raise_for_status()
         teams = response.json()
-        # Build mapping from full team name to API abbreviation
         return {f"{team['City']} {team['Name']}": team['Key'] for team in teams}
     except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to fetch team abbreviations: {e}")
+        logger.error(f"Failed to fetch team abbreviations: {e}")
         return {}
 
 def fetch_game_data(date, team1_name, team2_name, team_abbreviation_map):
@@ -47,7 +75,7 @@ def fetch_game_data(date, team1_name, team2_name, team_abbreviation_map):
         team2_api = team_abbreviation_map.get(team2_name)
 
         if not team1_api or not team2_api:
-            logging.warning(f"Abbreviations not found for teams: {team1_name}, {team2_name}")
+            logger.warning(f"Abbreviations not found for teams: {team1_name}, {team2_name}")
             return None
 
         for game_data in games:
@@ -55,18 +83,16 @@ def fetch_game_data(date, team1_name, team2_name, team_abbreviation_map):
             home_team = game_info.get("HomeTeam")
             away_team = game_info.get("AwayTeam")
 
-            logging.debug(f"Checking game: {home_team} vs {away_team}")
-
             if {home_team, away_team} == {team1_api, team2_api}:
                 game_data["team1"] = team1_api
                 game_data["team2"] = team2_api
                 return game_data
 
-        logging.warning(f"No matching game found for teams: {team1_name} and {team2_name}")
+        logger.warning(f"No matching game found for teams: {team1_name} and {team2_name}")
         return None
 
     except requests.exceptions.RequestException as e:
-        logging.error(f"Request failed: {e}")
+        logger.error(f"Request failed: {e}")
         return None
 
 def determine_resolution(game):
@@ -82,9 +108,6 @@ def determine_resolution(game):
 
     team1 = game.get("team1")
     team2 = game.get("team2")
-
-    logging.debug(f"Game status: {status}")
-    logging.debug(f"Scores - Home: {home_score}, Away: {away_score}")
 
     if status in ["Scheduled", "Delayed", "InProgress", "Suspended"]:
         return RESOLUTION_MAP["Too early to resolve"]

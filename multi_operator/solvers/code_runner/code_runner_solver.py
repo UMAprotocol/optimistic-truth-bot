@@ -56,6 +56,13 @@ class CodeRunnerSolver(BaseSolver):
         self.sample_functions_dir = Path(
             "multi_operator/solvers/code_runner/sample_functions"
         )
+        
+        # Discover available sample function templates dynamically
+        self.sample_templates = self._discover_sample_templates()
+        if self.verbose:
+            self.logger.info(f"Discovered {len(self.sample_templates)} sample templates")
+            for query_type, template_file in self.sample_templates.items():
+                self.logger.info(f"  - {query_type}: {template_file.name}")
 
         # Set up available API keys
         self.available_api_keys = set()
@@ -316,6 +323,9 @@ class CodeRunnerSolver(BaseSolver):
             "attempts_info": attempts_info,
         }
 
+        # Create a copy of the prompt for debugging and transparency
+        generation_prompt = self._get_last_code_generation_prompt(user_prompt, query_type, system_prompt)
+        
         return {
             "recommendation": recommendation,
             "response": summary,
@@ -323,6 +333,7 @@ class CodeRunnerSolver(BaseSolver):
             "code_file": str(code_file_path) if code_file_path else None,
             "code": code,
             "code_output": code_output,
+            "code_generation_prompt": generation_prompt,
             "response_metadata": response_metadata,
         }
 
@@ -334,8 +345,12 @@ class CodeRunnerSolver(BaseSolver):
             user_prompt: The user prompt to analyze
 
         Returns:
-            Query type: 'crypto', 'sports_mlb', or 'unknown'
+            Query type: 'crypto', 'sports_mlb', 'sports_nhl', or 'unknown'
         """
+        # First check if we have the required API keys for special types
+        has_nhl_key = "SPORTS_DATA_IO_NHL_API_KEY" in self.available_api_keys
+        if has_nhl_key and "NHL" in user_prompt or "hockey" in user_prompt.lower() or "kraken" in user_prompt.lower() or "golden knights" in user_prompt.lower():
+            return "sports_nhl"
         user_prompt_lower = user_prompt.lower()
 
         # Check for crypto-related keywords and patterns
@@ -394,6 +409,37 @@ class CodeRunnerSolver(BaseSolver):
             r"(who won|outcome).*(baseball|mlb|game)",
             r"game between .*(teams|blue jays|orioles|yankees)",
         ]
+        
+        # Check for NHL-related keywords and patterns
+        nhl_keywords = [
+            "hockey",
+            "nhl",
+            "national hockey league",
+            "kraken",
+            "golden knights",
+            "vegas",
+            "seattle",
+            "maple leafs",
+            "bruins",
+            "penguins",
+            "capitals",
+            "rangers",
+            "oilers",
+            "canadiens",
+            "stanley cup",
+            "puck",
+            "ice hockey",
+            "hockey game",
+            "hockey team",
+            "nhl playoffs",
+        ]
+        
+        nhl_patterns = [
+            r"(kraken|golden knights|vegas|seattle).*(win|lose|beat|score|game)",
+            r"(score|result).*(hockey|nhl|game)",
+            r"(who won|outcome).*(hockey|nhl|game)",
+            r"game between .*(teams|kraken|golden knights|maple leafs|bruins)",
+        ]
 
         # Check for direct matches with keywords
         if any(kw in user_prompt_lower for kw in crypto_keywords):
@@ -401,6 +447,9 @@ class CodeRunnerSolver(BaseSolver):
 
         if any(kw in user_prompt_lower for kw in mlb_keywords):
             return "sports_mlb"
+            
+        if any(kw in user_prompt_lower for kw in nhl_keywords):
+            return "sports_nhl"
 
         # Check for pattern matches
         import re
@@ -412,6 +461,10 @@ class CodeRunnerSolver(BaseSolver):
         for pattern in mlb_patterns:
             if re.search(pattern, user_prompt_lower):
                 return "sports_mlb"
+                
+        for pattern in nhl_patterns:
+            if re.search(pattern, user_prompt_lower):
+                return "sports_nhl"
 
         # If we can't determine, let's ask ChatGPT
         prompt = f"""Analyze the following query and determine if it's asking about:
@@ -421,12 +474,15 @@ class CodeRunnerSolver(BaseSolver):
 2. MLB sports data
    Examples: "Did the Blue Jays win against the Orioles?", "What was the score of the Yankees game?"
 
-3. Something else
+3. NHL hockey data
+   Examples: "Did the Kraken beat the Golden Knights?", "What was the score of the Maple Leafs vs Bruins game?"
+
+4. Something else
    Examples: "Who is the president?", "What's the weather like?", "How do I bake a cake?"
 
 Query: {user_prompt}
 
-Reply with ONLY ONE of: "crypto", "sports_mlb", or "unknown".
+Reply with ONLY ONE of: "crypto", "sports_mlb", "sports_nhl", or "unknown".
 """
 
         raw_response = query_chatgpt(
@@ -439,6 +495,8 @@ Reply with ONLY ONE of: "crypto", "sports_mlb", or "unknown".
             return "crypto"
         elif "sports_mlb" in response_text or "mlb" in response_text:
             return "sports_mlb"
+        elif "sports_nhl" in response_text or "nhl" in response_text:
+            return "sports_nhl"
         else:
             return "unknown"
 
@@ -460,17 +518,28 @@ Reply with ONLY ONE of: "crypto", "sports_mlb", or "unknown".
                 - Output from the executed code (or None if failed)
                 - Boolean indicating whether execution was successful
         """
+        # Get template file from our discovered templates
         template_file = None
-        if query_type == "crypto":
-            template_file = self.sample_functions_dir / "query_binance_price.py"
-        elif query_type == "sports_mlb":
-            template_file = self.sample_functions_dir / "query_sports_mlb_data.py"
-
-        # Read template file if available
         template_code = None
+        
+        # Find the right template based on query type
+        if query_type in self.sample_templates:
+            template_file = self.sample_templates[query_type]
+            self.logger.info(f"Using template for {query_type}: {template_file.name}")
+        elif query_type == "unknown" and self.sample_templates:
+            # For unknown query types, use the first available template as a generic starter
+            template_file = next(iter(self.sample_templates.values()))
+            self.logger.info(f"Using generic template for unknown query type: {template_file.name}")
+            
+        # Read template file if found
         if template_file and template_file.exists():
-            with open(template_file, "r") as f:
-                template_code = f.read()
+            try:
+                with open(template_file, "r") as f:
+                    template_code = f.read()
+                    self.logger.info(f"Successfully loaded template code from {template_file.name}")
+            except Exception as e:
+                self.logger.error(f"Error reading template file {template_file}: {e}")
+                # Continue without a template
 
         # Get current timestamp for filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -695,6 +764,45 @@ For MLB sports data:
       return "recommendation: " + RESOLUTION_MAP["Blue Jays"]   # Returns "recommendation: p1"
   elif away_team_wins:
       return "recommendation: " + RESOLUTION_MAP["Orioles"]     # Returns "recommendation: p2"
+  
+  # INCORRECT usage - DO NOT do this:
+  # return RESOLUTION_MAP["p1"]  # This will cause KeyError: 'p1'
+  ```
+"""
+        elif query_type == "sports_nhl":
+            code_gen_prompt += """
+For NHL hockey data:
+- Use Sports Data IO API with the SPORTS_DATA_IO_NHL_API_KEY from environment variables
+- Use python-dotenv to load the API key:
+  ```python
+  from dotenv import load_dotenv
+  import os
+  
+  load_dotenv()
+  api_key = os.getenv("SPORTS_DATA_IO_NHL_API_KEY")
+  ```
+- Extract team names and dates from the question
+- The team abbreviations for NHL are:
+  * Seattle Kraken = SEA
+  * Vegas Golden Knights = VGK
+  * Toronto Maple Leafs = TOR
+  * Boston Bruins = BOS
+  * And other standard NHL team abbreviations
+- Map the outcome correctly using the resolution conditions in the query
+- IMPORTANT: When using RESOLUTION_MAP, the keys are outcome names and values are recommendation codes:
+  ```python
+  RESOLUTION_MAP = {
+    "Golden Knights": "p1",   # First team
+    "Kraken": "p2",           # Second team  
+    "50-50": "p3",            # Tie or undetermined
+    "Too early to resolve": "p4"  # Not enough data
+  }
+  
+  # CORRECT usage - use team/outcome names as keys:
+  if golden_knights_win:
+      return "recommendation: " + RESOLUTION_MAP["Golden Knights"]  # Returns "recommendation: p1"
+  elif kraken_win:
+      return "recommendation: " + RESOLUTION_MAP["Kraken"]          # Returns "recommendation: p2"
   
   # INCORRECT usage - DO NOT do this:
   # return RESOLUTION_MAP["p1"]  # This will cause KeyError: 'p1'
@@ -971,6 +1079,17 @@ Reply with only the recommendation (p1, p2, p3, or p4) and nothing else.
             ):
                 # Only retry if output is too minimal - simple outputs with just the recommendation are fine
                 return True
+        elif query_type == "sports_nhl":
+            if (
+                "game" not in output.lower()
+                and "team" not in output.lower()
+                and "score" not in output.lower()
+                and "hockey" not in output.lower()
+                and "nhl" not in output.lower()
+                and len(output.strip()) < 30
+            ):
+                # Only retry if output is too minimal - simple outputs with just the recommendation are fine
+                return True
 
         return False
 
@@ -987,7 +1106,7 @@ Reply with only the recommendation (p1, p2, p3, or p4) and nothing else.
 
         Args:
             user_prompt: The user prompt
-            query_type: Type of query ('crypto', 'sports_mlb', or 'unknown')
+            query_type: Type of query ('crypto', 'sports_mlb', 'sports_nhl', or 'unknown')
             system_prompt: Optional system prompt
             previous_output: Output from previous code execution
             attempt: Current attempt number
@@ -999,17 +1118,28 @@ Reply with only the recommendation (p1, p2, p3, or p4) and nothing else.
                 - Output from the executed code (or None if failed)
                 - Boolean indicating whether execution was successful
         """
+        # Get template file from our discovered templates
         template_file = None
-        if query_type == "crypto":
-            template_file = self.sample_functions_dir / "query_binance_price.py"
-        elif query_type == "sports_mlb":
-            template_file = self.sample_functions_dir / "query_sports_mlb_data.py"
-
-        # Read template file if available
         template_code = None
+        
+        # Find the right template based on query type
+        if query_type in self.sample_templates:
+            template_file = self.sample_templates[query_type]
+            self.logger.info(f"Using template for retry ({query_type}): {template_file.name}")
+        elif query_type == "unknown" and self.sample_templates:
+            # For unknown query types, use the first available template as a generic starter
+            template_file = next(iter(self.sample_templates.values()))
+            self.logger.info(f"Using generic template for retry (unknown query type): {template_file.name}")
+            
+        # Read template file if found
         if template_file and template_file.exists():
-            with open(template_file, "r") as f:
-                template_code = f.read()
+            try:
+                with open(template_file, "r") as f:
+                    template_code = f.read()
+                    self.logger.info(f"Successfully loaded template code for retry from {template_file.name}")
+            except Exception as e:
+                self.logger.error(f"Error reading template file for retry {template_file}: {e}")
+                # Continue without a template
 
         # Get current timestamp for filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -1131,6 +1261,32 @@ For MLB sports data:
   # return RESOLUTION_MAP["p1"]  # This will cause KeyError: 'p1'
   ```
 """
+        elif query_type == "sports_nhl":
+            code_gen_prompt += """
+For NHL hockey data:
+- Clearly extract game results and team information
+- Make sure to handle all possible game statuses including postponements
+- Format the output to clearly show the game data and the recommendation
+- Parse team names correctly (e.g., "Kraken" for Seattle Kraken, "Golden Knights" for Vegas Golden Knights)
+- IMPORTANT: When using RESOLUTION_MAP, the keys are outcome names and values are recommendation codes:
+  ```python
+  RESOLUTION_MAP = {
+    "Golden Knights": "p1",   # First team
+    "Kraken": "p2",           # Second team  
+    "50-50": "p3",            # Tie or undetermined
+    "Too early to resolve": "p4"  # Not enough data
+  }
+  
+  # CORRECT usage - use team/outcome names as keys:
+  if golden_knights_win:
+      return "recommendation: " + RESOLUTION_MAP["Golden Knights"]  # Returns "recommendation: p1"
+  elif kraken_win:
+      return "recommendation: " + RESOLUTION_MAP["Kraken"]          # Returns "recommendation: p2"
+  
+  # INCORRECT usage - DO NOT do this:
+  # return RESOLUTION_MAP["p1"]  # This will cause KeyError: 'p1'
+  ```
+"""
 
         # Final instruction
         code_gen_prompt += """
@@ -1175,6 +1331,68 @@ Return ONLY the Python code without explanation.
             self.logger.error(f"Error generating improved code: {e}")
             return None
 
+    def _discover_sample_templates(self) -> Dict[str, Path]:
+        """
+        Dynamically discover all available sample function templates.
+        
+        This method scans the sample_functions directory for template files and
+        maps them to their corresponding query types based on naming convention.
+        
+        Returns:
+            Dictionary mapping query types to template file paths
+        """
+        templates = {}
+        
+        # Check if directory exists
+        if not self.sample_functions_dir.exists():
+            self.logger.warning(f"Sample functions directory not found: {self.sample_functions_dir}")
+            return templates
+            
+        # Look for files following the pattern query_*.py
+        for file_path in self.sample_functions_dir.glob("query_*.py"):
+            # Extract query type from the filename (e.g., query_binance_price.py -> binance_price)
+            file_name = file_path.stem  # 'query_binance_price'
+            if file_name.startswith("query_"):
+                # Extract the part after "query_"
+                query_type = file_name[6:]  # 'binance_price'
+                
+                # Map common prefixes to simplified query types
+                if query_type == "binance_price":
+                    templates["crypto"] = file_path
+                elif query_type.startswith("sports_"):
+                    # For sports templates, keep the full name (sports_mlb, sports_nhl, etc.)
+                    templates[query_type] = file_path
+                else:
+                    # For other templates, register with their full name
+                    templates[query_type] = file_path
+                    
+                self.logger.info(f"Discovered template for query type '{query_type}': {file_path.name}")
+                
+        # Set up fallback relationships for similar query types
+        fallbacks = {}
+        
+        # Define sports fallbacks - if a specific league template isn't available, 
+        # try to use another sports template as fallback
+        sports_templates = {k: v for k, v in templates.items() if k.startswith("sports_")}
+        if sports_templates:
+            # Use MLB as preferred fallback if available
+            if "sports_mlb" in sports_templates:
+                fallback = sports_templates["sports_mlb"]
+                for sports_type in ["sports_nba", "sports_nfl", "sports_nhl"]:
+                    if sports_type not in templates:
+                        fallbacks[sports_type] = fallback
+            # Otherwise use the first available sports template
+            elif sports_templates:
+                first_sports = next(iter(sports_templates.values()))
+                for sports_type in ["sports_mlb", "sports_nba", "sports_nfl", "sports_nhl"]:
+                    if sports_type not in templates:
+                        fallbacks[sports_type] = first_sports
+        
+        # Add fallbacks to templates
+        templates.update(fallbacks)
+        
+        return templates
+            
     def _get_endpoint_info(self, category: str, endpoint_type: str) -> str:
         """
         Get endpoint information for a specific category and type.
@@ -1211,6 +1429,64 @@ Return ONLY the Python code without explanation.
         # Return default if not found
         return defaults.get(category, {}).get(endpoint_type, "Not available")
         
+    def _get_last_code_generation_prompt(self, user_prompt: str, query_type: str, system_prompt: Optional[str] = None) -> str:
+        """
+        Generate a simplified version of the code generation prompt for storage and debugging.
+        
+        Args:
+            user_prompt: The user prompt
+            query_type: Type of query ('crypto', 'sports_mlb', 'sports_nhl', or 'unknown')
+            system_prompt: Optional system prompt
+            
+        Returns:
+            A simplified version of the code generation prompt
+        """
+        # Create a simplified prompt for storage
+        prompt = f"""QUERY TYPE: {query_type}
+
+USER PROMPT:
+{user_prompt}
+
+SYSTEM PROMPT:
+{system_prompt or "No specific system prompt provided"}
+
+AVAILABLE API KEYS:
+{', '.join(sorted(self.available_api_keys))}
+
+DATA SOURCES:
+"""
+        # Add data sources information if available
+        if hasattr(self, "data_sources") and self.data_sources:
+            for name, source in self.data_sources.items():
+                category = source.get("category", "Unknown")
+                subcategory = source.get("subcategory", "")
+                prompt += f"- {name} (Category: {category}"
+                if subcategory:
+                    prompt += f", Subcategory: {subcategory}"
+                prompt += ")\n"
+                
+                # Add endpoints if available
+                if "endpoints" in source:
+                    for endpoint_type, url in source["endpoints"].items():
+                        prompt += f"  * {endpoint_type}: {url}\n"
+        else:
+            prompt += "No specific data sources configured\n"
+            
+        # Add expected output format
+        prompt += """
+EXPECTED OUTPUT FORMAT:
+The code should extract information from the prompt, process it, and return a recommendation in the format:
+recommendation: p1/p2/p3/p4
+
+Where:
+- p1 = YES/TRUE/First option
+- p2 = NO/FALSE/Second option
+- p3 = 50-50 outcome
+- p4 = Too early to resolve
+"""
+        
+        return prompt
+
     def get_name(self) -> str:
         """
         Get the name of the solver.
