@@ -105,9 +105,34 @@ def get_current_timestamp():
 def is_p4_recommendation(output_file_path):
     """Check if the output file contains a P4 recommendation."""
     try:
+        # First, check if the file exists
+        if not os.path.exists(output_file_path):
+            logger.warning(f"File does not exist: {output_file_path}")
+            return False
+            
+        # Try to read the file with proper error handling
         with open(output_file_path, "r") as f:
-            data = json.load(f)
-        return data.get("recommendation", "").lower() == "p4"
+            try:
+                data = json.load(f)
+                return data.get("recommendation", "").lower() == "p4"
+            except json.JSONDecodeError as e:
+                # Specific error for JSON decoding issues
+                logger.error(f"JSON decode error in {output_file_path}: {str(e)}")
+                
+                # Attempt recovery by reading partial file if possible
+                try:
+                    f.seek(0)  # Go back to beginning of file
+                    content = f.read()
+                    
+                    # Look for recommendation pattern in the raw content
+                    if '"recommendation": "p4"' in content or '"recommendation":"p4"' in content:
+                        logger.info(f"Found p4 recommendation in file despite JSON errors: {output_file_path}")
+                        return True
+                except Exception as raw_error:
+                    logger.error(f"Error during content scan in {output_file_path}: {str(raw_error)}")
+                
+                # Default to false in case of JSON error
+                return False
     except Exception as e:
         logger.error(f"Error checking recommendation in {output_file_path}: {str(e)}")
         return False
@@ -143,8 +168,61 @@ def is_not_expired(output_data):
 def process_output_file(file_path):
     """Process an output file to check if it needs to be retried."""
     try:
-        with open(file_path, "r") as f:
-            output_data = json.load(f)
+        # First, validate that the file exists
+        if not os.path.exists(file_path):
+            logger.warning(f"File does not exist: {file_path}")
+            return
+            
+        # Try to read and parse the JSON with robust error handling
+        try:
+            with open(file_path, "r") as f:
+                output_data = json.load(f)
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error in {file_path}: {str(e)}")
+            # Try to extract basic information using partial parsing
+            try:
+                with open(file_path, "r") as f:
+                    content = f.read()
+                    
+                # Check if this looks like a p4 recommendation by pattern matching
+                is_p4 = '"recommendation": "p4"' in content or '"recommendation":"p4"' in content
+                
+                # Extract short_id using regex pattern matching if possible
+                import re
+                short_id_match = re.search(r'"short_id":\s*"([a-zA-Z0-9]+)"', content)
+                query_id_match = re.search(r'"query_id":\s*"([a-zA-Z0-9]+)"', content)
+                
+                if not (is_p4 and (short_id_match or query_id_match)):
+                    # Not enough information to process this file
+                    logger.warning(f"Could not extract required information from corrupt JSON: {file_path}")
+                    return
+                    
+                # Construct minimal output data
+                output_data = {
+                    "recommendation": "p4",
+                    "short_id": short_id_match.group(1) if short_id_match else None,
+                    "query_id": query_id_match.group(1) if query_id_match else None
+                }
+                
+                # Extract expiration timestamp if possible
+                exp_match = re.search(r'"expiration_timestamp":\s*(\d+)', content)
+                if exp_match:
+                    output_data["expiration_timestamp"] = int(exp_match.group(1))
+                    
+                # Extract file_path if possible
+                file_path_match = re.search(r'"file_path":\s*"([^"]+)"', content)
+                if file_path_match:
+                    output_data["file_path"] = file_path_match.group(1)
+                    
+                # Extract processed_file if possible
+                processed_file_match = re.search(r'"processed_file":\s*"([^"]+)"', content)
+                if processed_file_match:
+                    output_data["processed_file"] = processed_file_match.group(1)
+                    
+                logger.info(f"Partially recovered data from corrupt JSON: {file_path}")
+            except Exception as recovery_error:
+                logger.error(f"Failed to recover data from corrupt JSON: {str(recovery_error)}")
+                return
         
         # Extract query_id
         query_id = output_data.get("query_id", "")
@@ -161,7 +239,8 @@ def process_output_file(file_path):
         short_id = get_question_id_short(query_id)
         
         # Check if this is a P4 recommendation that hasn't expired
-        if output_data.get("recommendation", "").lower() == "p4" and is_not_expired(output_data):
+        recommendation = output_data.get("recommendation", "").lower()
+        if recommendation == "p4" and is_not_expired(output_data):
             logger.info(f"Found P4 recommendation that hasn't expired: {short_id}")
             
             # Add to watched requests if not already there
@@ -169,9 +248,16 @@ def process_output_file(file_path):
                 # Get expiration timestamp
                 expiration = None
                 if "proposal_metadata" in output_data:
-                    expiration = output_data["proposal_metadata"].get("expiration_timestamp")
+                    metadata = output_data["proposal_metadata"]
+                    if isinstance(metadata, dict):
+                        expiration = metadata.get("expiration_timestamp")
                 if not expiration and "expiration_timestamp" in output_data:
                     expiration = output_data["expiration_timestamp"]
+                
+                # Set a default expiration if none found (24 hours from now)
+                if not expiration:
+                    logger.warning(f"No expiration timestamp found for {short_id}, using default (24 hours)")
+                    expiration = get_current_timestamp() + (24 * 60 * 60)
                 
                 # Get the timestamp of the last response to ensure we wait the minimum time before retrying
                 last_response_time = 0
@@ -213,10 +299,31 @@ def process_output_file(file_path):
                             if short_id.lower() in p_file.name.lower():
                                 original_file_path = str(p_file)
                                 break
+                else:
+                    # If we don't have file_path or processed_file, search by short_id
+                    proposals_dir = Path(args.proposals_dir)
+                    # Look in all subdirectories
+                    for p_file in proposals_dir.glob("**/*.json"):
+                        if short_id.lower() in p_file.name.lower():
+                            original_file_path = str(p_file)
+                            break
                 
                 # If we can't find the original proposal file, we can't retry
                 if not original_file_path:
                     logger.warning(f"Could not find original proposal file for {short_id}, skipping retry")
+                    return
+                
+                # Validate that the proposal file exists and is readable
+                if not os.path.exists(original_file_path):
+                    logger.warning(f"Original proposal file does not exist: {original_file_path}")
+                    return
+                    
+                try:
+                    # Verify we can read the proposal file
+                    with open(original_file_path, "r") as f:
+                        proposal_data = json.load(f)
+                except Exception as e:
+                    logger.error(f"Error reading proposal file {original_file_path}: {str(e)}")
                     return
                 
                 # For newly detected files, set the last_retry to current time
@@ -285,14 +392,64 @@ def retry_request(short_id, info):
             new_recommendation = result.get("recommendation", "").lower()
             changed = new_recommendation != "p4"
             
-            if changed:
-                logger.info(f"Recommendation changed from p4 to {new_recommendation} for {short_id}")
-                # Remove from watched requests since we don't need to watch it anymore
-                del watched_requests[short_id]
-                return True
-            else:
-                logger.info(f"Recommendation remains p4 for {short_id}")
-                return False
+            # Check if the output file exists and is a valid JSON
+            output_file_path = info["output_file_path"]
+            
+            try:
+                # Validate that the output file is still valid JSON after processing
+                with open(output_file_path, "r") as f:
+                    json.load(f)  # This will raise an exception if JSON is invalid
+                
+                if changed:
+                    logger.info(f"Recommendation changed from p4 to {new_recommendation} for {short_id}")
+                    # Remove from watched requests since we don't need to watch it anymore
+                    del watched_requests[short_id]
+                    return True
+                else:
+                    logger.info(f"Recommendation remains p4 for {short_id}")
+                    return False
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON corruption detected in output file for {short_id}: {str(e)}")
+                logger.error(f"Output file: {output_file_path}")
+                # Attempt to recover by reloading from the original proposal
+                try:
+                    with open(info["proposal_file_path"], "r") as f:
+                        proposal_data = json.load(f)
+                    
+                    # Reconstruct the output structure with minimal data to avoid corruption
+                    minimal_output = {
+                        "query_id": short_id,
+                        "short_id": short_id,
+                        "recommendation": new_recommendation,
+                        "reason": "JSON corruption detected during retry, minimal recovery output created",
+                        "timestamp": get_current_timestamp(),
+                        "proposal_metadata": proposal_data[0] if isinstance(proposal_data, list) else proposal_data,
+                        "file_path": info["proposal_file_path"]
+                    }
+                    
+                    # Write a clean file with atomic operation
+                    temp_output_path = f"{output_file_path}.tmp"
+                    with open(temp_output_path, "w") as f:
+                        json.dump(minimal_output, f, indent=2)
+                    
+                    # Rename the temporary file to the final file (atomic operation)
+                    import os
+                    os.replace(temp_output_path, output_file_path)
+                    
+                    logger.info(f"Successfully recovered from JSON corruption for {short_id}")
+                    
+                    if changed:
+                        logger.info(f"Recommendation changed from p4 to {new_recommendation} for {short_id}")
+                        # Remove from watched requests
+                        del watched_requests[short_id]
+                        return True
+                    else:
+                        logger.info(f"Recommendation remains p4 for {short_id}")
+                        return False
+                        
+                except Exception as recovery_error:
+                    logger.error(f"Failed to recover from JSON corruption for {short_id}: {str(recovery_error)}")
+                    return False
         else:
             logger.error(f"Failed to process proposal for {short_id}")
             return False
@@ -356,26 +513,77 @@ def check_watched_requests():
 
 class OutputFileHandler(FileSystemEventHandler):
     """Handle file system events for output files."""
+    def __init__(self):
+        # Keep track of files being processed to avoid race conditions
+        self.files_in_process = set()
+    
     def on_created(self, event):
         if not event.is_directory and event.src_path.endswith(".json"):
             logger.info(f"New output file detected: {event.src_path}")
-            time.sleep(1)  # Small delay to ensure file is fully written
-            process_output_file(event.src_path)
+            # Check if file is already being processed
+            if event.src_path in self.files_in_process:
+                logger.info(f"File {event.src_path} is already being processed, skipping")
+                return
+                
+            # Mark file as being processed
+            self.files_in_process.add(event.src_path)
+            try:
+                # More substantial delay (5 seconds) to ensure file is fully written
+                time.sleep(5)
+                
+                # Check if file exists and is valid JSON before processing
+                try:
+                    with open(event.src_path, "r") as f:
+                        json.load(f)  # This will raise an exception if JSON is invalid
+                    process_output_file(event.src_path)
+                except json.JSONDecodeError as e:
+                    logger.error(f"Invalid JSON in newly created file {event.src_path}: {e}")
+                except FileNotFoundError:
+                    logger.error(f"File {event.src_path} no longer exists, may have been temporary")
+            finally:
+                # Remove file from processing set
+                self.files_in_process.discard(event.src_path)
     
     def on_modified(self, event):
         if not event.is_directory and event.src_path.endswith(".json"):
+            # Check if file is already being processed
+            if event.src_path in self.files_in_process:
+                logger.info(f"File {event.src_path} is already being processed, skipping modification event")
+                return
+                
             # Check if it's a file we're watching
             file_name = os.path.basename(event.src_path)
             for short_id, info in list(watched_requests.items()):
                 if os.path.basename(info["output_file_path"]) == file_name:
                     logger.info(f"Watched file modified: {file_name}")
-                    # Check if recommendation changed
-                    if not is_p4_recommendation(event.src_path):
-                        logger.info(f"Recommendation changed for {short_id}, removing from watch list")
-                        if short_id in watched_requests:  # Double check before deletion
-                            del watched_requests[short_id]
-                            if args.verbose:
-                                print(f"✅ Recommendation changed for {short_id}, removed from watch list")
+                    
+                    # Mark file as being processed
+                    self.files_in_process.add(event.src_path)
+                    try:
+                        # Wait to ensure file is fully written
+                        time.sleep(3)
+                        
+                        # Validate JSON before checking recommendation
+                        try:
+                            # Check if recommendation changed
+                            with open(event.src_path, "r") as f:
+                                data = json.load(f)
+                                recommendation = data.get("recommendation", "").lower()
+                                
+                                if recommendation != "p4":
+                                    logger.info(f"Recommendation changed for {short_id}, removing from watch list")
+                                    if short_id in watched_requests:  # Double check before deletion
+                                        del watched_requests[short_id]
+                                        if args.verbose:
+                                            print(f"✅ Recommendation changed for {short_id}, removed from watch list")
+                        except json.JSONDecodeError as e:
+                            logger.error(f"JSON corruption detected in modified file for {short_id}: {str(e)}")
+                            # Don't remove from watch list in case of corruption - will be fixed on next retry
+                        except FileNotFoundError:
+                            logger.error(f"File {event.src_path} no longer exists after modification")
+                    finally:
+                        # Remove file from processing set
+                        self.files_in_process.discard(event.src_path)
                     break
 
 
