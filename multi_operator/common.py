@@ -514,42 +514,95 @@ def validate_output_json(output_json):
     Returns:
         tuple: (is_valid, missing_fields)
     """
-    # Fields that must exist at the top level
-    required_fields = [
-        "query_id",
-        "question_id_short",
-        "proposed_price",
-        "resolved_price",
-        "timestamp",
-        "processed_file",
-        "resolved_price_outcome",
-        "disputed",
-        "recommendation",
-        "recommendation_overridden",
-        "proposed_price_outcome",
-        "user_prompt",
-        "system_prompt",
-        "condition_id",
-        "tags",
-        "icon",
-        "end_date_iso",
-        "game_start_time",
-    ]
-
-    missing_fields = [field for field in required_fields if field not in output_json]
-
-    # Check if required nested structures exist
-    if "proposal_metadata" not in output_json:
-        missing_fields.append("proposal_metadata")
-    else:
-        # Transaction hash should be in proposal_metadata, not at top level
-        if "transaction_hash" not in output_json["proposal_metadata"]:
+    missing_fields = []
+    
+    # Check format version first - different versions have different requirements
+    format_version = output_json.get("format_version", 1)
+    
+    if format_version == 1:
+        # Version 1 - Legacy format with fields at the top level
+        required_fields = [
+            "query_id",
+            "question_id_short",
+            "proposed_price",
+            "resolved_price",
+            "timestamp",
+            "processed_file",
+            "resolved_price_outcome",
+            "disputed",
+            "recommendation",
+            "recommendation_overridden",
+            "proposed_price_outcome",
+            "user_prompt",  # Original name
+            "condition_id",
+            "tags",
+            "icon",
+            "end_date_iso",
+            "game_start_time"
+        ]
+        missing_fields = [field for field in required_fields if field not in output_json]
+        
+        # Check if required nested structures exist
+        if "proposal_metadata" not in output_json:
+            missing_fields.append("proposal_metadata")
+        elif "transaction_hash" not in output_json["proposal_metadata"]:
             missing_fields.append("transaction_hash (in proposal_metadata)")
-
+            
         # Make sure recommendation is a p-value (p1, p2, p3, p4)
-        if "recommendation" in output_json and not output_json[
-            "recommendation"
-        ].startswith("p"):
+        if "recommendation" in output_json and not output_json["recommendation"].startswith("p"):
             missing_fields.append("valid p-value recommendation")
-
+    
+    elif format_version == 2:
+        # Version 2 - Journey-focused format with organized sections
+        # Core required top-level fields
+        core_fields = [
+            "query_id", 
+            "short_id",
+            "question_id_short", 
+            "timestamp",
+            "format_version",
+            "journey"
+        ]
+        
+        # Check core fields
+        for field in core_fields:
+            if field not in output_json:
+                missing_fields.append(field)
+        
+        # Check required sections
+        required_sections = ["metadata", "market_data", "result", "proposal_metadata", "overseer_data"]
+        for section in required_sections:
+            if section not in output_json:
+                missing_fields.append(section)
+                continue
+                
+            # Check section contents if the section exists
+            if section == "metadata":
+                if "processed_file" not in output_json["metadata"]:
+                    missing_fields.append("processed_file (in metadata)")
+                    
+            elif section == "market_data":
+                market_fields = ["proposed_price", "proposed_price_outcome"]
+                for field in market_fields:
+                    if field not in output_json["market_data"]:
+                        missing_fields.append(f"{field} (in market_data)")
+                    
+            elif section == "result":
+                if "recommendation" not in output_json["result"]:
+                    missing_fields.append("recommendation (in result)")
+                elif not output_json["result"]["recommendation"].startswith("p"):
+                    missing_fields.append("valid p-value recommendation (in result)")
+                    
+            elif section == "proposal_metadata":
+                if "transaction_hash" not in output_json["proposal_metadata"]:
+                    missing_fields.append("transaction_hash (in proposal_metadata)")
+                    
+            elif section == "overseer_data":
+                if "recommendation_journey" not in output_json["overseer_data"]:
+                    missing_fields.append("recommendation_journey (in overseer_data)")
+    else:
+        # Unknown format version
+        missing_fields.append("valid format_version (should be 1 or 2)")
+    
+    # Return validation result
     return (len(missing_fields) == 0, missing_fields)

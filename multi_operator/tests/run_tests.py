@@ -137,23 +137,55 @@ def create_mock_result(test_proposal_file, sample_proposal):
 def validate_fields(saved_result, sample_proposal, excluded_from_metadata=None):
     """Validate fields in the saved result."""
     if excluded_from_metadata is None:
-        excluded_from_metadata = ["icon", "condition_id"]
+        excluded_from_metadata = [
+            "icon", "condition_id", "tags", "end_date_iso", "game_start_time",
+            "proposed_price", "resolved_price", "resolved_price_outcome", "proposed_price_outcome"
+        ]
 
-    # Check for required top-level fields
-    top_level_required = [
-        "query_id",
-        "short_id",
-        "question_id_short",
-        "recommendation",
-        "reason",
-        "market_alignment",
-        "timestamp",
-        "processed_file",
-    ]
+    # Check for the format version first
+    format_version = saved_result.get("format_version", 1)
+    
+    if format_version == 2:
+        # For format version 2, check the new structure
+        # Check for required top-level fields and sections
+        top_level_required = [
+            "query_id",
+            "short_id",
+            "question_id_short",
+            "timestamp",
+            "journey",
+            "metadata",
+            "market_data",
+            "result",
+            "proposal_metadata",
+        ]
 
-    missing_required = [
-        field for field in top_level_required if field not in saved_result
-    ]
+        missing_required = [
+            field for field in top_level_required if field not in saved_result
+        ]
+        
+        # Check required fields in sections
+        if "result" in saved_result and "recommendation" not in saved_result["result"]:
+            missing_required.append("recommendation (in result)")
+        
+        if "metadata" in saved_result and "processed_file" not in saved_result["metadata"]:
+            missing_required.append("processed_file (in metadata)")
+    else:
+        # For format version 1, check the original structure
+        top_level_required = [
+            "query_id",
+            "short_id",
+            "question_id_short",
+            "recommendation",
+            "reason",
+            "market_alignment",
+            "timestamp",
+            "processed_file",
+        ]
+        
+        missing_required = [
+            field for field in top_level_required if field not in saved_result
+        ]
 
     if missing_required:
         print(f"❌ Missing required top-level fields: {missing_required}")
@@ -188,12 +220,42 @@ def validate_fields(saved_result, sample_proposal, excluded_from_metadata=None):
         print(f"✅ All expected fields present in proposal_metadata")
 
     # Check for fields that should not be duplicated
-    duplicated_fields_not_allowed = ["icon", "condition_id", "transaction_hash"]
-    duplicated_not_allowed = []
+    format_version = saved_result.get("format_version", 1)
+    
+    if format_version == 2:
+        # For format 2, check that fields are in their appropriate sections
+        duplicated_fields_not_allowed = [
+            # Fields that should only be in market_data
+            {"field": "icon", "sections": ["market_data", "proposal_metadata"]},
+            {"field": "condition_id", "sections": ["market_data", "proposal_metadata"]},
+            {"field": "proposed_price", "sections": ["market_data", "proposal_metadata"]},
+            # Fields that should only be in proposal_metadata
+            {"field": "transaction_hash", "sections": ["proposal_metadata"]}
+        ]
+        
+        duplicated_not_allowed = []
+        
+        for check in duplicated_fields_not_allowed:
+            field = check["field"]
+            sections = check["sections"]
+            
+            # Count how many sections have this field
+            found_in = []
+            for section in sections:
+                if section in saved_result and field in saved_result[section]:
+                    found_in.append(section)
+                    
+            # If field is in more than one section, it's duplicated
+            if len(found_in) > 1:
+                duplicated_not_allowed.append(f"{field} (in {', '.join(found_in)})")
+    else:
+        # For format 1, use the original duplication check
+        duplicated_fields_not_allowed = ["icon", "condition_id", "transaction_hash"]
+        duplicated_not_allowed = []
 
-    for field in duplicated_fields_not_allowed:
-        if field in saved_result and field in saved_result.get("proposal_metadata", {}):
-            duplicated_not_allowed.append(field)
+        for field in duplicated_fields_not_allowed:
+            if field in saved_result and field in saved_result.get("proposal_metadata", {}):
+                duplicated_not_allowed.append(field)
 
     if duplicated_not_allowed:
         print(f"❌ These fields should not be duplicated: {duplicated_not_allowed}")
