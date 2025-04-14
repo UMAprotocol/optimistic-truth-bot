@@ -53,42 +53,24 @@ console_handler.addFilter(SensitiveDataFilter())
 
 logger.addHandler(console_handler)
 
-def get_team_abbreviation_map():
-    url = f"https://api.sportsdata.io/v3/nhl/scores/json/teams?key={API_KEY}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        teams = response.json()
-        return {f"{team['City']} {team['Name']}": team['Key'] for team in teams}
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to fetch team abbreviations: {e}")
-        return {}
-
-def fetch_game_data(date, team1_name, team2_name, team_abbreviation_map):
+def fetch_game_data(date, team1_api, team2_api):
     url = f"https://api.sportsdata.io/v3/nhl/stats/json/BoxScoresFinal/{date}?key={API_KEY}"
     try:
         response = requests.get(url)
         response.raise_for_status()
         games = response.json()
 
-        team1_api = team_abbreviation_map.get(team1_name)
-        team2_api = team_abbreviation_map.get(team2_name)
-
-        if not team1_api or not team2_api:
-            logger.warning(f"Abbreviations not found for teams: {team1_name}, {team2_name}")
-            return None
-
         for game_data in games:
             game_info = game_data.get("Game", {})
             home_team = game_info.get("HomeTeam")
             away_team = game_info.get("AwayTeam")
 
+            logger.debug(f"Checking game: {home_team} vs {away_team}")
+
             if {home_team, away_team} == {team1_api, team2_api}:
-                game_data["team1"] = team1_api
-                game_data["team2"] = team2_api
                 return game_data
 
-        logger.warning(f"No matching game found for teams: {team1_name} and {team2_name}")
+        logger.warning(f"No matching game found for teams: {team1_api} and {team2_api}")
         return None
 
     except requests.exceptions.RequestException as e:
@@ -106,8 +88,8 @@ def determine_resolution(game):
     home_team = game_info.get("HomeTeam")
     away_team = game_info.get("AwayTeam")
 
-    team1 = game.get("team1")
-    team2 = game.get("team2")
+    logger.debug(f"Game status: {status}")
+    logger.debug(f"Scores - Home: {home_score}, Away: {away_score}")
 
     if status in ["Scheduled", "Delayed", "InProgress", "Suspended"]:
         return RESOLUTION_MAP["Too early to resolve"]
@@ -117,9 +99,9 @@ def determine_resolution(game):
         if home_score == away_score:
             return RESOLUTION_MAP["50-50"]
         winning_team = home_team if home_score > away_score else away_team
-        if winning_team == team1:
+        if winning_team == "VGK":
             return RESOLUTION_MAP["VGK"]
-        elif winning_team == team2:
+        elif winning_team == "SEA":
             return RESOLUTION_MAP["SEA"]
         else:
             return RESOLUTION_MAP["50-50"]
@@ -128,15 +110,10 @@ def determine_resolution(game):
 
 def main():
     date = "2025-04-10"
-    team1_name = "Vegas Golden Knights"
-    team2_name = "Seattle Kraken"
+    team1_api = "VGK"  # Vegas Golden Knights
+    team2_api = "SEA"  # Seattle Kraken
 
-    team_abbreviation_map = get_team_abbreviation_map()
-    if not team_abbreviation_map:
-        print("Failed to retrieve team abbreviations.")
-        return
-
-    game = fetch_game_data(date, team1_name, team2_name, team_abbreviation_map)
+    game = fetch_game_data(date, team1_api, team2_api)
     resolution = determine_resolution(game)
 
     print(f"recommendation: {resolution}")

@@ -1034,52 +1034,70 @@ SUMMARY:
             else:
                 clean_result["proposal_metadata"] = {}
 
-            # Create market_data section for all market-related fields
-            market_fields = [
+            # List of metadata fields we should ensure are in proposal_metadata
+            metadata_fields = [
+                "query_id",
+                "transaction_hash",
+                "block_number",
+                "request_transaction_block_time",
+                "ancillary_data",
+                "ancillary_data_hex",
+                "resolution_conditions",
                 "proposed_price",
-                "resolved_price",
                 "proposed_price_outcome",
+                "resolved_price",
                 "resolved_price_outcome",
+                "request_timestamp",
+                "expiration_timestamp",
+                "creator",
+                "proposer",
+                "bond_currency",
+                "proposal_bond",
+                "reward_amount",
+                "updates",
                 "tags",
                 "end_date_iso",
                 "game_start_time",
+                "tokens",
+                "neg_risk_market_id",
+                "neg_risk_request_id",
                 "icon",
                 "condition_id",
             ]
             
-            # Initialize market_data object
+            # Initialize market_data object (for backward compatibility)
             clean_result["market_data"] = {}
             
-            # Copy values from proposal_metadata or set defaults
-            for field in market_fields:
+            # Copy all metadata fields to proposal_metadata first
+            for field in metadata_fields:
                 # First check if it's in the result directly
                 if field in result:
-                    clean_result["market_data"][field] = result[field]
-                # Then check if it's in proposal_metadata
-                elif field in clean_result["proposal_metadata"]:
-                    clean_result["market_data"][field] = clean_result["proposal_metadata"][field]
-                    
-                    # Remove the field from proposal_metadata to avoid duplication
-                    clean_result["proposal_metadata"].pop(field, None)
-                else:
+                    clean_result["proposal_metadata"][field] = result[field]
+                # Then check if it's not already in proposal_metadata (default values)
+                elif field not in clean_result["proposal_metadata"]:
                     # Set default values
                     if field == "proposed_price":
-                        clean_result["market_data"][field] = 0
+                        clean_result["proposal_metadata"][field] = 0
                     elif field in ["resolved_price", "resolved_price_outcome", "game_start_time"]:
-                        clean_result["market_data"][field] = None
+                        clean_result["proposal_metadata"][field] = None
                     elif field == "tags":
-                        clean_result["market_data"][field] = []
+                        clean_result["proposal_metadata"][field] = []
+                    elif field == "tokens":
+                        clean_result["proposal_metadata"][field] = []
+                    elif field == "updates":
+                        clean_result["proposal_metadata"][field] = []
                     else:
-                        clean_result["market_data"][field] = ""
+                        clean_result["proposal_metadata"][field] = ""
             
-            # Add market status fields
+            # For backward compatibility, maintain minimal market_data
+            # Copy only essential fields to market_data
+            minimal_market_fields = ["proposed_price", "resolved_price", "proposed_price_outcome", "resolved_price_outcome"]
+            for field in minimal_market_fields:
+                clean_result["market_data"][field] = clean_result["proposal_metadata"].get(field)
+            
+            # Add market status fields for backward compatibility
             clean_result["market_data"]["disputed"] = False
             clean_result["market_data"]["recommendation_overridden"] = False
-            
-            # Add tokens information if available
-            if "tokens" in result.get("proposal_metadata", {}):
-                clean_result["market_data"]["tokens"] = result["proposal_metadata"]["tokens"]
-                clean_result["proposal_metadata"].pop("tokens", None)
 
             # Create the journey array - this is the main change
             journey = []
@@ -1372,8 +1390,9 @@ SUMMARY:
                 "routing_attempts": result.get("routing_attempts", 1)
             }
             
-            # For backward compatibility, set recommendation in market_data
+            # For backward compatibility, set recommendation in both places
             clean_result["market_data"]["proposed_price_outcome"] = recommendation
+            clean_result["proposal_metadata"]["proposed_price_outcome"] = recommendation
             
             # Create backward compatibility fields
             # 1. Create old-style recommendation_journey for UI compatibility

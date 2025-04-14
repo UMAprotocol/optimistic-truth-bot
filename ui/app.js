@@ -3606,15 +3606,28 @@ function showDetails(data, index) {
         modalTitle.textContent = title;
     }
     
+    // Check if this is format_version 2
+    const isFormatV2 = data.format_version === 2;
+    
+    // Get recommendation from the appropriate location based on format version
+    const recommendation = isFormatV2 ? (data.result?.recommendation || 'N/A') : (data.recommendation || 'N/A');
+    
     // Check if disputed
-    const isDisputed = data.disputed === true;
+    const isDisputed = (isFormatV2 ? data.market_data?.disputed : data.disputed) === true;
     
     // Get proposed price if available, being careful with 0 values
     // Handle both old and new file structures
-    const proposedPrice = data.proposed_price_outcome !== undefined ? data.proposed_price_outcome : 
-                         (data.proposed_price !== undefined ? data.proposed_price : 
-                         (data.proposal_metadata?.proposed_price_outcome !== undefined ? data.proposal_metadata.proposed_price_outcome : 
-                         (data.proposal_metadata?.proposed_price !== undefined ? data.proposal_metadata.proposed_price : 'N/A')));
+    const proposedPrice = isFormatV2
+        ? (data.market_data?.proposed_price_outcome !== undefined 
+            ? data.market_data.proposed_price_outcome 
+            : (data.market_data?.proposed_price !== undefined ? data.market_data.proposed_price : 'N/A'))
+        : (data.proposed_price_outcome !== undefined 
+            ? data.proposed_price_outcome 
+            : (data.proposed_price !== undefined 
+                ? data.proposed_price 
+                : (data.proposal_metadata?.proposed_price_outcome !== undefined 
+                    ? data.proposal_metadata.proposed_price_outcome 
+                    : (data.proposal_metadata?.proposed_price !== undefined ? data.proposal_metadata.proposed_price : 'N/A'))));
     
     // Get correctness state
     const isCorrect = isRecommendationCorrect(data);
@@ -3630,13 +3643,15 @@ function showDetails(data, index) {
     }
     
     // Get resolved price from either location
-    const resolvedPrice = data.resolved_price_outcome || data.resolved_price || 
-                         data.proposal_metadata?.resolved_price_outcome || data.proposal_metadata?.resolved_price || 'Unresolved';
+    const resolvedPrice = isFormatV2
+        ? (data.market_data?.resolved_price_outcome || data.market_data?.resolved_price || 'Unresolved')
+        : (data.resolved_price_outcome || data.resolved_price || 
+           data.proposal_metadata?.resolved_price_outcome || data.proposal_metadata?.resolved_price || 'Unresolved');
     
     // Generate the content
     let content = `
         <div class="alert ${alertClass} mb-4">
-            <strong>Recommendation:</strong> ${data.recommendation || 'N/A'} | 
+            <strong>Recommendation:</strong> ${recommendation} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
             <strong>Resolved:</strong> ${resolvedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
@@ -3646,7 +3661,7 @@ function showDetails(data, index) {
     
     // Add tags section if available
     // Check both potential locations for tags
-    const tags = data.tags || data.proposal_metadata?.tags;
+    const tags = data.tags || data.proposal_metadata?.tags || (data.market_data ? data.market_data.tags : null);
     if (tags && Array.isArray(tags) && tags.length > 0) {
         content += `
             <div class="mb-3">
@@ -3660,13 +3675,13 @@ function showDetails(data, index) {
     // Handle data from different potential locations
     const query_id = data.query_id || '';
     const short_id = data.question_id_short || data.short_id || '';
-    const condition_id = data.condition_id || data.proposal_metadata?.condition_id || '';
+    const condition_id = data.condition_id || data.proposal_metadata?.condition_id || (data.market_data ? data.market_data.condition_id : '');
     const process_time = data.timestamp || 0;
     const request_time = data.proposal_metadata?.request_timestamp || 0;
     const block_time = data.proposal_metadata?.request_transaction_block_time || 0;
     const expiration_time = data.proposal_metadata?.expiration_timestamp || 0;
-    const end_date = data.end_date_iso || data.proposal_metadata?.end_date_iso || 'N/A';
-    const game_start_time = data.game_start_time || data.proposal_metadata?.game_start_time || 'N/A';
+    const end_date = data.end_date_iso || data.proposal_metadata?.end_date_iso || (data.market_data ? data.market_data.end_date_iso : 'N/A');
+    const game_start_time = data.game_start_time || data.proposal_metadata?.game_start_time || (data.market_data ? data.market_data.game_start_time : 'N/A');
     
     content += `
         <div class="detail-section">
@@ -3730,9 +3745,112 @@ function showDetails(data, index) {
             </div>
         </div>
     `;
+    
+    // For format_version 2, add journey section
+    if (isFormatV2 && data.journey && Array.isArray(data.journey) && data.journey.length > 0) {
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Journey</h4>
+                <div class="journey-timeline">
+                    ${data.journey.map((step, stepIndex) => `
+                        <div class="journey-step-card ${step.actor}-step">
+                            <div class="journey-step-header">
+                                <div class="step-info">
+                                    <div class="step-number">${step.step}</div>
+                                    <span class="step-actor">${formatActorName(step.actor)}</span>
+                                    <span class="step-action">${formatActionName(step.action)}</span>
+                                    ${step.routing_phase ? `<span class="step-phase">Phase ${step.routing_phase}</span>` : ''}
+                                    ${step.attempt ? `<span class="step-attempt">Attempt ${step.attempt}</span>` : ''}
+                                </div>
+                                <div class="step-timestamp">${formatDate(step.timestamp)}</div>
+                            </div>
+                            <div class="journey-step-body">
+                                ${renderJourneyStepContent(step, stepIndex)}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add result section for format_version 2
+    if (isFormatV2 && data.result) {
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Result</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="result-info">
+                            <div class="mb-2"><strong>Recommendation:</strong> ${data.result.recommendation || 'N/A'}</div>
+                            ${data.result.reason ? `<div class="mb-2"><strong>Reason:</strong> ${data.result.reason}</div>` : ''}
+                            ${data.result.market_alignment ? `<div class="mb-2"><strong>Market Alignment:</strong> ${data.result.market_alignment}</div>` : ''}
+                            ${data.result.attempted_solvers && data.result.attempted_solvers.length > 0 ? `
+                                <div class="mb-2">
+                                    <strong>Attempted Solvers:</strong>
+                                    ${data.result.attempted_solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${data.result.routing_attempts ? `<div class="mb-2"><strong>Routing Attempts:</strong> ${data.result.routing_attempts}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add market data section for format_version 2
+    if (isFormatV2 && data.market_data) {
+        const marketData = data.market_data;
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Market Data</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="market-info">
+                            ${marketData.proposed_price !== null ? `<div class="mb-2"><strong>Proposed Price:</strong> ${marketData.proposed_price}</div>` : ''}
+                            ${marketData.resolved_price !== null ? `<div class="mb-2"><strong>Resolved Price:</strong> ${marketData.resolved_price}</div>` : ''}
+                            ${marketData.proposed_price_outcome ? `<div class="mb-2"><strong>Proposed Price Outcome:</strong> ${marketData.proposed_price_outcome}</div>` : ''}
+                            ${marketData.resolved_price_outcome ? `<div class="mb-2"><strong>Resolved Price Outcome:</strong> ${marketData.resolved_price_outcome}</div>` : ''}
+                            ${marketData.disputed !== undefined ? `<div class="mb-2"><strong>Disputed:</strong> ${marketData.disputed ? 'Yes' : 'No'}</div>` : ''}
+                            ${marketData.icon ? `<div class="mb-2"><strong>Icon:</strong> <img src="${marketData.icon}" alt="Market Icon" class="market-icon"></div>` : ''}
+                            
+                            ${marketData.tokens && marketData.tokens.length > 0 ? `
+                                <div class="mt-3">
+                                    <strong>Tokens:</strong>
+                                    <div class="table-responsive mt-2">
+                                        <table class="table table-sm table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Outcome</th>
+                                                    <th>Price</th>
+                                                    <th>Winner</th>
+                                                    <th>Token ID</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${marketData.tokens.map(token => `
+                                                    <tr>
+                                                        <td>${token.outcome}</td>
+                                                        <td>${token.price}</td>
+                                                        <td>${token.winner ? 'Yes' : 'No'}</td>
+                                                        <td><small class="code-font">${token.token_id}</small></td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     // Add multi-operator data section if available
-    if (data.router_result || data.attempted_solvers) {
+    if (!isFormatV2 && (data.router_result || data.attempted_solvers)) {
         content += `
             <div class="detail-section">
                 <h4 class="section-title">Multi-Operator Processing</h4>
@@ -4688,6 +4806,29 @@ function showDetails(data, index) {
     
     // Apply syntax highlighting to code blocks
     Prism.highlightAllUnder(modalBody);
+    
+    // Initialize toggle buttons for code sections
+    document.querySelectorAll('.toggle-content-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement.classList.contains('collapsed')) {
+                targetElement.classList.remove('collapsed');
+                this.innerHTML = `<i class="bi bi-arrows-collapse"></i> Hide`;
+            } else {
+                targetElement.classList.add('collapsed');
+                this.innerHTML = `<i class="bi bi-arrows-expand"></i> ${this.textContent.replace('Hide', 'Show')}`;
+            }
+            
+            // Re-apply syntax highlighting when showing code
+            if (!targetElement.classList.contains('collapsed') && 
+                (targetElement.classList.contains('language-python') || 
+                 targetElement.querySelector('.language-python'))) {
+                Prism.highlightElement(targetElement.querySelector('code') || targetElement);
+            }
+        });
+    });
     
     // Add click event for copying to clipboard
     document.querySelectorAll('.copy-to-clipboard').forEach(element => {
@@ -5922,3 +6063,315 @@ function formatCodeBlocks(text) {
 // Apply this function in the showDetails function when displaying responses
 // Update the relevant sections with:
 // <pre class="mb-0 response-text">${formatCodeBlocks(solverResult.response)}</pre>
+
+// Helper functions for journey rendering
+function formatActorName(actor) {
+    const actorNames = {
+        'router': 'Router',
+        'perplexity': 'Perplexity',
+        'code_runner': 'Code Runner',
+        'overseer': 'Overseer'
+    };
+    return actorNames[actor] || actor;
+}
+
+function formatActionName(action) {
+    const actionNames = {
+        'route': 'Routing',
+        'solve': 'Solving',
+        'evaluate': 'Evaluation',
+        'reroute': 'Re-routing'
+    };
+    return actionNames[action] || action;
+}
+
+function renderJourneyStepContent(step, stepIndex) {
+    let content = '';
+    
+    switch (step.actor) {
+        case 'router':
+            content = renderRouterStep(step, stepIndex);
+            break;
+        case 'overseer':
+            content = renderOverseerStep(step, stepIndex);
+            break;
+        case 'perplexity':
+        case 'code_runner':
+            content = renderSolverStep(step, stepIndex);
+            break;
+        default:
+            content = `<div class="step-unknown">Unknown actor type: ${step.actor}</div>`;
+    }
+    
+    return content;
+}
+
+function renderRouterStep(step, stepIndex) {
+    let content = '';
+    
+    if (step.response && step.response.solvers) {
+        content += `
+            <div class="router-decision">
+                <strong>Selected Solvers:</strong> 
+                ${step.response.solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('')}
+            </div>
+        `;
+        
+        if (step.response.reason) {
+            content += `<div class="mt-2"><strong>Reason:</strong> ${step.response.reason}</div>`;
+        }
+        
+        if (step.response.multi_solver_strategy) {
+            content += `<div class="mt-2"><strong>Strategy:</strong> ${step.response.multi_solver_strategy}</div>`;
+        }
+    }
+    
+    if (step.prompt) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="router-prompt-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Router Prompt
+                </button>
+                <pre class="router-prompt mt-2 content-collapsible collapsed" id="router-prompt-${stepIndex}">${step.prompt}</pre>
+            </div>
+        `;
+    }
+    
+    if (step.metadata) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="router-metadata-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Metadata
+                </button>
+                <pre class="step-metadata mt-2 content-collapsible collapsed" id="router-metadata-${stepIndex}">${JSON.stringify(step.metadata, null, 2)}</pre>
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+function renderOverseerStep(step, stepIndex) {
+    let content = '';
+    
+    if (step.action === 'evaluate') {
+        content += `
+            <div><strong>Evaluated:</strong> ${step.solver_evaluated || 'Unknown'}</div>
+            <div class="mt-2"><strong>Verdict:</strong> <span class="verdict-${step.verdict}">${formatVerdictName(step.verdict)}</span></div>
+        `;
+        
+        if (step.critique) {
+            content += `
+                <div class="mt-2">
+                    <strong>Critique:</strong>
+                    <div class="critique-preview" id="critique-preview-${stepIndex}">
+                        ${step.critique ? step.critique.substring(0, 120) + (step.critique.length > 120 ? '...' : '') : 'N/A'}
+                    </div>
+                    <div class="critique-full content-collapsible collapsed" id="critique-full-${stepIndex}">
+                        ${step.critique || 'N/A'}
+                    </div>
+                    ${step.critique && step.critique.length > 120 ? `
+                        <button class="btn btn-sm btn-link toggle-critique-btn" 
+                            data-preview="critique-preview-${stepIndex}" 
+                            data-target="critique-full-${stepIndex}">
+                            Show more
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        if (step.market_alignment) {
+            content += `<div class="mt-2"><strong>Market Alignment:</strong> ${step.market_alignment}</div>`;
+        }
+    } else if (step.action === 'reroute') {
+        content += `
+            <div><strong>Excluded Solvers:</strong> ${step.excluded_solvers && step.excluded_solvers.length > 0 ? 
+                step.excluded_solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('') : 'None'}</div>
+        `;
+        
+        if (step.routing_guidance) {
+            content += `<div class="mt-2"><strong>Guidance:</strong> ${step.routing_guidance}</div>`;
+        }
+    }
+    
+    if (step.prompt) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-prompt-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Overseer Prompt
+                </button>
+                <pre class="overseer-prompt mt-2 content-collapsible collapsed" id="overseer-prompt-${stepIndex}">${step.prompt}</pre>
+            </div>
+        `;
+    }
+    
+    if (step.response) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-response-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Response
+                </button>
+                <pre class="overseer-response mt-2 content-collapsible collapsed" id="overseer-response-${stepIndex}">${formatCodeBlocks(step.response)}</pre>
+            </div>
+        `;
+    }
+    
+    if (step.metadata) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-metadata-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Metadata
+                </button>
+                <pre class="step-metadata mt-2 content-collapsible collapsed" id="overseer-metadata-${stepIndex}">${JSON.stringify(step.metadata, null, 2)}</pre>
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+function renderSolverStep(step, stepIndex) {
+    let content = '';
+    
+    if (step.recommendation) {
+        content += `<div><strong>Recommendation:</strong> ${step.recommendation}</div>`;
+    }
+    
+    // Special handling for code_runner
+    if (step.actor === 'code_runner') {
+        // Check if we have code output in metadata
+        if (step.metadata?.raw_data?.code_output) {
+            content += `
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>Code Output:</strong>
+                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="code-output-${stepIndex}">
+                            <i class="bi bi-arrows-expand"></i> Show Code Output
+                        </button>
+                    </div>
+                    <pre class="code-output-block language-python content-collapsible collapsed" id="code-output-${stepIndex}"><code class="language-python">${escapeHtml(step.metadata.raw_data.code_output)}</code></pre>
+                </div>
+            `;
+        }
+        
+        // Show code from raw data if available
+        if (step.metadata?.raw_data?.code) {
+            content += `
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>Generated Code:</strong>
+                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="code-block-${stepIndex}">
+                            <i class="bi bi-arrows-expand"></i> Show Generated Code
+                        </button>
+                    </div>
+                    <pre class="code-block language-python content-collapsible collapsed" id="code-block-${stepIndex}"><code class="language-python">${escapeHtml(step.metadata.raw_data.code)}</code></pre>
+                </div>
+            `;
+        }
+        
+        // Show relevant info in a nice block
+        if (step.metadata?.raw_data) {
+            const rawData = step.metadata.raw_data;
+            const relevantInfo = [];
+            
+            if (rawData.execution_successful !== undefined) {
+                relevantInfo.push(`<div><strong>Execution:</strong> ${rawData.execution_successful ? 'Successful' : 'Failed'}</div>`);
+            }
+            
+            if (rawData.solver) {
+                relevantInfo.push(`<div><strong>Solver:</strong> ${rawData.solver}</div>`);
+            }
+            
+            if (rawData.recommendation) {
+                relevantInfo.push(`<div><strong>Recommendation:</strong> ${rawData.recommendation}</div>`);
+            }
+            
+            if (rawData.code_runner_recommendation) {
+                relevantInfo.push(`<div><strong>Code Runner Recommendation:</strong> ${rawData.code_runner_recommendation}</div>`);
+            }
+            
+            if (relevantInfo.length > 0) {
+                content += `
+                    <div class="mt-3 code-runner-info">
+                        <strong>Execution Info:</strong>
+                        <div class="info-block">
+                            ${relevantInfo.join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    }
+    
+    if (step.response && step.actor !== 'code_runner') {
+        content += `
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-response-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Solver Response
+                </button>
+                <pre class="solver-response mt-2 content-collapsible collapsed" id="solver-response-${stepIndex}">${formatCodeBlocks(step.response)}</pre>
+            </div>
+        `;
+    }
+    
+    if (step.prompt && step.actor !== 'code_runner') {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-prompt-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Solver Prompt
+                </button>
+                <pre class="solver-prompt mt-2 content-collapsible collapsed" id="solver-prompt-${stepIndex}">${step.prompt}</pre>
+            </div>
+        `;
+    }
+    
+    // For code_runner, add toggleable metadata button instead of raw display
+    if (step.metadata && step.actor === 'code_runner') {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-metadata-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Additional Details
+                </button>
+                <div class="solver-metadata mt-2 content-collapsible collapsed" id="solver-metadata-${stepIndex}">
+                    <div class="metadata-summary">
+                        ${step.metadata.solver_name ? `<div><strong>Solver Name:</strong> ${step.metadata.solver_name}</div>` : ''}
+                        ${step.metadata.execution_successful !== undefined ? 
+                            `<div><strong>Execution Status:</strong> <span class="${step.metadata.execution_successful ? 'text-success' : 'text-danger'}">${step.metadata.execution_successful ? 'Success' : 'Failed'}</span></div>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (step.metadata && step.actor !== 'code_runner') {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-metadata-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Metadata
+                </button>
+                <pre class="step-metadata mt-2 content-collapsible collapsed" id="solver-metadata-${stepIndex}">${JSON.stringify(step.metadata, null, 2)}</pre>
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+// Helper function to escape HTML special characters
+function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function formatVerdictName(verdict) {
+    const verdictNames = {
+        'satisfied': 'Satisfied',
+        'retry': 'Retry',
+        'default_to_p4': 'Default to P4'
+    };
+    return verdictNames[verdict] || verdict;
+}
