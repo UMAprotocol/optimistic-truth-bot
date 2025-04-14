@@ -3509,8 +3509,16 @@ function updateTableWithData(dataArray) {
         let row = `<tr class="result-row ${recommendation?.toLowerCase() === 'p4' || recommendation?.toLowerCase() === 'p3' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">`;
         
         // Add icon as the first cell if available
-        if (item.icon) {
-            row += `<td class="icon-cell"><img src="${item.icon}" alt="Question Icon" class="table-icon"></td>`;
+        // For format_version 2, check proposal_metadata.icon
+        let icon = null;
+        if (item.format_version === 2) {
+            icon = item.proposal_metadata?.icon || null;
+        } else {
+            icon = item.icon || null;
+        }
+        
+        if (icon) {
+            row += `<td class="icon-cell"><img src="${icon}" alt="Question Icon" class="table-icon"></td>`;
         } else {
             row += `<td class="icon-cell"></td>`;
         }
@@ -3599,15 +3607,23 @@ function showDetails(data, index) {
     // Get title directly from the data using our extraction function
     const title = extractTitle(data) || 'Details';
     
+    // Check if this is format_version 2
+    const isFormatV2 = data.format_version === 2;
+    
     // Set the modal title with icon if available
-    if (data.icon) {
-        modalTitle.innerHTML = `<img src="${data.icon}" alt="Question Icon" class="modal-icon"> ${title}`;
+    // For format_version 2, icon is in proposal_metadata.icon
+    let icon = null;
+    if (isFormatV2) {
+        icon = data.proposal_metadata?.icon || null;
+    } else {
+        icon = data.icon || null;
+    }
+    
+    if (icon) {
+        modalTitle.innerHTML = `<img src="${icon}" alt="Question Icon" class="modal-icon"> ${title}`;
     } else {
         modalTitle.textContent = title;
     }
-    
-    // Check if this is format_version 2
-    const isFormatV2 = data.format_version === 2;
     
     // Get recommendation from the appropriate location based on format version
     const recommendation = isFormatV2 ? (data.result?.recommendation || 'N/A') : (data.recommendation || 'N/A');
@@ -4485,7 +4501,6 @@ function showDetails(data, index) {
                                                     <th>Recommendation</th>
                                                     <th>Satisfaction</th>
                                                     <th style="min-width: 200px; width: 40%;">Critique</th>
-                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -4507,27 +4522,6 @@ function showDetails(data, index) {
                                                                     data-target="critique-full-${jIdx}">
                                                                     Show more
                                                                 </button>
-                                                            ` : ''}
-                                                        </td>
-                                                        <td>
-                                                            ${journey.system_prompt_before ? `
-                                                                <button class="btn btn-sm btn-outline-secondary toggle-content-btn mb-1" 
-                                                                    data-target="system-prompt-before-${jIdx}">
-                                                                    Before Prompt
-                                                                </button>
-                                                                <div class="content-collapsible collapsed" id="system-prompt-before-${jIdx}">
-                                                                    <pre class="system-prompt mt-2">${journey.system_prompt_before}</pre>
-                                                                </div>
-                                                            ` : ''}
-                                                            
-                                                            ${journey.system_prompt_after ? `
-                                                                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" 
-                                                                    data-target="system-prompt-after-${jIdx}">
-                                                                    After Prompt
-                                                                </button>
-                                                                <div class="content-collapsible collapsed" id="system-prompt-after-${jIdx}">
-                                                                    <pre class="system-prompt mt-2">${journey.system_prompt_after}</pre>
-                                                                </div>
                                                             ` : ''}
                                                         </td>
                                                     </tr>
@@ -4927,6 +4921,14 @@ function extractTitle(item) {
         const ancillaryMatch = item.ancillary_data.match(/title:\s*([^,\n]+)/i);
         if (ancillaryMatch && ancillaryMatch[1]) {
             return ancillaryMatch[1].trim();
+        }
+    }
+    
+    // For format_version 2, try to extract from proposal_metadata.ancillary_data
+    if (item.format_version === 2 && item.proposal_metadata?.ancillary_data) {
+        const metadataAncillaryMatch = item.proposal_metadata.ancillary_data.match(/title:\s*([^,\n]+)/i);
+        if (metadataAncillaryMatch && metadataAncillaryMatch[1]) {
+            return metadataAncillaryMatch[1].trim();
         }
     }
     
