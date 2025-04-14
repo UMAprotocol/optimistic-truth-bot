@@ -28,6 +28,7 @@ SENSITIVE_PATTERNS = [
     re.compile(r"api_key\s*=\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
     re.compile(r"key\s*=\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
     re.compile(r"Authorization\s*:\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
+    # Add more patterns as needed
 ]
 
 class SensitiveDataFilter(logging.Filter):
@@ -59,6 +60,7 @@ def get_team_abbreviation_map():
         response = requests.get(url)
         response.raise_for_status()
         teams = response.json()
+        # Build mapping from full team name to API abbreviation
         return {f"{team['City']} {team['Name']}": team['Key'] for team in teams}
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to fetch team abbreviations: {e}")
@@ -82,6 +84,8 @@ def fetch_game_data(date, team1_name, team2_name, team_abbreviation_map):
             game_info = game_data.get("Game", {})
             home_team = game_info.get("HomeTeam")
             away_team = game_info.get("AwayTeam")
+
+            logger.debug(f"Checking game: {home_team} vs {away_team}")
 
             if {home_team, away_team} == {team1_api, team2_api}:
                 game_data["team1"] = team1_api
@@ -108,6 +112,9 @@ def determine_resolution(game):
 
     team1 = game.get("team1")
     team2 = game.get("team2")
+
+    logger.debug(f"Game status: {status}")
+    logger.debug(f"Scores - Home: {home_score}, Away: {away_score}")
 
     if status in ["Scheduled", "Delayed", "InProgress", "Suspended"]:
         return RESOLUTION_MAP["Too early to resolve"]

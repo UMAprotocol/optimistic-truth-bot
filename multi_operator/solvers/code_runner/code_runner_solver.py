@@ -788,24 +788,44 @@ For NHL hockey data:
   * Toronto Maple Leafs = TOR
   * Boston Bruins = BOS
   * And other standard NHL team abbreviations
-- Map the outcome correctly using the resolution conditions in the query
-- IMPORTANT: When using RESOLUTION_MAP, the keys are outcome names and values are recommendation codes:
+- CRITICALLY IMPORTANT: When defining RESOLUTION_MAP, you MUST use team abbreviations (not full names) as keys:
   ```python
+  # CORRECT - Use team abbreviations as keys
   RESOLUTION_MAP = {
-    "Golden Knights": "p1",   # First team
-    "Kraken": "p2",           # Second team  
-    "50-50": "p3",            # Tie or undetermined
-    "Too early to resolve": "p4"  # Not enough data
+      "VGK": "p1",  # Golden Knights
+      "SEA": "p2",  # Kraken
+      "50-50": "p3",
+      "Too early to resolve": "p4",
   }
   
-  # CORRECT usage - use team/outcome names as keys:
+  # WRONG - Do NOT use full team names as keys
+  # RESOLUTION_MAP = {
+  #     "Golden Knights": "p1",  # Wrong! Should use "VGK"
+  #     "Kraken": "p2",          # Wrong! Should use "SEA"
+  #     "50-50": "p3",
+  #     "Too early to resolve": "p4",
+  # }
+  ```
+- Map the outcome correctly using the resolution conditions in the query
+# The examples below show how to use the RESOLUTION_MAP with team abbreviations:
+  ```python
+  # CORRECT - Use team abbreviations as keys
+  RESOLUTION_MAP = {
+      "VGK": "p1",  # Golden Knights
+      "SEA": "p2",  # Kraken
+      "50-50": "p3",
+      "Too early to resolve": "p4",
+  }
+  
+  # CORRECT usage - use team abbreviations as keys:
   if golden_knights_win:
-      return "recommendation: " + RESOLUTION_MAP["Golden Knights"]  # Returns "recommendation: p1"
+      return "recommendation: " + RESOLUTION_MAP["VGK"]  # Returns "recommendation: p1"
   elif kraken_win:
-      return "recommendation: " + RESOLUTION_MAP["Kraken"]          # Returns "recommendation: p2"
+      return "recommendation: " + RESOLUTION_MAP["SEA"]  # Returns "recommendation: p2"
   
   # INCORRECT usage - DO NOT do this:
   # return RESOLUTION_MAP["p1"]  # This will cause KeyError: 'p1'
+  # DO NOT use full team names like "Golden Knights" or "Kraken" as keys
   ```
 """
 
@@ -1267,21 +1287,35 @@ For NHL hockey data:
 - Clearly extract game results and team information
 - Make sure to handle all possible game statuses including postponements
 - Format the output to clearly show the game data and the recommendation
-- Parse team names correctly (e.g., "Kraken" for Seattle Kraken, "Golden Knights" for Vegas Golden Knights)
-- IMPORTANT: When using RESOLUTION_MAP, the keys are outcome names and values are recommendation codes:
+- CRITICALLY IMPORTANT: You MUST use team abbreviations, not full team names:
+  * Seattle Kraken = SEA
+  * Vegas Golden Knights = VGK
+  * Toronto Maple Leafs = TOR
+  * Boston Bruins = BOS
+  * And other standard NHL team abbreviations
+- IMPORTANT: When using RESOLUTION_MAP, the keys are team abbreviations (not full names) and values are recommendation codes:
   ```python
+  # CORRECT - Use team abbreviations as keys
   RESOLUTION_MAP = {
-    "Golden Knights": "p1",   # First team
-    "Kraken": "p2",           # Second team  
-    "50-50": "p3",            # Tie or undetermined
-    "Too early to resolve": "p4"  # Not enough data
+      "VGK": "p1",  # Golden Knights
+      "SEA": "p2",  # Kraken
+      "50-50": "p3",
+      "Too early to resolve": "p4",
   }
   
-  # CORRECT usage - use team/outcome names as keys:
+  # CORRECT usage - use team abbreviations as keys:
   if golden_knights_win:
-      return "recommendation: " + RESOLUTION_MAP["Golden Knights"]  # Returns "recommendation: p1"
+      return "recommendation: " + RESOLUTION_MAP["VGK"]  # Returns "recommendation: p1"
   elif kraken_win:
-      return "recommendation: " + RESOLUTION_MAP["Kraken"]          # Returns "recommendation: p2"
+      return "recommendation: " + RESOLUTION_MAP["SEA"]  # Returns "recommendation: p2"
+  
+  # WRONG - Do NOT use full team names as keys:
+  # RESOLUTION_MAP = {
+  #     "Golden Knights": "p1",  # Wrong! Should use "VGK"
+  #     "Kraken": "p2",          # Wrong! Should use "SEA"
+  #     "50-50": "p3",
+  #     "Too early to resolve": "p4",
+  # }
   
   # INCORRECT usage - DO NOT do this:
   # return RESOLUTION_MAP["p1"]  # This will cause KeyError: 'p1'

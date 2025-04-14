@@ -1114,16 +1114,32 @@ select[multiple] {
 }
 
 .step-number {
+    font-weight: 600;
+    min-width: 30px;
+    height: 30px;
+    background-color: #4e73df;
+    color: white;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 30px;
-    height: 30px;
-    background-color: #007bff;
-    color: white;
-    border-radius: 50%;
-    margin-right: 15px;
-    font-weight: bold;
+    margin-right: 10px;
+}
+
+.journey-step-card.router-step .step-number {
+    background-color: #4e73df; /* Blue */
+}
+
+.journey-step-card.perplexity-step .step-number {
+    background-color: #36b9cc; /* Cyan */
+}
+
+.journey-step-card.code_runner-step .step-number {
+    background-color: #1cc88a; /* Green */
+}
+
+.journey-step-card.overseer-step .step-number {
+    background-color: #f6c23e; /* Yellow */
 }
 
 .step-details {
@@ -2175,4 +2191,250 @@ select[multiple] {
 .recommendation-journey td {
     vertical-align: top;
     word-wrap: break-word;
+}
+
+/* Journey Timeline Styling for format_version 2 */
+.journey-timeline {
+    position: relative;
+    margin: 20px 0;
+    padding: 0;
+}
+
+.journey-step-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    position: relative;
+    border-left: 5px solid #6c757d;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.journey-step-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Actor-specific colors */
+.journey-step-card.router-step {
+    border-left-color: #4e73df; /* Blue */
+}
+
+.journey-step-card.perplexity-step {
+    border-left-color: #36b9cc; /* Cyan */
+}
+
+.journey-step-card.code_runner-step {
+    border-left-color: #1cc88a; /* Green */
+}
+
+.journey-step-card.overseer-step {
+    border-left-color: #f6c23e; /* Yellow */
+}
+
+.journey-step-header {
+    background-color: #f8f9fa;
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.step-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.step-number {
+    font-weight: 600;
+    min-width: 30px;
+    height: 30px;
+    background-color: #4e73df;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.step-actor {
+    font-weight: 600;
+    background-color: #e9ecef;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.step-action {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.step-phase, .step-attempt {
+    font-size: 0.8rem;
+    background-color: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #495057;
+}
+
+.step-timestamp {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.journey-step-body {
+    padding: 15px;
+}
+
+/* Verdict styling */
+.verdict-satisfied {
+    color: #1cc88a;
+    font-weight: 600;
+}
+
+.verdict-retry {
+    color: #f6c23e;
+    font-weight: 600;
+}
+
+.verdict-default_to_p4 {
+    color: #e74a3b;
+    font-weight: 600;
+}
+
+/* Response sections */
+.router-prompt, 
+.solver-prompt, 
+.overseer-prompt,
+.router-response, 
+.solver-response, 
+.overseer-response, 
+.step-metadata {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+    max-height: 400px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* Toggle buttons */
+.toggle-content-btn {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+}
+
+/* Router decision styling */
+.router-decision {
+    margin-bottom: 10px;
+}
+
+/* Result styling */
+.result-info {
+    padding: 10px;
+}
+
+/* Market info styling */
+.market-info {
+    padding: 10px;
+}
+
+.market-icon {
+    max-width: 30px;
+    max-height: 30px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+/* Code output blocks styling */
+.code-output-block, 
+.code-block {
+    background-color: #282c34;
+    border: 1px solid #3e4451;
+    border-radius: 4px;
+    padding: 15px;
+    font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    margin: 10px 0;
+    max-height: 400px;
+    overflow-y: auto;
+    color: #abb2bf;
+}
+
+.code-block {
+    background-color: #282c34;
+}
+
+/* Styles for code syntax highlighting using Prism */
+.language-python .token.comment,
+.language-python .token.prolog,
+.language-python .token.doctype,
+.language-python .token.cdata {
+    color: #5c6370;
+    font-style: italic;
+}
+
+.language-python .token.function {
+    color: #61afef;
+}
+
+.language-python .token.keyword {
+    color: #c678dd;
+}
+
+.language-python .token.string {
+    color: #98c379;
+}
+
+.language-python .token.number,
+.language-python .token.boolean {
+    color: #d19a66;
+}
+
+.language-python .token.class-name {
+    color: #e5c07b;
+}
+
+.language-python .token.operator,
+.language-python .token.punctuation {
+    color: #abb2bf;
+}
+
+.code-runner-info {
+    margin-top: 15px;
+}
+
+.info-block {
+    background-color: #f8f9fa;
+    border-left: 4px solid #1cc88a;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.info-block div {
+    margin-bottom: 5px;
+}
+
+.info-block div:last-child {
+    margin-bottom: 0;
+}
+
+.metadata-summary {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 10px 15px;
+    font-size: 0.9rem;
 } 

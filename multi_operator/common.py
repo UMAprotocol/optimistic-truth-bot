@@ -594,8 +594,28 @@ def validate_output_json(output_json):
                     missing_fields.append("valid p-value recommendation (in result)")
                     
             elif section == "proposal_metadata":
-                if "transaction_hash" not in output_json["proposal_metadata"]:
-                    missing_fields.append("transaction_hash (in proposal_metadata)")
+                # Check for important metadata fields that should be in proposal_metadata
+                important_metadata_fields = [
+                    "transaction_hash",
+                    "block_number",
+                    "request_transaction_block_time",
+                    "ancillary_data",
+                    "resolution_conditions",
+                    "proposed_price",
+                    "proposed_price_outcome",
+                    "resolved_price",
+                    "resolved_price_outcome",
+                    "request_timestamp",
+                    "expiration_timestamp",
+                    "creator",
+                    "proposer"
+                ]
+                
+                for field in important_metadata_fields:
+                    if field not in output_json["proposal_metadata"]:
+                        # Only add the most critical fields to missing_fields to not flood the output
+                        if field in ["transaction_hash", "block_number", "ancillary_data"]:
+                            missing_fields.append(f"{field} (in proposal_metadata)")
                     
             elif section == "overseer_data":
                 if "recommendation_journey" not in output_json["overseer_data"]:
