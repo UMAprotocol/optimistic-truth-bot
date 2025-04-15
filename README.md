@@ -55,7 +55,7 @@ flowchart TD
     F -->|Resolution recommendations| H[Overseer]
     G -->|Resolution recommendations| H
     
-    H -->|Final validation| I[Final Resolution]
+    H -->|If satisfied: Final validation| I[Final Resolution]
     I -->|p1, p2, p3, p4| J[Result Output]
     
     J -->|Stored in| K[Results Files]
@@ -64,11 +64,16 @@ flowchart TD
     M[Proposal Finalizer] -->|Updates results with actual outcomes| K
     L -->|Queried by| N[API & UI]
     
+    H -->|If not satisfied: Request re-routing| E
+    
     style D fill:#f9f,stroke:#333,stroke-width:2px
     style E fill:#bbf,stroke:#333,stroke-width:1px
     style F fill:#bbf,stroke:#333,stroke-width:1px
     style G fill:#bbf,stroke:#333,stroke-width:1px
     style H fill:#bbf,stroke:#333,stroke-width:1px
+    
+    classDef feedback stroke:#f00,stroke-width:2px,stroke-dasharray: 5 5
+    class H-->E feedback
 ```
 
 ### Router
