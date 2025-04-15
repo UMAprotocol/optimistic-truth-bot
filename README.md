@@ -1,78 +1,283 @@
-# Large Language Oracle for UMA Protocol
+# Large Language Oracle (LLO)
 
-A system for using large language models to resolve Optimistic Oracle proposals in the UMA protocol.
+A multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
 
-## Repository Structure
+## Table of Contents
 
-- **example/**: Contains example code showing simple Perplexity API usage
-  - `example.py`: Basic implementation of Perplexity API queries with sample data
-  - See [example/README.md](example/README.md) for more details
+- [Large Language Oracle (LLO)](#large-language-oracle-llo)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [System Architecture](#system-architecture)
+    - [Router](#router)
+    - [Solvers](#solvers)
+      - [Perplexity Solver](#perplexity-solver)
+      - [Code Runner Solver](#code-runner-solver)
+    - [Overseer](#overseer)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
+  - [Running the System](#running-the-system)
+    - [Proposal Fetcher](#proposal-fetcher)
+    - [Multi-Operator Early Request Retry](#multi-operator-early-request-retry)
+    - [Output Watcher](#output-watcher)
+    - [Proposal Finalizer](#proposal-finalizer)
+    - [User Interface](#user-interface)
+  - [Development](#development)
+  - [License](#license)
 
-- **query_utilities/**: Tools for fetching market data from the blockchain
-  - `fetch_market_resolution.py`: Fetches resolution data for a specific market ID
-  - `fetch_open_market_Ids.py`: Retrieves all open markets from a specified block
-  - See [query_utilities/README.md](query_utilities/README.md) for more details
+## Overview
 
-- **proposal_replayer/**: Core system for monitoring and processing UMA proposals
-  - `proposal_fetcher.py`: Monitors the blockchain for new proposals and saves them
-  - `proposal_replayer.py`: Processes saved proposals with the Perplexity API
-  - See [proposal_replayer/README.md](proposal_replayer/README.md) for more details
+The Large Language Oracle (LLO) is a sophisticated system designed to monitor, process, and resolve Polymarket prediction market proposals. The system combines multiple AI strategies, including search-based solvers and code execution solvers, to provide accurate resolution recommendations.****
 
-- **api/**: API for querying Oracle outputs from MongoDB
-  - `main.py`: FastAPI application with endpoints for querying Oracle outputs
-  - `test_api.py`: Test script for API functionality
-  - See [api/README.md](api/README.md) for more details
+The workflow involves:
 
-- **database_utilities/**: Tools for MongoDB integration
-  - `output_watcher.py`: Watches for new output files and adds them to MongoDB
-  - `results_to_mongodb.py`: Imports result files to MongoDB
-  - See [database_utilities/README.md](database_utilities/README.md) for more details
+1. Monitoring Polymarket blockchain events for new proposals
+2. Saving proposal information to structured files
+3. Processing proposals through multi-agent decision-making
+4. Submitting resolution recommendations
+5. Tracking performance against actual market outcomes
 
-- **Common Files**:
-  - `common.py`: Shared utilities and constants
-  - `prompt.py`: Prompt creation and formatting for API calls
+## System Architecture
 
-## Setup
+The LLO system consists of several key components:
 
-```bash
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment variables (or create a .env file)
-export PERPLEXITY_API_KEY=<your_perplexity_api_key>
-export POLYGON_RPC_URL=<your_polygon_rpc_url>
+```mermaid
+flowchart TD
+    A[Blockchain Events] -->|ProposePrice events| B[Proposal Fetcher]
+    B -->|Saves proposal data| C[Proposal File]
+    C -->|Input| D[Multi-Operator System]
+    D -->|Request routing| E[Router]
+    
+    E -->|Sports/Crypto queries| F[Code Runner Solver]
+    E -->|General knowledge queries| G[Perplexity Solver]
+    
+    F -->|Resolution recommendations| H[Overseer]
+    G -->|Resolution recommendations| H
+    
+    H -->|Final validation| I[Final Resolution]
+    I -->|p1, p2, p3, p4| J[Result Output]
+    
+    J -->|Stored in| K[Results Files]
+    K -->|Imported by| L[MongoDB/Database]
+    
+    M[Proposal Finalizer] -->|Updates results with actual outcomes| K
+    L -->|Queried by| N[API & UI]
+    
+    style D fill:#f9f,stroke:#333,stroke-width:2px
+    style E fill:#bbf,stroke:#333,stroke-width:1px
+    style F fill:#bbf,stroke:#333,stroke-width:1px
+    style G fill:#bbf,stroke:#333,stroke-width:1px
+    style H fill:#bbf,stroke:#333,stroke-width:1px
 ```
 
-## Running the Proposal Replayer System
+### Router
 
-1. Start the proposal fetcher to monitor for new proposals:
+The Router is responsible for deciding which solver to use for each Polymarket proposal. It analyzes the content of the proposal and makes intelligent routing decisions based on the type of query and available solvers. The Router can select multiple solvers for complementary approaches to the same question.
+
+### Solvers
+
+The system currently employs two primary solver types:
+
+#### Perplexity Solver
+
+The Perplexity Solver leverages the Perplexity API to search the internet and retrieve information relevant to the proposal. It's engineered to handle a wide range of query types and includes validations to avoid hallucinations and maintain accuracy.
+
+Key features:
+- Web search capability
+- Information synthesis from multiple sources
+- Handling of complex queries requiring context
+
+#### Code Runner Solver
+
+The Code Runner Solver generates and executes Python code to solve specific types of proposals through direct API access. It's primarily used for:
+- Cryptocurrency price queries (via Binance API)
+- Sports data retrieval (via Sports Data IO API)
+
+The Code Runner includes sample code templates that are adapted to each query, allowing for precise data retrieval and processing.
+
+### Overseer
+
+The Overseer evaluates solver responses for quality and accuracy. It can:
+- Validate responses against market data
+- Request reruns from solvers if needed
+- Provide guidance for improving responses
+- Make final recommendations on which solver's output to use
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.8+
+- MongoDB (for database storage)
+- API keys:
+  - OpenAI API key
+  - Perplexity API key
+  - Sports Data IO API key (for sports data)
+  - Other optional API keys based on use cases
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/large-language-oracle.git
+   cd large-language-oracle
+   ```
+
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Configuration
+
+1. Create a `.env` file with your API keys:
+   ```
+   OPENAI_API_KEY=your_openai_api_key
+   PERPLEXITY_API_KEY=your_perplexity_api_key
+   SPORTS_DATA_IO_MLB_API_KEY=your_sports_data_io_mlb_api_key
+   SPORTS_DATA_IO_NHL_API_KEY=your_sports_data_io_nhl_api_key
+   POLYGON_RPC_URL=your_polygon_rpc_url
+   MONGO_URI=your_mongodb_connection_string
+   ```
+
+2. Configure `api_keys_config.json` with additional API keys and endpoints needed for the Code Runner solver:
+
+   The `api_keys_config.json` file provides structured configuration for data sources and API keys:
+   
+   ```json
+   {
+     "data_sources": [
+       {
+         "name": "Binance Cryptocurrency",
+         "category": "crypto",
+         "description": "Binance API for cryptocurrency price data",
+         "api_keys": ["BINANCE_API_KEY"],
+         "endpoints": {
+           "primary": "https://api.binance.com/api/v3",
+           "proxy": "https://your-proxy-endpoint.com/binance"
+         },
+         "example_queries": [
+           "What was the price of BTC on March 30?",
+           "How much did Ethereum cost yesterday?"
+         ]
+       },
+       {
+         "name": "Sports Data IO",
+         "category": "sports",
+         "subcategory": "MLB",
+         "description": "Sports Data IO API for baseball statistics",
+         "api_keys": ["SPORTS_DATA_IO_MLB_API_KEY"],
+         "endpoints": {
+           "primary": "https://api.sportsdata.io/v3/mlb"
+         },
+         "example_queries": [
+           "Did the Blue Jays win against the Orioles?",
+           "What was the score of the Yankees game?"
+         ]
+       },
+       {
+         "name": "Sports Data IO",
+         "category": "sports",
+         "subcategory": "NHL",
+         "description": "Sports Data IO API for hockey statistics",
+         "api_keys": ["SPORTS_DATA_IO_NHL_API_KEY"],
+         "endpoints": {
+           "primary": "https://api.sportsdata.io/v3/nhl"
+         },
+         "example_queries": [
+           "Did the Kraken beat the Golden Knights?",
+           "What was the score of the Maple Leafs vs Bruins game?"
+         ]
+       }
+     ]
+   }
+   ```
+
+   This configuration helps the Code Runner solver determine which APIs to use for different types of queries.
+
+## Running the System
+
+The system operates through several key scripts that work together to form a complete pipeline:
+
+### Proposal Fetcher
+
+The Proposal Fetcher listens for ProposePrice events on the blockchain, fetches on-chain data, and saves proposals to JSON files. It ignores negative risk markets.
+
 ```bash
-python proposal_replayer/proposal_fetcher.py --start-block 68945138
+python ./utilities/proposal_fetcher.py --start-block 70297560 --proposals-dir ./proposals/current-dataset/proposals
 ```
 
-2. In a separate terminal, start the proposal replayer:
+Parameters:
+- `--start-block`: The block number to start listening from
+- `--proposals-dir`: Directory to save proposal JSON files
+
+### Multi-Operator Early Request Retry
+
+This script processes proposals, determines the appropriate solver to use, and generates responses with recommendations.
+
 ```bash
-python proposal_replayer/proposal_replayer.py
+./multi_operator/run_early_retry.py --output-dir ./results/current-run/outputs --proposals-dir ./proposals/current-dataset/proposals --check-interval 30
 ```
 
-## Running the API Server
+Parameters:
+- `--output-dir`: Directory to save output JSON files
+- `--proposals-dir`: Directory containing proposal JSON files to process
+- `--check-interval`: Interval in seconds between checking for new proposals
 
-To start the API server for querying Oracle outputs from MongoDB:
+### Output Watcher
+
+The Output Watcher monitors the results directory for new files and automatically imports them into MongoDB.
 
 ```bash
-cd api
-./run_api.sh
+python ./database_utilities/output_watcher.py --watch-dir ./results/current-run --database uma_oracle --collection experiments
 ```
 
-The API will be available at http://localhost:8000. See [api/README.md](api/README.md) for detailed endpoint documentation.
+Parameters:
+- `--watch-dir`: Directory containing experiment results to watch
+- `--database`: MongoDB database name
+- `--collection`: MongoDB collection name
 
-## Utility Commands
+### Proposal Finalizer
 
-### Fetching Market Resolution
+The Proposal Finalizer checks unresolved proposals/outputs and updates them with final resolution prices from the blockchain.
+
 ```bash
-python query_utilities/fetch_market_resolution.py 0x0FC5D2B61B29D54D487ACBC27E9694CEF303A9891433925E282742B1DBA4F399
+python ./utilities/proposal_finalizer.py --continuous
 ```
+
+Parameters:
+- `--continuous`: Run in continuous mode, rechecking proposals periodically
+- `--interval`: Interval in seconds between rechecks (default: 30)
+
+### User Interface
+
+The system includes a web-based UI for exploring results and monitoring the system.
+
+```bash
+python ./ui/server.py
+```
+
+Then open your browser to http://localhost:8000
+
+## Development
+
+The system is organized into several directories:
+
+- `api/`: API for exposing results and system functionality
+- `database_utilities/`: Tools for MongoDB integration
+- `multi_operator/`: Core system components (router, solvers, overseer)
+- `proposals/`: Storage for proposal data
+- `results/`: Storage for system outputs
+- `ui/`: Web-based user interface
+- `utilities/`: Various utility scripts
+
+## License
+
+[MIT License](LICENSE)
