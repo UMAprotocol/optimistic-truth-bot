@@ -1639,8 +1639,15 @@ function calculateAnalytics(dataArray) {
     
     // Calculate counts for each entry
     resolvedEntries.forEach(entry => {
-        // Standardize recommendation value
-        const rec = (entry.recommendation || entry.proposed_price_outcome || '').toLowerCase();
+        // Standardize recommendation value based on format_version
+        let rec = '';
+        if (entry.format_version === 2 && entry.result && entry.result.recommendation) {
+            // For format_version 2, get recommendation from result section
+            rec = entry.result.recommendation.toLowerCase();
+        } else {
+            // For format_version 1 or undefined format, use legacy fields
+            rec = (entry.recommendation || entry.proposed_price_outcome || '').toLowerCase();
+        }
         
         // Count recommendations
         if (rec === 'p1') p1Count++;
@@ -1730,7 +1737,16 @@ function calculateAnalytics(dataArray) {
 function isRecommendationCorrect(entry) {
     // Only compare if resolved_price_outcome is available and not null
     if (entry.resolved_price_outcome !== undefined && entry.resolved_price_outcome !== null) {
-        const rec = entry.recommendation?.toLowerCase() || '';
+        // Get recommendation based on format_version
+        let rec = '';
+        if (entry.format_version === 2 && entry.result && entry.result.recommendation) {
+            // For format_version 2, get recommendation from result section
+            rec = entry.result.recommendation.toLowerCase();
+        } else {
+            // For format_version 1 or undefined format, use legacy fields
+            rec = (entry.recommendation || '').toLowerCase();
+        }
+        
         const resolved = entry.resolved_price_outcome.toString().toLowerCase();
         
         // Handle empty or missing recommendation
@@ -3623,8 +3639,8 @@ function showDetails(data, index) {
     let content = `
         <div class="alert ${alertClass} mb-4">
             <strong>Recommendation:</strong> ${recommendation} | 
+            <strong>Resolved:</strong> ${data.resolved_price_outcome || 'Unresolved'} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
-            <strong>Resolved:</strong> ${resolvedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
             <strong>Correct:</strong> ${correctnessText}
         </div>
@@ -3720,7 +3736,7 @@ function showDetails(data, index) {
                 <div class="journey-timeline">
                     ${data.journey.map((step, stepIndex) => `
                         <div class="journey-step-card ${step.actor}-step">
-                            <div class="journey-step-header">
+                            <div class="journey-step-header" data-step="${stepIndex}">
                                 <div class="step-info">
                                     <div class="step-number">${step.step}</div>
                                     <span class="step-actor">${formatActorName(step.actor)}</span>
@@ -3730,7 +3746,7 @@ function showDetails(data, index) {
                                 </div>
                                 <div class="step-timestamp">${formatDate(step.timestamp)}</div>
                             </div>
-                            <div class="journey-step-body">
+                            <div class="journey-step-body" id="journey-step-body-${stepIndex}">
                                 ${renderJourneyStepContent(step, stepIndex)}
                             </div>
                         </div>
@@ -4803,13 +4819,18 @@ function showDetails(data, index) {
     // Add toggle functionality for metadata JSON
     document.querySelectorAll('.toggle-metadata-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const jsonData = this.parentElement.nextElementSibling;
-            if (jsonData.style.display === 'none') {
-                jsonData.style.display = 'block';
-                this.textContent = 'Hide Full View';
-            } else {
-                jsonData.style.display = 'none';
-                this.textContent = 'Toggle Full View';
+            // Find the closest pre element that contains the JSON data
+            // For both v1 and v2 data structures
+            const jsonData = this.closest('.p-3').querySelector('.json-data');
+            
+            if (jsonData) {
+                if (jsonData.style.display === 'none') {
+                    jsonData.style.display = 'block';
+                    this.textContent = 'Hide Full View';
+                } else {
+                    jsonData.style.display = 'none';
+                    this.textContent = 'Toggle Full View';
+                }
             }
         });
     });
@@ -4837,6 +4858,38 @@ function showDetails(data, index) {
                         icon.classList.add('bi-arrows-collapse');
                     }
                 }
+            }
+        });
+    });
+    
+    // Add toggle functionality for metadata JSON
+    document.querySelectorAll('.toggle-metadata-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Find the closest pre element that contains the JSON data
+            // For both v1 and v2 data structures
+            const jsonData = this.closest('.p-3').querySelector('.json-data');
+            
+            if (jsonData) {
+                if (jsonData.style.display === 'none') {
+                    jsonData.style.display = 'block';
+                    this.textContent = 'Hide Full View';
+                } else {
+                    jsonData.style.display = 'none';
+                    this.textContent = 'Toggle Full View';
+                }
+            }
+        });
+    });
+    
+    // Add toggle functionality for journey steps
+    document.querySelectorAll('.journey-step-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const stepIndex = this.getAttribute('data-step');
+            const stepBody = document.getElementById(`journey-step-body-${stepIndex}`);
+            
+            if (stepBody) {
+                this.classList.toggle('collapsed');
+                stepBody.classList.toggle('collapsed');
             }
         });
     });
@@ -6180,8 +6233,36 @@ function renderSolverStep(step, stepIndex) {
     
     // Special handling for code_runner
     if (step.actor === 'code_runner') {
-        // Check if we have code output in metadata
-        if (step.metadata?.raw_data?.code_output) {
+        // Show prompt if available
+        if (step.prompt) {
+            content += `
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-prompt-${stepIndex}">
+                        <i class="bi bi-arrows-expand"></i> Show Prompt
+                    </button>
+                    <pre class="solver-prompt mt-2 content-collapsible collapsed" id="solver-prompt-${stepIndex}">${step.prompt}</pre>
+                </div>
+            `;
+        }
+        
+        // If we have a response, display it
+        if (step.response) {
+            content += `
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>Response:</strong>
+                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-response-${stepIndex}">
+                            <i class="bi bi-arrows-expand"></i> Show Response
+                        </button>
+                    </div>
+                    <pre class="solver-response mt-2 content-collapsible collapsed" id="solver-response-${stepIndex}">${formatCodeBlocks(step.response)}</pre>
+                </div>
+            `;
+        }
+
+        // Handle code_output from both root level (new format) or metadata (old format)
+        if (step.code_output || step.metadata?.raw_data?.code_output) {
+            const codeOutput = step.code_output || (step.metadata?.raw_data?.code_output || '');
             content += `
                 <div class="mt-3">
                     <div class="d-flex justify-content-between align-items-center">
@@ -6190,13 +6271,14 @@ function renderSolverStep(step, stepIndex) {
                             <i class="bi bi-arrows-expand"></i> Show Code Output
                         </button>
                     </div>
-                    <pre class="code-output-block language-python content-collapsible collapsed" id="code-output-${stepIndex}"><code class="language-python">${escapeHtml(step.metadata.raw_data.code_output)}</code></pre>
+                    <pre class="code-output-block language-python content-collapsible collapsed" id="code-output-${stepIndex}"><code class="language-python">${escapeHtml(codeOutput)}</code></pre>
                 </div>
             `;
         }
         
-        // Show code from raw data if available
-        if (step.metadata?.raw_data?.code) {
+        // Handle code from both root level (new format) or metadata (old format)
+        if (step.code || step.metadata?.raw_data?.code) {
+            const code = step.code || (step.metadata?.raw_data?.code || '');
             content += `
                 <div class="mt-3">
                     <div class="d-flex justify-content-between align-items-center">
@@ -6205,26 +6287,29 @@ function renderSolverStep(step, stepIndex) {
                             <i class="bi bi-arrows-expand"></i> Show Generated Code
                         </button>
                     </div>
-                    <pre class="code-block language-python content-collapsible collapsed" id="code-block-${stepIndex}"><code class="language-python">${escapeHtml(step.metadata.raw_data.code)}</code></pre>
+                    <pre class="code-block language-python content-collapsible collapsed" id="code-block-${stepIndex}"><code class="language-python">${escapeHtml(code)}</code></pre>
                 </div>
             `;
         }
         
         // Show relevant info in a nice block
-        if (step.metadata?.raw_data) {
-            const rawData = step.metadata.raw_data;
+        if (step.metadata?.raw_data || step.status === 'success') {
+            const rawData = step.metadata?.raw_data || {};
             const relevantInfo = [];
             
-            if (rawData.execution_successful !== undefined) {
-                relevantInfo.push(`<div><strong>Execution:</strong> ${rawData.execution_successful ? 'Successful' : 'Failed'}</div>`);
+            // Try to get execution status from different possible locations
+            const executionSuccessful = step.status === 'success' || 
+                                       rawData.execution_successful === true || 
+                                       step.metadata?.execution_successful === true;
+                                       
+            relevantInfo.push(`<div><strong>Execution:</strong> ${executionSuccessful ? 'Successful' : 'Failed'}</div>`);
+            
+            if (rawData.solver || step.solver_name) {
+                relevantInfo.push(`<div><strong>Solver:</strong> ${rawData.solver || step.solver_name || 'code_runner'}</div>`);
             }
             
-            if (rawData.solver) {
-                relevantInfo.push(`<div><strong>Solver:</strong> ${rawData.solver}</div>`);
-            }
-            
-            if (rawData.recommendation) {
-                relevantInfo.push(`<div><strong>Recommendation:</strong> ${rawData.recommendation}</div>`);
+            if (rawData.recommendation || step.recommendation) {
+                relevantInfo.push(`<div><strong>Recommendation:</strong> ${rawData.recommendation || step.recommendation}</div>`);
             }
             
             if (rawData.code_runner_recommendation) {
@@ -6242,28 +6327,29 @@ function renderSolverStep(step, stepIndex) {
                 `;
             }
         }
-    }
-    
-    if (step.response && step.actor !== 'code_runner') {
-        content += `
-            <div class="mt-2">
-                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-response-${stepIndex}">
-                    <i class="bi bi-arrows-expand"></i> Show Solver Response
-                </button>
-                <pre class="solver-response mt-2 content-collapsible collapsed" id="solver-response-${stepIndex}">${formatCodeBlocks(step.response)}</pre>
-            </div>
-        `;
-    }
-    
-    if (step.prompt && step.actor !== 'code_runner') {
-        content += `
-            <div class="mt-3">
-                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-prompt-${stepIndex}">
-                    <i class="bi bi-arrows-expand"></i> Show Solver Prompt
-                </button>
-                <pre class="solver-prompt mt-2 content-collapsible collapsed" id="solver-prompt-${stepIndex}">${step.prompt}</pre>
-            </div>
-        `;
+    } else {
+        // For non-code_runner steps
+        if (step.response) {
+            content += `
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-response-${stepIndex}">
+                        <i class="bi bi-arrows-expand"></i> Show Solver Response
+                    </button>
+                    <pre class="solver-response mt-2 content-collapsible collapsed" id="solver-response-${stepIndex}">${formatCodeBlocks(step.response)}</pre>
+                </div>
+            `;
+        }
+        
+        if (step.prompt) {
+            content += `
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-prompt-${stepIndex}">
+                        <i class="bi bi-arrows-expand"></i> Show Solver Prompt
+                    </button>
+                    <pre class="solver-prompt mt-2 content-collapsible collapsed" id="solver-prompt-${stepIndex}">${step.prompt}</pre>
+                </div>
+            `;
+        }
     }
     
     // For code_runner, add toggleable metadata button instead of raw display

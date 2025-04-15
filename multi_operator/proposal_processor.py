@@ -12,12 +12,14 @@ import json
 import time
 import sys
 import argparse
+import threading
+import traceback
+import importlib
+import signal
+import logging
 from datetime import datetime
 from pathlib import Path
-import logging
 from dotenv import load_dotenv
-import signal
-import importlib
 
 # Import local modules
 from .common import (
@@ -195,48 +197,54 @@ class MultiOperatorProcessor:
 
             self.get_system_prompt = fallback_prompt
 
+    def _load_api_keys_and_data_sources(self):
+        """Load API keys and data sources from config file.
+        
+        Returns:
+            tuple: (api_keys, data_sources)
+        """
+        api_keys = []
+        data_sources = {}
+        
+        if not self.api_keys_config:
+            return api_keys, data_sources
+            
+        try:
+            with open(self.api_keys_config, 'r') as f:
+                config_data = json.load(f)
+                
+                # Process data sources if available
+                if 'data_sources' in config_data:
+                    for source in config_data['data_sources']:
+                        # Extract all API keys
+                        if 'api_keys' in source and isinstance(source['api_keys'], list):
+                            api_keys.extend(source['api_keys'])
+                        
+                        # Store data sources by name
+                        if 'name' in source:
+                            name = source['name']
+                            data_sources[name] = source
+            
+            # Ensure NHL API key is always available if NHL source exists
+            nhl_sources = [name for name in data_sources if 'NHL' in name.upper()]
+            if nhl_sources and "SPORTS_DATA_IO_NHL_API_KEY" not in api_keys:
+                api_keys.append("SPORTS_DATA_IO_NHL_API_KEY")
+                
+            self.logger.info(f"Loaded {len(api_keys)} API keys and {len(data_sources)} data sources from config")
+                
+        except Exception as e:
+            self.logger.error(f"Error loading API keys config: {e}")
+            
+        return api_keys, data_sources
+
     def initialize_components(self):
         """Initialize the router, solver, and overseer components."""
         self.logger.info("Initializing components")
 
-        # First directly load API keys config to ensure we have a consistent view
-        direct_api_keys = []
-        direct_data_sources = {}
-        
-        # Direct load of API config file
-        if self.api_keys_config:
-            try:
-                import json
-                with open(self.api_keys_config, 'r') as f:
-                    config_data = json.load(f)
-                    
-                    # Process data sources if available
-                    if 'data_sources' in config_data:
-                        for source in config_data['data_sources']:
-                            # Extract all API keys
-                            if 'api_keys' in source and isinstance(source['api_keys'], list):
-                                direct_api_keys.extend(source['api_keys'])
-                            
-                            # Store data sources by name
-                            if 'name' in source:
-                                name = source['name']
-                                direct_data_sources[name] = source
-                                
-                                # Force-check for NHL
-                                if 'NHL' in name:
-                                    self.logger.info(f"Found NHL data source: {name}")
+        # Load API keys and data sources from config
+        api_keys, data_sources = self._load_api_keys_and_data_sources()
                 
-                self.logger.info(f"Directly loaded {len(direct_api_keys)} API keys and {len(direct_data_sources)} data sources from config")
-                
-                # Ensure NHL is in API keys (important fix)
-                nhl_keys = [k for k in direct_api_keys if 'NHL' in k]
-                if nhl_keys:
-                    self.logger.info(f"NHL API keys found: {nhl_keys}")
-                    
-            except Exception as e:
-                self.logger.error(f"Error directly loading API keys config: {e}")
-                
-        # Initialize solvers, possibly using the direct config
+        # Initialize solvers
         self.solvers = {
             "perplexity": PerplexitySolver(
                 api_key=self.perplexity_api_key, verbose=self.verbose
@@ -245,47 +253,36 @@ class MultiOperatorProcessor:
                 api_key=self.openai_api_key,
                 verbose=self.verbose,
                 config_file=self.api_keys_config,
-                additional_api_keys=direct_api_keys,  # Pass directly loaded keys
+                additional_api_keys=api_keys,
             ),
         }
-        self.logger.info(f"Initialized {len(self.solvers)} solvers")
         
-        # Get available API keys and data sources from the code_runner solver
-        available_api_keys = direct_api_keys.copy() if direct_api_keys else []
-        data_sources = direct_data_sources.copy() if direct_data_sources else {}
-        
-        # Supplement with data from code runner if available
+        # Get consolidated API keys and data sources
         if "code_runner" in self.solvers:
             code_runner = self.solvers["code_runner"]
+            # Add keys from code runner if not already present
             if hasattr(code_runner, "available_api_keys"):
                 for key in code_runner.available_api_keys:
-                    if key not in available_api_keys:
-                        available_api_keys.append(key)
+                    if key not in api_keys:
+                        api_keys.append(key)
+            # Add data sources from code runner if not already present
             if hasattr(code_runner, "data_sources"):
                 for name, source in code_runner.data_sources.items():
                     if name not in data_sources:
                         data_sources[name] = source
-        
-        # We already loaded the data sources directly above
-        final_data_sources = data_sources
-                
-        # Ensure NHL API key is in the list of available keys (critical fix)
-        if "SPORTS_DATA_IO_NHL_API_KEY" not in available_api_keys:
-            available_api_keys.append("SPORTS_DATA_IO_NHL_API_KEY")
-            self.logger.info("Explicitly added NHL API key to router's available keys")
             
-        # Initialize router with available API keys and data sources
+        # Initialize router with API keys and data sources
         self.router = Router(
             api_key=self.openai_api_key, 
             verbose=self.verbose, 
-            available_api_keys=available_api_keys,
-            data_sources=final_data_sources
+            available_api_keys=api_keys,
+            data_sources=data_sources
         )
-        self.logger.info(f"Router initialized with {len(available_api_keys)} available API keys and {len(final_data_sources)} data sources")
 
         # Initialize overseer
         self.overseer = Overseer(api_key=self.openai_api_key, verbose=self.verbose)
-        self.logger.info("Overseer initialized")
+        
+        self.logger.info(f"Initialized {len(self.solvers)} solvers with {len(api_keys)} API keys and {len(data_sources)} data sources")
 
     def scan_proposals(self):
         """Scan for new proposals in the proposals directory."""
@@ -803,23 +800,12 @@ SUMMARY:
             if self.save_output:
                 output_path = self.save_result(final_result)
                 if output_path and self.verbose:
-                    # Validate the saved result for backward compatibility
-                    try:
-                        with open(output_path, "r") as f:
-                            saved_data = json.load(f)
-
-                        is_valid, missing_fields = validate_output_json(saved_data)
-                        if not is_valid:
-                            self.logger.warning(
-                                f"Saved result is missing backward compatibility fields: {missing_fields}"
-                            )
-                    except Exception as e:
-                        self.logger.error(f"Error validating saved result: {e}")
+                    self.logger.info(f"Result successfully saved to {output_path}")
 
             return final_result
 
         except Exception as e:
-            import traceback
+            # traceback already imported at the top level
 
             self.logger.error(f"Error processing proposal {short_id}: {e}")
             self.logger.error(traceback.format_exc())
@@ -884,7 +870,7 @@ SUMMARY:
             self.running = False
             self.shutdown_requested = True
             # Set a shutdown timer to force exit after 5 seconds if clean shutdown fails
-            import threading
+            # threading already imported at the top level
 
             threading.Timer(
                 5.0,
@@ -1008,12 +994,25 @@ SUMMARY:
             # Create a more organized structure with metadata at the top level
             # and everything else in logical groups
             
-            # Top level contains only essential identification and format info
+            # Top level contains essential identification, format info, and key fields
             clean_result["query_id"] = query_id
             clean_result["short_id"] = short_id
             clean_result["question_id_short"] = short_id  # For backward compatibility
             clean_result["timestamp"] = time.time()
             clean_result["format_version"] = 2  # Indicate this is the new journey-focused format
+            
+            # Add key fields at the top level for direct access - these should be the primary
+            # source of these values, not duplicated in proposal_metadata or market_data
+            
+            # First, explicitly check if price fields are directly in the result
+            top_level_price_fields = ["resolved_price", "resolved_price_outcome", "proposed_price"]
+            for key in top_level_price_fields:
+                # If the field exists directly in the result, use that
+                if key in result:
+                    clean_result[key] = result[key]
+                # Otherwise check proposal_metadata
+                elif "proposal_metadata" in result and result["proposal_metadata"] and key in result["proposal_metadata"]:
+                    clean_result[key] = result["proposal_metadata"][key]
             
             # Add the processed file name to metadata
             if "file_path" in result:
@@ -1068,36 +1067,53 @@ SUMMARY:
             # Initialize market_data object (for backward compatibility)
             clean_result["market_data"] = {}
             
-            # Copy all metadata fields to proposal_metadata first
+            # Define fields that should only be at the top level, not in proposal_metadata
+            top_level_only_fields = ["resolved_price", "resolved_price_outcome", "proposed_price", "proposed_price_outcome"]
+            
+            # Copy all metadata fields to proposal_metadata except top-level-only fields
             for field in metadata_fields:
+                # Skip fields that should be only at the top level
+                if field in top_level_only_fields:
+                    # Explicitly remove these from proposal_metadata if they somehow got in there
+                    if field in clean_result["proposal_metadata"]:
+                        del clean_result["proposal_metadata"][field]
+                    continue
+                    
                 # First check if it's in the result directly
                 if field in result:
                     clean_result["proposal_metadata"][field] = result[field]
                 # Then check if it's not already in proposal_metadata (default values)
                 elif field not in clean_result["proposal_metadata"]:
                     # Set default values
-                    if field == "proposed_price":
-                        clean_result["proposal_metadata"][field] = 0
-                    elif field in ["resolved_price", "resolved_price_outcome", "game_start_time"]:
-                        clean_result["proposal_metadata"][field] = None
-                    elif field == "tags":
+                    if field == "tags":
                         clean_result["proposal_metadata"][field] = []
                     elif field == "tokens":
                         clean_result["proposal_metadata"][field] = []
                     elif field == "updates":
                         clean_result["proposal_metadata"][field] = []
+                    elif field == "game_start_time":
+                        clean_result["proposal_metadata"][field] = None
                     else:
                         clean_result["proposal_metadata"][field] = ""
             
-            # For backward compatibility, maintain minimal market_data
-            # Copy only essential fields to market_data
-            minimal_market_fields = ["proposed_price", "resolved_price", "proposed_price_outcome", "resolved_price_outcome"]
-            for field in minimal_market_fields:
-                clean_result["market_data"][field] = clean_result["proposal_metadata"].get(field)
+            # Create minimal market_data with ONLY fields that belong exclusively in market_data
+            # These fields should NEVER exist at the top level or in proposal_metadata
+            clean_result["market_data"] = {
+                "disputed": False,
+                "recommendation_overridden": False,
+                # Include tags and other marker-specific data if available
+                "tags": result.get("proposal_metadata", {}).get("tags", []),
+                "end_date_iso": result.get("proposal_metadata", {}).get("end_date_iso", ""),
+                "game_start_time": result.get("proposal_metadata", {}).get("game_start_time", None),
+                "icon": result.get("proposal_metadata", {}).get("icon", ""),
+                "condition_id": result.get("proposal_metadata", {}).get("condition_id", "")
+            }
             
-            # Add market status fields for backward compatibility
-            clean_result["market_data"]["disputed"] = False
-            clean_result["market_data"]["recommendation_overridden"] = False
+            # IMPORTANT: Explicitly ensure NO price-related fields in market_data
+            price_fields = ["resolved_price", "resolved_price_outcome", "proposed_price", "proposed_price_outcome"]
+            for field in price_fields:
+                if field in clean_result["market_data"]:
+                    del clean_result["market_data"][field]
 
             # Create the journey array - this is the main change
             journey = []
@@ -1138,7 +1154,7 @@ SUMMARY:
                     elif "router_prompt" in result:
                         router_prompt = result["router_prompt"]
                     
-                    # Create comprehensive router entry
+                    # Create comprehensive router entry with flattened structure (no raw_data nesting)
                     router_entry = {
                         "step": step_counter,
                         "actor": "router",
@@ -1152,12 +1168,15 @@ SUMMARY:
                             "multi_solver_strategy": router_result.get("multi_solver_strategy", "")
                         },
                         "timestamp": time.time(),  # Add timestamp for chronological tracking
-                        "metadata": {  # Add detailed metadata
-                            "raw_data": router_result,  # Include full router result
+                        "metadata": {  # Only include truly supplementary metadata, not duplicated data
                             "available_solvers": list(self.solvers.keys()) if hasattr(self, "solvers") else [],
                             "excluded_solvers": result.get("rerouting_info", {}).get("excluded_solvers", []) if routing_attempt > 1 else []
                         }
                     }
+                    
+                    # Add router response if available but not already included
+                    if "response" in router_result and not isinstance(router_result["response"], dict):
+                        router_entry["full_response"] = router_result["response"]
                     
                     journey.append(router_entry)
                     step_counter += 1
@@ -1219,7 +1238,7 @@ SUMMARY:
                         # For other solvers, check for a direct prompt field
                         solver_prompt = solver_result["prompt"]
                             
-                    # Create solver entry with comprehensive data including failure information
+                    # Create solver entry with flattened structure (no raw_data nesting)
                     solver_entry = {
                         "step": step_counter,
                         "actor": solver_name,
@@ -1231,14 +1250,26 @@ SUMMARY:
                         "recommendation": solver_result.get("recommendation", ""),
                         "timestamp": time.time(),  # Add timestamp for chronological tracking
                         "status": "success" if solver_result.get("execution_successful", True) else "failure",
-                        "metadata": {  # Add detailed metadata as a structured object
+                        "metadata": {  # Only include truly supplementary metadata
                             "solver_name": solver_name,
                             "execution_successful": solver_result.get("execution_successful", True),
                             "error": solver_result.get("error", None),  # Include error info if present
-                            "failure_reason": solver_result.get("failure_reason", None),
-                            "raw_data": solver_result.get("solver_result", {})  # Include all raw data for reference
+                            "failure_reason": solver_result.get("failure_reason", None)
                         }
                     }
+                    
+                    # Add any execution-specific data directly at the top level rather than nested
+                    # Extract useful data from solver_result without duplicating it
+                    if "solver_result" in solver_result:
+                        solver_result_data = solver_result.get("solver_result", {})
+                        
+                        # Add execution time if available
+                        if "execution_time" in solver_result_data:
+                            solver_entry["execution_time"] = solver_result_data["execution_time"]
+                            
+                        # Add request timestamp if available
+                        if "request_timestamp" in solver_result_data:
+                            solver_entry["request_timestamp"] = solver_result_data["request_timestamp"]
                     
                     # Add market_misalignment field if present
                     if "market_misalignment" in solver_result and solver_result["market_misalignment"]:
@@ -1280,7 +1311,7 @@ SUMMARY:
                         verdict = overseer_decision.get("verdict", "").lower()
                         require_rerun = overseer_decision.get("require_rerun", False)
                         
-                        # Create comprehensive overseer entry with evaluation outcomes
+                        # Create overseer entry with flattened structure (no raw_data nesting)
                         overseer_entry = {
                             "step": step_counter,
                             "actor": "overseer",
@@ -1294,13 +1325,13 @@ SUMMARY:
                             "critique": overseer_decision.get("critique", ""),
                             "market_alignment": overseer_decision.get("market_alignment", ""),
                             "prompt_updated": bool(overseer_decision.get("prompt_update", "")),
+                            "prompt_update": overseer_decision.get("prompt_update", ""),  # Include the actual update
                             "require_rerun": require_rerun,
+                            "reason": overseer_decision.get("reason", ""),  # Move from metadata to top level
                             "timestamp": time.time(),  # Add timestamp for chronological tracking
                             "status": "rejected" if verdict.lower() in ["retry", "default_to_p4"] else "accepted",
-                            "metadata": {  # Add detailed metadata
-                                "raw_data": overseer_result,  # Include full overseer result
+                            "metadata": {  # Only include truly supplementary metadata
                                 "evaluated_step": step_counter - 1,  # Reference to the step being evaluated
-                                "reason": overseer_decision.get("reason", ""),
                                 "evaluated_actor": solver_name
                             }
                         }
@@ -1333,7 +1364,7 @@ SUMMARY:
                 if routing_attempt < routing_attempts and "rerouting_info" in result:
                     rerouting_info = result["rerouting_info"]
                     
-                    # Create comprehensive rerouting entry with reasoning
+                    # Create rerouting entry with flattened structure (no raw_data nesting)
                     rerouting_entry = {
                         "step": step_counter,
                         "actor": "overseer",
@@ -1344,23 +1375,25 @@ SUMMARY:
                         "routing_guidance": rerouting_info.get("overseer_guidance", ""),
                         "timestamp": time.time(),  # Add timestamp for chronological tracking
                         "reason": rerouting_info.get("reason", "Based on previous solver performance"),
-                        "metadata": {  # Add detailed metadata
-                            "raw_data": rerouting_info,  # Include full rerouting info
-                            "previous_phases_summary": {
-                                "attempted_solvers": [entry["actor"] for entry in journey if entry["action"] == "solve" and entry["routing_phase"] == routing_attempt],
-                                "phase_verdict": [entry["verdict"] for entry in journey if entry["action"] == "evaluate" and entry["routing_phase"] == routing_attempt],
-                                "recommendations": [entry["recommendation"] for entry in journey if entry["action"] == "solve" and entry["routing_phase"] == routing_attempt],
-                                "failures": [entry["actor"] for entry in journey if entry["action"] == "solve" and 
-                                            entry["routing_phase"] == routing_attempt and 
-                                            entry.get("status", "") == "failure"] 
-                            },
-                            "market_misalignments": [
-                                entry["actor"] for entry in journey 
-                                if (entry["action"] == "solve" or entry["action"] == "evaluate") and 
-                                entry["routing_phase"] == routing_attempt and 
-                                entry.get("market_misalignment", False)
-                            ],
-                            "next_phase": routing_attempt + 1
+                        # Add phase analysis directly at top level rather than nested
+                        "previous_phase_summary": {
+                            "attempted_solvers": [entry["actor"] for entry in journey if entry["action"] == "solve" and entry["routing_phase"] == routing_attempt],
+                            "phase_verdict": [entry["verdict"] for entry in journey if entry["action"] == "evaluate" and entry["routing_phase"] == routing_attempt],
+                            "recommendations": [entry["recommendation"] for entry in journey if entry["action"] == "solve" and entry["routing_phase"] == routing_attempt],
+                            "failures": [entry["actor"] for entry in journey if entry["action"] == "solve" and 
+                                        entry["routing_phase"] == routing_attempt and 
+                                        entry.get("status", "") == "failure"] 
+                        },
+                        "market_misalignments": [
+                            entry["actor"] for entry in journey 
+                            if (entry["action"] == "solve" or entry["action"] == "evaluate") and 
+                            entry["routing_phase"] == routing_attempt and 
+                            entry.get("market_misalignment", False)
+                        ],
+                        "next_phase": routing_attempt + 1,
+                        "metadata": {  # Minimal metadata with only supplementary info
+                            "current_phase_start_step": min([e["step"] for e in journey if e["routing_phase"] == routing_attempt], default=step_counter),
+                            "current_phase_end_step": step_counter
                         }
                     }
                     
@@ -1390,9 +1423,15 @@ SUMMARY:
                 "routing_attempts": result.get("routing_attempts", 1)
             }
             
-            # For backward compatibility, set recommendation in both places
-            clean_result["market_data"]["proposed_price_outcome"] = recommendation
-            clean_result["proposal_metadata"]["proposed_price_outcome"] = recommendation
+            # Set recommendation in proposed_price_outcome only at the top level
+            # We want to avoid duplicating fields between sections
+            clean_result["proposed_price_outcome"] = recommendation
+            
+            # Ensure price-related fields only exist at the top level
+            # Make sure we don't have any price fields in market_data (double-check)
+            for field in ["proposed_price", "resolved_price", "proposed_price_outcome", "resolved_price_outcome", "recommendation"]:
+                if field in clean_result["market_data"]:
+                    del clean_result["market_data"][field]
             
             # Create backward compatibility fields
             # 1. Create old-style recommendation_journey for UI compatibility
@@ -1443,7 +1482,6 @@ SUMMARY:
                 "market_price_info": result.get("market_alignment", "No market price information available"),
                 "tokens": result.get("tokens", []),
                 "recommendation_journey": backward_compatible_journey,
-                "format_version": 2,  # Include version here too for clients that only look at overseer_data
                 "journey_ref": True  # Indicate journey is now in top-level key
             }
             
@@ -1461,7 +1499,7 @@ SUMMARY:
             return output_path
         except Exception as e:
             self.logger.error(f"Error saving result: {e}")
-            import traceback
+            # traceback already imported at the top level
             self.logger.error(traceback.format_exc())
             return None
 

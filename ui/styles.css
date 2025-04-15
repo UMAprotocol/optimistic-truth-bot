@@ -2108,17 +2108,19 @@ select[multiple] {
 
 /* Add styles for collapsible content in modals */
 .content-collapsible {
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out, padding 0.3s ease-out;
     overflow: hidden;
     max-height: 1000px;
     opacity: 1;
+    margin-top: 0.5rem;
 }
 
 .content-collapsible.collapsed {
     max-height: 0;
     opacity: 0;
-    padding: 0;
-    margin: 0;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
 }
 
 .toggle-content-btn {
@@ -2233,63 +2235,83 @@ select[multiple] {
 }
 
 .journey-step-header {
+    padding: 1rem;
     background-color: #f8f9fa;
-    padding: 12px 15px;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
+    border-bottom: 1px solid #dee2e6;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.journey-step-header:hover {
+    background-color: #e9ecef;
+}
+
+.journey-step-header::after {
+    content: "\25BC"; /* Down arrow */
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.journey-step-header.collapsed::after {
+    transform: rotate(-90deg);
 }
 
 .step-info {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+    gap: 0.5rem;
 }
 
 .step-number {
-    font-weight: 600;
-    min-width: 30px;
-    height: 30px;
-    background-color: #4e73df;
-    color: white;
-    border-radius: 50%;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-right: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    font-size: 0.875rem;
 }
 
 .step-actor {
     font-weight: 600;
-    background-color: #e9ecef;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.9rem;
+    color: #343a40;
 }
 
 .step-action {
+    font-weight: normal;
     color: #6c757d;
-    font-style: italic;
 }
 
 .step-phase, .step-attempt {
-    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
     background-color: #e9ecef;
-    padding: 2px 6px;
-    border-radius: 4px;
+    font-size: 0.75rem;
     color: #495057;
 }
 
-.step-timestamp {
-    color: #6c757d;
-    font-size: 0.85rem;
+.journey-step-body {
+    padding: 1rem;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, padding 0.3s ease-out;
+    overflow: hidden;
+    max-height: 3000px; /* Large enough for most content */
+    opacity: 1;
 }
 
-.journey-step-body {
-    padding: 15px;
+.journey-step-body.collapsed {
+    max-height: 0;
+    padding: 0;
+    opacity: 0;
+    border-top: none;
 }
 
 /* Verdict styling */

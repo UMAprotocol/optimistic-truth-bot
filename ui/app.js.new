@@ -1640,8 +1640,15 @@ function calculateAnalytics(dataArray) {
     
     // Calculate counts for each entry
     resolvedEntries.forEach(entry => {
-        // Standardize recommendation value
-        const rec = (entry.recommendation || entry.proposed_price_outcome || '').toLowerCase();
+        // Standardize recommendation value based on format_version
+        let rec = '';
+        if (entry.format_version === 2 && entry.result && entry.result.recommendation) {
+            // For format_version 2, get recommendation from result section
+            rec = entry.result.recommendation.toLowerCase();
+        } else {
+            // For format_version 1 or undefined format, use legacy fields
+            rec = (entry.recommendation || entry.proposed_price_outcome || '').toLowerCase();
+        }
         
         // Count recommendations
         if (rec === 'p1') p1Count++;
@@ -1731,7 +1738,16 @@ function calculateAnalytics(dataArray) {
 function isRecommendationCorrect(entry) {
     // Only compare if resolved_price_outcome is available and not null
     if (entry.resolved_price_outcome !== undefined && entry.resolved_price_outcome !== null) {
-        const rec = entry.recommendation?.toLowerCase() || '';
+        // Get recommendation based on format_version
+        let rec = '';
+        if (entry.format_version === 2 && entry.result && entry.result.recommendation) {
+            // For format_version 2, get recommendation from result section
+            rec = entry.result.recommendation.toLowerCase();
+        } else {
+            // For format_version 1 or undefined format, use legacy fields
+            rec = (entry.recommendation || '').toLowerCase();
+        }
+        
         const resolved = entry.resolved_price_outcome.toString().toLowerCase();
         
         // Handle empty or missing recommendation
@@ -3637,8 +3653,8 @@ function showDetails(data, index) {
     let content = `
         <div class="alert ${alertClass} mb-4">
             <strong>Recommendation:</strong> ${data.recommendation || 'N/A'} | 
+            <strong>Resolved:</strong> ${data.resolved_price_outcome || 'Unresolved'} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
-            <strong>Resolved:</strong> ${resolvedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
             <strong>Correct:</strong> ${correctnessText}
         </div>
@@ -4696,13 +4712,34 @@ function showDetails(data, index) {
     // Add toggle functionality for metadata JSON
     document.querySelectorAll('.toggle-metadata-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const jsonData = this.parentElement.nextElementSibling;
-            if (jsonData.style.display === 'none') {
-                jsonData.style.display = 'block';
-                this.textContent = 'Hide Full View';
-            } else {
-                jsonData.style.display = 'none';
-                this.textContent = 'Toggle Full View';
+            // Find the closest pre element that contains the JSON data
+            // For both v1 and v2 data structures
+            const jsonData = this.closest('.p-3').querySelector('.json-data');
+            
+            if (jsonData) {
+                if (jsonData.style.display === 'none') {
+                    jsonData.style.display = 'block';
+                    this.textContent = 'Hide Full View';
+                } else {
+                    jsonData.style.display = 'none';
+                    this.textContent = 'Toggle Full View';
+                }
+            }
+        });
+    });
+    
+    // Add toggle functionality for journey steps
+    document.querySelectorAll('.journey-step-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const stepBody = this.nextElementSibling;
+            if (stepBody) {
+                stepBody.classList.toggle('collapsed');
+                
+                // Update indicator
+                const indicator = this.querySelector('.step-indicator');
+                if (indicator) {
+                    indicator.classList.toggle('expanded');
+                }
             }
         });
     });
