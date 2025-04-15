@@ -57,9 +57,6 @@ class PerplexitySolver(BaseSolver):
         # If no system prompt provided, use the default from perplexity_prompt
         if not system_prompt:
             system_prompt = get_system_prompt()
-            
-        # Create messages array
-        messages = create_messages(user_prompt)
 
         # Query Perplexity API
         raw_response = query_perplexity(

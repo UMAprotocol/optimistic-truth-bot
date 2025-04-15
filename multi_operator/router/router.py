@@ -72,22 +72,8 @@ class Router:
         Returns:
             The router prompt for ChatGPT
         """
-        if available_solvers is None:
-            available_solvers = self.available_solvers
-
-        # If excluded_solvers is provided, filter available_solvers
-        if excluded_solvers:
-            effective_solvers = [
-                s for s in available_solvers if s not in excluded_solvers
-            ]
-            # Ensure we have at least one solver
-            if not effective_solvers:
-                self.logger.warning(
-                    "No available solvers after exclusions, using perplexity as fallback"
-                )
-                effective_solvers = ["perplexity"]
-        else:
-            effective_solvers = available_solvers
+        # Get effective solvers after applying exclusions
+        effective_solvers = self._filter_solvers(available_solvers, excluded_solvers)
 
         # Use the router prompt from the prompts module
         return get_router_prompt(
@@ -99,6 +85,35 @@ class Router:
             available_api_keys=self.available_api_keys,
             verbose=self.verbose
         )
+
+    def _filter_solvers(self, available_solvers, excluded_solvers):
+        """
+        Filter available solvers based on exclusions.
+        
+        Args:
+            available_solvers: List of available solvers
+            excluded_solvers: List of solvers to exclude
+            
+        Returns:
+            List of effective solvers after applying exclusions
+        """
+        if available_solvers is None:
+            available_solvers = self.available_solvers
+            
+        if not excluded_solvers:
+            return available_solvers
+            
+        effective_solvers = [
+            s for s in available_solvers if s not in excluded_solvers
+        ]
+        
+        if not effective_solvers:
+            self.logger.warning(
+                "No available solvers after exclusions, using perplexity as fallback"
+            )
+            return ["perplexity"]
+            
+        return effective_solvers
 
     def route(
         self,
@@ -125,21 +140,8 @@ class Router:
                 - 'multi_solver_strategy': Strategy for using multiple solvers (if applicable)
                 - 'response': The response text from ChatGPT
         """
-        if available_solvers is None:
-            available_solvers = self.available_solvers
-
-        # Apply exclusions
-        if excluded_solvers:
-            effective_solvers = [
-                s for s in available_solvers if s not in excluded_solvers
-            ]
-            if not effective_solvers:
-                self.logger.warning(
-                    "No available solvers after exclusions, using perplexity as fallback"
-                )
-                effective_solvers = ["perplexity"]
-        else:
-            effective_solvers = available_solvers
+        # Get effective solvers after applying exclusions
+        effective_solvers = self._filter_solvers(available_solvers, excluded_solvers)
 
         self.logger.info("Routing proposal to appropriate solver(s)")
         if self.verbose:

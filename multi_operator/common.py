@@ -26,9 +26,7 @@ def spinner(message, verbose=False, interval=0.1):
 
     Returns a generator that yields on each tick.
     """
-    # More visible Unicode spinner with smoother animation
     spinner_chars = "⣾⣽⣻⢿⡿⣟⣯⣷"
-    # ANSI colors for better visibility
     BLUE = "\033[94m"
     BOLD = "\033[1m"
     RESET = "\033[0m"
@@ -37,7 +35,6 @@ def spinner(message, verbose=False, interval=0.1):
     start_time = time.time()
     last_update_time = time.time()
 
-    # Clear the spinner line (used for cleanup)
     def clear_line():
         if verbose:
             sys.stdout.write("\r" + " " * (len(message) + 40) + "\r")
@@ -47,7 +44,6 @@ def spinner(message, verbose=False, interval=0.1):
         while True:
             try:
                 if verbose:
-                    # In verbose mode, show spinning animation with color
                     elapsed = time.time() - start_time
                     elapsed_str = f"{elapsed:.1f}s"
                     colored_spinner = (
@@ -56,7 +52,6 @@ def spinner(message, verbose=False, interval=0.1):
                     sys.stdout.write(f"\r{message} {colored_spinner} [{elapsed_str}]")
                     sys.stdout.flush()
                 else:
-                    # In non-verbose mode, only update every 5 seconds with timestamp
                     current_time = time.time()
                     if current_time - last_update_time >= 5:
                         elapsed = current_time - start_time
@@ -66,24 +61,17 @@ def spinner(message, verbose=False, interval=0.1):
                         last_update_time = current_time
 
                 i += 1
-
-                # Sleep before yielding to reduce CPU usage
                 time.sleep(interval)
-
-                # Yield control back to caller
                 yield
 
             except KeyboardInterrupt:
-                # Clean up display on interrupt
                 clear_line()
                 raise
 
     except GeneratorExit:
-        # Clean up when generator is closed
         clear_line()
 
     finally:
-        # Final cleanup
         clear_line()
 
 
@@ -561,7 +549,8 @@ def validate_output_json(output_json):
             "question_id_short", 
             "timestamp",
             "format_version",
-            "journey"
+            "journey",
+            "proposed_price_outcome"  # This should be at the top level in format_version 2
         ]
         
         # Check core fields
@@ -582,7 +571,9 @@ def validate_output_json(output_json):
                     missing_fields.append("processed_file (in metadata)")
                     
             elif section == "market_data":
-                market_fields = ["proposed_price", "proposed_price_outcome"]
+                # In format version 2, price-related fields should only be at the top level
+                # Market data should only contain non-duplicated fields
+                market_fields = ["disputed", "recommendation_overridden"]
                 for field in market_fields:
                     if field not in output_json["market_data"]:
                         missing_fields.append(f"{field} (in market_data)")
@@ -595,16 +586,13 @@ def validate_output_json(output_json):
                     
             elif section == "proposal_metadata":
                 # Check for important metadata fields that should be in proposal_metadata
+                # Exclude price-related fields which should only be at the top level in version 2
                 important_metadata_fields = [
                     "transaction_hash",
                     "block_number",
                     "request_transaction_block_time",
                     "ancillary_data",
                     "resolution_conditions",
-                    "proposed_price",
-                    "proposed_price_outcome",
-                    "resolved_price",
-                    "resolved_price_outcome",
                     "request_timestamp",
                     "expiration_timestamp",
                     "creator",
