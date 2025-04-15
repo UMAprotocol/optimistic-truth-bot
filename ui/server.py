@@ -56,8 +56,8 @@ PARENT_DIR = Path(__file__).parent.parent
 UI_DIR = Path(__file__).parent
 RESULTS_DIR = PARENT_DIR / "results"
 LOG_DIR = PARENT_DIR / "logs"
-OUTPUTS_DIR = PARENT_DIR / "proposal_overseer" / "outputs"
-RERUNS_DIR = PARENT_DIR / "proposal_overseer" / "reruns"
+OUTPUTS_DIR = PARENT_DIR / "results" / "outputs"
+RERUNS_DIR = PARENT_DIR / "results" / "reruns"
 # Base repository directory (one level up from proposal_replayer)
 BASE_REPO_DIR = PARENT_DIR
 
@@ -84,8 +84,8 @@ AUTH_TOKEN_SECRET = os.environ.get("AUTH_TOKEN_SECRET", "change-this-secret-key"
 # Ensure required directories exist
 LOG_DIR.mkdir(exist_ok=True)
 RESULTS_DIR.mkdir(exist_ok=True)
-OUTPUTS_DIR.mkdir(exist_ok=True)
-RERUNS_DIR.mkdir(exist_ok=True)
+OUTPUTS_DIR.mkdir(exist_ok=True, parents=True)
+RERUNS_DIR.mkdir(exist_ok=True, parents=True)
 
 # Global variables
 server = None

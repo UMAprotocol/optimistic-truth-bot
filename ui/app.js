@@ -13,7 +13,6 @@ let disableExperimentRunner = false; // Track if experiment runner is disabled
 // Date filter variables
 let currentDateFilters = {
     expiration_timestamp: null,
-    request_timestamp: null,
     request_transaction_block_time: null
 };
 
@@ -33,7 +32,7 @@ let columnPreferences = {
     tags: false,
     expiration_timestamp: false,
     request_timestamp: false,
-    request_transaction_block_time: false
+    request_transaction_block_time: true
 };
 
 // Chart variables
@@ -2018,132 +2017,94 @@ function saveColumnPreferences() {
     }
 }
 
-// Initialize column selector UI
+// Initialize column selector UI for columns and preference management
 function initializeColumnSelector() {
-    // Add column selector button to results table card header
-    const resultsTableHeader = document.querySelector('#resultsTableCard .card-header');
-    if (!resultsTableHeader) return;
+    // Build the column selector dropdown content
+    const columnSelectorMenu = document.getElementById('columnSelectorMenu');
+    if (!columnSelectorMenu) return;
     
-    // Find or create the container for the column selector
-    let displayInfoContainer = resultsTableHeader.querySelector('p');
-    if (!displayInfoContainer) {
-        displayInfoContainer = document.createElement('p');
-        displayInfoContainer.className = 'mb-0';
-        displayInfoContainer.innerHTML = 'Displaying <span id="displayingCount">0</span> of <span id="totalEntriesCount">0</span> entries';
-        resultsTableHeader.appendChild(displayInfoContainer);
-    }
-    
-    // Make the display info container a flex container to align items
-    displayInfoContainer.style.display = 'flex';
-    displayInfoContainer.style.justifyContent = 'space-between';
-    displayInfoContainer.style.alignItems = 'center';
-    
-    // Split the existing content into its own span
-    const entriesInfoSpan = document.createElement('span');
-    entriesInfoSpan.innerHTML = displayInfoContainer.innerHTML;
-    displayInfoContainer.innerHTML = '';
-    displayInfoContainer.appendChild(entriesInfoSpan);
-    
-    // Create column selector dropdown
-    const columnSelector = document.createElement('div');
-    columnSelector.className = 'dropdown';
-    columnSelector.innerHTML = `
-        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="columnSelectorBtn" 
-            data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-columns-gap"></i> Columns
-        </button>
-        <div class="dropdown-menu p-2 dropdown-menu-end" id="columnSelectorMenu" aria-labelledby="columnSelectorBtn">
-            <h6 class="dropdown-header">Select Columns to Display</h6>
+    // Create a form for column selections
+    columnSelectorMenu.innerHTML = `
+        <div class="px-3 py-2">
+            <h6 class="dropdown-header">Choose Columns to Display</h6>
             <div class="column-checkbox-container">
                 <div class="form-check">
                     <input class="form-check-input column-checkbox" type="checkbox" id="col-timestamp" 
-                        ${columnPreferences.timestamp ? 'checked' : ''} data-column="timestamp">
-                    <label class="form-check-label" for="col-timestamp">Date</label>
+                    ${columnPreferences.timestamp ? 'checked' : ''} data-column="timestamp">
+                    <label class="form-check-label" for="col-timestamp">Process Date</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_timestamp" 
-                        ${columnPreferences.proposal_timestamp ? 'checked' : ''} data-column="proposal_timestamp">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_timestamp"
+                    ${columnPreferences.proposal_timestamp ? 'checked' : ''} data-column="proposal_timestamp">
                     <label class="form-check-label" for="col-proposal_timestamp">Proposal Date</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-expiration_timestamp" 
-                        ${columnPreferences.expiration_timestamp ? 'checked' : ''} data-column="expiration_timestamp">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-expiration_timestamp"
+                    ${columnPreferences.expiration_timestamp ? 'checked' : ''} data-column="expiration_timestamp">
                     <label class="form-check-label" for="col-expiration_timestamp">Expiration Date</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_timestamp" 
-                        ${columnPreferences.request_timestamp ? 'checked' : ''} data-column="request_timestamp">
-                    <label class="form-check-label" for="col-request_timestamp">Request Date</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_transaction_block_time"
+                    ${columnPreferences.request_transaction_block_time ? 'checked' : ''} data-column="request_transaction_block_time">
+                    <label class="form-check-label" for="col-request_transaction_block_time">Proposal Time</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_transaction_block_time" 
-                        ${columnPreferences.request_transaction_block_time ? 'checked' : ''} data-column="request_transaction_block_time">
-                    <label class="form-check-label" for="col-request_transaction_block_time">Request Block Time</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-id"
+                    ${columnPreferences.id ? 'checked' : ''} data-column="id">
+                    <label class="form-check-label" for="col-id">Query ID</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-id" 
-                        ${columnPreferences.id ? 'checked' : ''} data-column="id">
-                    <label class="form-check-label" for="col-id">ID</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-title" 
-                        ${columnPreferences.title ? 'checked' : ''} data-column="title">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-title"
+                    ${columnPreferences.title ? 'checked' : ''} data-column="title">
                     <label class="form-check-label" for="col-title">Title</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-recommendation" 
-                        ${columnPreferences.recommendation ? 'checked' : ''} data-column="recommendation">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-recommendation"
+                    ${columnPreferences.recommendation ? 'checked' : ''} data-column="recommendation">
                     <label class="form-check-label" for="col-recommendation">Recommendation</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-router_decision" 
-                        ${columnPreferences.router_decision ? 'checked' : ''} data-column="router_decision">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-router_decision"
+                    ${columnPreferences.router_decision ? 'checked' : ''} data-column="router_decision">
                     <label class="form-check-label" for="col-router_decision">Router Decision</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-resolution" 
-                        ${columnPreferences.resolution ? 'checked' : ''} data-column="resolution">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-resolution"
+                    ${columnPreferences.resolution ? 'checked' : ''} data-column="resolution">
                     <label class="form-check-label" for="col-resolution">Resolution</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-disputed" 
-                        ${columnPreferences.disputed ? 'checked' : ''} data-column="disputed">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-disputed"
+                    ${columnPreferences.disputed ? 'checked' : ''} data-column="disputed">
                     <label class="form-check-label" for="col-disputed">Disputed</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-correct" 
-                        ${columnPreferences.correct ? 'checked' : ''} data-column="correct">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-correct"
+                    ${columnPreferences.correct ? 'checked' : ''} data-column="correct">
                     <label class="form-check-label" for="col-correct">Correct</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-block_number" 
-                        ${columnPreferences.block_number ? 'checked' : ''} data-column="block_number">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-block_number"
+                    ${columnPreferences.block_number ? 'checked' : ''} data-column="block_number">
                     <label class="form-check-label" for="col-block_number">Block Number</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_bond" 
-                        ${columnPreferences.proposal_bond ? 'checked' : ''} data-column="proposal_bond">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_bond"
+                    ${columnPreferences.proposal_bond ? 'checked' : ''} data-column="proposal_bond">
                     <label class="form-check-label" for="col-proposal_bond">Proposal Bond</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-tags" 
-                        ${columnPreferences.tags ? 'checked' : ''} data-column="tags">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-tags"
+                    ${columnPreferences.tags ? 'checked' : ''} data-column="tags">
                     <label class="form-check-label" for="col-tags">Tags</label>
                 </div>
             </div>
-            <div class="dropdown-divider"></div>
-            <div class="d-flex justify-content-between px-2">
-                <button class="btn btn-sm btn-outline-secondary" id="resetColumnDefaults">
-                    Reset Defaults
-                </button>
-                <button class="btn btn-sm btn-primary" id="applyColumnSelection">
-                    Apply
-                </button>
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-sm btn-outline-secondary" id="resetColumnDefaults">Reset to Defaults</button>
+                <button class="btn btn-sm btn-outline-primary" id="applyColumnChanges">Apply</button>
             </div>
         </div>
     `;
-    
-    displayInfoContainer.appendChild(columnSelector);
     
     // Add event listeners for column selection
     document.querySelectorAll('.column-checkbox').forEach(checkbox => {
@@ -2154,7 +2115,7 @@ function initializeColumnSelector() {
     });
     
     // Add event listener for apply button
-    document.getElementById('applyColumnSelection')?.addEventListener('click', function() {
+    document.getElementById('applyColumnChanges')?.addEventListener('click', function() {
         saveColumnPreferences();
         updateTableWithData(currentData);
         
@@ -2184,7 +2145,7 @@ function initializeColumnSelector() {
             tags: false,
             expiration_timestamp: false,
             request_timestamp: false,
-            request_transaction_block_time: false
+            request_transaction_block_time: true
         };
         
         // Update checkboxes
@@ -3349,10 +3310,9 @@ function updateTableHeader() {
     
     // Add columns based on preferences
     if (columnPreferences.timestamp) headerRow += '<th class="col-timestamp">Process Time</th>';
-    if (columnPreferences.proposal_timestamp) headerRow += '<th class="col-proposal-time">Request Time</th>';
+    if (columnPreferences.proposal_timestamp) headerRow += '<th class="col-proposal-time">Proposal Time</th>';
     if (columnPreferences.expiration_timestamp) headerRow += '<th class="col-expiration-time">Expiration Time</th>';
-    if (columnPreferences.request_timestamp) headerRow += '<th class="col-request-time">Request Time</th>';
-    if (columnPreferences.request_transaction_block_time) headerRow += '<th class="col-block-time">Block Time</th>';
+    if (columnPreferences.request_transaction_block_time) headerRow += '<th class="col-request-time">Proposal Time</th>';
     if (columnPreferences.id) headerRow += '<th class="col-id">ID</th>';
     if (columnPreferences.title) headerRow += '<th class="col-title">Title</th>';
     if (columnPreferences.recommendation) headerRow += '<th class="col-recommendation">AI Rec</th>';
@@ -3472,16 +3432,12 @@ function updateTableWithData(dataArray) {
         // Access the proposal date directly from proposal_metadata as a fallback
         const formattedProposalDate = proposalTimestamp ? 
             formatDate(proposalTimestamp) : 
-            (item.proposal_metadata && item.proposal_metadata.request_timestamp ? 
-                formatDate(item.proposal_metadata.request_timestamp) : 'N/A');
+            (item.proposal_metadata && item.proposal_metadata.request_transaction_block_time ? 
+                formatDate(item.proposal_metadata.request_transaction_block_time) : 'N/A');
         
         // Format the expiration timestamp if available
         const expirationTimestamp = item.proposal_metadata?.expiration_timestamp || 0;
         const formattedExpirationDate = expirationTimestamp ? formatDate(expirationTimestamp) : 'N/A';
-        
-        // Format the request timestamp if available
-        const requestTimestamp = item.proposal_metadata?.request_timestamp || 0;
-        const formattedRequestDate = requestTimestamp ? formatDate(requestTimestamp) : 'N/A';
         
         // Format the request transaction block time if available
         const blockTimestamp = item.proposal_metadata?.request_transaction_block_time || 0;
@@ -3527,7 +3483,6 @@ function updateTableWithData(dataArray) {
         if (columnPreferences.timestamp) row += `<td>${formattedDate}</td>`;
         if (columnPreferences.proposal_timestamp) row += `<td>${formattedProposalDate}</td>`;
         if (columnPreferences.expiration_timestamp) row += `<td>${formattedExpirationDate}</td>`;
-        if (columnPreferences.request_timestamp) row += `<td>${formattedRequestDate}</td>`;
         if (columnPreferences.request_transaction_block_time) row += `<td>${formattedBlockTime}</td>`;
         if (columnPreferences.id) row += `<td class="monospace">${queryId}</td>`;
         if (columnPreferences.title) row += `<td>${title || 'No title'}</td>`;
@@ -3693,8 +3648,7 @@ function showDetails(data, index) {
     const short_id = data.question_id_short || data.short_id || '';
     const condition_id = data.condition_id || data.proposal_metadata?.condition_id || (data.market_data ? data.market_data.condition_id : '');
     const process_time = data.timestamp || 0;
-    const request_time = data.proposal_metadata?.request_timestamp || 0;
-    const block_time = data.proposal_metadata?.request_transaction_block_time || 0;
+    const request_time = data.proposal_metadata?.request_transaction_block_time || 0;
     const expiration_time = data.proposal_metadata?.expiration_timestamp || 0;
     const end_date = data.end_date_iso || data.proposal_metadata?.end_date_iso || (data.market_data ? data.market_data.end_date_iso : 'N/A');
     const game_start_time = data.game_start_time || data.proposal_metadata?.game_start_time || (data.market_data ? data.market_data.game_start_time : 'N/A');
@@ -3735,12 +3689,8 @@ function showDetails(data, index) {
                             <td>${formatDate(process_time)}</td>
                         </tr>
                         <tr>
-                            <th>Request Time</th>
+                            <th>Proposal Time</th>
                             <td>${formatDate(request_time)}</td>
-                        </tr>
-                        <tr>
-                            <th>Block Time</th>
-                            <td>${formatDate(block_time)}</td>
                         </tr>
                         <tr>
                             <th>Expiration Time</th>
@@ -5201,16 +5151,6 @@ function applyAllFilters(correctnessFilter, tagFilters = []) {
         });
     }
     
-    if (currentDateFilters.request_timestamp) {
-        filteredData = filteredData.filter(item => {
-            const request = item.proposal_metadata?.request_timestamp;
-            if (!request) return false;
-            
-            // Filter for items with request date on or after the selected date
-            return request >= currentDateFilters.request_timestamp;
-        });
-    }
-    
     if (currentDateFilters.request_transaction_block_time) {
         filteredData = filteredData.filter(item => {
             const blockTime = item.proposal_metadata?.request_transaction_block_time;
@@ -5762,11 +5702,11 @@ function sortData(data, column, direction) {
                 break;
             case 'proposal_timestamp':
                 valueA = a.proposal_timestamp || 
-                         (a.proposal_metadata && a.proposal_metadata.request_timestamp ? 
-                             a.proposal_metadata.request_timestamp : 0);
+                         (a.proposal_metadata && a.proposal_metadata.request_transaction_block_time ? 
+                             a.proposal_metadata.request_transaction_block_time : 0);
                 valueB = b.proposal_timestamp || 
-                         (b.proposal_metadata && b.proposal_metadata.request_timestamp ? 
-                             b.proposal_metadata.request_timestamp : 0);
+                         (b.proposal_metadata && b.proposal_metadata.request_transaction_block_time ? 
+                             b.proposal_metadata.request_transaction_block_time : 0);
                 break;
             case 'id':
                 valueA = a.question_id_short || a.query_id || '';
@@ -5860,8 +5800,7 @@ function initializeSortableHeaders() {
         'col-timestamp': 'timestamp',
         'col-proposal-time': 'proposal_timestamp',
         'col-expiration-time': 'expiration_timestamp',
-        'col-request-time': 'request_timestamp',
-        'col-block-time': 'request_transaction_block_time',
+        'col-request-time': 'request_transaction_block_time',
         'col-id': 'id',
         'col-title': 'title',
         'col-recommendation': 'recommendation',
@@ -5992,8 +5931,8 @@ function displayResultsData() {
         
         // Extract proposal timestamp from proposal_metadata if available
         processed.proposal_timestamp = 
-            (item.proposal_metadata && item.proposal_metadata.request_timestamp) ? 
-            item.proposal_metadata.request_timestamp : 0;
+            (item.proposal_metadata && item.proposal_metadata.request_transaction_block_time) ? 
+            item.proposal_metadata.request_transaction_block_time : 0;
         
         return processed;
     });
@@ -6038,7 +5977,6 @@ function clearDateFilter() {
     // Reset current date filters
     currentDateFilters = {
         expiration_timestamp: null,
-        request_timestamp: null,
         request_transaction_block_time: null
     };
     
