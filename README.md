@@ -50,6 +50,10 @@ The LLO system consists of several key components:
 flowchart TD
     A[Blockchain Events] -->|ProposePrice events| B[Proposal Fetcher]
     B -->|Saves proposal data| C[Proposal File]
+    
+    P[Polymarket API] -->|Market prices & metadata| Q[Market Data Augmentation]
+    Q -->|Enriches proposal with market data| C
+    
     C -->|Input| D[Multi-Operator System]
     D -->|Request routing| E[Router]
     
@@ -58,6 +62,8 @@ flowchart TD
     
     F -->|Resolution recommendations| H[Overseer]
     G -->|Resolution recommendations| H
+    
+    P -.->|Market price information| H
     
     H -->|If satisfied: Final validation| I[Final Resolution]
     I -->|p1, p2, p3, p4| J[Result Output]
@@ -75,6 +81,8 @@ flowchart TD
     style F fill:#bbf,stroke:#333,stroke-width:1px
     style G fill:#bbf,stroke:#333,stroke-width:1px
     style H fill:#bbf,stroke:#333,stroke-width:1px
+    style Q fill:#ffd,stroke:#333,stroke-width:1px
+    style P fill:#dff,stroke:#333,stroke-width:1px
 ```
 
 ### 🔀 Router
@@ -118,11 +126,20 @@ The sample code templates provide robust error handling, timezone conversion, AP
 
 ### 👀 Overseer
 
-The Overseer evaluates solver responses for quality and accuracy. It can:
+The Overseer evaluates solver responses for quality and accuracy with a strong focus on market alignment. It can:
 - ✅ Validate responses against market data
 - 🔄 Request reruns from solvers if needed
 - 📝 Provide guidance for improving responses
 - 🎯 Make final recommendations on which solver's output to use
+- 📊 Compare recommendations with Polymarket price data
+
+The Overseer receives token price information from Polymarket and uses it to ensure that solver recommendations don't diverge significantly from market sentiment. When market prices strongly favor a particular outcome (>85% confidence), the Overseer will flag any contradicting recommendations for review. This market alignment check is crucial for preventing incorrect or misleading outputs, especially in cases where:
+
+1. The solver misinterpreted data or made calculation errors
+2. The solver lacks critical context captured by market participants
+3. Date/time mismatches exist between the query and the solver's interpretation
+
+For Code Runner solutions, the Overseer performs additional validation by checking date/time formats, timezone conversions, and API data retrieval logic to ensure technical accuracy.
 
 ## 🚀 Getting Started
 
