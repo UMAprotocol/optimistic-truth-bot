@@ -74,9 +74,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/Repetitive-markets/MLB.jpg",
   "condition_id": "0xd812281f01c3468a4dde6fe9132e0dbe8ff0bc2cdee7b39247cb983b998b8a22",
   "proposed_price": 1000000000000000000,
-  "resolved_price": null,
+  "resolved_price": -57896044618658097711785492504343953926634992332820282019728792003956564819968,
   "proposed_price_outcome": "p2",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p4",
   "tags": [
     "Sports",
     "MLB",

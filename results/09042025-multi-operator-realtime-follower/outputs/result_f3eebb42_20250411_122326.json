@@ -82,9 +82,9 @@
   "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/nhl.png",
   "condition_id": "0xf561b96f1eb4373700f313665fb638c497b0b5cc9418731c50b84ceb39a2260a",
   "proposed_price": 0,
-  "resolved_price": null,
+  "resolved_price": 0,
   "proposed_price_outcome": "p1",
-  "resolved_price_outcome": null,
+  "resolved_price_outcome": "p1",
   "tags": [
     "Sports",
     "NHL",
