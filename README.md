@@ -17,7 +17,10 @@ A multi-agent system for resolving Polymarket prediction market proposals with h
       - [Perplexity Solver](#perplexity-solver)
       - [Code Runner Solver](#code-runner-solver)
     - [Overseer](#overseer)
+    - [Prompts](#prompts)
   - [Getting Started](#getting-started)
+  - [Results and Experiments](#results-and-experiments)
+  - [Database Integration](#database-integration)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
     - [Configuration](#configuration)
@@ -141,6 +144,17 @@ The Overseer receives token price information from Polymarket and uses it to ens
 
 For Code Runner solutions, the Overseer performs additional validation by checking date/time formats, timezone conversions, and API data retrieval logic to ensure technical accuracy.
 
+### 📝 Prompts
+
+The system uses carefully crafted prompts for each component, stored in the [multi_operator/prompts](multi_operator/prompts/) directory:
+
+- [**Perplexity Prompts**](multi_operator/prompts/perplexity_prompt.py): System prompts for the Perplexity solver to guide its information search and evaluation
+- [**Router Prompts**](multi_operator/prompts/router_prompt.py): Prompts used by the Router to analyze queries and choose appropriate solvers
+- [**Overseer Prompts**](multi_operator/prompts/overseer_prompt.py): Prompts for the Overseer to evaluate solver responses and check market alignment
+- [**Code Runner Prompts**](multi_operator/prompts/code_runner_prompt.py): Prompts for generating Python code based on query requirements
+
+These prompt files contain multiple versions and templates that guide the behavior of the AI models at each stage of processing. They are designed to ensure consistent, accurate, and well-reasoned responses for different types of market questions.
+
 ## 🚀 Getting Started
 
 ### 📋 Prerequisites
@@ -239,6 +253,46 @@ For Code Runner solutions, the Overseer performs additional validation by checki
 
    This configuration helps the Code Runner solver determine which APIs to use for different types of queries.
 
+## 📊 Results and Experiments
+
+The system stores all processing results in the `results/` directory. This directory contains multiple experiment runs, each in its own subdirectory with a naming convention indicating the date and experiment parameters:
+
+```
+results/
+  ├── 01042025-multi-operator-with-code-runner/      # April 1, 2025 run with Code Runner enabled
+  ├── 04042025-multi-operator-realtime-follower/     # April 4, 2025 realtime follower
+  ├── 08042025-multi-operator-with-realtime-bug-fix/ # April 8, 2025 run with bug fixes
+  ├── ...
+```
+
+Each experiment directory contains:
+- A `metadata.json` file describing the experiment configuration
+- Output files for each processed proposal (using the format `result_[short_id]_[timestamp].json`)
+
+Results are stored locally by default and don't require a database connection. This allows for easier debugging, version control, and sharing of result files.
+
+## 🗃️ Database Integration (Optional)
+
+The system supports MongoDB integration for storing and querying results, but this is **optional**. By default, all results are saved as JSON files in the `results/` directory.
+
+If you choose to use MongoDB:
+
+```bash
+# Test your MongoDB connection
+python ./database_utilities/test_db_connection.py
+
+# Import existing results into MongoDB
+python ./database_utilities/batch_importer.py --input-dir ./results/your-experiment --database uma_oracle --collection experiments
+
+# Watch for new results and import automatically
+python ./database_utilities/output_watcher.py --watch-dir ./results/your-experiment --database uma_oracle --collection experiments
+```
+
+MongoDB integration is helpful for:
+- Running analytics across multiple experiments
+- Serving results through the API and UI
+- Querying performance metrics
+
 ## 🔄 Running the System
 
 The system operates through several key scripts that work together to form a complete pipeline:
@@ -268,7 +322,7 @@ Parameters:
 - `--proposals-dir`: Directory containing proposal JSON files to process
 - `--check-interval`: Interval in seconds between checking for new proposals
 
-### 👁️ Output Watcher
+### 👁️ Output Watcher (Optional for MongoDB)
 
 The Output Watcher monitors the results directory for new files and automatically imports them into MongoDB.
 
