@@ -3446,9 +3446,9 @@ function updateTableWithData(dataArray) {
                        (item._id ? item._id.toString().substring(0, 10) : 'N/A'));
         
         // Use standardized recommendation field, with fallbacks
-        const recommendation = item.recommendation || 
-                              item.proposed_price_outcome || 
-                              'N/A';
+        const recommendation = item.format_version === 2 
+                              ? (item.result?.recommendation || item.recommendation || item.proposed_price_outcome || 'N/A')
+                              : (item.recommendation || item.proposed_price_outcome || 'N/A');
         
         // Use standardized resolution field
         const resolution = item.resolved_price_outcome !== undefined && 
