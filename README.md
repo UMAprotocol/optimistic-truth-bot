@@ -100,7 +100,21 @@ The Code Runner Solver generates and executes Python code to solve specific type
 - 📈 Cryptocurrency price queries (via Binance API)
 - 🏆 Sports data retrieval (via Sports Data IO API)
 
-The Code Runner includes sample code templates that are adapted to each query, allowing for precise data retrieval and processing.
+The Code Runner includes sample code templates that are adapted to each query, allowing for precise data retrieval and processing. It accesses environment variables from the `.env` file to securely utilize API keys without hardcoding them.
+
+**Sample Code Templates:**
+- [Cryptocurrency Price Queries](multi_operator/solvers/code_runner/sample_functions/query_binance_price.py) - Uses Binance API to fetch historical price data with timezone conversion
+- [MLB Sports Data](multi_operator/solvers/code_runner/sample_functions/query_sports_mlb_data.py) - Fetches baseball game scores and outcomes
+- [NHL Sports Data](multi_operator/solvers/code_runner/sample_functions/query_sports_nhl_data.py) - Retrieves hockey game results
+- [NFL Sports Data](multi_operator/solvers/code_runner/sample_functions/query_sports_nfl_data.py) - Gets football game data
+
+When a proposal is routed to the Code Runner, it:
+1. Analyzes the query to determine the data type needed
+2. Generates customized Python code based on the appropriate template
+3. Runs the code in a controlled environment with access to configured API keys
+4. Captures the output and extracts the recommendation (p1, p2, p3, or p4)
+
+The sample code templates provide robust error handling, timezone conversion, API fallbacks, and clear output formatting to ensure consistent results.
 
 ### 👀 Overseer
 
