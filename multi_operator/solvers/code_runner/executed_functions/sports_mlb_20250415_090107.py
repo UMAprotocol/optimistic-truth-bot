@@ -1,0 +1,102 @@
+import os
+import requests
+from dotenv import load_dotenv
+from datetime import datetime
+import logging
+
+# Load API key from .env file
+load_dotenv()
+API_KEY = os.getenv("SPORTS_DATA_IO_MLB_API_KEY")
+
+# Constants - RESOLUTION MAPPING using team names
+RESOLUTION_MAP = {
+    "BOS": "p2",  # Boston Red Sox win maps to p2
+    "TBR": "p1",  # Tampa Bay Rays win maps to p1
+    "50-50": "p3",  # Canceled or postponed game maps to p3
+    "Too early to resolve": "p4",  # Incomplete data maps to p4
+}
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
+
+def fetch_game_data(date):
+    """
+    Fetches game data for the specified date.
+
+    Args:
+        date: Game date in YYYY-MM-DD format
+
+    Returns:
+        Game data dictionary or None if not found
+    """
+    url = f"https://api.sportsdata.io/v3/mlb/scores/json/GamesByDate/{date}?key={API_KEY}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        games = response.json()
+
+        # Find the specific game between Boston Red Sox and Tampa Bay Rays
+        for game in games:
+            if (game['HomeTeam'] == "BOS" and game['AwayTeam'] == "TBR") or (game['HomeTeam'] == "TBR" and game['AwayTeam'] == "BOS"):
+                return game
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to fetch game data: {e}")
+        return None
+
+def determine_resolution(game):
+    """
+    Determines the resolution based on the game's status and outcome.
+
+    Args:
+        game: Game data dictionary
+
+    Returns:
+        Resolution string (p1, p2, p3, or p4)
+    """
+    if not game:
+        return "p4"  # Too early to resolve
+
+    status = game['Status']
+    if status == "Final":
+        if game['HomeTeamRuns'] > game['AwayTeamRuns']:
+            winner = game['HomeTeam']
+        else:
+            winner = game['AwayTeam']
+
+        if winner == "BOS":
+            return "p2"  # Boston Red Sox win
+        elif winner == "TBR":
+            return "p1"  # Tampa Bay Rays win
+    elif status in ["Postponed", "Canceled"]:
+        return "p3"  # Game postponed or canceled
+
+    return "p4"  # Too early to resolve or other statuses
+
+def main():
+    """
+    Main function to query MLB game data and determine the resolution.
+    """
+    # Game date
+    date = "2025-04-14"
+
+    # Fetch game data
+    game = fetch_game_data(date)
+
+    # Determine resolution
+    resolution = determine_resolution(game)
+
+    # Output the recommendation
+    print(f"recommendation: {resolution}")
+
+if __name__ == "__main__":
+    main()
