@@ -1,4 +1,8 @@
-# Large Language Oracle (LLO)
+# 🔮 Large Language Oracle (LLO)
+
+<p align="center">
+  <img src="image.jpeg" alt="Large Language Oracle" width="650"/>
+</p>
 
 A multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
 
@@ -26,9 +30,9 @@ A multi-agent system for resolving Polymarket prediction market proposals with h
   - [Development](#development)
   - [License](#license)
 
-## Overview
+## 📋 Overview
 
-The Large Language Oracle (LLO) is a sophisticated system designed to monitor, process, and resolve Polymarket prediction market proposals. The system combines multiple AI strategies, including search-based solvers and code execution solvers, to provide accurate resolution recommendations.****
+The Large Language Oracle (LLO) is a sophisticated system designed to monitor, process, and resolve Polymarket prediction market proposals. The system combines multiple AI strategies, including search-based solvers and code execution solvers, to provide accurate resolution recommendations.
 
 The workflow involves:
 
@@ -38,7 +42,7 @@ The workflow involves:
 4. Submitting resolution recommendations
 5. Tracking performance against actual market outcomes
 
-## System Architecture
+## 🏗️ System Architecture
 
 The LLO system consists of several key components:
 
@@ -64,27 +68,24 @@ flowchart TD
     M[Proposal Finalizer] -->|Updates results with actual outcomes| K
     L -->|Queried by| N[API & UI]
     
-    H -->|If not satisfied: Request re-routing| E
+    H -.->|If not satisfied: Request re-routing| E
     
     style D fill:#f9f,stroke:#333,stroke-width:2px
     style E fill:#bbf,stroke:#333,stroke-width:1px
     style F fill:#bbf,stroke:#333,stroke-width:1px
     style G fill:#bbf,stroke:#333,stroke-width:1px
     style H fill:#bbf,stroke:#333,stroke-width:1px
-    
-    classDef feedback stroke:#f00,stroke-width:2px,stroke-dasharray: 5 5
-    class H-->E feedback
 ```
 
-### Router
+### 🔀 Router
 
 The Router is responsible for deciding which solver to use for each Polymarket proposal. It analyzes the content of the proposal and makes intelligent routing decisions based on the type of query and available solvers. The Router can select multiple solvers for complementary approaches to the same question.
 
-### Solvers
+### 🧩 Solvers
 
 The system currently employs two primary solver types:
 
-#### Perplexity Solver
+#### 🔎 Perplexity Solver
 
 The Perplexity Solver leverages the Perplexity API to search the internet and retrieve information relevant to the proposal. It's engineered to handle a wide range of query types and includes validations to avoid hallucinations and maintain accuracy.
 
@@ -93,25 +94,25 @@ Key features:
 - Information synthesis from multiple sources
 - Handling of complex queries requiring context
 
-#### Code Runner Solver
+#### 💻 Code Runner Solver
 
 The Code Runner Solver generates and executes Python code to solve specific types of proposals through direct API access. It's primarily used for:
-- Cryptocurrency price queries (via Binance API)
-- Sports data retrieval (via Sports Data IO API)
+- 📈 Cryptocurrency price queries (via Binance API)
+- 🏆 Sports data retrieval (via Sports Data IO API)
 
 The Code Runner includes sample code templates that are adapted to each query, allowing for precise data retrieval and processing.
 
-### Overseer
+### 👀 Overseer
 
 The Overseer evaluates solver responses for quality and accuracy. It can:
-- Validate responses against market data
-- Request reruns from solvers if needed
-- Provide guidance for improving responses
-- Make final recommendations on which solver's output to use
+- ✅ Validate responses against market data
+- 🔄 Request reruns from solvers if needed
+- 📝 Provide guidance for improving responses
+- 🎯 Make final recommendations on which solver's output to use
 
-## Getting Started
+## 🚀 Getting Started
 
-### Prerequisites
+### 📋 Prerequisites
 
 - Python 3.8+
 - MongoDB (for database storage)
@@ -121,7 +122,7 @@ The Overseer evaluates solver responses for quality and accuracy. It can:
   - Sports Data IO API key (for sports data)
   - Other optional API keys based on use cases
 
-### Installation
+### 🔧 Installation
 
 1. Clone the repository:
    ```bash
@@ -140,7 +141,7 @@ The Overseer evaluates solver responses for quality and accuracy. It can:
    pip install -r requirements.txt
    ```
 
-### Configuration
+### ⚙️ Configuration
 
 1. Create a `.env` file with your API keys:
    ```
@@ -207,11 +208,11 @@ The Overseer evaluates solver responses for quality and accuracy. It can:
 
    This configuration helps the Code Runner solver determine which APIs to use for different types of queries.
 
-## Running the System
+## 🔄 Running the System
 
 The system operates through several key scripts that work together to form a complete pipeline:
 
-### Proposal Fetcher
+### 📡 Proposal Fetcher
 
 The Proposal Fetcher listens for ProposePrice events on the blockchain, fetches on-chain data, and saves proposals to JSON files. It ignores negative risk markets.
 
@@ -223,7 +224,7 @@ Parameters:
 - `--start-block`: The block number to start listening from
 - `--proposals-dir`: Directory to save proposal JSON files
 
-### Multi-Operator Early Request Retry
+### 🤖 Multi-Operator Early Request Retry
 
 This script processes proposals, determines the appropriate solver to use, and generates responses with recommendations.
 
@@ -236,7 +237,7 @@ Parameters:
 - `--proposals-dir`: Directory containing proposal JSON files to process
 - `--check-interval`: Interval in seconds between checking for new proposals
 
-### Output Watcher
+### 👁️ Output Watcher
 
 The Output Watcher monitors the results directory for new files and automatically imports them into MongoDB.
 
@@ -249,7 +250,7 @@ Parameters:
 - `--database`: MongoDB database name
 - `--collection`: MongoDB collection name
 
-### Proposal Finalizer
+### 🏁 Proposal Finalizer
 
 The Proposal Finalizer checks unresolved proposals/outputs and updates them with final resolution prices from the blockchain.
 
@@ -261,7 +262,7 @@ Parameters:
 - `--continuous`: Run in continuous mode, rechecking proposals periodically
 - `--interval`: Interval in seconds between rechecks (default: 30)
 
-### User Interface
+### 🖥️ User Interface
 
 The system includes a web-based UI for exploring results and monitoring the system.
 
@@ -271,7 +272,7 @@ python ./ui/server.py
 
 Then open your browser to http://localhost:8000
 
-## Development
+## 🛠️ Development
 
 The system is organized into several directories:
 
@@ -283,6 +284,6 @@ The system is organized into several directories:
 - `ui/`: Web-based user interface
 - `utilities/`: Various utility scripts
 
-## License
+## 📄 License
 
 [MIT License](LICENSE)
