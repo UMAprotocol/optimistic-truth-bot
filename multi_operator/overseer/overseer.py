@@ -10,7 +10,7 @@ import re
 from typing import Dict, Any, Optional, Tuple, List
 
 from ..common import query_chatgpt
-from .prompt_overseer import get_overseer_prompt, format_market_price_info
+from ..prompts.overseer_prompt import get_overseer_prompt, format_market_price_info
 
 
 class Overseer:
