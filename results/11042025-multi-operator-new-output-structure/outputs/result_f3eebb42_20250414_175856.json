@@ -276,5 +276,8 @@
     ],
     "format_version": 2,
     "journey_ref": true
-  }
+  },
+  "disputed": false,
+  "resolved_price": 0,
+  "resolved_price_outcome": "p1"
 }
