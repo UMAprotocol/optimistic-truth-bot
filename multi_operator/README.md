@@ -24,6 +24,11 @@ multi-operator/
   ├── common.py                # Common utilities
   ├── proposal_processor.py    # Main processor
   ├── run_processor.py         # Command-line runner
+  ├── prompts/                 # All system prompts
+  │   ├── perplexity_prompt.py # Perplexity system prompts
+  │   ├── router_prompt.py     # Router prompt utilities
+  │   ├── overseer_prompt.py   # Overseer prompt utilities
+  │   └── code_runner_prompt.py# Code runner prompt utilities
   ├── router/
   │   ├── __init__.py
   │   └── router.py            # Router implementation
@@ -33,8 +38,7 @@ multi-operator/
   │   └── perplexity_solver.py # Perplexity solver implementation
   └── overseer/
       ├── __init__.py
-      ├── overseer.py          # Overseer implementation
-      └── prompt_overseer.py   # Overseer prompt utilities
+      └── overseer.py          # Overseer implementation
 ```
 
 ## Repository Structure
@@ -48,12 +52,17 @@ multi-operator/
     - `executed_functions/`: Directory where generated code is saved and executed
     - See [code_runner/README.md](solvers/code_runner/README.md) for more details
 
+- **prompts/**: Contains all prompt templates used by the system
+  - `perplexity_prompt.py`: Prompt templates for the Perplexity solver
+  - `router_prompt.py`: Prompt templates for the Router component
+  - `overseer_prompt.py`: Prompt templates for the Overseer component
+  - `code_runner_prompt.py`: Prompt templates for the Code Runner solver
+
 - **router/**: Router component that decides which solver(s) to use
   - `router.py`: Implementation of the router
 
 - **overseer/**: Overseer component that evaluates solver responses
   - `overseer.py`: Implementation of the overseer
-  - `prompt_overseer.py`: Prompt templates for the overseer
 
 - **Common Files**:
   - `common.py`: Shared utilities and constants
@@ -121,6 +130,44 @@ The system follows this workflow for each proposal:
 4. **Evaluation**: Evaluates the solver's response using the overseer
 5. **Refinement**: If needed, retries with updated instructions
 6. **Resolution**: Finalizes the recommendation (p1, p2, p3, p4) and saves the result 
+
+## System Prompts
+
+The system uses prompts for different components to guide the AI models:
+
+### Perplexity Prompts
+
+The Perplexity solver uses carefully crafted system prompts defined in [`prompts/perplexity_prompt.py`](prompts/perplexity_prompt.py) to guide the Perplexity API in resolving market questions. These prompts include:
+
+- Time-aware instructions to handle future events correctly
+- Guidance for interpreting market resolution conditions
+- Rules for evidence evaluation and recommendation selection
+
+### Router Prompts
+
+The Router component uses prompts defined in [`prompts/router_prompt.py`](prompts/router_prompt.py) to help ChatGPT decide which solver(s) to use for a given query. These prompts contain:
+
+- Detailed descriptions of available solvers and their capabilities
+- Information about available data sources and API keys
+- Guidelines for selecting single or multiple solvers based on query content
+
+### Overseer Prompts
+
+The Overseer component uses prompts defined in [`prompts/overseer_prompt.py`](prompts/overseer_prompt.py) to evaluate solver responses and determine if they are accurate and complete. These prompts include:
+
+- Evaluation criteria for solver responses
+- Special validation rules for code-based solutions
+- Market price interpretation guidelines
+- Decision format specifications
+
+### Code Runner Prompts
+
+The Code Runner solver uses prompts defined in [`prompts/code_runner_prompt.py`](prompts/code_runner_prompt.py) to guide ChatGPT in generating Python code that fetches and processes data. These prompts contain:
+
+- Template code and structure guidelines
+- API information and usage examples
+- Domain-specific advice for cryptocurrency and sports data
+- Error handling and recommendation formatting instructions
 
 ## Solvers
 

@@ -34,7 +34,7 @@ from .router.router import Router
 from .overseer.overseer import Overseer
 from .solvers.perplexity_solver import PerplexitySolver
 from .solvers.code_runner import CodeRunnerSolver
-from .overseer.prompt_overseer import format_market_price_info
+from .prompts.overseer_prompt import format_market_price_info
 
 
 class MultiOperatorProcessor:
@@ -175,12 +175,12 @@ class MultiOperatorProcessor:
         )
 
     def load_solver_prompt(self):
-        """Load the solver system prompt from the prompt.py module."""
+        """Load the solver system prompt from the perplexity_prompt module."""
         try:
-            # Dynamically import the prompt module
-            prompt_module = importlib.import_module("prompt")
-            self.get_system_prompt = getattr(prompt_module, "get_system_prompt")
-            self.logger.info("Successfully loaded system prompt from prompt.py")
+            # Import the prompt module from our new location
+            from .prompts.perplexity_prompt import get_system_prompt
+            self.get_system_prompt = get_system_prompt
+            self.logger.info("Successfully loaded system prompt from perplexity_prompt.py")
         except (ImportError, AttributeError) as e:
             self.logger.error(f"Error loading system prompt: {e}")
             self.logger.error("Using default system prompt")

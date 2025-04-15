@@ -11,7 +11,7 @@ import sys
 import time
 import requests
 from openai import OpenAI
-from prompt import create_messages
+from multi_operator.prompts.perplexity_prompt import create_messages
 import logging
 import os
 from web3 import Web3

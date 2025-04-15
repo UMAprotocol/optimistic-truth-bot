@@ -4,10 +4,13 @@ Perplexity solver implementation for UMA Multi-Operator System.
 """
 
 import logging
+import time
+from datetime import datetime  
 from typing import Dict, Any, Optional
 
 from .base_solver import BaseSolver
 from ..common import query_perplexity, extract_recommendation
+from ..prompts.perplexity_prompt import get_system_prompt, create_messages
 
 
 class PerplexitySolver(BaseSolver):
@@ -49,10 +52,14 @@ class PerplexitySolver(BaseSolver):
             print("Solving proposal with Perplexity...")
 
         # Record start time for timing
-        import time
-        from datetime import datetime
-
         start_time = time.time()
+
+        # If no system prompt provided, use the default from perplexity_prompt
+        if not system_prompt:
+            system_prompt = get_system_prompt()
+            
+        # Create messages array
+        messages = create_messages(user_prompt)
 
         # Query Perplexity API
         raw_response = query_perplexity(
