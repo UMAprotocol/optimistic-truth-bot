@@ -116,7 +116,7 @@ class CodeRunnerSolver(BaseSolver):
                     # Legacy format: A simple list of API key names
                     self.available_api_keys.update(config_data)
                 elif isinstance(config_data, dict):
-                    # Handle new structured format
+                    # Handle new structured format with data_sources
                     if "data_sources" in config_data and isinstance(config_data["data_sources"], list):
                         for source in config_data["data_sources"]:
                             # Extract API keys
@@ -138,8 +138,25 @@ class CodeRunnerSolver(BaseSolver):
                                         for endpoint_type, url in endpoints.items():
                                             self.logger.info(f"  - {endpoint_type} endpoint: {url}")
                     
+                    # Also add all regular keys from the config
+                    for key, value in config_data.items():
+                        if key != "data_sources":
+                            # Add the key itself as an available API key
+                            self.available_api_keys.add(key)
+                            
+                            # If the value is a dictionary, it might contain API keys too
+                            if isinstance(value, dict):
+                                # Look for any keys that seem like API keys
+                                for subkey in value.keys():
+                                    if "api" in subkey.lower() or "key" in subkey.lower():
+                                        self.available_api_keys.add(subkey)
+                                        
+                                # If it contains an 'api_keys' list, add those too
+                                if "api_keys" in value and isinstance(value["api_keys"], list):
+                                    self.available_api_keys.update(value["api_keys"])
+                    
                     # Legacy format handling
-                    elif "api_keys" in config_data:
+                    if "api_keys" in config_data:
                         if isinstance(config_data["api_keys"], dict):
                             # Dictionary with key-value pairs
                             self.available_api_keys.update(
@@ -148,14 +165,11 @@ class CodeRunnerSolver(BaseSolver):
                         elif isinstance(config_data["api_keys"], list):
                             # List of key names
                             self.available_api_keys.update(config_data["api_keys"])
-                    elif "available_api_keys" in config_data:
+                    if "available_api_keys" in config_data:
                         # Explicit list of available keys
                         self.available_api_keys.update(
                             config_data["available_api_keys"]
                         )
-                    else:
-                        # Assume all top-level keys are API key names
-                        self.available_api_keys.update(config_data.keys())
             else:
                 # Assume it's a .env style file
                 with open(config_path, "r") as f:
@@ -185,6 +199,10 @@ class CodeRunnerSolver(BaseSolver):
                 # Log by category
                 for category, sources in categories.items():
                     self.logger.info(f"  - {category.capitalize()}: {', '.join(sources)}")
+                    
+            self.logger.info(f"Total available API keys: {len(self.available_api_keys)}")
+            if self.verbose:
+                self.logger.info(f"API keys: {sorted(list(self.available_api_keys))}")
         
         except Exception as e:
             self.logger.error(f"Error loading config file: {e}")
@@ -938,35 +956,68 @@ Reply with only the recommendation (p1, p2, p3, or p4) and nothing else.
         file_basename = f"{query_type}_{timestamp}_retry{attempt}.py"
         code_file_path = self.executed_functions_dir / file_basename
 
-        # Generate improved code with feedback from previous output
-        code = self.generate_code_with_output_feedback(
-            user_prompt,
-            query_type,
-            template_code,
-            previous_output,
-            attempt,
-            system_prompt,
+        # Use the modular prompt generator for retry prompts, passing the template code
+        code_gen_prompt = get_code_generation_prompt(
+            user_prompt=user_prompt,
+            query_type=query_type,
+            available_api_keys=self.available_api_keys,
+            data_sources=self.data_sources if hasattr(self, "data_sources") else None,
+            template_code=template_code,
+            attempt=attempt,
+            endpoint_info_getter=self._get_endpoint_info
         )
 
-        if not code:
+        # Query ChatGPT for improved code generation
+        try:
+            raw_response = query_chatgpt(
+                prompt=code_gen_prompt,
+                api_key=self.api_key,
+                model="gpt-4-turbo",
+                system_prompt=system_prompt,
+                verbose=self.verbose,
+            )
+
+            response_text = raw_response.choices[0].message.content
+
+            # Extract code from response
+            import re
+
+            code_pattern = r"```python\s*([\s\S]*?)\s*```"
+            code_match = re.search(code_pattern, response_text)
+
+            if code_match:
+                code = code_match.group(1)
+            else:
+                # If no code block is found, assume the entire response is code
+                code = response_text
+
+            # Check if the code seems valid
+            if "import" not in code or len(code.strip().split("\n")) < 10:
+                self.logger.warning(
+                    "Generated improved code appears incomplete or invalid"
+                )
+                return None, None, None, False
+
+            # Save code to file
+            with open(code_file_path, "w") as f:
+                f.write(code)
+
+            # Execute code
+            self.logger.info(f"Executing improved code from {code_file_path}")
+            execution_result = self.execute_code(code_file_path)
+
+            if execution_result["success"]:
+                self.logger.info("Improved code execution successful")
+                return code_file_path, code, execution_result["output"], True
+
+            self.logger.warning(
+                f"Improved code execution failed: {execution_result['error']}"
+            )
+            return None, code, None, False
+
+        except Exception as e:
+            self.logger.error(f"Error generating improved code: {e}")
             return None, None, None, False
-
-        # Save code to file
-        with open(code_file_path, "w") as f:
-            f.write(code)
-
-        # Execute code
-        self.logger.info(f"Executing improved code from {code_file_path}")
-        execution_result = self.execute_code(code_file_path)
-
-        if execution_result["success"]:
-            self.logger.info("Improved code execution successful")
-            return code_file_path, code, execution_result["output"], True
-
-        self.logger.warning(
-            f"Improved code execution failed: {execution_result['error']}"
-        )
-        return None, code, None, False
 
     def generate_code_with_output_feedback(
         self,
