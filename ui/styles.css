@@ -2623,19 +2623,4 @@ select[multiple] {
 .json-container .json-key:hover,
 .json-container .json-property-key:hover {
     background-color: rgba(13, 110, 253, 0.1);
-}
-
-/* Ensure analytics tabs are clickable */
-#analyticsTabs .nav-link {
-    cursor: pointer;
-    position: relative;
-    z-index: 5;
-}
-
-/* Specifically target the tags tab to make it clickable */
-#tags-tab {
-    cursor: pointer;
-    pointer-events: auto;
-    position: relative;
-    z-index: 10;
 } 
