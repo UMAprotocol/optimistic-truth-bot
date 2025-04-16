@@ -75,9 +75,6 @@ DISABLE_EXPERIMENT_RUNNER = (
     os.environ.get("DISABLE_EXPERIMENT_RUNNER", "false").lower() == "true"
 )
 
-# New environment variable to limit UI to a single experiment
-SINGLE_EXPERIMENT_NAME = os.environ.get("SINGLE_EXPERIMENT_NAME", "")
-
 # Authentication settings - Change these!
 AUTH_ENABLED = os.environ.get("AUTH_ENABLED", "true").lower() == "true"
 AUTH_USERNAME = os.environ.get("AUTH_USERNAME", "admin")
@@ -541,7 +538,6 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         "mongodb_db": MONGODB_DB,
                         "auth_enabled": AUTH_ENABLED,
                         "disable_experiment_runner": DISABLE_EXPERIMENT_RUNNER,
-                        "single_experiment_name": SINGLE_EXPERIMENT_NAME,
                     }
 
                     self.send_response(200)

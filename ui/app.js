@@ -13,7 +13,6 @@ let disableExperimentRunner = false; // Track if experiment runner is disabled
 // Date filter variables
 let currentDateFilters = {
     expiration_timestamp: null,
-    request_timestamp: null,
     request_transaction_block_time: null
 };
 
@@ -33,7 +32,7 @@ let columnPreferences = {
     tags: false,
     expiration_timestamp: false,
     request_timestamp: false,
-    request_transaction_block_time: false
+    request_transaction_block_time: true
 };
 
 // Chart variables
@@ -198,10 +197,83 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up experiment runner events
     initializeExperimentRunner();
 
-    // Add event listener for modal shown event to apply syntax highlighting
+    // Add event listener for modal shown event to apply syntax highlighting and set up toggle buttons
     document.getElementById('detailsModal')?.addEventListener('shown.bs.modal', function () {
+        const modalBody = document.getElementById('detailsModalBody');
+        
         // Reapply syntax highlighting to all code blocks
-        Prism.highlightAllUnder(document.getElementById('detailsModalBody'));
+        Prism.highlightAllUnder(modalBody);
+        
+        // Set up toggle buttons for collapsible content
+        document.querySelectorAll('#detailsModalBody .toggle-content-btn').forEach(btn => {
+            // Remove any existing event listeners to prevent duplicates
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            // Add the event listener to the new button
+            newBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const targetId = this.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.classList.toggle('collapsed');
+                    
+                    // If this is a code section, also toggle the Prism highlighting
+                    if (targetElement.querySelector('code')) {
+                        Prism.highlightElement(targetElement.querySelector('code'));
+                    }
+                }
+            });
+        });
+        
+        // Find and process all journey steps - especially code_runner steps
+        const steps = document.querySelectorAll('#detailsModalBody .journey-step');
+        steps.forEach((step, stepIndex) => {
+            // Check if this is a code runner step by looking at the step content
+            if (step.textContent.toLowerCase().includes('code_runner') || 
+                step.querySelector('[data-actor="code_runner"]')) {
+                
+                // Find all code blocks and ensure they are visible
+                const codeBlocks = step.querySelectorAll('.code-block, .code-content, .content-collapsible');
+                codeBlocks.forEach((block, i) => {
+                    // Make sure each code element has an ID
+                    if (!block.id) {
+                        block.id = `code-runner-step-${stepIndex}-code-${i}`;
+                    }
+                    
+                    // Remove the collapsed class to make code visible
+                    block.classList.remove('collapsed');
+                    
+                    // If this block contains Python code, highlight it
+                    if (block.querySelector('code.language-python')) {
+                        Prism.highlightElement(block.querySelector('code.language-python'));
+                    }
+                });
+                
+                // Also make sure any code field is properly displayed
+                const codeField = step.querySelector('[data-field="code"]');
+                if (codeField) {
+                    codeField.classList.remove('collapsed');
+                    if (codeField.nextElementSibling) {
+                        codeField.nextElementSibling.classList.remove('collapsed');
+                    }
+                }
+                
+                // Find any buttons that might control visibility of code sections
+                const toggleButtons = step.querySelectorAll('.toggle-content-btn');
+                toggleButtons.forEach(btn => {
+                    const targetId = btn.getAttribute('data-target');
+                    if (targetId && targetId.includes('code')) {
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) {
+                            targetEl.classList.remove('collapsed');
+                        }
+                    }
+                });
+            }
+        });
     });
 });
 
@@ -2034,132 +2106,94 @@ function saveColumnPreferences() {
     }
 }
 
-// Initialize column selector UI
+// Initialize column selector UI for columns and preference management
 function initializeColumnSelector() {
-    // Add column selector button to results table card header
-    const resultsTableHeader = document.querySelector('#resultsTableCard .card-header');
-    if (!resultsTableHeader) return;
+    // Build the column selector dropdown content
+    const columnSelectorMenu = document.getElementById('columnSelectorMenu');
+    if (!columnSelectorMenu) return;
     
-    // Find or create the container for the column selector
-    let displayInfoContainer = resultsTableHeader.querySelector('p');
-    if (!displayInfoContainer) {
-        displayInfoContainer = document.createElement('p');
-        displayInfoContainer.className = 'mb-0';
-        displayInfoContainer.innerHTML = 'Displaying <span id="displayingCount">0</span> of <span id="totalEntriesCount">0</span> entries';
-        resultsTableHeader.appendChild(displayInfoContainer);
-    }
-    
-    // Make the display info container a flex container to align items
-    displayInfoContainer.style.display = 'flex';
-    displayInfoContainer.style.justifyContent = 'space-between';
-    displayInfoContainer.style.alignItems = 'center';
-    
-    // Split the existing content into its own span
-    const entriesInfoSpan = document.createElement('span');
-    entriesInfoSpan.innerHTML = displayInfoContainer.innerHTML;
-    displayInfoContainer.innerHTML = '';
-    displayInfoContainer.appendChild(entriesInfoSpan);
-    
-    // Create column selector dropdown
-    const columnSelector = document.createElement('div');
-    columnSelector.className = 'dropdown';
-    columnSelector.innerHTML = `
-        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="columnSelectorBtn" 
-            data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-columns-gap"></i> Columns
-        </button>
-        <div class="dropdown-menu p-2 dropdown-menu-end" id="columnSelectorMenu" aria-labelledby="columnSelectorBtn">
-            <h6 class="dropdown-header">Select Columns to Display</h6>
+    // Create a form for column selections
+    columnSelectorMenu.innerHTML = `
+        <div class="px-3 py-2">
+            <h6 class="dropdown-header">Choose Columns to Display</h6>
             <div class="column-checkbox-container">
                 <div class="form-check">
                     <input class="form-check-input column-checkbox" type="checkbox" id="col-timestamp" 
-                        ${columnPreferences.timestamp ? 'checked' : ''} data-column="timestamp">
-                    <label class="form-check-label" for="col-timestamp">Date</label>
+                    ${columnPreferences.timestamp ? 'checked' : ''} data-column="timestamp">
+                    <label class="form-check-label" for="col-timestamp">Process Date</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_timestamp" 
-                        ${columnPreferences.proposal_timestamp ? 'checked' : ''} data-column="proposal_timestamp">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_timestamp"
+                    ${columnPreferences.proposal_timestamp ? 'checked' : ''} data-column="proposal_timestamp">
                     <label class="form-check-label" for="col-proposal_timestamp">Proposal Date</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-expiration_timestamp" 
-                        ${columnPreferences.expiration_timestamp ? 'checked' : ''} data-column="expiration_timestamp">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-expiration_timestamp"
+                    ${columnPreferences.expiration_timestamp ? 'checked' : ''} data-column="expiration_timestamp">
                     <label class="form-check-label" for="col-expiration_timestamp">Expiration Date</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_timestamp" 
-                        ${columnPreferences.request_timestamp ? 'checked' : ''} data-column="request_timestamp">
-                    <label class="form-check-label" for="col-request_timestamp">Request Date</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_transaction_block_time"
+                    ${columnPreferences.request_transaction_block_time ? 'checked' : ''} data-column="request_transaction_block_time">
+                    <label class="form-check-label" for="col-request_transaction_block_time">Proposal Time</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_transaction_block_time" 
-                        ${columnPreferences.request_transaction_block_time ? 'checked' : ''} data-column="request_transaction_block_time">
-                    <label class="form-check-label" for="col-request_transaction_block_time">Request Block Time</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-id"
+                    ${columnPreferences.id ? 'checked' : ''} data-column="id">
+                    <label class="form-check-label" for="col-id">Query ID</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-id" 
-                        ${columnPreferences.id ? 'checked' : ''} data-column="id">
-                    <label class="form-check-label" for="col-id">ID</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-title" 
-                        ${columnPreferences.title ? 'checked' : ''} data-column="title">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-title"
+                    ${columnPreferences.title ? 'checked' : ''} data-column="title">
                     <label class="form-check-label" for="col-title">Title</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-recommendation" 
-                        ${columnPreferences.recommendation ? 'checked' : ''} data-column="recommendation">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-recommendation"
+                    ${columnPreferences.recommendation ? 'checked' : ''} data-column="recommendation">
                     <label class="form-check-label" for="col-recommendation">Recommendation</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-router_decision" 
-                        ${columnPreferences.router_decision ? 'checked' : ''} data-column="router_decision">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-router_decision"
+                    ${columnPreferences.router_decision ? 'checked' : ''} data-column="router_decision">
                     <label class="form-check-label" for="col-router_decision">Router Decision</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-resolution" 
-                        ${columnPreferences.resolution ? 'checked' : ''} data-column="resolution">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-resolution"
+                    ${columnPreferences.resolution ? 'checked' : ''} data-column="resolution">
                     <label class="form-check-label" for="col-resolution">Resolution</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-disputed" 
-                        ${columnPreferences.disputed ? 'checked' : ''} data-column="disputed">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-disputed"
+                    ${columnPreferences.disputed ? 'checked' : ''} data-column="disputed">
                     <label class="form-check-label" for="col-disputed">Disputed</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-correct" 
-                        ${columnPreferences.correct ? 'checked' : ''} data-column="correct">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-correct"
+                    ${columnPreferences.correct ? 'checked' : ''} data-column="correct">
                     <label class="form-check-label" for="col-correct">Correct</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-block_number" 
-                        ${columnPreferences.block_number ? 'checked' : ''} data-column="block_number">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-block_number"
+                    ${columnPreferences.block_number ? 'checked' : ''} data-column="block_number">
                     <label class="form-check-label" for="col-block_number">Block Number</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_bond" 
-                        ${columnPreferences.proposal_bond ? 'checked' : ''} data-column="proposal_bond">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_bond"
+                    ${columnPreferences.proposal_bond ? 'checked' : ''} data-column="proposal_bond">
                     <label class="form-check-label" for="col-proposal_bond">Proposal Bond</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input column-checkbox" type="checkbox" id="col-tags" 
-                        ${columnPreferences.tags ? 'checked' : ''} data-column="tags">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-tags"
+                    ${columnPreferences.tags ? 'checked' : ''} data-column="tags">
                     <label class="form-check-label" for="col-tags">Tags</label>
                 </div>
             </div>
-            <div class="dropdown-divider"></div>
-            <div class="d-flex justify-content-between px-2">
-                <button class="btn btn-sm btn-outline-secondary" id="resetColumnDefaults">
-                    Reset Defaults
-                </button>
-                <button class="btn btn-sm btn-primary" id="applyColumnSelection">
-                    Apply
-                </button>
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-sm btn-outline-secondary" id="resetColumnDefaults">Reset to Defaults</button>
+                <button class="btn btn-sm btn-outline-primary" id="applyColumnChanges">Apply</button>
             </div>
         </div>
     `;
-    
-    displayInfoContainer.appendChild(columnSelector);
     
     // Add event listeners for column selection
     document.querySelectorAll('.column-checkbox').forEach(checkbox => {
@@ -2170,7 +2204,7 @@ function initializeColumnSelector() {
     });
     
     // Add event listener for apply button
-    document.getElementById('applyColumnSelection')?.addEventListener('click', function() {
+    document.getElementById('applyColumnChanges')?.addEventListener('click', function() {
         saveColumnPreferences();
         updateTableWithData(currentData);
         
@@ -2200,7 +2234,7 @@ function initializeColumnSelector() {
             tags: false,
             expiration_timestamp: false,
             request_timestamp: false,
-            request_transaction_block_time: false
+            request_transaction_block_time: true
         };
         
         // Update checkboxes
@@ -3365,10 +3399,9 @@ function updateTableHeader() {
     
     // Add columns based on preferences
     if (columnPreferences.timestamp) headerRow += '<th class="col-timestamp">Process Time</th>';
-    if (columnPreferences.proposal_timestamp) headerRow += '<th class="col-proposal-time">Request Time</th>';
+    if (columnPreferences.proposal_timestamp) headerRow += '<th class="col-proposal-time">Proposal Time</th>';
     if (columnPreferences.expiration_timestamp) headerRow += '<th class="col-expiration-time">Expiration Time</th>';
-    if (columnPreferences.request_timestamp) headerRow += '<th class="col-request-time">Request Time</th>';
-    if (columnPreferences.request_transaction_block_time) headerRow += '<th class="col-block-time">Block Time</th>';
+    if (columnPreferences.request_transaction_block_time) headerRow += '<th class="col-request-time">Proposal Time</th>';
     if (columnPreferences.id) headerRow += '<th class="col-id">ID</th>';
     if (columnPreferences.title) headerRow += '<th class="col-title">Title</th>';
     if (columnPreferences.recommendation) headerRow += '<th class="col-recommendation">AI Rec</th>';
@@ -3462,9 +3495,9 @@ function updateTableWithData(dataArray) {
                        (item._id ? item._id.toString().substring(0, 10) : 'N/A'));
         
         // Use standardized recommendation field, with fallbacks
-        const recommendation = item.recommendation || 
-                              item.proposed_price_outcome || 
-                              'N/A';
+        const recommendation = item.format_version === 2 
+                              ? (item.result?.recommendation || item.recommendation || item.proposed_price_outcome || 'N/A')
+                              : (item.recommendation || item.proposed_price_outcome || 'N/A');
         
         // Use standardized resolution field
         const resolution = item.resolved_price_outcome !== undefined && 
@@ -3488,16 +3521,12 @@ function updateTableWithData(dataArray) {
         // Access the proposal date directly from proposal_metadata as a fallback
         const formattedProposalDate = proposalTimestamp ? 
             formatDate(proposalTimestamp) : 
-            (item.proposal_metadata && item.proposal_metadata.request_timestamp ? 
-                formatDate(item.proposal_metadata.request_timestamp) : 'N/A');
+            (item.proposal_metadata && item.proposal_metadata.request_transaction_block_time ? 
+                formatDate(item.proposal_metadata.request_transaction_block_time) : 'N/A');
         
         // Format the expiration timestamp if available
         const expirationTimestamp = item.proposal_metadata?.expiration_timestamp || 0;
         const formattedExpirationDate = expirationTimestamp ? formatDate(expirationTimestamp) : 'N/A';
-        
-        // Format the request timestamp if available
-        const requestTimestamp = item.proposal_metadata?.request_timestamp || 0;
-        const formattedRequestDate = requestTimestamp ? formatDate(requestTimestamp) : 'N/A';
         
         // Format the request transaction block time if available
         const blockTimestamp = item.proposal_metadata?.request_transaction_block_time || 0;
@@ -3525,8 +3554,16 @@ function updateTableWithData(dataArray) {
         let row = `<tr class="result-row ${recommendation?.toLowerCase() === 'p4' || recommendation?.toLowerCase() === 'p3' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">`;
         
         // Add icon as the first cell if available
-        if (item.icon) {
-            row += `<td class="icon-cell"><img src="${item.icon}" alt="Question Icon" class="table-icon"></td>`;
+        // For format_version 2, check proposal_metadata.icon
+        let icon = null;
+        if (item.format_version === 2) {
+            icon = item.proposal_metadata?.icon || null;
+        } else {
+            icon = item.icon || null;
+        }
+        
+        if (icon) {
+            row += `<td class="icon-cell"><img src="${icon}" alt="Question Icon" class="table-icon"></td>`;
         } else {
             row += `<td class="icon-cell"></td>`;
         }
@@ -3535,7 +3572,6 @@ function updateTableWithData(dataArray) {
         if (columnPreferences.timestamp) row += `<td>${formattedDate}</td>`;
         if (columnPreferences.proposal_timestamp) row += `<td>${formattedProposalDate}</td>`;
         if (columnPreferences.expiration_timestamp) row += `<td>${formattedExpirationDate}</td>`;
-        if (columnPreferences.request_timestamp) row += `<td>${formattedRequestDate}</td>`;
         if (columnPreferences.request_transaction_block_time) row += `<td>${formattedBlockTime}</td>`;
         if (columnPreferences.id) row += `<td class="monospace">${queryId}</td>`;
         if (columnPreferences.title) row += `<td>${title || 'No title'}</td>`;
@@ -3615,22 +3651,43 @@ function showDetails(data, index) {
     // Get title directly from the data using our extraction function
     const title = extractTitle(data) || 'Details';
     
+    // Check if this is format_version 2
+    const isFormatV2 = data.format_version === 2;
+    
     // Set the modal title with icon if available
-    if (data.icon) {
-        modalTitle.innerHTML = `<img src="${data.icon}" alt="Question Icon" class="modal-icon"> ${title}`;
+    // For format_version 2, icon is in proposal_metadata.icon
+    let icon = null;
+    if (isFormatV2) {
+        icon = data.proposal_metadata?.icon || null;
+    } else {
+        icon = data.icon || null;
+    }
+    
+    if (icon) {
+        modalTitle.innerHTML = `<img src="${icon}" alt="Question Icon" class="modal-icon"> ${title}`;
     } else {
         modalTitle.textContent = title;
     }
     
+    // Get recommendation from the appropriate location based on format version
+    const recommendation = isFormatV2 ? (data.result?.recommendation || 'N/A') : (data.recommendation || 'N/A');
+    
     // Check if disputed
-    const isDisputed = data.disputed === true;
+    const isDisputed = (isFormatV2 ? data.market_data?.disputed : data.disputed) === true;
     
     // Get proposed price if available, being careful with 0 values
     // Handle both old and new file structures
-    const proposedPrice = data.proposed_price_outcome !== undefined ? data.proposed_price_outcome : 
-                         (data.proposed_price !== undefined ? data.proposed_price : 
-                         (data.proposal_metadata?.proposed_price_outcome !== undefined ? data.proposal_metadata.proposed_price_outcome : 
-                         (data.proposal_metadata?.proposed_price !== undefined ? data.proposal_metadata.proposed_price : 'N/A')));
+    const proposedPrice = isFormatV2
+        ? (data.market_data?.proposed_price_outcome !== undefined 
+            ? data.market_data.proposed_price_outcome 
+            : (data.market_data?.proposed_price !== undefined ? data.market_data.proposed_price : 'N/A'))
+        : (data.proposed_price_outcome !== undefined 
+            ? data.proposed_price_outcome 
+            : (data.proposed_price !== undefined 
+                ? data.proposed_price 
+                : (data.proposal_metadata?.proposed_price_outcome !== undefined 
+                    ? data.proposal_metadata.proposed_price_outcome 
+                    : (data.proposal_metadata?.proposed_price !== undefined ? data.proposal_metadata.proposed_price : 'N/A'))));
     
     // Get correctness state
     const isCorrect = isRecommendationCorrect(data);
@@ -3646,13 +3703,15 @@ function showDetails(data, index) {
     }
     
     // Get resolved price from either location
-    const resolvedPrice = data.resolved_price_outcome || data.resolved_price || 
-                         data.proposal_metadata?.resolved_price_outcome || data.proposal_metadata?.resolved_price || 'Unresolved';
+    const resolvedPrice = isFormatV2
+        ? (data.market_data?.resolved_price_outcome || data.market_data?.resolved_price || 'Unresolved')
+        : (data.resolved_price_outcome || data.resolved_price || 
+           data.proposal_metadata?.resolved_price_outcome || data.proposal_metadata?.resolved_price || 'Unresolved');
     
     // Generate the content
     let content = `
         <div class="alert ${alertClass} mb-4">
-            <strong>Recommendation:</strong> ${data.recommendation || 'N/A'} | 
+            <strong>Recommendation:</strong> ${recommendation} | 
             <strong>Resolved:</strong> ${data.resolved_price_outcome || 'Unresolved'} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
@@ -3662,7 +3721,7 @@ function showDetails(data, index) {
     
     // Add tags section if available
     // Check both potential locations for tags
-    const tags = data.tags || data.proposal_metadata?.tags;
+    const tags = data.tags || data.proposal_metadata?.tags || (data.market_data ? data.market_data.tags : null);
     if (tags && Array.isArray(tags) && tags.length > 0) {
         content += `
             <div class="mb-3">
@@ -3676,13 +3735,12 @@ function showDetails(data, index) {
     // Handle data from different potential locations
     const query_id = data.query_id || '';
     const short_id = data.question_id_short || data.short_id || '';
-    const condition_id = data.condition_id || data.proposal_metadata?.condition_id || '';
+    const condition_id = data.condition_id || data.proposal_metadata?.condition_id || (data.market_data ? data.market_data.condition_id : '');
     const process_time = data.timestamp || 0;
-    const request_time = data.proposal_metadata?.request_timestamp || 0;
-    const block_time = data.proposal_metadata?.request_transaction_block_time || 0;
+    const request_time = data.proposal_metadata?.request_transaction_block_time || 0;
     const expiration_time = data.proposal_metadata?.expiration_timestamp || 0;
-    const end_date = data.end_date_iso || data.proposal_metadata?.end_date_iso || 'N/A';
-    const game_start_time = data.game_start_time || data.proposal_metadata?.game_start_time || 'N/A';
+    const end_date = data.end_date_iso || data.proposal_metadata?.end_date_iso || (data.market_data ? data.market_data.end_date_iso : 'N/A');
+    const game_start_time = data.game_start_time || data.proposal_metadata?.game_start_time || (data.market_data ? data.market_data.game_start_time : 'N/A');
     
     content += `
         <div class="detail-section">
@@ -3720,12 +3778,8 @@ function showDetails(data, index) {
                             <td>${formatDate(process_time)}</td>
                         </tr>
                         <tr>
-                            <th>Request Time</th>
+                            <th>Proposal Time</th>
                             <td>${formatDate(request_time)}</td>
-                        </tr>
-                        <tr>
-                            <th>Block Time</th>
-                            <td>${formatDate(block_time)}</td>
                         </tr>
                         <tr>
                             <th>Expiration Time</th>
@@ -3746,9 +3800,112 @@ function showDetails(data, index) {
             </div>
         </div>
     `;
+    
+    // For format_version 2, add journey section
+    if (isFormatV2 && data.journey && Array.isArray(data.journey) && data.journey.length > 0) {
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Journey</h4>
+                <div class="journey-timeline">
+                    ${data.journey.map((step, stepIndex) => `
+                        <div class="journey-step-card ${step.actor}-step">
+                            <div class="journey-step-header" data-step="${stepIndex}">
+                                <div class="step-info">
+                                    <div class="step-number">${step.step}</div>
+                                    <span class="step-actor">${formatActorName(step.actor)}</span>
+                                    <span class="step-action">${formatActionName(step.action)}</span>
+                                    ${step.routing_phase ? `<span class="step-phase">Phase ${step.routing_phase}</span>` : ''}
+                                    ${step.attempt ? `<span class="step-attempt">Attempt ${step.attempt}</span>` : ''}
+                                </div>
+                                <div class="step-timestamp">${formatDate(step.timestamp)}</div>
+                            </div>
+                            <div class="journey-step-body" id="journey-step-body-${stepIndex}">
+                                ${renderJourneyStepContent(step, stepIndex)}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add result section for format_version 2
+    if (isFormatV2 && data.result) {
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Result</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="result-info">
+                            <div class="mb-2"><strong>Recommendation:</strong> ${data.result.recommendation || 'N/A'}</div>
+                            ${data.result.reason ? `<div class="mb-2"><strong>Reason:</strong> ${data.result.reason}</div>` : ''}
+                            ${data.result.market_alignment ? `<div class="mb-2"><strong>Market Alignment:</strong> ${data.result.market_alignment}</div>` : ''}
+                            ${data.result.attempted_solvers && data.result.attempted_solvers.length > 0 ? `
+                                <div class="mb-2">
+                                    <strong>Attempted Solvers:</strong>
+                                    ${data.result.attempted_solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${data.result.routing_attempts ? `<div class="mb-2"><strong>Routing Attempts:</strong> ${data.result.routing_attempts}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add market data section for format_version 2
+    if (isFormatV2 && data.market_data) {
+        const marketData = data.market_data;
+        content += `
+            <div class="detail-section">
+                <h4 class="section-title">Market Data</h4>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="market-info">
+                            ${marketData.proposed_price !== null ? `<div class="mb-2"><strong>Proposed Price:</strong> ${marketData.proposed_price}</div>` : ''}
+                            ${marketData.resolved_price !== null ? `<div class="mb-2"><strong>Resolved Price:</strong> ${marketData.resolved_price}</div>` : ''}
+                            ${marketData.proposed_price_outcome ? `<div class="mb-2"><strong>Proposed Price Outcome:</strong> ${marketData.proposed_price_outcome}</div>` : ''}
+                            ${marketData.resolved_price_outcome ? `<div class="mb-2"><strong>Resolved Price Outcome:</strong> ${marketData.resolved_price_outcome}</div>` : ''}
+                            ${marketData.disputed !== undefined ? `<div class="mb-2"><strong>Disputed:</strong> ${marketData.disputed ? 'Yes' : 'No'}</div>` : ''}
+                            ${marketData.icon ? `<div class="mb-2"><strong>Icon:</strong> <img src="${marketData.icon}" alt="Market Icon" class="market-icon"></div>` : ''}
+                            
+                            ${marketData.tokens && marketData.tokens.length > 0 ? `
+                                <div class="mt-3">
+                                    <strong>Tokens:</strong>
+                                    <div class="table-responsive mt-2">
+                                        <table class="table table-sm table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Outcome</th>
+                                                    <th>Price</th>
+                                                    <th>Winner</th>
+                                                    <th>Token ID</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${marketData.tokens.map(token => `
+                                                    <tr>
+                                                        <td>${token.outcome}</td>
+                                                        <td>${token.price}</td>
+                                                        <td>${token.winner ? 'Yes' : 'No'}</td>
+                                                        <td><small class="code-font">${token.token_id}</small></td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     // Add multi-operator data section if available
-    if (data.router_result || data.attempted_solvers) {
+    if (!isFormatV2 && (data.router_result || data.attempted_solvers)) {
         content += `
             <div class="detail-section">
                 <h4 class="section-title">Multi-Operator Processing</h4>
@@ -3914,6 +4071,17 @@ function showDetails(data, index) {
                                     </div>
                                     <pre class="response-text mt-2 content-collapsible collapsed" id="code-generation-prompt-${index}">${formatCodeBlocks(solverResult.code_generation_prompt || solverResult.solver_result?.code_generation_prompt || solverResult.code_runner_prompt)}</pre>
                                 </div>
+                                <script>
+                                // Mark these fields as already handled to prevent duplicate display
+                                if (solverResult.solver_result) {
+                                    if (solverResult.solver_result.code_generation_prompt) {
+                                        delete solverResult.solver_result.code_generation_prompt;
+                                    }
+                                    if (solverResult.solver_result.code_runner_prompt) {
+                                        delete solverResult.solver_result.code_runner_prompt;
+                                    }
+                                }
+                                </script>
                             ` : ''}
                             
                             ${solverResult.solver_result && solverResult.solver_result.code ? `
@@ -4036,7 +4204,7 @@ function showDetails(data, index) {
                             ${/* Display all other solver_result fields not already displayed */ ''}
                             ${solverResult.solver_result && typeof solverResult.solver_result === 'object' ? 
                                 Object.entries(solverResult.solver_result)
-                                    .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata', 'code_generation_prompt', 'code_runner_prompt'].includes(key))
+                                    .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata'].includes(key))
                                     .map(([key, value]) => `
                                         <div class="mt-3">
                                             <strong>${formatKeyName(key)}:</strong>
@@ -4106,6 +4274,17 @@ function showDetails(data, index) {
                                         </div>
                                         <pre class="response-text mt-2 content-collapsible collapsed" id="add-code-generation-prompt-${index}">${formatCodeBlocks(solverResult.code_generation_prompt || solverResult.solver_result?.code_generation_prompt || solverResult.code_runner_prompt)}</pre>
                                     </div>
+                                    <script>
+                                    // Mark these fields as already handled to prevent duplicate display
+                                    if (solverResult.solver_result) {
+                                        if (solverResult.solver_result.code_generation_prompt) {
+                                            delete solverResult.solver_result.code_generation_prompt;
+                                        }
+                                        if (solverResult.solver_result.code_runner_prompt) {
+                                            delete solverResult.solver_result.code_runner_prompt;
+                                        }
+                                    }
+                                    </script>
                                 ` : ''}
                                 
                                 ${solverResult.solver_result && solverResult.solver_result.code ? `
@@ -4228,7 +4407,7 @@ function showDetails(data, index) {
                                 ${/* Display all other solver_result fields not already displayed */ ''}
                                 ${solverResult.solver_result && typeof solverResult.solver_result === 'object' ? 
                                     Object.entries(solverResult.solver_result)
-                                        .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata', 'code_generation_prompt', 'code_runner_prompt'].includes(key))
+                                        .filter(([key, _]) => !['code', 'code_output', 'recommendation', 'response', 'solver', 'overseer_result', 'response_metadata'].includes(key))
                                         .map(([key, value]) => `
                                             <div class="mt-3">
                                                 <strong>${formatKeyName(key)}:</strong>
@@ -4361,7 +4540,6 @@ function showDetails(data, index) {
                                                     <th>Recommendation</th>
                                                     <th>Satisfaction</th>
                                                     <th style="min-width: 200px; width: 40%;">Critique</th>
-                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -4383,27 +4561,6 @@ function showDetails(data, index) {
                                                                     data-target="critique-full-${jIdx}">
                                                                     Show more
                                                                 </button>
-                                                            ` : ''}
-                                                        </td>
-                                                        <td>
-                                                            ${journey.system_prompt_before ? `
-                                                                <button class="btn btn-sm btn-outline-secondary toggle-content-btn mb-1" 
-                                                                    data-target="system-prompt-before-${jIdx}">
-                                                                    Before Prompt
-                                                                </button>
-                                                                <div class="content-collapsible collapsed" id="system-prompt-before-${jIdx}">
-                                                                    <pre class="system-prompt mt-2">${journey.system_prompt_before}</pre>
-                                                                </div>
-                                                            ` : ''}
-                                                            
-                                                            ${journey.system_prompt_after ? `
-                                                                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" 
-                                                                    data-target="system-prompt-after-${jIdx}">
-                                                                    After Prompt
-                                                                </button>
-                                                                <div class="content-collapsible collapsed" id="system-prompt-after-${jIdx}">
-                                                                    <pre class="system-prompt mt-2">${journey.system_prompt_after}</pre>
-                                                                </div>
                                                             ` : ''}
                                                         </td>
                                                     </tr>
@@ -4665,23 +4822,37 @@ function showDetails(data, index) {
         `;
     }
     
-    // Add raw data section with all JSON fields
-    content += `
-        <div class="detail-section">
-            <h4 class="section-title">Full JSON Data</h4>
-            <div class="card">
-                <div class="card-body">
-                    <pre class="mb-0 json-data">${JSON.stringify(data, null, 2)}</pre>
-                </div>
-            </div>
-        </div>
-    `;
+    // Use the new function for JSON folding instead of simple pre tag
+    content = addJsonDataSection(content, data);
     
     // Set the modal content
     modalBody.innerHTML = content;
     
     // Apply syntax highlighting to code blocks
     Prism.highlightAllUnder(modalBody);
+    
+    // Initialize toggle buttons for code sections
+    document.querySelectorAll('.toggle-content-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement.classList.contains('collapsed')) {
+                targetElement.classList.remove('collapsed');
+                this.innerHTML = `<i class="bi bi-arrows-collapse"></i> Hide`;
+            } else {
+                targetElement.classList.add('collapsed');
+                this.innerHTML = `<i class="bi bi-arrows-expand"></i> ${this.textContent.replace('Hide', 'Show')}`;
+            }
+            
+            // Re-apply syntax highlighting when showing code
+            if (!targetElement.classList.contains('collapsed') && 
+                (targetElement.classList.contains('language-python') || 
+                 targetElement.querySelector('.language-python'))) {
+                Prism.highlightElement(targetElement.querySelector('code') || targetElement);
+            }
+        });
+    });
     
     // Add click event for copying to clipboard
     document.querySelectorAll('.copy-to-clipboard').forEach(element => {
@@ -4777,15 +4948,12 @@ function showDetails(data, index) {
     // Add toggle functionality for journey steps
     document.querySelectorAll('.journey-step-header').forEach(header => {
         header.addEventListener('click', function() {
-            const stepBody = this.nextElementSibling;
+            const stepIndex = this.getAttribute('data-step');
+            const stepBody = document.getElementById(`journey-step-body-${stepIndex}`);
+            
             if (stepBody) {
+                this.classList.toggle('collapsed');
                 stepBody.classList.toggle('collapsed');
-                
-                // Update indicator
-                const indicator = this.querySelector('.step-indicator');
-                if (indicator) {
-                    indicator.classList.toggle('expanded');
-                }
             }
         });
     });
@@ -5097,16 +5265,6 @@ function applyAllFilters(correctnessFilter, tagFilters = []) {
             
             // Filter for items with expiration date on or after the selected date
             return expiration >= currentDateFilters.expiration_timestamp;
-        });
-    }
-    
-    if (currentDateFilters.request_timestamp) {
-        filteredData = filteredData.filter(item => {
-            const request = item.proposal_metadata?.request_timestamp;
-            if (!request) return false;
-            
-            // Filter for items with request date on or after the selected date
-            return request >= currentDateFilters.request_timestamp;
         });
     }
     
@@ -5448,43 +5606,7 @@ async function fetchFileList(dirPath) {
             console.warn('Error with direct directory listing:', err);
         }
         
-        // Final fallback - try to list the parent directory
-        try {
-            console.log('Trying to list parent directory as fallback...');
-            const parentPath = dirPath.substring(0, dirPath.lastIndexOf('/'));
-            const parentResponse = await fetch(`/api/files?path=${encodeURIComponent(parentPath)}`);
-            
-            if (parentResponse.ok) {
-                const data = await parentResponse.json();
-                console.log(`Found ${data.count || 0} files in parent directory ${parentPath}`);
-                
-                // Look for subdirectories matching our target
-                const targetDir = dirPath.split('/').pop();
-                const subdirs = data.files.filter(file => file.type === 'directory' && file.name === targetDir);
-                
-                if (subdirs.length > 0) {
-                    console.log(`Found matching subdirectory: ${subdirs[0].path}`);
-                    
-                    // Try to access this directory
-                    const subDirResponse = await fetch(`/api/files?path=${encodeURIComponent(subdirs[0].path)}`);
-                    if (subDirResponse.ok) {
-                        const subDirData = await subDirResponse.json();
-                        const jsonFiles = subDirData.files
-                            .filter(file => file.type === 'file' && (file.file_type === 'json' || file.name.endsWith('.json')))
-                            .map(file => file.name);
-                        
-                        if (jsonFiles.length > 0) {
-                            console.log(`Found ${jsonFiles.length} JSON files in subdirectory`);
-                            return jsonFiles;
-                        }
-                    }
-                }
-            }
-        } catch (err) {
-            console.warn('Error listing parent directory:', err);
-        }
-        
-        // Last resort - try a hardcoded list of filenames if nothing else worked
+        // Final fallback - try a hardcoded list of filenames if nothing else worked
         console.warn('Using fallback file list as last resort');
         return [
             'faf5e4db.json', '6af20338.json', 'a0f4fc21.json', 'ae03f9e6.json',
@@ -5697,11 +5819,11 @@ function sortData(data, column, direction) {
                 break;
             case 'proposal_timestamp':
                 valueA = a.proposal_timestamp || 
-                         (a.proposal_metadata && a.proposal_metadata.request_timestamp ? 
-                             a.proposal_metadata.request_timestamp : 0);
+                         (a.proposal_metadata && a.proposal_metadata.request_transaction_block_time ? 
+                             a.proposal_metadata.request_transaction_block_time : 0);
                 valueB = b.proposal_timestamp || 
-                         (b.proposal_metadata && b.proposal_metadata.request_timestamp ? 
-                             b.proposal_metadata.request_timestamp : 0);
+                         (b.proposal_metadata && b.proposal_metadata.request_transaction_block_time ? 
+                             b.proposal_metadata.request_transaction_block_time : 0);
                 break;
             case 'id':
                 valueA = a.question_id_short || a.query_id || '';
@@ -5795,8 +5917,7 @@ function initializeSortableHeaders() {
         'col-timestamp': 'timestamp',
         'col-proposal-time': 'proposal_timestamp',
         'col-expiration-time': 'expiration_timestamp',
-        'col-request-time': 'request_timestamp',
-        'col-block-time': 'request_transaction_block_time',
+        'col-request-time': 'request_transaction_block_time',
         'col-id': 'id',
         'col-title': 'title',
         'col-recommendation': 'recommendation',
@@ -5884,6 +6005,63 @@ function initializeSortableHeaders() {
     });
 }
 
+// Modify displayResultsData to initialize sortable headers after displaying data
+function displayResultsData() {
+    const tableBody = document.getElementById('resultsTableBody');
+    if (!tableBody) return;
+    
+    if (!currentData || currentData.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center">No data available</td>
+            </tr>
+        `;
+        document.getElementById('displayingCount').textContent = '0';
+        document.getElementById('totalEntriesCount').textContent = '0';
+        return;
+    }
+    
+    // Ensure all required fields are available
+    const processedData = currentData.map(item => {
+        // Make a shallow copy to avoid modifying the original
+        const processed = {...item};
+        
+        // Ensure we have consistent field names
+        processed.recommendation = 
+            item.recommendation || 
+            item.proposed_price_outcome || 
+            'N/A';
+            
+        processed.resolved_price_outcome = 
+            item.resolved_price_outcome !== undefined ? item.resolved_price_outcome : 
+            item.resolved_price !== undefined ? item.resolved_price : 
+            null;
+            
+        // Ensure we have a title field for display
+        processed.title = extractTitle(item);
+        
+        // Ensure we have a query_id field
+        processed.query_id = item.query_id || item.id || '';
+        
+        // Ensure we have a timestamp field
+        processed.timestamp = item.timestamp || item.unix_timestamp || 0;
+        
+        // Extract proposal timestamp from proposal_metadata if available
+        processed.proposal_timestamp = 
+            (item.proposal_metadata && item.proposal_metadata.request_transaction_block_time) ? 
+            item.proposal_metadata.request_transaction_block_time : 0;
+        
+        return processed;
+    });
+    
+    // Now proceed with normal display logic
+    updateTableWithData(processedData);
+    
+    // Initialize sortable headers after displaying data
+    initializeSortableHeaders();
+}
+
+// Function to apply date filters
 function applyDateFilter() {
     // Get all date inputs
     const dateInputs = document.querySelectorAll('.date-filter');
@@ -5916,7 +6094,6 @@ function clearDateFilter() {
     // Reset current date filters
     currentDateFilters = {
         expiration_timestamp: null,
-        request_timestamp: null,
         request_transaction_block_time: null
     };
     
@@ -5943,3 +6120,554 @@ function formatCodeBlocks(text) {
 // Apply this function in the showDetails function when displaying responses
 // Update the relevant sections with:
 // <pre class="mb-0 response-text">${formatCodeBlocks(solverResult.response)}</pre>
+
+// Helper functions for journey rendering
+function formatActorName(actor) {
+    const actorNames = {
+        'router': 'Router',
+        'perplexity': 'Perplexity',
+        'code_runner': 'Code Runner',
+        'overseer': 'Overseer'
+    };
+    return actorNames[actor] || actor;
+}
+
+function formatActionName(action) {
+    const actionNames = {
+        'route': 'Routing',
+        'solve': 'Solving',
+        'evaluate': 'Evaluation',
+        'reroute': 'Re-routing'
+    };
+    return actionNames[action] || action;
+}
+
+function renderJourneyStepContent(step, stepIndex) {
+    let content = '';
+    
+    switch (step.actor) {
+        case 'router':
+            content = renderRouterStep(step, stepIndex);
+            break;
+        case 'overseer':
+            content = renderOverseerStep(step, stepIndex);
+            break;
+        case 'perplexity':
+        case 'code_runner':
+            content = renderSolverStep(step, stepIndex);
+            break;
+        default:
+            content = `<div class="step-unknown">Unknown actor type: ${step.actor}</div>`;
+    }
+    
+    return content;
+}
+
+function renderRouterStep(step, stepIndex) {
+    let content = '';
+    
+    if (step.response && step.response.solvers) {
+        content += `
+            <div class="router-decision">
+                <strong>Selected Solvers:</strong> 
+                ${step.response.solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('')}
+            </div>
+        `;
+        
+        if (step.response.reason) {
+            content += `<div class="mt-2"><strong>Reason:</strong> ${step.response.reason}</div>`;
+        }
+        
+        if (step.response.multi_solver_strategy) {
+            content += `<div class="mt-2"><strong>Strategy:</strong> ${step.response.multi_solver_strategy}</div>`;
+        }
+    }
+    
+    if (step.prompt) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="router-prompt-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Router Prompt
+                </button>
+                <pre class="router-prompt mt-2 content-collapsible collapsed" id="router-prompt-${stepIndex}">${step.prompt}</pre>
+            </div>
+        `;
+    }
+    
+    if (step.metadata) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="router-metadata-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Metadata
+                </button>
+                <pre class="step-metadata mt-2 content-collapsible collapsed" id="router-metadata-${stepIndex}">${JSON.stringify(step.metadata, null, 2)}</pre>
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+function renderOverseerStep(step, stepIndex) {
+    let content = '';
+    
+    if (step.action === 'evaluate') {
+        content += `
+            <div><strong>Evaluated:</strong> ${step.solver_evaluated || 'Unknown'}</div>
+            <div class="mt-2"><strong>Verdict:</strong> <span class="verdict-${step.verdict}">${formatVerdictName(step.verdict)}</span></div>
+        `;
+        
+        if (step.critique) {
+            content += `
+                <div class="mt-2">
+                    <strong>Critique:</strong>
+                    <div class="critique-preview" id="critique-preview-${stepIndex}">
+                        ${step.critique ? step.critique.substring(0, 120) + (step.critique.length > 120 ? '...' : '') : 'N/A'}
+                    </div>
+                    <div class="critique-full content-collapsible collapsed" id="critique-full-${stepIndex}">
+                        ${step.critique || 'N/A'}
+                    </div>
+                    ${step.critique && step.critique.length > 120 ? `
+                        <button class="btn btn-sm btn-link toggle-critique-btn" 
+                            data-preview="critique-preview-${stepIndex}" 
+                            data-target="critique-full-${stepIndex}">
+                            Show more
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        if (step.market_alignment) {
+            content += `<div class="mt-2"><strong>Market Alignment:</strong> ${step.market_alignment}</div>`;
+        }
+    } else if (step.action === 'reroute') {
+        content += `
+            <div><strong>Excluded Solvers:</strong> ${step.excluded_solvers && step.excluded_solvers.length > 0 ? 
+                step.excluded_solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('') : 'None'}</div>
+        `;
+        
+        if (step.routing_guidance) {
+            content += `<div class="mt-2"><strong>Guidance:</strong> ${step.routing_guidance}</div>`;
+        }
+    }
+    
+    if (step.prompt) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-prompt-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Overseer Prompt
+                </button>
+                <pre class="overseer-prompt mt-2 content-collapsible collapsed" id="overseer-prompt-${stepIndex}">${step.prompt}</pre>
+            </div>
+        `;
+    }
+    
+    if (step.response) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-response-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Response
+                </button>
+                <pre class="overseer-response mt-2 content-collapsible collapsed" id="overseer-response-${stepIndex}">${formatCodeBlocks(step.response)}</pre>
+            </div>
+        `;
+    }
+    
+    if (step.metadata) {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="overseer-metadata-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Metadata
+                </button>
+                <pre class="step-metadata mt-2 content-collapsible collapsed" id="overseer-metadata-${stepIndex}">${JSON.stringify(step.metadata, null, 2)}</pre>
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+function renderSolverStep(step, stepIndex) {
+    let content = '';
+    
+    if (step.recommendation) {
+        content += `<div><strong>Recommendation:</strong> ${step.recommendation}</div>`;
+    }
+    
+    // Special handling for code_runner
+    if (step.actor === 'code_runner') {
+        // Show prompt if available
+        if (step.prompt) {
+            content += `
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-prompt-${stepIndex}">
+                        <i class="bi bi-arrows-expand"></i> Show Prompt
+                    </button>
+                    <pre class="solver-prompt mt-2 content-collapsible collapsed" id="solver-prompt-${stepIndex}">${step.prompt}</pre>
+                </div>
+            `;
+        }
+        
+        // If we have a response, display it
+        if (step.response) {
+            content += `
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>Response:</strong>
+                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-response-${stepIndex}">
+                            <i class="bi bi-arrows-expand"></i> Show Response
+                        </button>
+                    </div>
+                    <pre class="solver-response mt-2 content-collapsible collapsed" id="solver-response-${stepIndex}">${formatCodeBlocks(step.response)}</pre>
+                </div>
+            `;
+        }
+
+        // Handle code_output from both root level (new format) or metadata (old format)
+        if (step.code_output || step.metadata?.raw_data?.code_output) {
+            const codeOutput = step.code_output || (step.metadata?.raw_data?.code_output || '');
+            content += `
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>Code Output:</strong>
+                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="code-output-${stepIndex}">
+                            <i class="bi bi-arrows-expand"></i> Show Code Output
+                        </button>
+                    </div>
+                    <pre class="code-output-block language-python content-collapsible collapsed" id="code-output-${stepIndex}"><code class="language-python">${escapeHtml(codeOutput)}</code></pre>
+                </div>
+            `;
+        }
+        
+        // Handle code from both root level (new format) or metadata (old format)
+        if (step.code || step.metadata?.raw_data?.code) {
+            const code = step.code || (step.metadata?.raw_data?.code || '');
+            content += `
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>Generated Code:</strong>
+                        <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="code-block-${stepIndex}">
+                            <i class="bi bi-arrows-expand"></i> Show Generated Code
+                        </button>
+                    </div>
+                    <pre class="code-block language-python content-collapsible collapsed" id="code-block-${stepIndex}"><code class="language-python">${escapeHtml(code)}</code></pre>
+                </div>
+            `;
+        }
+        
+        // Show relevant info in a nice block
+        if (step.metadata?.raw_data || step.status === 'success') {
+            const rawData = step.metadata?.raw_data || {};
+            const relevantInfo = [];
+            
+            // Try to get execution status from different possible locations
+            const executionSuccessful = step.status === 'success' || 
+                                       rawData.execution_successful === true || 
+                                       step.metadata?.execution_successful === true;
+                                       
+            relevantInfo.push(`<div><strong>Execution:</strong> ${executionSuccessful ? 'Successful' : 'Failed'}</div>`);
+            
+            if (rawData.solver || step.solver_name) {
+                relevantInfo.push(`<div><strong>Solver:</strong> ${rawData.solver || step.solver_name || 'code_runner'}</div>`);
+            }
+            
+            if (rawData.recommendation || step.recommendation) {
+                relevantInfo.push(`<div><strong>Recommendation:</strong> ${rawData.recommendation || step.recommendation}</div>`);
+            }
+            
+            if (rawData.code_runner_recommendation) {
+                relevantInfo.push(`<div><strong>Code Runner Recommendation:</strong> ${rawData.code_runner_recommendation}</div>`);
+            }
+            
+            if (relevantInfo.length > 0) {
+                content += `
+                    <div class="mt-3 code-runner-info">
+                        <strong>Execution Info:</strong>
+                        <div class="info-block">
+                            ${relevantInfo.join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    } else {
+        // For non-code_runner steps
+        if (step.response) {
+            content += `
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-response-${stepIndex}">
+                        <i class="bi bi-arrows-expand"></i> Show Solver Response
+                    </button>
+                    <pre class="solver-response mt-2 content-collapsible collapsed" id="solver-response-${stepIndex}">${formatCodeBlocks(step.response)}</pre>
+                </div>
+            `;
+        }
+        
+        if (step.prompt) {
+            content += `
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-prompt-${stepIndex}">
+                        <i class="bi bi-arrows-expand"></i> Show Solver Prompt
+                    </button>
+                    <pre class="solver-prompt mt-2 content-collapsible collapsed" id="solver-prompt-${stepIndex}">${step.prompt}</pre>
+                </div>
+            `;
+        }
+    }
+    
+    // For code_runner, add toggleable metadata button instead of raw display
+    if (step.metadata && step.actor === 'code_runner') {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-metadata-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Additional Details
+                </button>
+                <div class="solver-metadata mt-2 content-collapsible collapsed" id="solver-metadata-${stepIndex}">
+                    <div class="metadata-summary">
+                        ${step.metadata.solver_name ? `<div><strong>Solver Name:</strong> ${step.metadata.solver_name}</div>` : ''}
+                        ${step.metadata.execution_successful !== undefined ? 
+                            `<div><strong>Execution Status:</strong> <span class="${step.metadata.execution_successful ? 'text-success' : 'text-danger'}">${step.metadata.execution_successful ? 'Success' : 'Failed'}</span></div>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (step.metadata && step.actor !== 'code_runner') {
+        content += `
+            <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary toggle-content-btn" data-target="solver-metadata-${stepIndex}">
+                    <i class="bi bi-arrows-expand"></i> Show Metadata
+                </button>
+                <pre class="step-metadata mt-2 content-collapsible collapsed" id="solver-metadata-${stepIndex}">${JSON.stringify(step.metadata, null, 2)}</pre>
+            </div>
+        `;
+    }
+    
+    return content;
+}
+
+// Helper function to escape HTML special characters
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function formatVerdictName(verdict) {
+    const verdictNames = {
+        'satisfied': 'Satisfied',
+        'retry': 'Retry',
+        'default_to_p4': 'Default to P4'
+    };
+    return verdictNames[verdict] || verdict;
+}
+
+/**
+ * Renders a JSON object with collapsible sections for nested objects and arrays
+ * @param {Object|Array} data The JSON data to render
+ * @param {Number} indent The indentation level (default: 0)
+ * @returns {String} HTML string with collapsible JSON
+ */
+function renderFoldableJSON(data, indent = 0) {
+    if (data === null) {
+        return '<span class="json-null">null</span>';
+    }
+    
+    if (typeof data === 'boolean') {
+        return `<span class="json-boolean">${data}</span>`;
+    }
+    
+    if (typeof data === 'number') {
+        return `<span class="json-number">${data}</span>`;
+    }
+    
+    if (typeof data === 'string') {
+        // Special handling for very long strings
+        if (data.length > 500) {
+            const previewLen = Math.min(data.length, 50);
+            return `
+                <span class="json-property-key collapsible-string" onclick="toggleJsonProperty(this)">
+                    <span class="json-string-preview">"${escapeHtml(data.substring(0, previewLen))}${data.length > previewLen ? '...' : ''}"</span>
+                </span>
+                <div class="code-block collapsed">${escapeHtml(data)}</div>
+            `;
+        }
+        
+        // Regular string handling
+        return `<span class="json-string">"${escapeHtml(data)}"</span>`;
+    }
+    
+    // Generate indentation for pretty printing
+    const indentStr = ' '.repeat(indent * 2);
+    const indentStrInner = ' '.repeat((indent + 1) * 2);
+    
+    // Handle arrays
+    if (Array.isArray(data)) {
+        if (data.length === 0) {
+            return '[]';
+        }
+        
+        // Special handling for journey array
+        const isJourneyArray = indent === 0 && data.some(item => item.actor && item.action);
+        let html = '';
+        
+        if (isJourneyArray) {
+            html = '<span class="json-property-key" onclick="toggleJsonProperty(this)">Journey Steps</span>: <div class="json-value">';
+            
+            data.forEach((item, index) => {
+                html += `<div class="json-property-key" onclick="toggleJsonProperty(this)">Step ${index + 1}: ${item.actor || ''} - ${item.action || ''}</div>: <div class="json-value collapsed">`;
+                html += renderFoldableJSON(item, indent + 1);
+                html += '</div><br>';
+            });
+        } else {
+            html = '<span class="json-property-key" onclick="toggleJsonProperty(this)">[</span><div class="json-value">';
+            
+            data.forEach((item, index) => {
+                html += indentStrInner;
+                html += renderFoldableJSON(item, indent + 1);
+                
+                if (index < data.length - 1) {
+                    html += ',';
+                }
+                
+                html += '<br>';
+            });
+        }
+        
+        html += indentStr + '</div>';
+        if (!isJourneyArray) html += ']';
+        return html;
+    }
+    
+    // Handle objects
+    if (Object.keys(data).length === 0) {
+        return '{}';
+    }
+    
+    let html = '<span class="json-property-key" onclick="toggleJsonProperty(this)">{</span><div class="json-value">';
+    
+    Object.entries(data).forEach(([key, value], index) => {
+        const isComplex = value !== null && 
+                          typeof value === 'object' && 
+                          (Array.isArray(value) ? value.length > 0 : Object.keys(value).length > 0);
+        
+        // Special handling for code sections
+        const isCode = key === 'code' || key === 'prompt' || key === 'code_output' || key === 'full_response';
+        const isJourney = key === 'journey' && Array.isArray(value) && value.length > 0;
+        
+        html += indentStrInner;
+        
+        if (isJourney) {
+            html += `<span class="json-property-key" onclick="toggleJsonProperty(this)">"journey"</span>: `;
+            html += renderFoldableJSON(value, indent + 1);
+        } else if (isComplex || isCode) {
+            html += `<span class="json-property-key" onclick="toggleJsonProperty(this)">"${key}"</span>: `;
+            
+            if (isCode && typeof value === 'string') {
+                html += `<div class="code-block collapsed">${escapeHtml(value)}</div>`;
+            } else {
+                html += renderFoldableJSON(value, indent + 1);
+            }
+        } else {
+            html += `<span class="json-property">"${key}"</span>: ${renderFoldableJSON(value, indent + 1)}`;
+        }
+        
+        if (index < Object.keys(data).length - 1) {
+            html += ',';
+        }
+        
+        html += '<br>';
+    });
+    
+    html += indentStr + '</div>}';
+    return html;
+}
+
+/**
+ * Toggle folding of a JSON section
+ * @param {HTMLElement} element The element that was clicked
+ */
+function toggleJsonFolding(element) {
+    // Toggle the collapsed class on the element itself
+    element.classList.toggle('collapsed');
+    
+    // Find the next json-value sibling
+    let valueDiv = element.nextElementSibling;
+    while (valueDiv && !valueDiv.classList.contains('json-value')) {
+        valueDiv = valueDiv.nextElementSibling;
+    }
+    
+    // If we found a value div, toggle its collapsed state
+    if (valueDiv) {
+        valueDiv.classList.toggle('collapsed');
+    }
+}
+
+/**
+ * Toggle folding of a JSON property
+ * @param {HTMLElement} element The element that was clicked
+ */
+function toggleJsonProperty(element) {
+    // Toggle the collapsed class on the element itself
+    element.classList.toggle('collapsed');
+    
+    // The value is the next sibling after the colon and space
+    let valueDiv = element.nextElementSibling; // This is the colon and space
+    if (valueDiv) {
+        valueDiv = valueDiv.nextElementSibling; // This should be the value
+    }
+    
+    // If we found a value div, toggle its collapsed state
+    if (valueDiv && (valueDiv.classList.contains('json-value') || valueDiv.classList.contains('code-block'))) {
+        valueDiv.classList.toggle('collapsed');
+    }
+}
+
+/**
+ * Escape HTML special characters
+ * @param {string} unsafe The unsafe string
+ * @returns {string} The escaped string
+ */
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Expose the function globally for onclick handlers
+window.toggleJsonFolding = toggleJsonFolding;
+
+// Add raw data section with all JSON fields - Modified to use foldable JSON
+function addJsonDataSection(content, data) {
+    // Process journey array as a special case, prefold all steps
+    if (data.journey && Array.isArray(data.journey)) {
+        const journeyData = {...data};
+        // Pre-process the journey array to handle code sections
+        journeyData.journey = data.journey.map(step => {
+            const stepCopy = {...step};
+            // Special handling for code_runner steps
+            if (step.actor === 'code_runner' && step.code) {
+                stepCopy._code_display = 'Code section available (click to expand)';
+            }
+            return stepCopy;
+        });
+        data = journeyData;
+    }
+    
+    return content + `
+        <div class="detail-section">
+            <h4 class="section-title">Full JSON Data</h4>
+            <div class="card">
+                <div class="card-body">
+                    <div class="json-container">${renderFoldableJSON(data)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
