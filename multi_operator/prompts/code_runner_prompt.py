@@ -57,14 +57,48 @@ IMPORTANT REQUIREMENTS:
                     code_gen_prompt += f"   - {name}:\n"
                     
                     # Add endpoints information
+                    has_proxy = False
+                    primary_url = ""
+                    proxy_url = ""
+                    
                     if "endpoints" in source:
                         for endpoint_type, url in source["endpoints"].items():
                             code_gen_prompt += f"     * {endpoint_type}: {url}\n"
                             
+                            if endpoint_type.lower() == "primary":
+                                primary_url = url
+                            
                             # Add specific usage examples for Binance proxy
-                            if "proxy" in endpoint_type.lower() and "binance" in url.lower():
+                            if "proxy" in endpoint_type.lower():
+                                has_proxy = True
+                                proxy_url = url
                                 code_gen_prompt += "     * RECOMMENDED: Use this proxy endpoint first for better reliability\n"
                                 code_gen_prompt += f"     * Example: {url}?symbol=BTCUSDT&interval=1m&limit=1&startTime=TIMESTAMP&endTime=TIMESTAMP\n"
+                    
+                    # Add explicit instructions for fallback mechanism when proxy is available
+                    if has_proxy and primary_url and proxy_url:
+                        code_gen_prompt += """
+     * CRITICALLY IMPORTANT: Since a proxy endpoint is provided, you MUST implement a fallback mechanism:
+       1. Try the proxy endpoint first (better reliability)
+       2. If proxy fails (timeout, error response, etc.), automatically fall back to the primary endpoint
+       3. Your code MUST handle this gracefully with try/except blocks
+
+     Example fallback code structure:
+     ```python
+     def get_data(symbol, start_time, end_time):
+         try:
+             # First try the proxy endpoint
+             response = requests.get(f"{proxy_url}?symbol={symbol}&interval=1m&limit=1&startTime={start_time}&endTime={end_time}", timeout=10)
+             response.raise_for_status()
+             return response.json()
+         except Exception as e:
+             print(f"Proxy endpoint failed: {str(e)}, falling back to primary endpoint")
+             # Fall back to primary endpoint if proxy fails
+             response = requests.get(f"{primary_url}/klines?symbol={symbol}&interval=1m&limit=1&startTime={start_time}&endTime={end_time}", timeout=10)
+             response.raise_for_status()
+             return response.json()
+     ```
+     """
         
         elif query_type == "sports_mlb" or query_type.startswith("sports_"):
             sports_type = query_type.replace("sports_", "").upper()
@@ -81,12 +115,39 @@ IMPORTANT REQUIREMENTS:
                     code_gen_prompt += f"   - {name}:\n"
                     
                     # Add endpoints information
+                    has_proxy = False
+                    primary_url = ""
+                    proxy_url = ""
+                    
                     if "endpoints" in source:
                         for endpoint_type, url in source["endpoints"].items():
                             code_gen_prompt += f"     * {endpoint_type}: {url}\n"
+                            
+                            if endpoint_type.lower() == "primary":
+                                primary_url = url
+                            
+                            if "proxy" in endpoint_type.lower():
+                                has_proxy = True
+                                proxy_url = url
+                                code_gen_prompt += "     * RECOMMENDED: Use this proxy endpoint first for better reliability\n"
+                    
+                    # Add explicit instructions for fallback mechanism when proxy is available
+                    if has_proxy and primary_url and proxy_url:
+                        code_gen_prompt += """
+     * CRITICALLY IMPORTANT: Since a proxy endpoint is provided, you MUST implement a fallback mechanism:
+       1. Try the proxy endpoint first (better reliability)
+       2. If proxy fails (timeout, error response, etc.), automatically fall back to the primary endpoint
+       3. Your code MUST handle this gracefully with try/except blocks
+     """
 
     code_gen_prompt += """
 5. NEVER include actual API key values in the code, always load them from environment variables.
+
+6. IMPORTANT FOR ALL DATA SOURCES: If a proxy endpoint is provided alongside a primary endpoint, you MUST implement the fallback mechanism described above. This is critical for reliability:
+   - Always try the proxy endpoint first
+   - If the proxy fails, fall back to the primary endpoint
+   - Use appropriate timeout values (10 seconds recommended)
+   - Include proper error handling with try/except blocks
 
 The code should be completely self-contained and runnable with no arguments.
 
@@ -127,6 +188,7 @@ def get_retry_prompt(
     query_type: str,
     available_api_keys: Set[str],
     attempt: int,
+    data_sources: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate the prompt for subsequent code generation attempts.
@@ -136,6 +198,7 @@ def get_retry_prompt(
         query_type: The type of query (crypto, sports_mlb, etc.)
         available_api_keys: Set of available API keys
         attempt: Current attempt number
+        data_sources: Optional dictionary of data sources
 
     Returns:
         The prompt for code generation
@@ -155,6 +218,7 @@ Previous code had the following issues:
   * API connection issues
   * Incorrect use of RESOLUTION_MAP (using "p1" as a key instead of as a value)
   * KeyError exceptions when accessing dictionaries
+  * Not implementing fallback mechanism for proxy endpoints
 
 Please provide a new, corrected version that:
 1. DOES NOT use command-line arguments - extract all needed info from the question itself
@@ -163,13 +227,97 @@ Please provide a new, corrected version that:
     # Add information about all available API keys
     for api_key_name in sorted(available_api_keys):
         code_gen_prompt += f"   - {api_key_name}\n"
+    
+    # Add information about data sources if available
+    if data_sources:
+        code_gen_prompt += "\n3. Data Sources and Endpoints:\n"
+        
+        # Add data source information based on the query type
+        if query_type == "crypto":
+            crypto_sources = [s for s in data_sources.values() if s.get("category") == "crypto"]
+            if crypto_sources:
+                code_gen_prompt += "   Cryptocurrency Data Sources:\n"
+                for source in crypto_sources:
+                    name = source.get("name", "Unknown")
+                    code_gen_prompt += f"   - {name}:\n"
+                    
+                    # Add endpoints information
+                    has_proxy = False
+                    primary_url = ""
+                    proxy_url = ""
+                    
+                    if "endpoints" in source:
+                        for endpoint_type, url in source["endpoints"].items():
+                            code_gen_prompt += f"     * {endpoint_type}: {url}\n"
+                            
+                            if endpoint_type.lower() == "primary":
+                                primary_url = url
+                            
+                            if "proxy" in endpoint_type.lower():
+                                has_proxy = True
+                                proxy_url = url
+                                code_gen_prompt += "     * RECOMMENDED: Use this proxy endpoint first for better reliability\n"
+                    
+                    # Add explicit instructions for fallback mechanism when proxy is available
+                    if has_proxy and primary_url and proxy_url:
+                        code_gen_prompt += """
+     * CRITICALLY IMPORTANT: You MUST implement a fallback mechanism for API calls:
+       1. Try the proxy endpoint first
+       2. If proxy fails, automatically fall back to the primary endpoint
+       3. Handle this with proper try/except blocks
+"""
+        
+        elif query_type.startswith("sports_"):
+            sports_type = query_type.replace("sports_", "").upper()
+            sports_sources = [
+                s for s in data_sources.values() 
+                if s.get("category") == "sports" and 
+                (sports_type in s.get("name", "") or sports_type in s.get("subcategory", ""))
+            ]
+            
+            if sports_sources:
+                code_gen_prompt += f"   Sports Data Sources for {sports_type}:\n"
+                for source in sports_sources:
+                    name = source.get("name", "Unknown")
+                    code_gen_prompt += f"   - {name}:\n"
+                    
+                    # Add endpoints information
+                    has_proxy = False
+                    primary_url = ""
+                    proxy_url = ""
+                    
+                    if "endpoints" in source:
+                        for endpoint_type, url in source["endpoints"].items():
+                            code_gen_prompt += f"     * {endpoint_type}: {url}\n"
+                            
+                            if endpoint_type.lower() == "primary":
+                                primary_url = url
+                            
+                            if "proxy" in endpoint_type.lower():
+                                has_proxy = True
+                                proxy_url = url
+                                code_gen_prompt += "     * RECOMMENDED: Use this proxy endpoint first for better reliability\n"
+                    
+                    # Add explicit instructions for fallback mechanism when proxy is available
+                    if has_proxy and primary_url and proxy_url:
+                        code_gen_prompt += """
+     * CRITICALLY IMPORTANT: You MUST implement a fallback mechanism for API calls:
+       1. Try the proxy endpoint first
+       2. If proxy fails, automatically fall back to the primary endpoint
+       3. Handle this with proper try/except blocks
+"""
         
     code_gen_prompt += """
-3. NEVER include actual API key values in the code, always load them from environment variables.
-4. Makes the code runnable with no arguments
-5. Handles errors more gracefully with try/except blocks
-6. Returns results in a clear format: "recommendation: p1", "recommendation: p2", etc.
-7. For sports data: Uses RESOLUTION_MAP correctly (keys are outcomes, values are recommendation codes)
+4. NEVER include actual API key values in the code, always load them from environment variables.
+5. Makes the code runnable with no arguments
+6. Handles errors more gracefully with try/except blocks
+7. Returns results in a clear format: "recommendation: p1", "recommendation: p2", etc.
+8. For sports data: Uses RESOLUTION_MAP correctly (keys are outcomes, values are recommendation codes)
+9. IMPORTANT: If a proxy endpoint is provided alongside a primary endpoint, you MUST implement a fallback mechanism:
+   - Always try the proxy endpoint first
+   - If the proxy fails, fall back to the primary endpoint
+   - Use appropriate timeout values (10 seconds recommended) 
+   - Include proper error handling with try/except blocks
 """
 
     return code_gen_prompt
@@ -331,7 +479,7 @@ def get_code_generation_prompt(
         )
     else:
         base_prompt = get_retry_prompt(
-            user_prompt, query_type, available_api_keys, attempt
+            user_prompt, query_type, available_api_keys, attempt, data_sources
         )
     
     # Add query type specific guidance
@@ -340,6 +488,9 @@ def get_code_generation_prompt(
     # Add final instructions
     final_instructions = """
 IMPORTANT: Your code MUST run successfully without errors and without requiring any command-line arguments. Focus on robustness rather than features.
+
+REMEMBER: If proxy endpoints are provided, you MUST implement the fallback mechanism described earlier. This is critical for reliability and must be handled correctly.
+
 Return ONLY the Python code without explanation.
 """
     
