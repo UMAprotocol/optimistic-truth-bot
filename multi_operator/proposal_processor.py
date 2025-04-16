@@ -1167,7 +1167,11 @@ SUMMARY:
                             "reason": router_result.get("reason", ""),
                             "multi_solver_strategy": router_result.get("multi_solver_strategy", "")
                         },
-                        "timestamp": time.time(),  # Add timestamp for chronological tracking
+                        # Add detailed timing information
+                        "timestamp": time.time(),
+                        "start_time": router_result.get("start_time", router_result.get("request_timestamp", time.time() - 2)),  # Try to get original start time
+                        "end_time": router_result.get("end_time", time.time()),  # When the routing completed
+                        "duration_seconds": router_result.get("duration_seconds", router_result.get("execution_time", 2)),  # How long it took
                         "metadata": {  # Only include truly supplementary metadata, not duplicated data
                             "available_solvers": list(self.solvers.keys()) if hasattr(self, "solvers") else [],
                             "excluded_solvers": result.get("rerouting_info", {}).get("excluded_solvers", []) if routing_attempt > 1 else []
@@ -1248,7 +1252,16 @@ SUMMARY:
                         "prompt": solver_prompt,
                         "response": solver_result.get("response", ""),
                         "recommendation": solver_result.get("recommendation", ""),
-                        "timestamp": time.time(),  # Add timestamp for chronological tracking
+                        # Add detailed timing information
+                        "timestamp": time.time(),
+                        "start_time": solver_result.get("start_time", 
+                                      solver_result.get("request_timestamp", 
+                                      solver_result.get("solver_result", {}).get("request_timestamp", time.time() - 5))),  # Try to get original start time
+                        "end_time": solver_result.get("end_time", 
+                                    solver_result.get("solver_result", {}).get("completion_timestamp", time.time())),  # When the solving completed
+                        "duration_seconds": solver_result.get("duration_seconds", 
+                                           solver_result.get("execution_time", 
+                                           solver_result.get("solver_result", {}).get("execution_time", 5))),  # How long it took
                         "status": "success" if solver_result.get("execution_successful", True) else "failure",
                         "metadata": {  # Only include truly supplementary metadata
                             "solver_name": solver_name,
@@ -1263,13 +1276,28 @@ SUMMARY:
                     if "solver_result" in solver_result:
                         solver_result_data = solver_result.get("solver_result", {})
                         
-                        # Add execution time if available
-                        if "execution_time" in solver_result_data:
-                            solver_entry["execution_time"] = solver_result_data["execution_time"]
+                        # For code_runner, add execution stats and code metrics directly
+                        if solver_name == "code_runner":
+                            code = solver_result_data.get("code", "")
+                            code_output = solver_result_data.get("code_output", "")
                             
-                        # Add request timestamp if available
-                        if "request_timestamp" in solver_result_data:
-                            solver_entry["request_timestamp"] = solver_result_data["request_timestamp"]
+                            # Add code metrics
+                            if code:
+                                solver_entry["code"] = code
+                                solver_entry["code_size_bytes"] = len(code)
+                                solver_entry["code_line_count"] = len(code.split("\n"))
+                                
+                            if code_output:
+                                solver_entry["code_output"] = code_output
+                                solver_entry["code_output_size_bytes"] = len(code_output)
+                            
+                            # Add API stats if available
+                            if "api_stats" in solver_result_data:
+                                solver_entry["api_stats"] = solver_result_data["api_stats"]
+                                
+                            # Add execution environment info if available
+                            if "execution_environment" in solver_result_data:
+                                solver_entry["execution_environment"] = solver_result_data["execution_environment"]
                     
                     # Add market_misalignment field if present
                     if "market_misalignment" in solver_result and solver_result["market_misalignment"]:
@@ -1328,7 +1356,14 @@ SUMMARY:
                             "prompt_update": overseer_decision.get("prompt_update", ""),  # Include the actual update
                             "require_rerun": require_rerun,
                             "reason": overseer_decision.get("reason", ""),  # Move from metadata to top level
-                            "timestamp": time.time(),  # Add timestamp for chronological tracking
+                            # Add detailed timing information
+                            "timestamp": time.time(),
+                            "start_time": overseer_result.get("start_time", 
+                                         overseer_result.get("request_timestamp", time.time() - 3)),  # Try to get original start time
+                            "end_time": overseer_result.get("end_time", 
+                                       overseer_result.get("completion_timestamp", time.time())),  # When the evaluation completed
+                            "duration_seconds": overseer_result.get("duration_seconds", 
+                                              overseer_result.get("execution_time", 3)),  # How long it took
                             "status": "rejected" if verdict.lower() in ["retry", "default_to_p4"] else "accepted",
                             "metadata": {  # Only include truly supplementary metadata
                                 "evaluated_step": step_counter - 1,  # Reference to the step being evaluated
@@ -1364,6 +1399,11 @@ SUMMARY:
                 if routing_attempt < routing_attempts and "rerouting_info" in result:
                     rerouting_info = result["rerouting_info"]
                     
+                    # Get the latest timing information from the phase to help with timestamps
+                    phase_entries = [e for e in journey if e["routing_phase"] == routing_attempt]
+                    phase_start_time = min([e.get("start_time", time.time() - 30) for e in phase_entries], default=time.time() - 30) if phase_entries else time.time() - 30
+                    phase_end_time = time.time()
+                    
                     # Create rerouting entry with flattened structure (no raw_data nesting)
                     rerouting_entry = {
                         "step": step_counter,
@@ -1373,7 +1413,14 @@ SUMMARY:
                         "routing_phase": routing_attempt,
                         "excluded_solvers": rerouting_info.get("excluded_solvers", []),
                         "routing_guidance": rerouting_info.get("overseer_guidance", ""),
-                        "timestamp": time.time(),  # Add timestamp for chronological tracking
+                        # Add detailed timing information
+                        "timestamp": time.time(),
+                        "start_time": rerouting_info.get("start_time", 
+                                     rerouting_info.get("request_timestamp", 
+                                     phase_end_time - 2)),  # When the rerouting decision started
+                        "end_time": rerouting_info.get("end_time", time.time()),  # When the rerouting completed
+                        "duration_seconds": rerouting_info.get("duration_seconds", 2),  # How long it took for the rerouting decision
+                        "phase_duration_seconds": phase_end_time - phase_start_time,  # Total duration of the phase being rerouted
                         "reason": rerouting_info.get("reason", "Based on previous solver performance"),
                         # Add phase analysis directly at top level rather than nested
                         "previous_phase_summary": {
@@ -1393,7 +1440,9 @@ SUMMARY:
                         "next_phase": routing_attempt + 1,
                         "metadata": {  # Minimal metadata with only supplementary info
                             "current_phase_start_step": min([e["step"] for e in journey if e["routing_phase"] == routing_attempt], default=step_counter),
-                            "current_phase_end_step": step_counter
+                            "current_phase_end_step": step_counter,
+                            "phase_start_time": phase_start_time,
+                            "phase_end_time": phase_end_time
                         }
                     }
                     
@@ -1403,8 +1452,40 @@ SUMMARY:
                     # Initialize next routing phase
                     attempt_counters["router"][routing_attempt + 1] = 1
             
-            # Store the journey as a top-level element (this is the main feature)
+            # Calculate overall journey timing statistics
+            journey_start_time = min([e.get("start_time", e.get("timestamp", time.time())) for e in journey], default=time.time() - 30) if journey else time.time() - 30
+            journey_end_time = max([e.get("end_time", e.get("timestamp", time.time())) for e in journey], default=time.time()) if journey else time.time()
+            journey_total_duration = journey_end_time - journey_start_time
+            
+            # Add timing metadata about the journey
+            journey_summary = {
+                "steps": len(journey),
+                "start_time": journey_start_time,
+                "end_time": journey_end_time,
+                "total_duration_seconds": journey_total_duration,
+                "routing_phases": max([e.get("routing_phase", 1) for e in journey], default=1) if journey else 1,
+                "step_count_by_actor": {},
+                "total_duration_by_actor": {}
+            }
+            
+            # Calculate statistics by actor type
+            for entry in journey:
+                actor = entry.get("actor", "unknown")
+                
+                # Count steps by actor
+                if actor not in journey_summary["step_count_by_actor"]:
+                    journey_summary["step_count_by_actor"][actor] = 0
+                journey_summary["step_count_by_actor"][actor] += 1
+                
+                # Sum duration by actor
+                if "duration_seconds" in entry:
+                    if actor not in journey_summary["total_duration_by_actor"]:
+                        journey_summary["total_duration_by_actor"][actor] = 0
+                    journey_summary["total_duration_by_actor"][actor] += entry["duration_seconds"]
+            
+            # Store the journey as a top-level element
             clean_result["journey"] = journey
+            clean_result["journey_summary"] = journey_summary
             
             # Prompts are now included in metadata section
             

@@ -4749,17 +4749,8 @@ function showDetails(data, index) {
         `;
     }
     
-    // Add raw data section with all JSON fields
-    content += `
-        <div class="detail-section">
-            <h4 class="section-title">Full JSON Data</h4>
-            <div class="card">
-                <div class="card-body">
-                    <pre class="mb-0 json-data">${JSON.stringify(data, null, 2)}</pre>
-                </div>
-            </div>
-        </div>
-    `;
+    // Use the new function for JSON folding instead of simple pre tag
+    content = addJsonDataSection(content, data);
     
     // Set the modal content
     modalBody.innerHTML = content;
@@ -6384,13 +6375,12 @@ function renderSolverStep(step, stepIndex) {
 
 // Helper function to escape HTML special characters
 function escapeHtml(unsafe) {
-    if (typeof unsafe !== 'string') return '';
     return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function formatVerdictName(verdict) {
@@ -6400,4 +6390,211 @@ function formatVerdictName(verdict) {
         'default_to_p4': 'Default to P4'
     };
     return verdictNames[verdict] || verdict;
+}
+
+/**
+ * Renders a JSON object with collapsible sections for nested objects and arrays
+ * @param {Object|Array} data The JSON data to render
+ * @param {Number} indent The indentation level (default: 0)
+ * @returns {String} HTML string with collapsible JSON
+ */
+function renderFoldableJSON(data, indent = 0) {
+    if (data === null) {
+        return '<span class="json-null">null</span>';
+    }
+    
+    if (typeof data === 'boolean') {
+        return `<span class="json-boolean">${data}</span>`;
+    }
+    
+    if (typeof data === 'number') {
+        return `<span class="json-number">${data}</span>`;
+    }
+    
+    if (typeof data === 'string') {
+        // Special handling for very long strings
+        if (data.length > 500) {
+            const previewLen = Math.min(data.length, 50);
+            return `
+                <span class="json-property-key collapsible-string" onclick="toggleJsonProperty(this)">
+                    <span class="json-string-preview">"${escapeHtml(data.substring(0, previewLen))}${data.length > previewLen ? '...' : ''}"</span>
+                </span>
+                <div class="code-block collapsed">${escapeHtml(data)}</div>
+            `;
+        }
+        
+        // Regular string handling
+        return `<span class="json-string">"${escapeHtml(data)}"</span>`;
+    }
+    
+    // Generate indentation for pretty printing
+    const indentStr = ' '.repeat(indent * 2);
+    const indentStrInner = ' '.repeat((indent + 1) * 2);
+    
+    // Handle arrays
+    if (Array.isArray(data)) {
+        if (data.length === 0) {
+            return '[]';
+        }
+        
+        // Special handling for journey array
+        const isJourneyArray = indent === 0 && data.some(item => item.actor && item.action);
+        let html = '';
+        
+        if (isJourneyArray) {
+            html = '<span class="json-property-key" onclick="toggleJsonProperty(this)">Journey Steps</span>: <div class="json-value">';
+            
+            data.forEach((item, index) => {
+                html += `<div class="json-property-key" onclick="toggleJsonProperty(this)">Step ${index + 1}: ${item.actor || ''} - ${item.action || ''}</div>: <div class="json-value collapsed">`;
+                html += renderFoldableJSON(item, indent + 1);
+                html += '</div><br>';
+            });
+        } else {
+            html = '<span class="json-property-key" onclick="toggleJsonProperty(this)">[</span><div class="json-value">';
+            
+            data.forEach((item, index) => {
+                html += indentStrInner;
+                html += renderFoldableJSON(item, indent + 1);
+                
+                if (index < data.length - 1) {
+                    html += ',';
+                }
+                
+                html += '<br>';
+            });
+        }
+        
+        html += indentStr + '</div>';
+        if (!isJourneyArray) html += ']';
+        return html;
+    }
+    
+    // Handle objects
+    if (Object.keys(data).length === 0) {
+        return '{}';
+    }
+    
+    let html = '<span class="json-property-key" onclick="toggleJsonProperty(this)">{</span><div class="json-value">';
+    
+    Object.entries(data).forEach(([key, value], index) => {
+        const isComplex = value !== null && 
+                          typeof value === 'object' && 
+                          (Array.isArray(value) ? value.length > 0 : Object.keys(value).length > 0);
+        
+        // Special handling for code sections
+        const isCode = key === 'code' || key === 'prompt' || key === 'code_output' || key === 'full_response';
+        const isJourney = key === 'journey' && Array.isArray(value) && value.length > 0;
+        
+        html += indentStrInner;
+        
+        if (isJourney) {
+            html += `<span class="json-property-key" onclick="toggleJsonProperty(this)">"journey"</span>: `;
+            html += renderFoldableJSON(value, indent + 1);
+        } else if (isComplex || isCode) {
+            html += `<span class="json-property-key" onclick="toggleJsonProperty(this)">"${key}"</span>: `;
+            
+            if (isCode && typeof value === 'string') {
+                html += `<div class="code-block collapsed">${escapeHtml(value)}</div>`;
+            } else {
+                html += renderFoldableJSON(value, indent + 1);
+            }
+        } else {
+            html += `<span class="json-property">"${key}"</span>: ${renderFoldableJSON(value, indent + 1)}`;
+        }
+        
+        if (index < Object.keys(data).length - 1) {
+            html += ',';
+        }
+        
+        html += '<br>';
+    });
+    
+    html += indentStr + '</div>}';
+    return html;
+}
+
+/**
+ * Toggle folding of a JSON section
+ * @param {HTMLElement} element The element that was clicked
+ */
+function toggleJsonFolding(element) {
+    // Toggle the collapsed class on the element itself
+    element.classList.toggle('collapsed');
+    
+    // Find the next json-value sibling
+    let valueDiv = element.nextElementSibling;
+    while (valueDiv && !valueDiv.classList.contains('json-value')) {
+        valueDiv = valueDiv.nextElementSibling;
+    }
+    
+    // If we found a value div, toggle its collapsed state
+    if (valueDiv) {
+        valueDiv.classList.toggle('collapsed');
+    }
+}
+
+/**
+ * Toggle folding of a JSON property
+ * @param {HTMLElement} element The element that was clicked
+ */
+function toggleJsonProperty(element) {
+    // Toggle the collapsed class on the element itself
+    element.classList.toggle('collapsed');
+    
+    // The value is the next sibling after the colon and space
+    let valueDiv = element.nextElementSibling; // This is the colon and space
+    if (valueDiv) {
+        valueDiv = valueDiv.nextElementSibling; // This should be the value
+    }
+    
+    // If we found a value div, toggle its collapsed state
+    if (valueDiv && (valueDiv.classList.contains('json-value') || valueDiv.classList.contains('code-block'))) {
+        valueDiv.classList.toggle('collapsed');
+    }
+}
+
+/**
+ * Escape HTML special characters
+ * @param {string} unsafe The unsafe string
+ * @returns {string} The escaped string
+ */
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Expose the function globally for onclick handlers
+window.toggleJsonFolding = toggleJsonFolding;
+
+// Add raw data section with all JSON fields - Modified to use foldable JSON
+function addJsonDataSection(content, data) {
+    // Process journey array as a special case, prefold all steps
+    if (data.journey && Array.isArray(data.journey)) {
+        const journeyData = {...data};
+        // Pre-process the journey array to handle code sections
+        journeyData.journey = data.journey.map(step => {
+            const stepCopy = {...step};
+            // Special handling for code_runner steps
+            if (step.actor === 'code_runner' && step.code) {
+                stepCopy._code_display = 'Code section available (click to expand)';
+            }
+            return stepCopy;
+        });
+        data = journeyData;
+    }
+    
+    return content + `
+        <div class="detail-section">
+            <h4 class="section-title">Full JSON Data</h4>
+            <div class="card">
+                <div class="card-body">
+                    <div class="json-container">${renderFoldableJSON(data)}</div>
+                </div>
+            </div>
+        </div>
+    `;
 }

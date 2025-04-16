@@ -436,5 +436,63 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <script src="app.js"></script>
+    <script>
+        // Make toggleJsonFolding and toggleJsonProperty globally available for the onclick handler
+        window.toggleJsonFolding = function(element) {
+            // Toggle the collapsed class on the element itself
+            element.classList.toggle('collapsed');
+            
+            // Find the next json-value sibling
+            let valueDiv = element.nextElementSibling;
+            while (valueDiv && !valueDiv.classList.contains('json-value')) {
+                valueDiv = valueDiv.nextElementSibling;
+            }
+            
+            // If we found a value div, toggle its collapsed state
+            if (valueDiv) {
+                valueDiv.classList.toggle('collapsed');
+            }
+        };
+        
+        window.toggleJsonProperty = function(element) {
+            // Toggle the collapsed class on the element itself
+            element.classList.toggle('collapsed');
+            
+            // First, check if this is a collapsible string or step heading
+            if (element.classList.contains('collapsible-string')) {
+                let codeBlock = element.nextElementSibling;
+                if (codeBlock && codeBlock.classList.contains('code-block')) {
+                    codeBlock.classList.toggle('collapsed');
+                }
+                return;
+            }
+            
+            // Handle step headings (special case for journey array)
+            if (element.textContent.startsWith('Step ') && element.textContent.includes(':')) {
+                // Special case for steps in journey array
+                let valueDiv = element.nextElementSibling;
+                if (valueDiv && valueDiv.classList.contains('json-value')) {
+                    valueDiv.classList.toggle('collapsed');
+                }
+                return;
+            }
+            
+            // Find the value container - could be right after a property key or after a colon
+            let valueDiv = null;
+            let next = element.nextElementSibling;
+            
+            if (next && next.textContent === ':') {
+                // If followed by a colon, the value is after the colon
+                valueDiv = next.nextElementSibling;
+            } else {
+                // Otherwise it's the next element
+                valueDiv = next;
+            }
+            
+            if (valueDiv && (valueDiv.classList.contains('json-value') || valueDiv.classList.contains('code-block'))) {
+                valueDiv.classList.toggle('collapsed');
+            }
+        };
+    </script>
 </body>
 </html> 
