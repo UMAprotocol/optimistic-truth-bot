@@ -9,6 +9,8 @@ let currentSourceFilter = 'filesystem'; // Track current source filter
 let autoScrollEnabled = true; // Auto-scroll preference
 let mongoOnlyResults = false; // Track if we should only show MongoDB results
 let disableExperimentRunner = false; // Track if experiment runner is disabled
+let singleExperimentMode = false; // Track if we're in single experiment mode
+let singleExperimentName = ''; // The name of the single experiment to show
 
 // Date filter variables
 let currentDateFilters = {
@@ -23,6 +25,7 @@ let columnPreferences = {
     id: true,
     title: true,
     recommendation: true,
+    proposed: true,
     router_decision: false,
     resolution: true,
     disputed: true,
@@ -61,6 +64,10 @@ async function fetchServerConfig() {
             // Update global settings
             mongoOnlyResults = config.mongo_only_results === true;
             disableExperimentRunner = config.disable_experiment_runner === true;
+            
+            // Set single experiment mode if specified
+            singleExperimentName = config.single_experiment_name || '';
+            singleExperimentMode = singleExperimentName !== '';
             
             // Update UI based on configuration
             const sourceFilterGroup = document.querySelector('.source-filter-group');
@@ -194,6 +201,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Setup the analytics tab buttons with proper event handlers
+    const tagsTab = document.getElementById('tags-tab');
+    const overallTab = document.getElementById('overall-tab');
+    
+    if (tagsTab) {
+        tagsTab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tabInstance = new bootstrap.Tab(tagsTab);
+            tabInstance.show();
+        });
+    }
+    
+    if (overallTab) {
+        overallTab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tabInstance = new bootstrap.Tab(overallTab);
+            tabInstance.show();
+        });
+    }
+    
     // Set up experiment runner events
     initializeExperimentRunner();
 
@@ -290,6 +317,38 @@ function initializeTabs() {
             tabInstance.show();
         });
     });
+    
+    // Handle analytics tabs
+    document.querySelectorAll('#analyticsTabs .nav-link').forEach(tab => {
+        tab.addEventListener('click', (event) => {
+            // Prevent default hash-based scrolling
+            event.preventDefault();
+            
+            // Use Bootstrap's tab API to show the tab
+            const tabInstance = new bootstrap.Tab(event.target);
+            tabInstance.show();
+        });
+    });
+    
+    // Explicitly setup the analytics tab buttons with proper event handlers
+    const tagsTab = document.getElementById('tags-tab');
+    const overallTab = document.getElementById('overall-tab');
+    
+    if (tagsTab) {
+        tagsTab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tabInstance = new bootstrap.Tab(tagsTab);
+            tabInstance.show();
+        });
+    }
+    
+    if (overallTab) {
+        overallTab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tabInstance = new bootstrap.Tab(overallTab);
+            tabInstance.show();
+        });
+    }
 }
 
 // Initialize experiment runner components
@@ -1228,6 +1287,2215 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
 
 // Load active processes from the API
 async function loadActiveProcesses() {
+    // Skip API call if experiment runner is disabled
+    if (disableExperimentRunner) {
+        // Set empty processes array
+        activeProcesses = [];
+        updateProcessesTable();
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/processes');
+        
+        if (response.ok) {
+            const processes = await response.json();
+            
+            // Check if any processes changed
+            const previousProcesses = [...activeProcesses];
+            activeProcesses = processes;
+            
+            let shouldUpdateProcessTable = false;
+            let shouldUpdateHistoryTable = false;
+            
+            // Update history statuses if needed
+            processes.forEach(process => {
+                const prevProcess = previousProcesses.find(p => p.id === process.id);
+                
+                // Check if status changed or it's a new process
+                if (!prevProcess || prevProcess.status !== process.status) {
+                    shouldUpdateProcessTable = true;
+                    shouldUpdateHistoryTable = true;
+                    
+                    // Status changed or new process
+                    if (process.status === 'completed' || process.status === 'failed' || process.status === 'stopped') {
+                        updateCommandHistoryStatus(process.id, process.status);
+                    }
+                }
+                
+                // Always check for log changes for the currently selected process
+                if (currentProcessId === process.id) {
+                    const prevLogs = prevProcess?.logs || [];
+                    const currentLogs = process.logs || [];
+                    
+                    // Only update logs if we have more logs than before
+                    // Do NOT update just because the process is running - this causes unwanted scroll resets
+                    if (currentLogs.length !== prevLogs.length) {
+                        updateProcessLogs(process.id);
+                    }
+                }
+            });
+            
+            // Only update tables if needed to avoid excessive re-renders
+            if (shouldUpdateProcessTable) {
+                updateProcessesTable();
+            }
+            if (shouldUpdateHistoryTable) {
+                updateCommandHistoryTable();
+            }
+        } else if (response.status === 403) {
+            // 403 Forbidden response is expected when experiment runner is disabled
+            // Set empty processes array and update UI
+            activeProcesses = [];
+            updateProcessesTable();
+            
+            // Don't log as error to avoid console spam
+            console.log('Process management disabled on this server');
+        } else {
+            console.error('Failed to load processes:', response.status, response.statusText);
+        }
+    } catch (error) {
+        console.error('Error loading processes:', error);
+    }
+}
+
+// Stop a running process via API
+async function stopProcess(processId) {
+    try {
+        const response = await fetch(`/api/process/stop/${processId}`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            console.log('Process stopped:', processId);
+            
+            // Update history status
+            updateCommandHistoryStatus(processId, 'stopped');
+            
+            // Reload the process list
+            await loadActiveProcesses();
+            
+            // Update the logs for the stopped process
+            if (currentProcessId === processId) {
+                updateProcessLogs(processId);
+            }
+        } else {
+            console.error('Failed to stop process');
+        }
+    } catch (error) {
+        console.error('Error stopping process:', error);
+    }
+}
+
+// Update the processes table
+function updateProcessesTable() {
+    const tableBody = document.getElementById('processesTableBody');
+    if (!tableBody) return;
+    
+    // Filter to only show active/running processes
+    const runningProcesses = activeProcesses.filter(p => p.status === 'running' || p.status === 'pending');
+    
+    if (runningProcesses.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center">No active processes</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Sort processes by start time (newest first)
+    const sortedProcesses = [...runningProcesses].sort((a, b) => {
+        const timeA = a.start_time || 0;
+        const timeB = b.start_time || 0;
+        return timeB - timeA;
+    });
+    
+    tableBody.innerHTML = sortedProcesses.map(process => {
+        const formattedTime = formatDate(process.start_time);
+        let statusClass = '';
+        let statusText = process.status;
+        
+        if (process.status === 'running') {
+            statusClass = 'status-running';
+            statusText = `<i class="bi bi-play-fill"></i> Running`;
+        } else if (process.status === 'pending') {
+            statusClass = 'status-pending';
+            statusText = `<i class="bi bi-hourglass"></i> Pending`;
+        }
+        
+        const processId = process.id || '';
+        
+        return `
+            <tr class="process-row ${processId === currentProcessId ? 'table-active' : ''}" data-process-id="${processId}">
+                <td>${formattedTime}</td>
+                <td class="command-cell" title="${process.command}"><code>${process.command}</code></td>
+                <td class="${statusClass}">${statusText}</td>
+                <td style="min-width: 160px;">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary process-action-btn view-logs-btn">
+                            <i class="bi bi-file-text"></i>Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger process-action-btn stop-process-btn">
+                            <i class="bi bi-stop-fill"></i>Stop
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Add click event listeners to the action buttons
+    document.querySelectorAll('.view-logs-btn').forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const row = event.target.closest('.process-row');
+            if (row) {
+                const processId = row.getAttribute('data-process-id');
+                selectProcess(processId);
+            }
+        });
+    });
+    
+    document.querySelectorAll('.stop-process-btn').forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const row = event.target.closest('.process-row');
+            if (row) {
+                const processId = row.getAttribute('data-process-id');
+                stopProcess(processId);
+            }
+        });
+    });
+    
+    // Add click event to rows for selecting a process
+    document.querySelectorAll('.process-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const processId = row.getAttribute('data-process-id');
+            selectProcess(processId);
+        });
+    });
+}
+
+// Select a process and display its logs
+function selectProcess(processId) {
+    // Update current process
+    currentProcessId = processId;
+    
+    // Highlight selected row
+    document.querySelectorAll('.process-row').forEach(row => {
+        if (row.getAttribute('data-process-id') === processId) {
+            row.classList.add('table-active');
+        } else {
+            row.classList.remove('table-active');
+        }
+    });
+    
+    // Update logs
+    updateProcessLogs(processId);
+}
+
+// Function to update process logs display
+function updateProcessLogs(processId) {
+    const logsContainer = document.getElementById('processLogs');
+    if (!logsContainer) return;
+    
+    const process = activeProcesses.find(p => p.id === processId);
+    if (!process) {
+        logsContainer.innerHTML = `
+            <div class="text-center text-muted p-5">
+                <i class="bi bi-terminal-x fs-1"></i>
+                <p class="mt-3">No process selected</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Update the logs title with process status
+    const logsTitle = document.getElementById('logsTitle');
+    if (logsTitle) {
+        const statusBadge = process.status ? 
+            `<span class="badge ${
+                process.status === 'completed' ? 'bg-success' : 
+                process.status === 'failed' ? 'bg-danger' : 
+                process.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+            }">${process.status}</span>` : '';
+        
+        logsTitle.innerHTML = `Process Logs: <code>${process.command}</code> ${statusBadge}`;
+    }
+    
+    // Cache check: See if we have already rendered these exact logs
+    // by comparing log count and the last log message
+    const currentLogCount = process.logs?.length || 0;
+    
+    // Store this information as a data attribute on the container
+    const previousLogCount = parseInt(logsContainer.getAttribute('data-log-count') || '0');
+    const lastLogMessage = logsContainer.getAttribute('data-last-log') || '';
+    const currentLastLog = currentLogCount > 0 ? 
+        `${process.logs[currentLogCount-1].timestamp}_${process.logs[currentLogCount-1].message}` : '';
+    
+    // If log count and last message are the same, no need to re-render
+    const sameLogsAsLastTime = currentLogCount === previousLogCount && 
+                              lastLogMessage === currentLastLog && 
+                              currentLogCount > 0;
+                              
+    if (sameLogsAsLastTime) {
+        // No changes in logs, no need to re-render
+        return;
+    }
+    
+    // Check if we have logs
+    if (!process.logs || process.logs.length === 0) {
+        if (process.status === 'running') {
+            // If process is running but has no logs yet, show waiting message
+            logsContainer.innerHTML = `
+                <div class="log-entry log-info">
+                    <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                    <span class="log-message">Waiting for logs from process...</span>
+                </div>
+                <div class="text-center mt-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Waiting for logs...</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            // If process is done but has no logs, show error
+            logsContainer.innerHTML = `
+                <div class="text-center p-3">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        No logs available for this process
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Update cache attributes
+        logsContainer.setAttribute('data-log-count', '0');
+        logsContainer.setAttribute('data-last-log', '');
+        
+        return;
+    }
+    
+    // Clear container and show all logs
+    logsContainer.innerHTML = '';
+    appendLogsToDisplay(logsContainer, process.logs, 0);
+    
+    // Update cache attributes
+    logsContainer.setAttribute('data-log-count', currentLogCount.toString());
+    logsContainer.setAttribute('data-last-log', currentLastLog);
+}
+
+// Format timestamp for logs
+function formatLogTime(timestamp) {
+    if (!(timestamp instanceof Date)) {
+        timestamp = new Date(timestamp);
+    }
+    
+    const hours = timestamp.getHours().toString().padStart(2, '0');
+    const minutes = timestamp.getMinutes().toString().padStart(2, '0');
+    const seconds = timestamp.getSeconds().toString().padStart(2, '0');
+    const milliseconds = timestamp.getMilliseconds().toString().padStart(3, '0');
+    return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
+
+// Clear logs for the current process
+function clearLogs() {
+    const logsContainer = document.getElementById('processLogs');
+    if (logsContainer) {
+        logsContainer.innerHTML = `
+            <div class="log-entry log-info">
+                <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                <span class="log-message">Logs cleared</span>
+            </div>
+        `;
+    }
+}
+
+// Download logs for the current process
+function downloadLogs() {
+    if (currentProcessId) {
+        const process = activeProcesses.find(p => p.id === currentProcessId);
+        if (process) {
+            const logText = process.logs.map(log => {
+                const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                return `[${formattedTime}] ${log.message}`;
+            }).join('\n');
+            
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `process-${process.id}-logs.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    }
+}
+
+// Initialize charts for the selected experiment
+function initializeCharts() {
+    try {
+        // Destroy existing charts if they exist
+        if (recommendationChart) {
+            recommendationChart.destroy();
+            recommendationChart = null;
+        }
+        if (resolutionChart) {
+            resolutionChart.destroy();
+            resolutionChart = null;
+        }
+        
+        // Get chart elements and check if they exist before setting properties
+        const recommendationChartEl = document.getElementById('recommendationChart');
+        const resolutionChartEl = document.getElementById('resolutionChart');
+        
+        // Only proceed if the chart elements exist
+        if (!recommendationChartEl || !resolutionChartEl) {
+            console.warn('Chart elements not found in the DOM, skipping chart initialization');
+            return;
+        }
+        
+        // Set fixed height to prevent excessive resizing
+        recommendationChartEl.height = 200;
+        resolutionChartEl.height = 200;
+        
+        // Initialize recommendation chart
+        const recommendationChartCtx = recommendationChartEl.getContext('2d');
+        recommendationChart = new Chart(recommendationChartCtx, {
+            type: 'pie',
+            data: {
+                labels: ['P1', 'P2', 'P3', 'P4'],
+                datasets: [{
+                    data: [0, 0, 0, 0],
+                    backgroundColor: [
+                        '#28a745', // p1 - green
+                        '#17a2b8', // p2 - teal
+                        '#ffc107', // p3 - yellow
+                        '#dc3545'  // p4 - red
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize resolution chart
+        const resolutionChartCtx = resolutionChartEl.getContext('2d');
+        resolutionChart = new Chart(resolutionChartCtx, {
+            type: 'pie',
+            data: {
+                labels: ['1', '0', 'Other'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        '#28a745', // 1 - green
+                        '#dc3545', // 0 - red
+                        '#6c757d'  // other - gray
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+    }
+}
+
+// Calculate analytics for the displayed data
+function calculateAnalytics(dataArray) {
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let p1Count = 0;
+    let p2Count = 0;
+    let p3Count = 0;
+    let p4Count = 0;
+    let resolution1Count = 0;
+    let resolution0Count = 0;
+    let resolutionOtherCount = 0;
+    let p12Total = 0;
+    let p12Correct = 0;
+    
+    // Tag statistics
+    const tagStats = {};
+    
+    // Filter out entries with undefined or null resolved_price_outcome
+    const resolvedEntries = dataArray.filter(entry => 
+        entry && entry.resolved_price_outcome !== undefined && 
+        entry.resolved_price_outcome !== null
+    );
+    
+    // Calculate counts for each entry
+    resolvedEntries.forEach(entry => {
+        // Standardize recommendation value based on format_version
+        let rec = '';
+        if (entry.format_version === 2 && entry.result && entry.result.recommendation) {
+            // For format_version 2, get recommendation from result section
+            rec = entry.result.recommendation.toLowerCase();
+        } else {
+            // For format_version 1 or undefined format, use legacy fields
+            rec = (entry.recommendation || entry.proposed_price_outcome || '').toLowerCase();
+        }
+        
+        // Count recommendations
+        if (rec === 'p1') p1Count++;
+        else if (rec === 'p2') p2Count++;
+        else if (rec === 'p3') p3Count++;
+        else if (rec === 'p4') p4Count++;
+        
+        // Count resolutions - using only resolved_price_outcome
+        // Ensure we have a string for comparison
+        const resolution = (entry.resolved_price_outcome !== null && 
+                           entry.resolved_price_outcome !== undefined) ? 
+                           entry.resolved_price_outcome.toString().toLowerCase() : '';
+                           
+        if (resolution === '1' || resolution === 'p1') resolution1Count++;
+        else if (resolution === '0' || resolution === 'p2') resolution0Count++;
+        else resolutionOtherCount++;
+        
+        // Calculate correctness
+        const isCorrect = isRecommendationCorrect(entry);
+        // Only include in counts if we can determine correctness (not null)
+        if (isCorrect === true) {
+            correctCount++;
+        } else if (isCorrect === false) {
+            incorrectCount++;
+        }
+        
+        // Calculate specialized metrics
+        if (rec === 'p1' || rec === 'p2') {
+            // Only consider for P1-P2 accuracy if the actual outcome was also P1 or P2
+            if (resolution === 'p1' || resolution === 'p2' || resolution === '1' || resolution === '0') {
+                p12Total++;
+                if (isCorrect === true) p12Correct++;
+            }
+        }
+        
+        // Calculate tag statistics
+        // Get tags from all possible locations
+        const tags = 
+            entry.tags || 
+            (entry.proposal_metadata && entry.proposal_metadata.tags) || 
+            (entry.market_data && entry.market_data.tags);
+            
+        if (tags && Array.isArray(tags)) {
+            tags.forEach(tag => {
+                // Initialize tag stats if not already done
+                if (!tagStats[tag]) {
+                    tagStats[tag] = {
+                        total: 0,
+                        correct: 0,
+                        incorrect: 0,
+                        disputed: 0,
+                        p12Total: 0,
+                        p12Correct: 0
+                    };
+                }
+                
+                // Update counts only if correctness can be determined
+                tagStats[tag].total++;
+                
+                if (isCorrect === true) {
+                    tagStats[tag].correct++;
+                } else if (isCorrect === false) {
+                    tagStats[tag].incorrect++;
+                }
+                
+                if (entry.disputed === true) {
+                    tagStats[tag].disputed++;
+                }
+                
+                // Get resolved outcome (from either format version)
+                const resolution = (entry.resolved_price_outcome !== undefined) ? 
+                                   entry.resolved_price_outcome.toString().toLowerCase() : '';
+                
+                // Track p1-p2 accuracy for each tag
+                // Only include in p12 metrics if both:
+                // 1. The model recommended P1 or P2
+                // 2. AND the actual outcome was P1 or P2
+                if ((rec === 'p1' || rec === 'p2') && 
+                    (resolution === 'p1' || resolution === 'p2' || resolution === '1' || resolution === '0')) {
+                    tagStats[tag].p12Total++;
+                    if (isCorrect === true) {
+                        tagStats[tag].p12Correct++;
+                    }
+                }
+            });
+        }
+    });
+    
+    // Calculate percentages
+    const totalCount = correctCount + incorrectCount;
+    const accuracyPercent = totalCount > 0 ? (correctCount / totalCount) * 100 : 0;
+    const p12Accuracy = p12Total > 0 ? (p12Correct / p12Total) * 100 : 0;
+    
+    // Calculate accuracy percentage for each tag
+    Object.keys(tagStats).forEach(tag => {
+        const stats = tagStats[tag];
+        stats.accuracyPercent = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
+        stats.p12AccuracyPercent = stats.p12Total > 0 ? (stats.p12Correct / stats.p12Total) * 100 : 0;
+    });
+    
+    return {
+        correctCount,
+        incorrectCount,
+        totalCount,
+        accuracyPercent,
+        p12Accuracy,
+        noDataCount: p4Count,
+        recommendationCounts: [p1Count, p2Count, p3Count, p4Count],
+        resolutionCounts: [resolution1Count, resolution0Count, resolutionOtherCount],
+        tagStats: tagStats
+    };
+}
+
+// Helper function to check if a recommendation is correct
+function isRecommendationCorrect(entry) {
+    // Only compare if resolved_price_outcome is available and not null
+    if (entry.resolved_price_outcome !== undefined && entry.resolved_price_outcome !== null) {
+        // Get recommendation based on format_version
+        let rec = '';
+        if (entry.format_version === 2 && entry.result && entry.result.recommendation) {
+            // For format_version 2, get recommendation from result section
+            rec = entry.result.recommendation.toLowerCase();
+        } else {
+            // For format_version 1 or undefined format, use legacy fields
+            rec = (entry.recommendation || '').toLowerCase();
+        }
+        
+        const resolved = entry.resolved_price_outcome.toString().toLowerCase();
+        
+        // Handle empty or missing recommendation
+        if (!rec) return null;
+        
+        // Direct match (p1 = p1, p2 = p2, etc)
+        if (rec === resolved) return true;
+        
+        // Numeric match (p1 = 1, p2 = 0, etc)
+        if (rec === 'p1' && (resolved === '1' || resolved === 'p1')) return true;
+        if (rec === 'p2' && (resolved === '0' || resolved === 'p2')) return true;
+        if ((rec === 'p3' || rec === 'p4') && (resolved !== '0' && resolved !== '1' && 
+                                               resolved !== 'p1' && resolved !== 'p2')) return true;
+        
+        return false;
+    }
+    
+    // If no resolution is available (unresolved status), don't count it as incorrect
+    return null;
+}
+
+// Update analytics display including tag accuracy
+function updateAnalyticsDisplay(analytics) {
+    // If analytics is null or undefined, set default values
+    if (!analytics) {
+        analytics = {
+            correctCount: 0,
+            incorrectCount: 0,
+            totalCount: 0,
+            accuracyPercent: 0,
+            p12Accuracy: 0,
+            noDataCount: 0,
+            recommendationCounts: [0, 0, 0, 0],
+            resolutionCounts: [0, 0, 0],
+            tagStats: {}
+        };
+    }
+    
+    // Update accuracy circle
+    const accuracyCircle = document.getElementById('accuracyCircle');
+    if (accuracyCircle) {
+        // Clear existing content
+        accuracyCircle.innerHTML = '';
+        
+        // Create SVG
+        const size = 150;
+        const radius = 60;
+        const strokeWidth = 12;
+        const center = size / 2;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (analytics.accuracyPercent / 100) * circumference;
+        
+        // Create SVG element
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', size);
+        svg.setAttribute('height', size);
+        svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+        
+        // Create background circle
+        const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bgCircle.setAttribute('cx', center);
+        bgCircle.setAttribute('cy', center);
+        bgCircle.setAttribute('r', radius);
+        bgCircle.setAttribute('fill', 'none');
+        bgCircle.setAttribute('stroke', '#e9ecef');
+        bgCircle.setAttribute('stroke-width', strokeWidth);
+        
+        // Create progress circle
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', center);
+        circle.setAttribute('cy', center);
+        circle.setAttribute('r', radius);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', '#28a745');
+        circle.setAttribute('stroke-width', strokeWidth);
+        circle.setAttribute('stroke-dasharray', circumference);
+        circle.setAttribute('stroke-dashoffset', offset);
+        circle.setAttribute('transform', `rotate(-90 ${center} ${center})`);
+        
+        // Add circles to SVG
+        svg.appendChild(bgCircle);
+        svg.appendChild(circle);
+        
+        // Add SVG to container
+        accuracyCircle.appendChild(svg);
+        
+        // Add accuracy text
+        const accuracyText = document.createElement('span');
+        accuracyText.className = 'accuracy-value';
+        accuracyText.textContent = `${Math.round(analytics.accuracyPercent)}%`;
+        accuracyCircle.appendChild(accuracyText);
+    }
+    
+    // Update accuracy percentage
+    const accuracyPercent = document.getElementById('accuracyPercent');
+    if (accuracyPercent) {
+        accuracyPercent.textContent = `${Math.round(analytics.accuracyPercent)}%`;
+    }
+    
+    // Update counts - add null checks for each element
+    const correctCount = document.getElementById('correctCount');
+    if (correctCount) {
+        correctCount.textContent = analytics.correctCount;
+    }
+    
+    const incorrectCount = document.getElementById('incorrectCount');
+    if (incorrectCount) {
+        incorrectCount.textContent = analytics.incorrectCount;
+    }
+    
+    const totalCount = document.getElementById('totalCount');
+    if (totalCount) {
+        totalCount.textContent = analytics.totalCount;
+    }
+    
+    const noDataCount = document.getElementById('noDataCount');
+    if (noDataCount) {
+        noDataCount.textContent = analytics.noDataCount;
+    }
+    
+    // Update P1-P2 Accuracy progress bar
+    const p12AccuracyBar = document.getElementById('p12Accuracy');
+    if (p12AccuracyBar) {
+        const p12Value = Math.round(analytics.p12Accuracy);
+        p12AccuracyBar.style.width = `${p12Value}%`;
+        p12AccuracyBar.setAttribute('aria-valuenow', p12Value);
+        p12AccuracyBar.textContent = `${p12Value}%`;
+    }
+    
+    // Update charts
+    if (recommendationChart) {
+        recommendationChart.data.datasets[0].data = analytics.recommendationCounts;
+        recommendationChart.update();
+    }
+    
+    if (resolutionChart) {
+        resolutionChart.data.datasets[0].data = analytics.resolutionCounts;
+        resolutionChart.update();
+    }
+    
+    // Update tag accuracy section
+    updateTagAccuracyDisplay(analytics.tagStats);
+}
+
+// Format date for display in the experiment table
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    
+    // Try to parse the date string
+    try {
+        // Handle formats like "DD-MM-YYYY HH:MM" (e.g., "01-04-2025 21:15")
+        if (dateStr.match(/^\d{2}-\d{2}-\d{4}\s\d{2}:\d{2}$/)) {
+            const [datePart, timePart] = dateStr.split(' ');
+            return `${datePart} ${timePart}`;
+        }
+        
+        // Handle formats like "DD-MM-YYYY"
+        if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
+            return dateStr;
+        }
+        
+        // Handle other date formats - convert to dd-mm-yy
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+        }
+        
+        return dateStr;
+    } catch (e) {
+        return dateStr;
+    }
+}
+
+// Create a transaction link from a hash
+function createTxLink(hash) {
+    if (!hash || hash === '') return 'N/A';
+    
+    // Base URL for polygon explorer + specific transaction
+    const baseUrl = 'https://polygonscan.com/tx/';
+    
+    // Format hash for display (first 8 characters + ... + last 6 characters)
+    const displayHash = `${hash.substring(0, 8)}...${hash.substring(hash.length - 6)}`;
+    
+    return `<a href="${baseUrl}${hash}" target="_blank" class="tx-link code-font">${displayHash}</a>`;
+}
+
+// Apply a filter to the table
+function applyFilter(filter) {
+    // Reset active class on filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Set active class on the clicked button
+    document.getElementById('filter' + filter.charAt(0).toUpperCase() + filter.slice(1))?.classList.add('active');
+    
+    // Get current tag selections
+    const checkboxes = document.querySelectorAll('.tag-checkbox:checked');
+    const selectedTags = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Apply all filters
+    applyAllFilters(filter, selectedTags);
+}
+
+// Load column preferences from localStorage
+function loadColumnPreferences() {
+    try {
+        const savedPreferences = localStorage.getItem('columnPreferences');
+        if (savedPreferences) {
+            const parsed = JSON.parse(savedPreferences);
+            // Merge with defaults to ensure we have all properties
+            columnPreferences = { ...columnPreferences, ...parsed };
+        }
+        
+        // Add any new columns that may not be in saved preferences
+        if (columnPreferences.router_decision === undefined) {
+            columnPreferences.router_decision = false;
+        }
+    } catch (error) {
+        console.error('Error loading column preferences:', error);
+    }
+}
+
+// Save column preferences to localStorage
+function saveColumnPreferences() {
+    try {
+        localStorage.setItem('columnPreferences', JSON.stringify(columnPreferences));
+    } catch (error) {
+        console.error('Error saving column preferences:', error);
+    }
+}
+
+// Initialize column selector UI for columns and preference management
+function initializeColumnSelector() {
+    // Build the column selector dropdown content
+    const columnSelectorMenu = document.getElementById('columnSelectorMenu');
+    if (!columnSelectorMenu) return;
+    
+    // Create a form for column selections
+    columnSelectorMenu.innerHTML = `
+        <div class="px-3 py-2">
+            <h6 class="dropdown-header">Choose Columns to Display</h6>
+            <div class="column-checkbox-container">
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-timestamp" 
+                    ${columnPreferences.timestamp ? 'checked' : ''} data-column="timestamp">
+                    <label class="form-check-label" for="col-timestamp">Process Date</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_timestamp"
+                    ${columnPreferences.proposal_timestamp ? 'checked' : ''} data-column="proposal_timestamp">
+                    <label class="form-check-label" for="col-proposal_timestamp">Proposal Date</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-expiration_timestamp"
+                    ${columnPreferences.expiration_timestamp ? 'checked' : ''} data-column="expiration_timestamp">
+                    <label class="form-check-label" for="col-expiration_timestamp">Expiration Date</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-request_transaction_block_time"
+                    ${columnPreferences.request_transaction_block_time ? 'checked' : ''} data-column="request_transaction_block_time">
+                    <label class="form-check-label" for="col-request_transaction_block_time">Proposal Time</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-id"
+                    ${columnPreferences.id ? 'checked' : ''} data-column="id">
+                    <label class="form-check-label" for="col-id">Query ID</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-title"
+                    ${columnPreferences.title ? 'checked' : ''} data-column="title">
+                    <label class="form-check-label" for="col-title">Title</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-recommendation"
+                    ${columnPreferences.recommendation ? 'checked' : ''} data-column="recommendation">
+                    <label class="form-check-label" for="col-recommendation">Recommendation</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input column-checkbox" type="checkbox" id="col-proposed"
+                    ${columnPreferences.proposed ? 'checked' : ''} data-column="proposed">
+                    <label class="form-check-label" for="col-proposed">Proposed</label>
+                </div>
+                <div class="form-check">
+// Global variables to store data and charts
+let currentData = [];
+let currentExperiment = null;
+let experimentsData = [];
+let modal = null;
+let currentFilter = 'all'; // Track current result filter
+let currentSearch = ''; // Track current search term
+let currentSourceFilter = 'filesystem'; // Track current source filter
+let autoScrollEnabled = true; // Auto-scroll preference
+let mongoOnlyResults = false; // Track if we should only show MongoDB results
+let disableExperimentRunner = false; // Track if experiment runner is disabled
+let singleExperimentMode = false; // Track if we're in single experiment mode
+let singleExperimentName = ''; // The name of the single experiment to show
+
+// Date filter variables
+let currentDateFilters = {
+    expiration_timestamp: null,
+    request_transaction_block_time: null
+};
+
+// Add column preferences with defaults
+let columnPreferences = {
+    timestamp: true,
+    proposal_timestamp: true,
+    id: true,
+    title: true,
+    recommendation: true,
+    proposed: true,
+    router_decision: false,
+    resolution: true,
+    disputed: true,
+    correct: true,
+    block_number: false,
+    proposal_bond: false,
+    tags: false,
+    expiration_timestamp: false,
+    request_timestamp: false,
+    request_transaction_block_time: true
+};
+
+// Chart variables
+let recommendationChart = null;
+let resolutionChart = null;
+
+// Experiment runner variables
+let activeProcesses = [];
+let commandHistory = [];
+let currentProcessId = null;
+
+// Global variable to track current sort state
+let currentSort = {
+    column: 'timestamp', // Default sort column is timestamp
+    direction: 'desc'    // Default direction is descending (newest first)
+};
+
+// Function to fetch server configuration
+async function fetchServerConfig() {
+    try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+            const config = await response.json();
+            console.log('Server config:', config);
+            
+            // Update global settings
+            mongoOnlyResults = config.mongo_only_results === true;
+            disableExperimentRunner = config.disable_experiment_runner === true;
+            
+            // Set single experiment mode if specified
+            singleExperimentName = config.single_experiment_name || '';
+            singleExperimentMode = singleExperimentName !== '';
+            
+            // Update UI based on configuration
+            const sourceFilterGroup = document.querySelector('.source-filter-group');
+            if (sourceFilterGroup) {
+                sourceFilterGroup.style.display = mongoOnlyResults ? 'none' : 'block';
+            }
+            
+            // If mongo_only_results is true, force MongoDB source filter
+            if (mongoOnlyResults) {
+                currentSourceFilter = 'mongodb';
+                document.getElementById('filterSourceMongoDB')?.classList.add('active');
+                document.getElementById('filterSourceFilesystem')?.classList.remove('active');
+            }
+            
+            return config;
+        }
+    } catch (error) {
+        console.error('Error fetching server config:', error);
+    }
+    
+    return null;
+}
+
+// Initialize the application when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize modal
+    modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    
+    // Initialize tab functionality
+    initializeTabs();
+    
+    // Fetch server configuration first
+    fetchServerConfig().then((config) => {
+        // Hide experiment runner tab if disabled
+        if (disableExperimentRunner) {
+            const experimentTab = document.getElementById('experiment-tab');
+            if (experimentTab) {
+                experimentTab.parentElement.style.display = 'none';
+                
+                // Show analytics tab if experiment runner tab is active
+                const analyticsTab = document.getElementById('analytics-tab');
+                if (experimentTab.classList.contains('active') && analyticsTab) {
+                    const tabInstance = new bootstrap.Tab(analyticsTab);
+                    tabInstance.show();
+                }
+            }
+        }
+        
+        // Then load experiments directory data
+        loadExperimentsData();
+    });
+
+    // Setup tag filter when data is loaded
+    document.addEventListener('dataLoaded', setupTagFilter);
+    
+    // Load saved column preferences
+    loadColumnPreferences();
+    
+    // Initialize column selector
+    initializeColumnSelector();
+
+    // Set up search functionality
+    document.getElementById('searchBtn')?.addEventListener('click', () => {
+        currentSearch = document.getElementById('searchInput').value.trim().toLowerCase();
+        applyTableFilter(currentFilter);
+    });
+
+    // Handle Enter key in search field
+    document.getElementById('searchInput')?.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+            currentSearch = this.value.trim().toLowerCase();
+            applyTableFilter(currentFilter);
+        }
+    });
+
+    // Set up filter buttons
+    document.getElementById('filterAll')?.addEventListener('click', () => {
+        applyFilter('all');
+    });
+
+    document.getElementById('filterDisputed')?.addEventListener('click', () => {
+        applyFilter('disputed');
+    });
+
+    document.getElementById('filterCorrect')?.addEventListener('click', () => {
+        applyFilter('correct');
+    });
+
+    document.getElementById('filterIncorrect')?.addEventListener('click', () => {
+        applyFilter('incorrect');
+    });
+
+    document.getElementById('filterIncorrectIgnoringP4')?.addEventListener('click', () => {
+        applyFilter('incorrectIgnoringP4');
+    });
+    
+    // Set up source filter buttons if not in mongoOnlyResults mode
+    document.getElementById('filterSourceFilesystem')?.addEventListener('click', () => {
+        if (!mongoOnlyResults) {
+            applySourceFilter('filesystem');
+        }
+    });
+    
+    document.getElementById('filterSourceMongoDB')?.addEventListener('click', () => {
+        applySourceFilter('mongodb');
+    });
+    
+    // Set up clear tag filter button
+    document.getElementById('clearTagFilter')?.addEventListener('click', clearTagFilter);
+    
+    // Set up date filter controls
+    document.getElementById('applyDateFilter')?.addEventListener('click', applyDateFilter);
+    document.getElementById('clearDateFilter')?.addEventListener('click', clearDateFilter);
+    
+    // Set up logout button
+    document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
+    
+    // Set up auto-scroll toggle
+    const autoScrollToggle = document.getElementById('autoScrollToggle');
+    if (autoScrollToggle) {
+        // Initialize from localStorage if available
+        const savedAutoScrollPref = localStorage.getItem('autoScrollEnabled');
+        if (savedAutoScrollPref !== null) {
+            autoScrollEnabled = savedAutoScrollPref === 'true';
+        }
+        autoScrollToggle.checked = autoScrollEnabled;
+        
+        autoScrollToggle.addEventListener('change', () => {
+            autoScrollEnabled = autoScrollToggle.checked;
+            localStorage.setItem('autoScrollEnabled', autoScrollEnabled);
+        });
+    }
+    
+    // Setup the analytics tab buttons with proper event handlers
+    const tagsTab = document.getElementById('tags-tab');
+    const overallTab = document.getElementById('overall-tab');
+    
+    if (tagsTab) {
+        tagsTab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tabInstance = new bootstrap.Tab(tagsTab);
+            tabInstance.show();
+        });
+    }
+    
+    if (overallTab) {
+        overallTab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tabInstance = new bootstrap.Tab(overallTab);
+            tabInstance.show();
+        });
+    }
+    
+    // Set up experiment runner events
+    initializeExperimentRunner();
+
+    // Add event listener for modal shown event to apply syntax highlighting and set up toggle buttons
+    document.getElementById('detailsModal')?.addEventListener('shown.bs.modal', function () {
+        const modalBody = document.getElementById('detailsModalBody');
+        
+        // Reapply syntax highlighting to all code blocks
+        Prism.highlightAllUnder(modalBody);
+        
+        // Set up toggle buttons for collapsible content
+        document.querySelectorAll('#detailsModalBody .toggle-content-btn').forEach(btn => {
+            // Remove any existing event listeners to prevent duplicates
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            // Add the event listener to the new button
+            newBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const targetId = this.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.classList.toggle('collapsed');
+                    
+                    // If this is a code section, also toggle the Prism highlighting
+                    if (targetElement.querySelector('code')) {
+                        Prism.highlightElement(targetElement.querySelector('code'));
+                    }
+                }
+            });
+        });
+        
+        // Find and process all journey steps - especially code_runner steps
+        const steps = document.querySelectorAll('#detailsModalBody .journey-step');
+        steps.forEach((step, stepIndex) => {
+            // Check if this is a code runner step by looking at the step content
+            if (step.textContent.toLowerCase().includes('code_runner') || 
+                step.querySelector('[data-actor="code_runner"]')) {
+                
+                // Find all code blocks and ensure they are visible
+                const codeBlocks = step.querySelectorAll('.code-block, .code-content, .content-collapsible');
+                codeBlocks.forEach((block, i) => {
+                    // Make sure each code element has an ID
+                    if (!block.id) {
+                        block.id = `code-runner-step-${stepIndex}-code-${i}`;
+                    }
+                    
+                    // Remove the collapsed class to make code visible
+                    block.classList.remove('collapsed');
+                    
+                    // If this block contains Python code, highlight it
+                    if (block.querySelector('code.language-python')) {
+                        Prism.highlightElement(block.querySelector('code.language-python'));
+                    }
+                });
+                
+                // Also make sure any code field is properly displayed
+                const codeField = step.querySelector('[data-field="code"]');
+                if (codeField) {
+                    codeField.classList.remove('collapsed');
+                    if (codeField.nextElementSibling) {
+                        codeField.nextElementSibling.classList.remove('collapsed');
+                    }
+                }
+                
+                // Find any buttons that might control visibility of code sections
+                const toggleButtons = step.querySelectorAll('.toggle-content-btn');
+                toggleButtons.forEach(btn => {
+                    const targetId = btn.getAttribute('data-target');
+                    if (targetId && targetId.includes('code')) {
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) {
+                            targetEl.classList.remove('collapsed');
+                        }
+                    }
+                });
+            }
+        });
+    });
+});
+
+// Initialize the tab functionality
+function initializeTabs() {
+    // Handle main navigation tab clicks
+    document.querySelectorAll('#mainNavTabs .nav-link').forEach(tab => {
+        tab.addEventListener('click', (event) => {
+            // Prevent default hash-based scrolling
+            event.preventDefault();
+            
+            // Store the active tab using Bootstrap's tab API instead of URL hash
+            const tabInstance = new bootstrap.Tab(event.target);
+            tabInstance.show();
+        });
+    });
+    
+    // Handle analytics tabs
+    document.querySelectorAll('#analyticsTabs .nav-link').forEach(tab => {
+        tab.addEventListener('click', (event) => {
+            // Prevent default hash-based scrolling
+            event.preventDefault();
+            
+            // Use Bootstrap's tab API to show the tab
+            const tabInstance = new bootstrap.Tab(event.target);
+            tabInstance.show();
+        });
+    });
+    
+    // Explicitly setup the analytics tab buttons with proper event handlers
+    const tagsTab = document.getElementById('tags-tab');
+    const overallTab = document.getElementById('overall-tab');
+    
+    if (tagsTab) {
+        tagsTab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tabInstance = new bootstrap.Tab(tagsTab);
+            tabInstance.show();
+        });
+    }
+    
+    if (overallTab) {
+        overallTab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tabInstance = new bootstrap.Tab(overallTab);
+            tabInstance.show();
+        });
+    }
+}
+
+// Initialize experiment runner components
+function initializeExperimentRunner() {
+    // Skip initialization if experiment runner is disabled
+    if (disableExperimentRunner) {
+        return;
+    }
+    
+    // Setup command form submission
+    const form = document.getElementById('experimentForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+            
+            if (command) {
+                commandInput.value = '';
+                startProcess(command);
+                // Reset height after clearing
+                autoResizeTextarea(commandInput);
+            }
+        });
+    }
+    
+    // Setup textarea auto-resize functionality
+    const commandInput = document.getElementById('commandInput');
+    if (commandInput) {
+        // Initial resize
+        autoResizeTextarea(commandInput);
+        
+        // Add event listeners for input changes
+        commandInput.addEventListener('input', function() {
+            autoResizeTextarea(this);
+        });
+        
+        // Also handle paste events
+        commandInput.addEventListener('paste', function() {
+            // Use setTimeout to ensure the paste content is in the textarea
+            setTimeout(() => autoResizeTextarea(this), 0);
+        });
+    }
+    
+    // Setup Python script interactive runner
+    const runPythonBtn = document.getElementById('runPythonBtn');
+    if (runPythonBtn) {
+        runPythonBtn.addEventListener('click', function() {
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+            
+            if (command) {
+                // Check if it's a Python script
+                if (command.endsWith('.py') || command.includes('python')) {
+                    commandInput.value = '';
+                    // Run with shell=True to enable shell features and in interactive mode
+                    startProcess(`python -u ${command}`, true); // Pass true to indicate it's an interactive Python script
+                } else {
+                    alert('Please enter a Python script command (e.g., proposal_replayer/create_experiment.py)');
+                }
+            } else {
+                alert('Please enter a Python script path');
+            }
+        });
+    }
+    
+    // Setup interactive input form submission
+    const interactiveForm = document.getElementById('interactiveInputForm');
+    if (interactiveForm) {
+        interactiveForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputField = document.getElementById('interactiveInput');
+            const input = inputField.value;
+            
+            if (currentProcessId !== null) {
+                // Send input to process (allowing empty strings)
+                sendProcessInput(currentProcessId, input);
+                inputField.value = '';
+            }
+        });
+    }
+    
+    // Load command history from localStorage
+    loadCommandHistory();
+    
+    // Initialize buttons
+    document.getElementById('clearLogsBtn')?.addEventListener('click', () => {
+        clearLogs();
+    });
+    
+    document.getElementById('downloadLogsBtn')?.addEventListener('click', () => {
+        downloadLogs();
+    });
+    
+    // Handle timestamp toggle
+    const timestampToggle = document.getElementById('showTimestamps');
+    if (timestampToggle) {
+        timestampToggle.addEventListener('change', () => {
+            document.body.classList.toggle('hide-timestamps', !timestampToggle.checked);
+        });
+    }
+    
+    // Initialize process list
+    loadActiveProcesses();
+    
+    // Set up polling for process updates - but at a slower rate since logs are handled separately
+    setInterval(loadActiveProcesses, 1000); // Once per second is enough for the list
+}
+
+// Load command history from storage
+function loadCommandHistory() {
+    try {
+        const storedHistory = localStorage.getItem('commandHistory');
+        if (storedHistory) {
+            commandHistory = JSON.parse(storedHistory);
+            
+            // Ensure each entry has a valid ID
+            commandHistory.forEach((entry, index) => {
+                if (!entry.id) {
+                    entry.id = `history_${index}_${Date.now()}`;
+                }
+                
+                // Initialize logs array if not present
+                if (!entry.logs) {
+                    entry.logs = [];
+                }
+            });
+            
+            // Sort by timestamp (newest first)
+            commandHistory.sort((a, b) => b.timestamp - a.timestamp);
+        }
+    } catch (error) {
+        console.error('Error loading command history:', error);
+        commandHistory = [];
+    }
+}
+
+// Add a command to history
+function addToCommandHistory(command, processId = null) {
+    // Don't add empty commands
+    if (!command.trim()) {
+        return null;
+    }
+    
+    // First, check if we already have an EXACT match for this command with processId
+    if (processId) {
+        const existingEntryWithId = commandHistory.find(h => h.id === processId);
+        if (existingEntryWithId) {
+            // Ensure status is up to date
+            existingEntryWithId.status = 'running';
+            // Save to localStorage
+            localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+            return existingEntryWithId;
+        }
+    }
+    
+    // Check if we have a recent similar command (last 15 seconds)
+    const recentSimilarEntry = commandHistory.find(h => 
+        h.command === command && Date.now() - h.timestamp < 15000);
+    
+    if (recentSimilarEntry) {
+        // If process ID is provided, update the existing entry
+        if (processId) {
+            recentSimilarEntry.id = processId;
+            recentSimilarEntry.status = 'running';
+        }
+        // Save to localStorage
+        localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+        return recentSimilarEntry;
+    }
+    
+    // Remove any exact command duplicates before adding new entry
+    // This ensures we don't have multiple entries with the same command
+    const duplicateIndex = commandHistory.findIndex(h => h.command === command);
+    if (duplicateIndex !== -1) {
+        commandHistory.splice(duplicateIndex, 1);
+    }
+    
+    // Create new history entry
+    const historyEntry = {
+        id: processId || `history_${Date.now()}`,
+        command: command,
+        timestamp: Date.now(),
+        status: processId ? 'running' : 'completed',
+        logs: []
+    };
+    
+    // Add to beginning of history array
+    commandHistory.unshift(historyEntry);
+    
+    // Limit history to 100 entries
+    if (commandHistory.length > 100) {
+        commandHistory = commandHistory.slice(0, 100);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+    
+    return historyEntry;
+}
+
+// Update the history status for a command
+function updateCommandHistoryStatus(processId, status) {
+    // Find matching history entry for the most recent command with this status
+    const processInfo = activeProcesses.find(p => p.id === processId);
+    if (!processInfo) return;
+    
+    const command = processInfo.command;
+    const historyEntry = commandHistory.find(h => h.command === command && h.status === 'running');
+    
+    if (historyEntry) {
+        historyEntry.status = status;
+        // Save updated history to localStorage
+        try {
+            localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+        } catch (error) {
+            console.error('Error saving command history:', error);
+        }
+        
+        // Update history table
+        updateCommandHistoryTable();
+    }
+}
+
+// Update the command history table
+function updateCommandHistoryTable() {
+    const tableBody = document.getElementById('historyTableBody');
+    const paginationContainer = document.getElementById('historyPagination');
+    if (!tableBody) return;
+    
+    // COMPLETE REWORK: Create a single source of truth for history items
+    // A Set of all process IDs already seen to avoid duplicates
+    const seenIds = new Set();
+    // Also track commands to avoid duplicates with different IDs
+    const seenCommands = new Set();
+    
+    // Make a fresh combined history array with unique items
+    let combinedHistory = [];
+    
+    // First add active processes since they have the most up-to-date info
+    activeProcesses.forEach(process => {
+        // Add each active process once
+        if (!seenIds.has(process.id)) {
+            seenIds.add(process.id);
+            seenCommands.add(process.command);
+            combinedHistory.push({
+                id: process.id,
+                command: process.command,
+                timestamp: process.start_time * 1000, // Convert to milliseconds
+                status: process.status,
+                logs: process.logs || []
+            });
+        }
+    });
+    
+    // Then add localStorage history items that aren't already included
+    // Sort by timestamp first so we get the newest version of each command
+    const sortedHistory = [...commandHistory].sort((a, b) => b.timestamp - a.timestamp);
+    
+    sortedHistory.forEach(entry => {
+        // Skip entries for commands we've already seen, unless this one is failed and we have a not-failed one
+        if (seenCommands.has(entry.command)) {
+            // Only add a failed/completed entry to replace a running entry
+            const existingEntry = combinedHistory.find(h => h.command === entry.command);
+            if (existingEntry && existingEntry.status === 'running' && 
+                (entry.status === 'failed' || entry.status === 'completed')) {
+                // Replace the running entry with this completed/failed one
+                const index = combinedHistory.indexOf(existingEntry);
+                combinedHistory[index] = entry;
+            }
+            return;
+        }
+        
+        // Only add if we haven't seen this ID yet
+        if (!seenIds.has(entry.id)) {
+            seenIds.add(entry.id);
+            seenCommands.add(entry.command);
+            combinedHistory.push(entry);
+        }
+    });
+    
+    // If no items, show empty state
+    if (combinedHistory.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center">No command history</td>
+            </tr>
+        `;
+        if (paginationContainer) paginationContainer.innerHTML = '';
+        return;
+    }
+    
+    // Sort by timestamp (newest first)
+    combinedHistory.sort((a, b) => b.timestamp - a.timestamp);
+    
+    // Pagination settings
+    const itemsPerPage = 10;
+    const currentPage = parseInt(tableBody.getAttribute('data-current-page') || '1');
+    const totalPages = Math.ceil(combinedHistory.length / itemsPerPage);
+    
+    // Calculate start and end index for the current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, combinedHistory.length);
+    
+    // Get the items for the current page
+    const currentPageItems = combinedHistory.slice(startIndex, endIndex);
+    
+    // Generate table rows
+    tableBody.innerHTML = currentPageItems.map(entry => {
+        const formattedTime = formatDate(Math.floor(entry.timestamp / 1000));
+        let statusClass = '';
+        let statusText = entry.status;
+        
+        if (entry.status === 'running') {
+            statusClass = 'status-running';
+            statusText = `<i class="bi bi-play-fill"></i>Running`;
+        } else if (entry.status === 'completed') {
+            statusClass = 'status-completed';
+            statusText = `<i class="bi bi-check-circle"></i>Completed`;
+        } else if (entry.status === 'failed' || entry.status === 'stopped') {
+            statusClass = 'status-failed';
+            statusText = `<i class="bi bi-x-circle"></i>${entry.status === 'failed' ? 'Failed' : 'Stopped'}`;
+        } else if (entry.status === 'pending') {
+            statusClass = 'status-pending';
+            statusText = `<i class="bi bi-hourglass"></i>Pending`;
+        }
+        
+        return `
+            <tr class="history-row" data-entry-id="${entry.id}">
+                <td>${formattedTime}</td>
+                <td class="command-cell" title="${entry.command}"><code>${entry.command}</code></td>
+                <td class="${statusClass}">${statusText}</td>
+                <td>
+                    <div class="btn-group history-actions" role="group">
+                        <button class="btn btn-sm btn-outline-primary use-command-btn" title="Use this command">
+                            <i class="bi bi-arrow-up-square"></i> Use
+                        </button>
+                        <button class="btn btn-sm btn-outline-info view-history-logs-btn" title="View logs">
+                            <i class="bi bi-file-text"></i> Logs
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Store the current page in the table
+    tableBody.setAttribute('data-current-page', currentPage);
+    
+    // Update pagination controls
+    if (paginationContainer) {
+        // Only show pagination if we have more than one page
+        if (totalPages > 1) {
+            let paginationHTML = `
+                <nav aria-label="History pagination">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="prev" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+            `;
+            
+            // Display up to 5 page numbers, centered around the current page
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // Adjust if we're near the end
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            // Add first page if we're not starting from page 1
+            if (startPage > 1) {
+                paginationHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="1">1</a>
+                    </li>
+                `;
+                if (startPage > 2) {
+                    paginationHTML += `
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    `;
+                }
+            }
+            
+            // Add page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+            
+            // Add last page if we're not ending at the last page
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    `;
+                }
+                paginationHTML += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
+                    </li>
+                `;
+            }
+            
+            paginationHTML += `
+                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="next" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            `;
+            
+            paginationContainer.innerHTML = paginationHTML;
+            
+            // Add pagination click event
+            document.querySelectorAll('#historyPagination .page-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const page = this.getAttribute('data-page');
+                    let newPage = currentPage;
+                    
+                    if (page === 'prev') {
+                        newPage = Math.max(1, currentPage - 1);
+                    } else if (page === 'next') {
+                        newPage = Math.min(totalPages, currentPage + 1);
+                    } else {
+                        newPage = parseInt(page);
+                    }
+                    
+                    if (newPage !== currentPage) {
+                        tableBody.setAttribute('data-current-page', newPage);
+                        updateCommandHistoryTable();
+                    }
+                });
+            });
+        } else {
+            paginationContainer.innerHTML = '';
+        }
+    }
+    
+    // Add click event for command reuse
+    document.querySelectorAll('.use-command-btn').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const row = event.target.closest('.history-row');
+            if (row) {
+                const entryId = row.getAttribute('data-entry-id');
+                const historyEntry = combinedHistory.find(h => h.id === entryId);
+                if (historyEntry) {
+                    document.getElementById('commandInput').value = historyEntry.command;
+                    document.getElementById('commandInput').focus();
+                }
+            }
+        });
+    });
+    
+    // Add click event for viewing logs of history entries
+    document.querySelectorAll('.view-history-logs-btn').forEach(btn => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const row = event.target.closest('.history-row');
+            if (row) {
+                const entryId = row.getAttribute('data-entry-id');
+                const historyEntry = combinedHistory.find(h => h.id === entryId);
+                if (historyEntry) {
+                    showHistoryLogs(historyEntry);
+                }
+            }
+        });
+    });
+    
+    // Add click event to rows for viewing logs
+    document.querySelectorAll('.history-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const entryId = row.getAttribute('data-entry-id');
+            const historyEntry = combinedHistory.find(h => h.id === entryId);
+            if (historyEntry) {
+                showHistoryLogs(historyEntry);
+            }
+        });
+    });
+}
+
+// Fetch and display logs for a history entry
+async function showHistoryLogs(historyEntry) {
+    try {
+        if (!historyEntry) {
+            console.error('No history entry provided');
+            return;
+        }
+        
+        console.log(`Showing logs for history entry: ${historyEntry.id} (${historyEntry.command})`);
+        
+        // Update current process ID
+        currentProcessId = historyEntry.id || null;
+        
+        // Get the logs container
+        const logsContainer = document.getElementById('processLogs');
+        const logsTitle = document.getElementById('logsTitle');
+        
+        if (!logsContainer) {
+            console.error('No logs container found');
+            return;
+        }
+        
+        // Show loading state
+        logsContainer.innerHTML = `
+            <div class="text-center mt-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading logs...</span>
+                </div>
+                <p class="mt-3">Loading logs for: ${historyEntry.command}</p>
+            </div>
+        `;
+        
+        // Check if we have cached logs in the history entry
+        if (historyEntry.logs && historyEntry.logs.length > 0) {
+            // Generate log entries from history
+            const logHtml = historyEntry.logs.map(log => {
+                const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+            }).join('');
+            
+            logsContainer.innerHTML = logHtml;
+            
+            // Only scroll to bottom if auto-scroll is enabled
+            if (autoScrollEnabled) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
+            
+            // Update the logs title
+            if (logsTitle) {
+                const statusBadge = historyEntry.status ? 
+                    `<span class="badge ${
+                        historyEntry.status === 'completed' ? 'bg-success' : 
+                        historyEntry.status === 'failed' ? 'bg-danger' : 
+                        historyEntry.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                    }">${historyEntry.status}</span>` : '';
+                
+                logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> ${statusBadge}`;
+            }
+            
+            return;
+        }
+        
+        // Check if we have another entry with the same command that might have more info
+        const matchingEntry = commandHistory.find(h => 
+            h.id !== historyEntry.id && 
+            h.command === historyEntry.command && 
+            h.status !== 'running');
+            
+        if (matchingEntry && matchingEntry.logs && matchingEntry.logs.length > 0) {
+            // Use logs from the matching entry
+            console.log(`Using logs from matching entry for the same command`);
+            
+            // Generate log entries from the matched entry's logs
+            const logHtml = matchingEntry.logs.map(log => {
+                const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+            }).join('');
+            
+            logsContainer.innerHTML = logHtml;
+            
+            // Only scroll to bottom if auto-scroll is enabled
+            if (autoScrollEnabled) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
+            
+            // Update the logs title
+            if (logsTitle) {
+                const statusBadge = matchingEntry.status ? 
+                    `<span class="badge ${
+                        matchingEntry.status === 'completed' ? 'bg-success' : 
+                        matchingEntry.status === 'failed' ? 'bg-danger' : 
+                        matchingEntry.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                    }">${matchingEntry.status}</span>` : '';
+                
+                logsTitle.innerHTML = `Process Logs: <code>${matchingEntry.command}</code> ${statusBadge}`;
+            }
+            
+            return;
+        }
+        
+        // Make the API request if we don't have cached logs
+        const response = await fetch(`/api/process/${historyEntry.id}`);
+        
+        if (response.ok) {
+            const processData = await response.json();
+            console.log(`Retrieved logs for process: ${processData.command}, status: ${processData.status}`);
+            
+            // Update logs container
+            if (logsContainer && processData.logs) {
+                // Generate log entries
+                if (processData.logs.length > 0) {
+                    const logHtml = processData.logs.map(log => {
+                        const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+                        return `<div class="log-entry log-${log.type || 'info'}"><span class="log-timestamp">[${formattedTime}]</span><span class="log-message">${log.message}</span></div>`;
+                    }).join('');
+                    
+                    logsContainer.innerHTML = logHtml;
+                    
+                    // Only scroll to bottom if auto-scroll is enabled
+                    if (autoScrollEnabled) {
+                        logsContainer.scrollTop = logsContainer.scrollHeight;
+                    }
+                    
+                    // Also update our history entry with these logs for future reference
+                    historyEntry.logs = processData.logs;
+                    historyEntry.status = processData.status;
+                    
+                    // Save updated history to localStorage
+                    localStorage.setItem('commandHistory', JSON.stringify(commandHistory));
+                } else {
+                    // No logs found in the response
+                    logsContainer.innerHTML = `
+                        <div class="text-center p-3">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                No logs available for this command
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                logsContainer.innerHTML = `
+                    <div class="text-center p-3">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            No logs container found or logs missing from response
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Update the logs title
+            if (logsTitle) {
+                const statusBadge = processData.status ? 
+                    `<span class="badge ${
+                        processData.status === 'completed' ? 'bg-success' : 
+                        processData.status === 'failed' ? 'bg-danger' : 
+                        processData.status === 'stopped' ? 'bg-warning' : 'bg-primary'
+                    }">${processData.status}</span>` : '';
+                
+                logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> ${statusBadge}`;
+            }
+        } else {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('Failed to fetch logs:', errorData.error || response.statusText);
+            throw new Error(`Failed to fetch logs: ${errorData.error || response.statusText}`);
+        }
+    } catch (error) {
+        console.error('Error fetching logs:', error);
+        // Show error message
+        const logsContainer = document.getElementById('processLogs');
+        if (logsContainer) {
+            logsContainer.innerHTML = `
+                <div class="text-center p-3">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Could not retrieve logs for the command: <code>${historyEntry.command}</code>
+                    </div>
+                    <p>Error: ${error.message}</p>
+                    <p>Logs for completed processes may not be available if they were run in a previous session.</p>
+                </div>
+            `;
+        }
+        
+        // Update the logs title
+        const logsTitle = document.getElementById('logsTitle');
+        if (logsTitle) {
+            logsTitle.innerHTML = `Process Logs: <code>${historyEntry.command}</code> <span class="badge bg-warning text-dark">Not Available</span>`;
+        }
+    } finally {
+        // Switch to the Experiment Runner tab to show logs/error messages
+        const experimentTab = document.getElementById('experiment-tab');
+        if (experimentTab) {
+            const tabInstance = new bootstrap.Tab(experimentTab);
+            tabInstance.show();
+        }
+    }
+}
+
+// Fetch logs for a process that may not be active anymore
+async function fetchProcessLogs(processId, command) {
+    try {
+        // Update current process ID
+        currentProcessId = processId;
+        
+        // First try to fetch the logs directly
+        const response = await fetch(`/api/process/${processId}`);
+        
+        if (response.ok) {
+            const processData = await response.json();
+            
+            // Temporarily add to activeProcesses if it's not already there
+            if (!activeProcesses.find(p => p.id === processId)) {
+                activeProcesses.push(processData);
+            }
+            
+            // Show the logs
+            updateProcessLogs(processId);
+            
+            // Switch to the Experiment Runner tab to see the logs
+            const experimentTab = document.getElementById('experiment-tab');
+            if (experimentTab) {
+                const tabInstance = new bootstrap.Tab(experimentTab);
+                tabInstance.show();
+            }
+        } else {
+            // If the specific process API failed, try to find logs in a log file
+            showFailedProcessLogs(processId, command);
+        }
+    } catch (error) {
+        console.error('Error fetching process logs:', error);
+        showFailedProcessLogs(processId, command);
+    }
+}
+
+// Show a message when logs can't be found
+function showFailedProcessLogs(processId, command) {
+    const logsContainer = document.getElementById('processLogs');
+    if (logsContainer) {
+        logsContainer.innerHTML = `
+            <div class="text-center p-3">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Could not retrieve logs for the command: <code>${command}</code>
+                </div>
+                <p>Logs for completed processes may not be available if they were run in a previous session.</p>
+            </div>
+        `;
+        
+        // Update the logs title
+        const logsTitle = document.getElementById('logsTitle');
+        if (logsTitle) {
+            logsTitle.innerHTML = `Process Logs: <code>${command}</code> <span class="badge bg-warning text-dark">Not Available</span>`;
+        }
+        
+        // Switch to the Experiment Runner tab to see the message
+        const experimentTab = document.getElementById('experiment-tab');
+        if (experimentTab) {
+            const tabInstance = new bootstrap.Tab(experimentTab);
+            tabInstance.show();
+        }
+    }
+}
+
+// Start a new process
+async function startProcess(command, isInteractive = false) {
+    try {
+        // Add to command history but don't update the table yet
+        const historyEntry = addToCommandHistory(command);
+        
+        // Show the console logs area immediately with "Starting process" message
+        const logsContainer = document.getElementById('processLogs');
+        const logsTitle = document.getElementById('logsTitle');
+        
+        if (logsContainer) {
+            logsContainer.innerHTML = `
+                <div class="log-entry log-info">
+                    <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                    <span class="log-message">Starting process: ${command}</span>
+                </div>
+            `;
+            // Respect auto-scroll preference
+            if (autoScrollEnabled) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
+        }
+        
+        if (logsTitle) {
+            logsTitle.innerHTML = `Process Logs: <code>${command}</code> <span class="loading-indicator"><i class="bi bi-hourglass"></i> Starting...</span>`;
+        }
+        
+        // Switch to the Experiment Runner tab to show logs
+        const experimentTab = document.getElementById('experiment-tab');
+        if (experimentTab) {
+            const tabInstance = new bootstrap.Tab(experimentTab);
+            tabInstance.show();
+        }
+        
+        // Make API request to start the process
+        const response = await fetch('/api/process/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ command })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to start process: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Process started:', data);
+        
+        // IMPORTANT: The server sends process_id not id
+        const processId = data.process_id;
+        
+        // Update the history entry with the process ID
+        updateCommandHistoryStatus(processId, 'running');
+        
+        // Set as the current process for displaying logs
+        currentProcessId = processId;
+        
+        // Update the process table
+        await loadActiveProcesses();
+        
+        // Start polling for logs
+        if (logPollingInterval) {
+            clearInterval(logPollingInterval);
+        }
+        
+        // Poll immediately first
+        await updateProcessLogs(processId);
+        
+        // For Python scripts, always show the interactive input initially
+        if (isInteractive) {
+            toggleInteractiveInput(processId, true);
+        }
+        
+        // Then set up interval polling
+        logPollingInterval = setInterval(async () => {
+            await updateProcessLogs(processId);
+        }, 1000); // Poll every second
+        
+    } catch (error) {
+        console.error('Failed to start process:', error);
+        
+        const logsContainer = document.getElementById('processLogs');
+        if (logsContainer) {
+            logsContainer.innerHTML += `
+                <div class="log-entry log-error">
+                    <span class="log-timestamp">[${formatLogTime(new Date())}]</span>
+                    <span class="log-message">Error: ${error.message}</span>
+                </div>
+            `;
+            // Respect auto-scroll preference for errors too
+            if (autoScrollEnabled) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
+        }
+    }
+}
+
+// Function to append logs to the display
+function appendLogsToDisplay(logsContainer, logs, startIndex) {
+    if (!logsContainer || !logs || logs.length === 0) return;
+    
+    // Remove any spinner
+    const existingSpinner = logsContainer.querySelector('.spinner-border');
+    if (existingSpinner && existingSpinner.parentElement) {
+        existingSpinner.parentElement.remove();
+    }
+    
+    // Store current scroll position information
+    const scrollInfo = {
+        // More precise detection of manually scrolled position
+        atBottom: Math.abs(logsContainer.scrollHeight - logsContainer.scrollTop - logsContainer.clientHeight) < 10,
+        initialScrollHeight: logsContainer.scrollHeight,
+        initialScrollTop: logsContainer.scrollTop,
+        userScrolledUp: logsContainer.scrollHeight > 0 && 
+                       logsContainer.scrollTop < logsContainer.scrollHeight - logsContainer.clientHeight - 20
+    };
+    
+    // Track existing log entries to avoid duplicates
+    const existingLogEntries = new Set();
+    logsContainer.querySelectorAll('.log-entry').forEach(entry => {
+        const timestamp = entry.querySelector('.log-timestamp')?.textContent || '';
+        const message = entry.querySelector('.log-message')?.textContent || '';
+        existingLogEntries.add(`${timestamp}${message}`);
+    });
+    
+    // Keep track of whether we've detected an input prompt
+    let waitingForInput = false;
+    let lastMessage = '';
+    let newLogsAdded = false;
+    
+    // Loop through each log entry and add it to the display if unique
+    logs.forEach((log, index) => {
+        if (index < startIndex) return; // Skip logs we've already processed
+        
+        const formattedTime = formatLogTime(new Date(log.timestamp * 1000));
+        const timestampText = `[${formattedTime}]`;
+        const messageText = log.message;
+        lastMessage = messageText; // Track last message for input prompt detection
+        
+        // Check if this log entry is already displayed
+        const logKey = `${timestampText}${messageText}`;
+        if (!existingLogEntries.has(logKey)) {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${log.type || 'info'}`;
+            logEntry.innerHTML = `<span class="log-timestamp">${timestampText}</span><span class="log-message">${messageText}</span>`;
+            logsContainer.appendChild(logEntry);
+            existingLogEntries.add(logKey);
+            newLogsAdded = true;
+        }
+    });
+    
+    // Check if the last message appears to be waiting for input
+    if (lastMessage) {
+        waitingForInput = checkForInputPrompt(lastMessage);
+        toggleInteractiveInput(currentProcessId, waitingForInput);
+    }
+    
+    // If no new logs were added, don't change scroll position at all
+    if (!newLogsAdded) {
+        return;
+    }
+    
+    // Only auto-scroll if enabled AND either:
+    // 1. User was already at the bottom OR
+    // 2. User prompt requires input
+    if ((autoScrollEnabled && scrollInfo.atBottom) || waitingForInput) {
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+    } else if (!scrollInfo.userScrolledUp) {
+        // If user hasn't explicitly scrolled up, maintain relative scroll position
+        logsContainer.scrollTop = scrollInfo.initialScrollTop + 
+                                 (logsContainer.scrollHeight - scrollInfo.initialScrollHeight);
+    }
+}
+
+// Load active processes from the API
+async function loadActiveProcesses() {
+    // Skip API call if experiment runner is disabled
+    if (disableExperimentRunner) {
+        // Set empty processes array
+        activeProcesses = [];
+        updateProcessesTable();
+        return;
+    }
+    
     try {
         const response = await fetch('/api/processes');
         
@@ -1749,20 +4017,31 @@ function calculateAnalytics(dataArray) {
         
         // Calculate specialized metrics
         if (rec === 'p1' || rec === 'p2') {
-            p12Total++;
-            if (isCorrect === true) p12Correct++;
+            // Only consider for P1-P2 accuracy if the actual outcome was also P1 or P2
+            if (resolution === 'p1' || resolution === 'p2' || resolution === '1' || resolution === '0') {
+                p12Total++;
+                if (isCorrect === true) p12Correct++;
+            }
         }
         
         // Calculate tag statistics
-        if (entry.tags && Array.isArray(entry.tags)) {
-            entry.tags.forEach(tag => {
+        // Get tags from all possible locations
+        const tags = 
+            entry.tags || 
+            (entry.proposal_metadata && entry.proposal_metadata.tags) || 
+            (entry.market_data && entry.market_data.tags);
+            
+        if (tags && Array.isArray(tags)) {
+            tags.forEach(tag => {
                 // Initialize tag stats if not already done
                 if (!tagStats[tag]) {
                     tagStats[tag] = {
                         total: 0,
                         correct: 0,
                         incorrect: 0,
-                        disputed: 0
+                        disputed: 0,
+                        p12Total: 0,
+                        p12Correct: 0
                     };
                 }
                 
@@ -1778,6 +4057,22 @@ function calculateAnalytics(dataArray) {
                 if (entry.disputed === true) {
                     tagStats[tag].disputed++;
                 }
+                
+                // Get resolved outcome (from either format version)
+                const resolution = (entry.resolved_price_outcome !== undefined) ? 
+                                   entry.resolved_price_outcome.toString().toLowerCase() : '';
+                
+                // Track p1-p2 accuracy for each tag
+                // Only include in p12 metrics if both:
+                // 1. The model recommended P1 or P2
+                // 2. AND the actual outcome was P1 or P2
+                if ((rec === 'p1' || rec === 'p2') && 
+                    (resolution === 'p1' || resolution === 'p2' || resolution === '1' || resolution === '0')) {
+                    tagStats[tag].p12Total++;
+                    if (isCorrect === true) {
+                        tagStats[tag].p12Correct++;
+                    }
+                }
             });
         }
     });
@@ -1791,6 +4086,7 @@ function calculateAnalytics(dataArray) {
     Object.keys(tagStats).forEach(tag => {
         const stats = tagStats[tag];
         stats.accuracyPercent = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
+        stats.p12AccuracyPercent = stats.p12Total > 0 ? (stats.p12Correct / stats.p12Total) * 100 : 0;
     });
     
     return {
@@ -2373,6 +4669,32 @@ async function loadExperimentsData() {
 function displayExperimentsTable() {
     const tableBody = document.getElementById('resultsDirectoryTableBody');
     if (!tableBody) return;
+    
+    // Check if we're in single experiment mode
+    if (singleExperimentMode) {
+        // Filter for just the specified experiment
+        const experiment = experimentsData.find(exp => exp.directory === singleExperimentName);
+        
+        if (experiment) {
+            // Hide the experiments browser section completely
+            const experimentsSection = document.querySelector('.experiments-section');
+            if (experimentsSection) {
+                experimentsSection.style.display = 'none';
+            }
+            
+            // Hide "Experiment Results" header
+            const resultsHeader = document.getElementById('analyticsNote');
+            if (resultsHeader) {
+                resultsHeader.style.display = 'none';
+            }
+            
+            // Automatically load the single experiment
+            const source = experiment.source === 'mongodb' || experiment.path?.startsWith('mongodb/') 
+                           ? 'mongodb' : 'filesystem';
+            loadExperimentData(experiment.directory, source);
+            return;
+        }
+    }
     
     if (experimentsData.length === 0) {
         tableBody.innerHTML = `
@@ -3713,7 +6035,7 @@ function showDetails(data, index) {
         <div class="alert ${alertClass} mb-4">
             <strong>Recommendation:</strong> ${recommendation} | 
             <strong>Resolved:</strong> ${data.resolved_price_outcome || 'Unresolved'} | 
-            <strong>Proposed:</strong> ${proposedPrice} | 
+            <strong>Proposed:</strong> ${data.proposed_price_outcome || proposedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
             <strong>Correct:</strong> ${correctnessText}
         </div>
@@ -5147,8 +7469,14 @@ function setupTagFilter() {
     // Extract all unique tags from the data
     const allTags = new Set();
     currentData.forEach(item => {
-        if (item.tags && Array.isArray(item.tags)) {
-            item.tags.forEach(tag => allTags.add(tag));
+        // Check all possible locations for tags
+        const tags = 
+            item.tags || 
+            (item.proposal_metadata && item.proposal_metadata.tags) || 
+            (item.market_data && item.market_data.tags);
+            
+        if (tags && Array.isArray(tags)) {
+            tags.forEach(tag => allTags.add(tag));
         }
     });
     
@@ -5250,10 +7578,16 @@ function applyAllFilters(correctnessFilter, tagFilters = []) {
     // Apply tag filters if specified
     if (tagFilters && tagFilters.length > 0) {
         filteredData = filteredData.filter(item => {
-            if (!item.tags || !Array.isArray(item.tags)) return false;
+            // Get tags from all possible locations
+            const tags = 
+                item.tags || 
+                (item.proposal_metadata && item.proposal_metadata.tags) || 
+                (item.market_data && item.market_data.tags);
+                
+            if (!tags || !Array.isArray(tags)) return false;
             
             // Check if item has ALL selected tags (AND logic)
-            return tagFilters.every(tag => item.tags.includes(tag));
+            return tagFilters.every(tag => tags.includes(tag));
         });
     }
     
@@ -5344,26 +7678,34 @@ function updateTagAccuracyDisplay(tagStats) {
     
     // Create rows for each tag
     tagAccuracyTableBody.innerHTML = sortedTags.map(tag => {
-        const stats = tagStats[tag] || { total: 0, correct: 0, incorrect: 0, accuracyPercent: 0 };
+        const stats = tagStats[tag] || { total: 0, correct: 0, incorrect: 0, accuracyPercent: 0, p12Total: 0, p12Correct: 0, p12AccuracyPercent: 0 };
         
         // Ensure we have valid numbers
         const total = stats.total || 0;
         const correct = stats.correct || 0;
         const incorrect = stats.incorrect || 0;
+        const p12Total = stats.p12Total || 0;
+        const p12Correct = stats.p12Correct || 0;
         
         // Recalculate accuracy to ensure it's correct
         const accuracyPercent = total > 0 ? (correct / total) * 100 : 0;
+        const p12AccuracyPercent = p12Total > 0 ? (p12Correct / p12Total) * 100 : 0;
         
         const accuracyClass = accuracyPercent >= 80 ? 'high-accuracy' : 
                              (accuracyPercent >= 50 ? 'medium-accuracy' : 'low-accuracy');
+        
+        const p12AccuracyClass = p12AccuracyPercent >= 80 ? 'high-accuracy' : 
+                               (p12AccuracyPercent >= 50 ? 'medium-accuracy' : 'low-accuracy');
         
         return `
             <tr>
                 <td><span class="tag-badge">${tag}</span></td>
                 <td>${total}</td>
                 <td class="accuracy-cell ${accuracyClass}">${accuracyPercent.toFixed(1)}%</td>
+                <td class="accuracy-cell ${p12AccuracyClass}" title="P1-P2 accuracy (ignoring P3/P4)">${p12AccuracyPercent.toFixed(1)}%</td>
                 <td>${correct}</td>
                 <td>${incorrect}</td>
+                <td>${p12Total}</td>
             </tr>
         `;
     }).join('');
@@ -5862,8 +8204,13 @@ function sortData(data, column, direction) {
                 valueB = b.proposal_metadata?.proposal_bond || 0;
                 break;
             case 'tags':
-                valueA = (a.tags && a.tags.length) ? a.tags.join(',').toLowerCase() : '';
-                valueB = (b.tags && b.tags.length) ? b.tags.join(',').toLowerCase() : '';
+                // Convert tags to a comma-separated string for comparison
+                // Get tags from all possible locations
+                const tagsA = a.tags || (a.proposal_metadata && a.proposal_metadata.tags) || (a.market_data && a.market_data.tags) || [];
+                const tagsB = b.tags || (b.proposal_metadata && b.proposal_metadata.tags) || (b.market_data && b.market_data.tags) || [];
+                
+                valueA = (tagsA && tagsA.length) ? tagsA.join(',').toLowerCase() : '';
+                valueB = (tagsB && tagsB.length) ? tagsB.join(',').toLowerCase() : '';
                 break;
             default:
                 valueA = a[column];

@@ -15,21 +15,14 @@ load_dotenv()
 
 # Configuration
 API_BASE_URL = "http://localhost:8000"
-AUTH_ENABLED = os.getenv("AUTH_ENABLED", "true").lower() == "true"
-AUTH_USERNAME = os.getenv("AUTH_USERNAME")
-AUTH_PASSWORD = os.getenv("AUTH_PASSWORD")
 
 
 def test_api_health():
     """Test API health endpoint"""
     url = f"{API_BASE_URL}/"
 
-    auth = None
-    if AUTH_ENABLED:
-        auth = (AUTH_USERNAME, AUTH_PASSWORD)
-
     try:
-        response = httpx.get(url, auth=auth)
+        response = httpx.get(url)
         print(f"Health check status: {response.status_code}")
         print(f"Response: {response.json()}")
         return response.status_code == 200
@@ -54,12 +47,8 @@ def test_query_by_params(
 
     params["full"] = "true" if full else "false"
 
-    auth = None
-    if AUTH_ENABLED:
-        auth = (AUTH_USERNAME, AUTH_PASSWORD)
-
     try:
-        response = httpx.get(url, params=params, auth=auth)
+        response = httpx.get(url, params=params)
         print(f"\nQuery by params status: {response.status_code}")
 
         if response.status_code == 200:
@@ -87,12 +76,8 @@ def test_get_by_experiment_id(experiment_id, full=True):
 
     params = {"full": "true" if full else "false"}
 
-    auth = None
-    if AUTH_ENABLED:
-        auth = (AUTH_USERNAME, AUTH_PASSWORD)
-
     try:
-        response = httpx.get(url, params=params, auth=auth)
+        response = httpx.get(url, params=params)
         print(f"\nGet by experiment ID status: {response.status_code}")
 
         if response.status_code == 200:
@@ -120,12 +105,8 @@ def test_get_by_question_id(question_id, full=True):
 
     params = {"full": "true" if full else "false"}
 
-    auth = None
-    if AUTH_ENABLED:
-        auth = (AUTH_USERNAME, AUTH_PASSWORD)
-
     try:
-        response = httpx.get(url, params=params, auth=auth)
+        response = httpx.get(url, params=params)
         print(f"\nGet by question ID status: {response.status_code}")
 
         if response.status_code == 200:
@@ -133,6 +114,59 @@ def test_get_by_question_id(question_id, full=True):
             # Pretty print the result
             print("Result:")
             pprint(data)
+            return True
+        else:
+            print(f"Error: {response.text}")
+            return False
+
+    except Exception as e:
+        print(f"Error querying API: {e}")
+        return False
+
+
+def test_advanced_query(
+    identifier=None,
+    start_timestamp=None,
+    end_timestamp=None,
+    ancillary_data=None,
+    tags=None,
+    recommendation=None,
+    full=True,
+):
+    """Test advanced query endpoint"""
+    url = f"{API_BASE_URL}/api/advanced-query"
+
+    params = {}
+    if identifier:
+        params["identifier"] = identifier
+    if start_timestamp:
+        params["start_timestamp"] = start_timestamp
+    if end_timestamp:
+        params["end_timestamp"] = end_timestamp
+    if ancillary_data:
+        params["ancillary_data"] = ancillary_data
+    if tags:
+        # For multiple tags, add them as separate parameters with the same name
+        for tag in tags:
+            params.setdefault("tags", []).append(tag)
+    if recommendation:
+        params["recommendation"] = recommendation
+
+    params["full"] = "true" if full else "false"
+
+    try:
+        response = httpx.get(url, params=params)
+        print(f"\nAdvanced query status: {response.status_code}")
+
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Found {len(data)} results")
+
+            if data:
+                # Pretty print the first result
+                print("First result:")
+                pprint(data[0])
+
             return True
         else:
             print(f"Error: {response.text}")
@@ -161,6 +195,14 @@ def main():
     )
     example_experiment_id = "08042025-multi-operator-with-realtime-bug-fix"
     example_question_id = "result_21db972a_20250408_125019"
+    
+    # Example values for advanced query
+    example_timestamp_start = 1741964000
+    example_timestamp_end = 1742148000
+    example_ancillary_data = "Sample"
+    example_tags = ["Crypto", "Bitcoin"]
+    example_recommendation = "p1"
+    example_identifier = "Bitcoin"
 
     # Test query by different parameters
     print("\n=== Testing query by query_id ===")
@@ -174,6 +216,25 @@ def main():
 
     print("\n=== Testing query by condition_id with reduced output ===")
     test_query_by_params(condition_id=example_condition_id, full=False)
+
+    # Test advanced query
+    print("\n=== Testing advanced query by timestamp range ===")
+    test_advanced_query(
+        start_timestamp=example_timestamp_start,
+        end_timestamp=example_timestamp_end
+    )
+
+    print("\n=== Testing advanced query by identifier ===")
+    test_advanced_query(identifier=example_identifier)
+
+    print("\n=== Testing advanced query by ancillary data ===")
+    test_advanced_query(ancillary_data=example_ancillary_data)
+
+    print("\n=== Testing advanced query by tags ===")
+    test_advanced_query(tags=example_tags)
+
+    print("\n=== Testing advanced query by recommendation ===")
+    test_advanced_query(recommendation=example_recommendation)
 
     # Test get by experiment ID
     print("\n=== Testing get by experiment ID ===")
