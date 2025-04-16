@@ -75,6 +75,9 @@ DISABLE_EXPERIMENT_RUNNER = (
     os.environ.get("DISABLE_EXPERIMENT_RUNNER", "false").lower() == "true"
 )
 
+# Single experiment configuration
+SINGLE_EXPERIMENT = os.environ.get("SINGLE_EXPERIMENT", "")
+
 # Authentication settings - Change these!
 AUTH_ENABLED = os.environ.get("AUTH_ENABLED", "true").lower() == "true"
 AUTH_USERNAME = os.environ.get("AUTH_USERNAME", "admin")
@@ -538,6 +541,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         "mongodb_db": MONGODB_DB,
                         "auth_enabled": AUTH_ENABLED,
                         "disable_experiment_runner": DISABLE_EXPERIMENT_RUNNER,
+                        "single_experiment": SINGLE_EXPERIMENT,
                     }
 
                     self.send_response(200)

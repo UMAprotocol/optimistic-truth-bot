@@ -549,7 +549,7 @@
     "start_time": 1744820212.5155065,
     "end_time": 1744820217.515824,
     "total_duration_seconds": 5.000317573547363,
-    "routing_phases": 2,
+  "routing_phases": 2,
     "step_count_by_actor": {
       "router": 2,
       "code_runner": 4,
