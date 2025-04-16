@@ -271,11 +271,11 @@ Each experiment directory contains:
 
 Results are stored locally by default and don't require a database connection. This allows for easier debugging, version control, and sharing of result files.
 
-## 🗃️ Database Integration (Optional)
+## 🗃️ Database Integration and API
 
 The system supports MongoDB integration for storing and querying results, but this is **optional**. By default, all results are saved as JSON files in the `results/` directory.
 
-If you choose to use MongoDB:
+### Database Integration
 
 ```bash
 # Test your MongoDB connection
@@ -292,6 +292,32 @@ MongoDB integration is helpful for:
 - Running analytics across multiple experiments
 - Serving results through the API and UI
 - Querying performance metrics
+
+### API for Results Access
+
+The system includes a RESTful API for querying experiment results stored in MongoDB. This API provides endpoints for:
+
+- Querying by blockchain identifiers (query_id, transaction_hash, condition_id)
+- Advanced querying by timestamps, ancillary data, and recommendation values
+- Retrieving results by experiment ID or question ID
+
+```bash
+# Start the API server
+cd api
+python main.py
+```
+
+The API is hosted at https://api.llo.uma.xyz. You can query it using curl:
+
+```bash
+# Query by transaction hash
+curl 'https://api.llo.uma.xyz/api/query?transaction_hash=0x3372c0cfb782595199564a1436d1ed1f0d5fe2df931a562752790af2c817114a'
+
+# Advanced query by timestamp range and tags
+curl 'https://api.llo.uma.xyz/api/advanced-query?start_timestamp=1741964000&tags=Crypto'
+```
+
+For detailed API documentation, see [API Documentation](api/README.md).
 
 ## 🔄 Running the System
 
@@ -361,7 +387,7 @@ Then open your browser to http://localhost:8000
 
 The system is organized into several directories:
 
-- `api/`: API for exposing results and system functionality
+- `api/`: RESTful API for querying and accessing results from MongoDB (see [API Documentation](api/README.md))
 - `database_utilities/`: Tools for MongoDB integration
 - `multi_operator/`: Core system components (router, solvers, overseer)
 - `proposals/`: Storage for proposal data

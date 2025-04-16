@@ -3,7 +3,7 @@
 API for querying the LLM oracle experiment outputs from MongoDB
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List, Dict, Any
 import os
@@ -11,9 +11,6 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.collection import Collection
 import logging
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi import status, Security
-import secrets
 
 # Configure logging
 logging.basicConfig(
@@ -40,29 +37,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
 )
-
-# Authentication setup
-security = HTTPBasic()
-AUTH_ENABLED = os.getenv("AUTH_ENABLED", "true").lower() == "true"
-AUTH_USERNAME = os.getenv("AUTH_USERNAME")
-AUTH_PASSWORD = os.getenv("AUTH_PASSWORD")
-
-
-def get_current_user(credentials: HTTPBasicCredentials = Security(security)):
-    """Validate user credentials if auth is enabled"""
-    if not AUTH_ENABLED:
-        return True
-
-    correct_username = secrets.compare_digest(credentials.username, AUTH_USERNAME)
-    correct_password = secrets.compare_digest(credentials.password, AUTH_PASSWORD)
-
-    if not (correct_username and correct_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return True
 
 
 # MongoDB connection
@@ -145,7 +119,6 @@ async def query_by_params(
         True, description="Return full JSON if true, reduced version if false"
     ),
     limit: int = Query(10, description="Maximum number of results to return"),
-    _=Depends(get_current_user),
 ):
     """Query experiments by query_id, condition_id, or transaction_hash"""
     client, collection = get_outputs_collection()
@@ -161,7 +134,10 @@ async def query_by_params(
             query_filter["condition_id"] = condition_id
 
         if transaction_hash:
-            query_filter["proposal_metadata.transaction_hash"] = transaction_hash
+            query_filter["$or"] = [
+                {"proposal_metadata.transaction_hash": transaction_hash},
+                {"transaction_hash": transaction_hash}
+            ]
 
         if not query_filter:
             raise HTTPException(
@@ -185,6 +161,156 @@ async def query_by_params(
         client.close()
 
 
+@app.get("/api/advanced-query", response_model=List[Dict[str, Any]])
+async def advanced_query(
+    identifier: Optional[str] = Query(None, description="Query by identifier (partial match on tags or other identifier fields)"),
+    start_timestamp: Optional[int] = Query(None, description="Query by start timestamp (Unix timestamp)"),
+    end_timestamp: Optional[int] = Query(None, description="Query by end timestamp (Unix timestamp)"),
+    ancillary_data: Optional[str] = Query(None, description="Query by ancillary data (partial match)"),
+    tags: Optional[List[str]] = Query(None, description="Query by tags (list of tags to match)"),
+    recommendation: Optional[str] = Query(None, description="Query by recommendation (p1, p2, p3, p4)"),
+    full: bool = Query(
+        True, description="Return full JSON if true, reduced version if false"
+    ),
+    limit: int = Query(10, description="Maximum number of results to return"),
+):
+    """Advanced query with support for timestamp, ancillary data, and identifiers (GET method)"""
+    return await _advanced_query(
+        identifier=identifier,
+        start_timestamp=start_timestamp,
+        end_timestamp=end_timestamp,
+        ancillary_data=ancillary_data,
+        tags=tags,
+        recommendation=recommendation,
+        full=full,
+        limit=limit
+    )
+
+
+from fastapi import Body
+from pydantic import BaseModel
+from typing import List as TypeList, Optional
+
+class AdvancedQueryRequest(BaseModel):
+    identifier: Optional[str] = None
+    start_timestamp: Optional[int] = None
+    end_timestamp: Optional[int] = None
+    ancillary_data: Optional[str] = None
+    tags: Optional[TypeList[str]] = None
+    recommendation: Optional[str] = None
+    full: bool = True
+    limit: int = 10
+
+@app.post("/api/advanced-query", response_model=List[Dict[str, Any]])
+async def advanced_query_post(
+    query: AdvancedQueryRequest = Body(..., description="Advanced query parameters")
+):
+    """Advanced query with support for timestamp, ancillary data, and identifiers (POST method)"""
+    return await _advanced_query(
+        identifier=query.identifier,
+        start_timestamp=query.start_timestamp,
+        end_timestamp=query.end_timestamp,
+        ancillary_data=query.ancillary_data,
+        tags=query.tags,
+        recommendation=query.recommendation,
+        full=query.full,
+        limit=query.limit
+    )
+
+
+async def _advanced_query(
+    identifier: Optional[str] = None,
+    start_timestamp: Optional[int] = None,
+    end_timestamp: Optional[int] = None,
+    ancillary_data: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    recommendation: Optional[str] = None,
+    full: bool = True,
+    limit: int = 10,
+):
+    """Internal implementation of advanced query logic"""
+    client, collection = get_outputs_collection()
+
+    try:
+        # Build the query filter
+        query_filter = {}
+
+        # Handle identifier search (partial match on tags or other identifier fields)
+        if identifier:
+            query_filter["$or"] = [
+                {"proposal_metadata.tags": {"$regex": identifier, "$options": "i"}},
+                {"proposal_metadata.icon": {"$regex": identifier, "$options": "i"}},
+                {"tags": {"$regex": identifier, "$options": "i"}},
+                {"icon": {"$regex": identifier, "$options": "i"}},
+                {"query_id": {"$regex": identifier, "$options": "i"}},
+                {"condition_id": {"$regex": identifier, "$options": "i"}},
+                {"transaction_hash": {"$regex": identifier, "$options": "i"}},
+                {"proposal_metadata.transaction_hash": {"$regex": identifier, "$options": "i"}},
+                {"question_id": {"$regex": identifier, "$options": "i"}}
+            ]
+
+        # Handle timestamp range
+        if start_timestamp or end_timestamp:
+            timestamp_filter = {}
+            if start_timestamp:
+                timestamp_filter["$gte"] = start_timestamp
+            if end_timestamp:
+                timestamp_filter["$lte"] = end_timestamp
+            
+            if timestamp_filter:
+                query_filter["$or"] = [
+                    {"proposal_metadata.request_timestamp": timestamp_filter},
+                    {"request_timestamp": timestamp_filter}
+                ]
+
+        # Handle ancillary data (partial match)
+        if ancillary_data:
+            query_filter["$or"] = [
+                {"proposal_metadata.ancillary_data": {"$regex": ancillary_data, "$options": "i"}},
+                {"ancillary_data": {"$regex": ancillary_data, "$options": "i"}},
+                {"ancillary_data_hex": {"$regex": ancillary_data, "$options": "i"}}
+            ]
+
+        # Handle tags (array contains any)
+        if tags and len(tags) > 0:
+            query_filter["$or"] = [
+                {"proposal_metadata.tags": {"$in": tags}},
+                {"tags": {"$in": tags}}
+            ]
+
+        # Handle recommendation filter
+        if recommendation:
+            recommendation = recommendation.lower()
+            query_filter["$or"] = [
+                {"recommendation": recommendation},
+                {"result.recommendation": recommendation},
+                {"proposed_price_outcome": recommendation},
+                {"proposal_metadata.proposed_price_outcome": recommendation}
+            ]
+
+        # If no filters provided, return an error
+        if not query_filter:
+            raise HTTPException(
+                status_code=400,
+                detail="At least one query parameter is required"
+            )
+
+        # Execute the query
+        results = list(collection.find(query_filter).limit(limit))
+
+        if not results:
+            return []
+
+        # Format the response
+        return [format_response(doc, full) for doc in results]
+
+    except Exception as e:
+        logger.error(f"Advanced query error: {e}")
+        raise HTTPException(status_code=500, detail=f"Query error: {str(e)}")
+    finally:
+        client.close()
+
+
 @app.get("/api/experiment/{experiment_id}", response_model=List[Dict[str, Any]])
 async def get_by_experiment_id(
     experiment_id: str,
@@ -192,7 +318,6 @@ async def get_by_experiment_id(
         True, description="Return full JSON if true, reduced version if false"
     ),
     limit: int = Query(100, description="Maximum number of results to return"),
-    _=Depends(get_current_user),
 ):
     """Get all questions for a specific experiment"""
     client, collection = get_outputs_collection()
@@ -218,7 +343,6 @@ async def get_by_question_id(
     full: bool = Query(
         True, description="Return full JSON if true, reduced version if false"
     ),
-    _=Depends(get_current_user),
 ):
     """Get experiment by question_id"""
     client, collection = get_outputs_collection()
