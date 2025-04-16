@@ -197,10 +197,83 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up experiment runner events
     initializeExperimentRunner();
 
-    // Add event listener for modal shown event to apply syntax highlighting
+    // Add event listener for modal shown event to apply syntax highlighting and set up toggle buttons
     document.getElementById('detailsModal')?.addEventListener('shown.bs.modal', function () {
+        const modalBody = document.getElementById('detailsModalBody');
+        
         // Reapply syntax highlighting to all code blocks
-        Prism.highlightAllUnder(document.getElementById('detailsModalBody'));
+        Prism.highlightAllUnder(modalBody);
+        
+        // Set up toggle buttons for collapsible content
+        document.querySelectorAll('#detailsModalBody .toggle-content-btn').forEach(btn => {
+            // Remove any existing event listeners to prevent duplicates
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            // Add the event listener to the new button
+            newBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const targetId = this.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.classList.toggle('collapsed');
+                    
+                    // If this is a code section, also toggle the Prism highlighting
+                    if (targetElement.querySelector('code')) {
+                        Prism.highlightElement(targetElement.querySelector('code'));
+                    }
+                }
+            });
+        });
+        
+        // Find and process all journey steps - especially code_runner steps
+        const steps = document.querySelectorAll('#detailsModalBody .journey-step');
+        steps.forEach((step, stepIndex) => {
+            // Check if this is a code runner step by looking at the step content
+            if (step.textContent.toLowerCase().includes('code_runner') || 
+                step.querySelector('[data-actor="code_runner"]')) {
+                
+                // Find all code blocks and ensure they are visible
+                const codeBlocks = step.querySelectorAll('.code-block, .code-content, .content-collapsible');
+                codeBlocks.forEach((block, i) => {
+                    // Make sure each code element has an ID
+                    if (!block.id) {
+                        block.id = `code-runner-step-${stepIndex}-code-${i}`;
+                    }
+                    
+                    // Remove the collapsed class to make code visible
+                    block.classList.remove('collapsed');
+                    
+                    // If this block contains Python code, highlight it
+                    if (block.querySelector('code.language-python')) {
+                        Prism.highlightElement(block.querySelector('code.language-python'));
+                    }
+                });
+                
+                // Also make sure any code field is properly displayed
+                const codeField = step.querySelector('[data-field="code"]');
+                if (codeField) {
+                    codeField.classList.remove('collapsed');
+                    if (codeField.nextElementSibling) {
+                        codeField.nextElementSibling.classList.remove('collapsed');
+                    }
+                }
+                
+                // Find any buttons that might control visibility of code sections
+                const toggleButtons = step.querySelectorAll('.toggle-content-btn');
+                toggleButtons.forEach(btn => {
+                    const targetId = btn.getAttribute('data-target');
+                    if (targetId && targetId.includes('code')) {
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) {
+                            targetEl.classList.remove('collapsed');
+                        }
+                    }
+                });
+            }
+        });
     });
 });
 

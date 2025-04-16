@@ -114,7 +114,18 @@ def is_p4_recommendation(output_file_path):
         with open(output_file_path, "r") as f:
             try:
                 data = json.load(f)
-                return data.get("recommendation", "").lower() == "p4"
+                # Check top-level recommendation
+                if data.get("recommendation", "").lower() == "p4":
+                    return True
+                    
+                # Also check in result section (newer format)
+                if "result" in data and isinstance(data["result"], dict):
+                    result_recommendation = data["result"].get("recommendation", "").lower()
+                    if result_recommendation == "p4":
+                        logger.info(f"Found P4 recommendation in result section for {data.get('short_id', 'unknown')}")
+                        return True
+                
+                return False
             except json.JSONDecodeError as e:
                 # Specific error for JSON decoding issues
                 logger.error(f"JSON decode error in {output_file_path}: {str(e)}")
@@ -125,9 +136,17 @@ def is_p4_recommendation(output_file_path):
                     content = f.read()
                     
                     # Look for recommendation pattern in the raw content
-                    if '"recommendation": "p4"' in content or '"recommendation":"p4"' in content:
-                        logger.info(f"Found p4 recommendation in file despite JSON errors: {output_file_path}")
-                        return True
+                    p4_patterns = [
+                        '"recommendation": "p4"',
+                        '"recommendation":"p4"',
+                        '"result":{[^}]*"recommendation": "p4"',
+                        '"result":{[^}]*"recommendation":"p4"'
+                    ]
+                    
+                    for pattern in p4_patterns:
+                        if pattern in content:
+                            logger.info(f"Found p4 recommendation in file despite JSON errors: {output_file_path}")
+                            return True
                 except Exception as raw_error:
                     logger.error(f"Error during content scan in {output_file_path}: {str(raw_error)}")
                 
@@ -239,7 +258,21 @@ def process_output_file(file_path):
         short_id = get_question_id_short(query_id)
         
         # Check if this is a P4 recommendation that hasn't expired
-        recommendation = output_data.get("recommendation", "").lower()
+        # Look in multiple places for the recommendation due to changes in output format
+        recommendation = None
+        
+        # First check top-level recommendation
+        if "recommendation" in output_data:
+            recommendation = output_data.get("recommendation", "").lower()
+        
+        # If not found or not p4, also check in result section (newer format)
+        if not recommendation or recommendation != "p4":
+            if "result" in output_data and isinstance(output_data["result"], dict):
+                result_recommendation = output_data["result"].get("recommendation", "").lower()
+                if result_recommendation == "p4":
+                    recommendation = "p4"
+                    logger.info(f"Found P4 recommendation in result section for {output_data.get('short_id', 'unknown')}")
+        
         if recommendation == "p4" and is_not_expired(output_data):
             logger.info(f"Found P4 recommendation that hasn't expired: {short_id}")
             
@@ -389,7 +422,28 @@ def retry_request(short_id, info):
         
         # Check if the recommendation changed from P4
         if result:
-            new_recommendation = result.get("recommendation", "").lower()
+            # Get recommendation from multiple places
+            new_recommendation = None
+            
+            # First check top-level recommendation
+            top_recommendation = result.get("recommendation", "").lower()
+            if top_recommendation:
+                new_recommendation = top_recommendation
+            
+            # If no recommendation found, check result section
+            if not new_recommendation or new_recommendation == "":
+                if "result" in result and isinstance(result["result"], dict):
+                    result_recommendation = result["result"].get("recommendation", "").lower()
+                    if result_recommendation:
+                        new_recommendation = result_recommendation
+                        logger.info(f"Using recommendation from result section: {new_recommendation}")
+            
+            # Default to p4 if we couldn't find a recommendation
+            if not new_recommendation:
+                new_recommendation = "p4"
+                logger.warning(f"Could not find recommendation in result, defaulting to p4")
+                
+            # Check if it changed from p4
             changed = new_recommendation != "p4"
             
             # Check if the output file exists and is a valid JSON

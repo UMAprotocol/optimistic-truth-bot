@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import time
 import re
 from typing import Optional, List, Dict, Any
+import re  # Make sure regex module is imported
 
 
 def get_overseer_prompt(
@@ -139,7 +140,11 @@ Based on your evaluation, determine one of the following verdicts:
 - DEFAULT_TO_P4: The response quality is unsatisfactory, and the system should default to a p4 recommendation.
 
 Special Market Alignment Rule:
-If the market STRONGLY favors a specific outcome (>85% confidence) but the solver recommendation contradicts this without compelling evidence, you MUST:
+VERY IMPORTANT: When checking market alignment, you MUST carefully consider the resolution conditions mapping first. For example, if "p1 corresponds to Texas Rangers", then a recommendation of "p1" means Texas Rangers wins, and you should check if this aligns with market sentiment for Texas Rangers, NOT by the p1 label itself.
+
+If you are provided with resolution conditions that map p1, p2, p3 to specific outcomes, you must use those mappings when determining if the recommendation aligns with market sentiment.
+
+Only after correctly interpreting the recommendation through resolution conditions mapping, if the market STRONGLY favors a specific outcome (>85% confidence) but the solver recommendation contradicts this without compelling evidence, you MUST:
 1. Set verdict to DEFAULT_TO_P4
 2. Explicitly note this market/solver disagreement in your critique
 3. In prompt_update, suggest trying a different solver because the current one is producing results that conflict with strong market signals
@@ -197,6 +202,55 @@ def format_market_price_info(tokens):
         return None
 
     output = "Token Prices from Polymarket:\n"
+    
+    # Try to extract resolution conditions from proposal metadata for proper p1/p2/p3 mapping
+    resolution_conditions = ""
+    res_p1_outcome = ""
+    res_p2_outcome = ""
+    
+    # First try to get from the first token if it has metadata or resolution_conditions
+    if len(tokens) > 0:
+        if isinstance(tokens[0], dict):
+            if "resolution_conditions" in tokens[0]:
+                resolution_conditions = tokens[0]["resolution_conditions"]
+            elif tokens[0].get("metadata", {}) and isinstance(tokens[0]["metadata"], dict):
+                resolution_conditions = tokens[0]["metadata"].get("resolution_conditions", "")
+                
+    # If no resolution conditions found in tokens, look at the parent object
+    if not resolution_conditions:
+        try:
+            if hasattr(tokens, "proposal_metadata") and tokens.proposal_metadata:
+                resolution_conditions = tokens.proposal_metadata.get("resolution_conditions", "")
+        except Exception:
+            pass
+    
+    # Extract p1/p2 outcomes from resolution conditions if available
+    if resolution_conditions:
+        # Look for patterns like "p1 corresponds to X" or "p1 to X"
+        p1_patterns = [
+            r'p1\s+corresponds\s+to\s+([\w\s]+)',
+            r'p1\s+to\s+([\w\s]+)',
+            r'p1[:\s]+([^,\.]+)'
+        ]
+        
+        p2_patterns = [
+            r'p2\s+corresponds\s+to\s+([\w\s]+)',
+            r'p2\s+to\s+([\w\s]+)',
+            r'p2[:\s]+([^,\.]+)'
+        ]
+        
+        # Try each pattern
+        for pattern in p1_patterns:
+            match = re.search(pattern, resolution_conditions)
+            if match:
+                res_p1_outcome = match.group(1).strip()
+                break
+                
+        for pattern in p2_patterns:
+            match = re.search(pattern, resolution_conditions)
+            if match:
+                res_p2_outcome = match.group(1).strip()
+                break
 
     # Helper function to safely convert price to float
     def safe_float(price, default=0.0):
@@ -216,6 +270,13 @@ def format_market_price_info(tokens):
 
         output += f"- Token: {outcome}, Price: {price_str}, ID: {token_id}, Winner: {winner}\n"
 
+    # Add resolution conditions mapping if available
+    if resolution_conditions:
+        output += f"\nResolution Conditions: {resolution_conditions}\n"
+        
+        if res_p1_outcome and res_p2_outcome:
+            output += f"Resolution mapping: p1 = {res_p1_outcome}, p2 = {res_p2_outcome}\n"
+    
     output += "\nInterpretation: "
 
     # Check if we have winner information but null prices
@@ -287,11 +348,38 @@ def format_market_price_info(tokens):
                 if winner and high_price < 0.6:
                     output += f"Market outcome is determined despite uncertain prices: {winner.get('outcome')} is the WINNER"
                 elif high_price > 0.85:
-                    output += f"Market STRONGLY favors {high_token.get('outcome')} outcome ({high_price:.3f} = {high_price*100:.1f}% confidence)"
+                    high_outcome = high_token.get('outcome')
+                    
+                    # Check if there's a mapping between outcomes and p1/p2
+                    outcome_mapping = ""
+                    if res_p1_outcome and high_outcome and res_p1_outcome in high_outcome:
+                        outcome_mapping = f" (maps to p1 in resolution conditions)"
+                    elif res_p2_outcome and high_outcome and res_p2_outcome in high_outcome:
+                        outcome_mapping = f" (maps to p2 in resolution conditions)"
+                        
+                    output += f"Market STRONGLY favors {high_outcome} outcome{outcome_mapping} ({high_price:.3f} = {high_price*100:.1f}% confidence)"
                 elif high_price > 0.65:
-                    output += f"Market moderately favors {high_token.get('outcome')} outcome ({high_price:.3f} = {high_price*100:.1f}% confidence)"
+                    high_outcome = high_token.get('outcome')
+                    
+                    # Check if there's a mapping between outcomes and p1/p2
+                    outcome_mapping = ""
+                    if res_p1_outcome and high_outcome and res_p1_outcome in high_outcome:
+                        outcome_mapping = f" (maps to p1 in resolution conditions)"
+                    elif res_p2_outcome and high_outcome and res_p2_outcome in high_outcome:
+                        outcome_mapping = f" (maps to p2 in resolution conditions)"
+                        
+                    output += f"Market moderately favors {high_outcome} outcome{outcome_mapping} ({high_price:.3f} = {high_price*100:.1f}% confidence)"
                 elif high_price >= 0.5:
-                    output += f"Market slightly favors {high_token.get('outcome')}, but not decisively ({high_price:.3f} vs {low_price:.3f})"
+                    high_outcome = high_token.get('outcome')
+                    
+                    # Check if there's a mapping between outcomes and p1/p2
+                    outcome_mapping = ""
+                    if res_p1_outcome and high_outcome and res_p1_outcome in high_outcome:
+                        outcome_mapping = f" (maps to p1 in resolution conditions)"
+                    elif res_p2_outcome and high_outcome and res_p2_outcome in high_outcome:
+                        outcome_mapping = f" (maps to p2 in resolution conditions)"
+                        
+                    output += f"Market slightly favors {high_outcome}{outcome_mapping}, but not decisively ({high_price:.3f} vs {low_price:.3f})"
                 else:
                     # Check for winner information before declaring uncertainty
                     winner = next(
@@ -315,12 +403,21 @@ def format_market_price_info(tokens):
                     )
                     if high_token:
                         high_price = safe_float(high_token.get("price"))
+                        high_outcome = high_token.get('outcome')
+                        
+                        # Check if there's a mapping between outcomes and p1/p2
+                        outcome_mapping = ""
+                        if res_p1_outcome and high_outcome and res_p1_outcome in high_outcome:
+                            outcome_mapping = f" (maps to p1 in resolution conditions)"
+                        elif res_p2_outcome and high_outcome and res_p2_outcome in high_outcome:
+                            outcome_mapping = f" (maps to p2 in resolution conditions)"
+                            
                         if high_price > 0.85:
-                            output += f"Market STRONGLY favors {high_token.get('outcome')} outcome ({high_price:.3f} = {high_price*100:.1f}% confidence)"
+                            output += f"Market STRONGLY favors {high_outcome} outcome{outcome_mapping} ({high_price:.3f} = {high_price*100:.1f}% confidence)"
                         elif high_price > 0.65:
-                            output += f"Market moderately favors {high_token.get('outcome')} outcome ({high_price:.3f} = {high_price*100:.1f}% confidence)"
+                            output += f"Market moderately favors {high_outcome} outcome{outcome_mapping} ({high_price:.3f} = {high_price*100:.1f}% confidence)"
                         elif high_price > 0.5:
-                            output += f"Market shows some preference for {high_token.get('outcome')}, but not decisively ({high_price:.3f})"
+                            output += f"Market shows some preference for {high_outcome}{outcome_mapping}, but not decisively ({high_price:.3f})"
                         else:
                             # Final check for winner
                             winner = next(

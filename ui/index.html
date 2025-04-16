@@ -477,6 +477,20 @@
                 return;
             }
             
+            // Check for code runner steps - we need to handle the code sections specifically
+            if (element.textContent.includes('code_runner') && element.textContent.includes('step')) {
+                // Look for code sections in this step
+                const stepContainer = element.closest('.journey-step-card');
+                if (stepContainer) {
+                    // Find all code-section elements in this step
+                    const codeSections = stepContainer.querySelectorAll('.code-section .code-content');
+                    codeSections.forEach(section => {
+                        // Make sure the code sections are visible when the step is expanded
+                        section.classList.remove('collapsed');
+                    });
+                }
+            }
+            
             // Find the value container - could be right after a property key or after a colon
             let valueDiv = null;
             let next = element.nextElementSibling;
@@ -489,7 +503,9 @@
                 valueDiv = next;
             }
             
-            if (valueDiv && (valueDiv.classList.contains('json-value') || valueDiv.classList.contains('code-block'))) {
+            if (valueDiv && (valueDiv.classList.contains('json-value') || 
+                           valueDiv.classList.contains('code-block') || 
+                           valueDiv.classList.contains('content-collapsible'))) {
                 valueDiv.classList.toggle('collapsed');
             }
         };

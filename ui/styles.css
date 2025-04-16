@@ -1839,6 +1839,14 @@ select[multiple] {
 .code-content {
     max-height: 400px;
     overflow: auto;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 1;
+}
+
+.code-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
 }
 
 .code-content pre {
@@ -2391,6 +2399,7 @@ select[multiple] {
     font-family: 'Courier New', monospace;
     font-size: 0.85rem;
     display: block;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
 }
 
 .code-block.collapsed {
@@ -2564,6 +2573,7 @@ select[multiple] {
     font-family: 'Courier New', monospace;
     font-size: 0.85rem;
     display: block;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin 0.3s ease-out;
 }
 
 .code-block.collapsed {
