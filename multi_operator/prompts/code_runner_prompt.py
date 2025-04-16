@@ -45,6 +45,32 @@ IMPORTANT REQUIREMENTS:
         
     code_gen_prompt += "\n4. Available Data Sources Information:\n"
     
+    # Include ALL API keys and configuration information
+    if data_sources:
+        code_gen_prompt += "   ALL AVAILABLE API CONFIGURATIONS:\n"
+        for source in data_sources.values():
+            name = source.get("name", "Unknown")
+            category = source.get("category", "Unknown")
+            subcategory = source.get("subcategory", "")
+            
+            code_gen_prompt += f"   - {name} (Category: {category}"
+            if subcategory:
+                code_gen_prompt += f", Subcategory: {subcategory}"
+            code_gen_prompt += "):\n"
+            
+            # Add API keys
+            if "api_keys" in source:
+                for api_key in source["api_keys"]:
+                    code_gen_prompt += f"     * API Key: {api_key}\n"
+            
+            # Add endpoints
+            if "endpoints" in source:
+                for endpoint_type, url in source["endpoints"].items():
+                    code_gen_prompt += f"     * {endpoint_type} endpoint: {url}\n"
+    
+    # Add query type specific information and more detailed examples
+    code_gen_prompt += "\n5. Query Type Specific Information:\n\n"
+    
     # Add information about data sources if available
     if data_sources:
         # Add data source information based on the query type
@@ -141,9 +167,9 @@ IMPORTANT REQUIREMENTS:
      """
 
     code_gen_prompt += """
-5. NEVER include actual API key values in the code, always load them from environment variables.
+6. NEVER include actual API key values in the code, always load them from environment variables.
 
-6. IMPORTANT FOR ALL DATA SOURCES: If a proxy endpoint is provided alongside a primary endpoint, you MUST implement the fallback mechanism described above. This is critical for reliability:
+7. IMPORTANT FOR ALL DATA SOURCES: If a proxy endpoint is provided alongside a primary endpoint, you MUST implement the fallback mechanism described above. This is critical for reliability:
    - Always try the proxy endpoint first
    - If the proxy fails, fall back to the primary endpoint
    - Use appropriate timeout values (10 seconds recommended)
@@ -152,9 +178,10 @@ IMPORTANT REQUIREMENTS:
 The code should be completely self-contained and runnable with no arguments.
 
 """
+    # ALWAYS include template code, guaranteeing a full example is provided
     if template_code:
         code_gen_prompt += f"""
-Here's a similar code example that you can use as reference:
+Here's a complete code example that shows how to solve this type of problem:
 
 ```python
 {template_code}
@@ -189,6 +216,7 @@ def get_retry_prompt(
     available_api_keys: Set[str],
     attempt: int,
     data_sources: Optional[Dict[str, Any]] = None,
+    template_code: Optional[str] = None,
 ) -> str:
     """
     Generate the prompt for subsequent code generation attempts.
@@ -199,6 +227,7 @@ def get_retry_prompt(
         available_api_keys: Set of available API keys
         attempt: Current attempt number
         data_sources: Optional dictionary of data sources
+        template_code: Optional template code to use as reference
 
     Returns:
         The prompt for code generation
@@ -228,9 +257,32 @@ Please provide a new, corrected version that:
     for api_key_name in sorted(available_api_keys):
         code_gen_prompt += f"   - {api_key_name}\n"
     
-    # Add information about data sources if available
+    # Include ALL API keys and configuration information
     if data_sources:
-        code_gen_prompt += "\n3. Data Sources and Endpoints:\n"
+        code_gen_prompt += "\n3. ALL AVAILABLE API CONFIGURATIONS:\n"
+        for source in data_sources.values():
+            name = source.get("name", "Unknown")
+            category = source.get("category", "Unknown")
+            subcategory = source.get("subcategory", "")
+            
+            code_gen_prompt += f"   - {name} (Category: {category}"
+            if subcategory:
+                code_gen_prompt += f", Subcategory: {subcategory}"
+            code_gen_prompt += "):\n"
+            
+            # Add API keys
+            if "api_keys" in source:
+                for api_key in source["api_keys"]:
+                    code_gen_prompt += f"     * API Key: {api_key}\n"
+            
+            # Add endpoints
+            if "endpoints" in source:
+                for endpoint_type, url in source["endpoints"].items():
+                    code_gen_prompt += f"     * {endpoint_type} endpoint: {url}\n"
+    
+    # Add query type specific data sources
+    if data_sources:
+        code_gen_prompt += "\n4. Query Type Specific Information:\n"
         
         # Add data source information based on the query type
         if query_type == "crypto":
@@ -265,7 +317,23 @@ Please provide a new, corrected version that:
        1. Try the proxy endpoint first
        2. If proxy fails, automatically fall back to the primary endpoint
        3. Handle this with proper try/except blocks
-"""
+
+     Example fallback code structure:
+     ```python
+     def get_data(symbol, start_time, end_time):
+         try:
+             # First try the proxy endpoint
+             response = requests.get(f"{proxy_url}?symbol={symbol}&interval=1m&limit=1&startTime={start_time}&endTime={end_time}", timeout=10)
+             response.raise_for_status()
+             return response.json()
+         except Exception as e:
+             print(f"Proxy endpoint failed: {str(e)}, falling back to primary endpoint")
+             # Fall back to primary endpoint if proxy fails
+             response = requests.get(f"{primary_url}/klines?symbol={symbol}&interval=1m&limit=1&startTime={start_time}&endTime={end_time}", timeout=10)
+             response.raise_for_status()
+             return response.json()
+     ```
+     """
         
         elif query_type.startswith("sports_"):
             sports_type = query_type.replace("sports_", "").upper()
@@ -308,16 +376,34 @@ Please provide a new, corrected version that:
 """
         
     code_gen_prompt += """
-4. NEVER include actual API key values in the code, always load them from environment variables.
-5. Makes the code runnable with no arguments
-6. Handles errors more gracefully with try/except blocks
-7. Returns results in a clear format: "recommendation: p1", "recommendation: p2", etc.
-8. For sports data: Uses RESOLUTION_MAP correctly (keys are outcomes, values are recommendation codes)
-9. IMPORTANT: If a proxy endpoint is provided alongside a primary endpoint, you MUST implement a fallback mechanism:
+5. NEVER include actual API key values in the code, always load them from environment variables.
+6. Makes the code runnable with no arguments
+7. Handles errors more gracefully with try/except blocks
+8. Returns results in a clear format: "recommendation: p1", "recommendation: p2", etc.
+9. For sports data: Uses RESOLUTION_MAP correctly (keys are outcomes, values are recommendation codes)
+10. IMPORTANT: If a proxy endpoint is provided alongside a primary endpoint, you MUST implement a fallback mechanism:
    - Always try the proxy endpoint first
    - If the proxy fails, fall back to the primary endpoint
    - Use appropriate timeout values (10 seconds recommended) 
    - Include proper error handling with try/except blocks
+"""
+
+    # ALWAYS include template code, guaranteeing a full example is provided
+    if template_code:
+        code_gen_prompt += f"""
+Here's a complete code example that shows how to solve this type of problem:
+
+```python
+{template_code}
+```
+
+MODIFY THE ABOVE TEMPLATE by:
+1. Removing all command-line argument handling
+2. Using dotenv to load API keys from environment variables
+3. Extracting required info (dates, teams, etc.) directly from the question
+4. Making the code runnable with no arguments
+5. Handling errors gracefully
+6. Returning results in a clear format (either JSON or plaintext with a 'recommendation: X' line)
 """
 
     return code_gen_prompt
@@ -473,13 +559,14 @@ def get_code_generation_prompt(
     Returns:
         The complete prompt for code generation
     """
+    # Make sure we always have template code, even for retry attempts
     if attempt == 1:
         base_prompt = get_first_attempt_prompt(
             user_prompt, query_type, available_api_keys, data_sources, template_code
         )
     else:
         base_prompt = get_retry_prompt(
-            user_prompt, query_type, available_api_keys, attempt, data_sources
+            user_prompt, query_type, available_api_keys, attempt, data_sources, template_code
         )
     
     # Add query type specific guidance

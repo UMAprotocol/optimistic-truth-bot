@@ -1753,9 +1753,18 @@ function calculateAnalytics(dataArray) {
             if (isCorrect === true) p12Correct++;
         }
         
-        // Calculate tag statistics
+        // Calculate tag statistics - Check multiple possible tag locations
+        let tags = [];
         if (entry.tags && Array.isArray(entry.tags)) {
-            entry.tags.forEach(tag => {
+            tags = entry.tags;
+        } else if (entry.proposal_metadata && entry.proposal_metadata.tags && Array.isArray(entry.proposal_metadata.tags)) {
+            tags = entry.proposal_metadata.tags;
+        } else if (entry.market_data && entry.market_data.tags && Array.isArray(entry.market_data.tags)) {
+            tags = entry.market_data.tags;
+        }
+        
+        if (tags.length > 0) {
+            tags.forEach(tag => {
                 // Initialize tag stats if not already done
                 if (!tagStats[tag]) {
                     tagStats[tag] = {
@@ -1775,7 +1784,7 @@ function calculateAnalytics(dataArray) {
                     tagStats[tag].incorrect++;
                 }
                 
-                if (entry.disputed === true) {
+                if (entry.disputed === true || (entry.market_data && entry.market_data.disputed === true)) {
                     tagStats[tag].disputed++;
                 }
             });
@@ -1816,8 +1825,8 @@ function isRecommendationCorrect(entry) {
             // For format_version 2, get recommendation from result section
             rec = entry.result.recommendation.toLowerCase();
         } else {
-            // For format_version 1 or undefined format, use legacy fields
-            rec = (entry.recommendation || '').toLowerCase();
+            // For format_version 1 or undefined format, use legacy fields or proposed_price_outcome at root
+            rec = (entry.recommendation || entry.proposed_price_outcome || '').toLowerCase();
         }
         
         const resolved = entry.resolved_price_outcome.toString().toLowerCase();
@@ -3675,14 +3684,13 @@ function showDetails(data, index) {
     // Check if disputed
     const isDisputed = (isFormatV2 ? data.market_data?.disputed : data.disputed) === true;
     
-    // Get proposed price if available, being careful with 0 values
-    // Handle both old and new file structures
-    const proposedPrice = isFormatV2
-        ? (data.market_data?.proposed_price_outcome !== undefined 
-            ? data.market_data.proposed_price_outcome 
-            : (data.market_data?.proposed_price !== undefined ? data.market_data.proposed_price : 'N/A'))
-        : (data.proposed_price_outcome !== undefined 
-            ? data.proposed_price_outcome 
+    // Get proposed price outcome, check at root level first, then check in other locations
+    const proposedPrice = data.proposed_price_outcome !== undefined
+        ? data.proposed_price_outcome
+        : (isFormatV2
+            ? (data.market_data?.proposed_price_outcome !== undefined 
+                ? data.market_data.proposed_price_outcome 
+                : (data.market_data?.proposed_price !== undefined ? data.market_data.proposed_price : 'N/A'))
             : (data.proposed_price !== undefined 
                 ? data.proposed_price 
                 : (data.proposal_metadata?.proposed_price_outcome !== undefined 
@@ -3720,7 +3728,7 @@ function showDetails(data, index) {
     `;
     
     // Add tags section if available
-    // Check both potential locations for tags
+    // Check all potential locations for tags
     const tags = data.tags || data.proposal_metadata?.tags || (data.market_data ? data.market_data.tags : null);
     if (tags && Array.isArray(tags) && tags.length > 0) {
         content += `
