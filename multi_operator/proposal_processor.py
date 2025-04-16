@@ -373,6 +373,16 @@ class MultiOperatorProcessor:
 
             if "tokens" in proposal_obj:
                 tokens = proposal_obj["tokens"]
+                # Add resolution conditions to tokens to ensure proper market alignment checking
+                if "resolution_conditions" in proposal_obj:
+                    # Create a copy to avoid modifying the original proposal data
+                    if isinstance(tokens, list) and len(tokens) > 0:
+                        tokens_copy = tokens.copy()
+                        # Add resolution conditions to the first token for reference
+                        if isinstance(tokens_copy[0], dict):
+                            tokens_copy[0]["resolution_conditions"] = proposal_obj["resolution_conditions"]
+                        tokens = tokens_copy
+                
                 market_price_info = format_market_price_info(tokens)
 
             # Format the prompt using proposal data
@@ -577,10 +587,11 @@ SUMMARY:
                                 self.logger.info(f"Early market misalignment detected - will try re-routing to different solver")
                                 break
                         
-                        # Check if recommendation is p3 or p4, requiring minimum attempts
+                        # Check if recommendation is p3 or p4 OR if overseer defaulted to p4
                         recommendation = current_solver_result.get("recommendation", "")
                         recommendation_is_special = recommendation.lower() in self.P3_P4_RECOMMENDATIONS
-                        should_enforce_min_attempts = recommendation_is_special and current_attempt < self.min_attempts
+                        overseer_defaulted_to_p4 = verdict.lower() == "default_to_p4"
+                        should_enforce_min_attempts = (recommendation_is_special or overseer_defaulted_to_p4) and current_attempt < self.min_attempts
                         
                         if verdict == "SATISFIED" and not should_enforce_min_attempts:
                             # Overseer is satisfied with the result
