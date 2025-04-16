@@ -1742,13 +1742,13 @@ function isRecommendationCorrect(entry) {
         let rec = '';
         if (entry.format_version === 2 && entry.result && entry.result.recommendation) {
             // For format_version 2, get recommendation from result section
-            rec = entry.result.recommendation.toLowerCase();
+            rec = String(entry.result.recommendation).toLowerCase().trim();
         } else {
             // For format_version 1 or undefined format, use legacy fields
-            rec = (entry.recommendation || '').toLowerCase();
+            rec = String(entry.recommendation || '').toLowerCase().trim();
         }
         
-        const resolved = entry.resolved_price_outcome.toString().toLowerCase();
+        const resolved = String(entry.resolved_price_outcome).toLowerCase().trim();
         
         // Handle empty or missing recommendation
         if (!rec) return null;
@@ -1756,11 +1756,18 @@ function isRecommendationCorrect(entry) {
         // Direct match (p1 = p1, p2 = p2, etc)
         if (rec === resolved) return true;
         
-        // Numeric match (p1 = 1, p2 = 0, etc)
+        // Normalize the recommendation by removing leading 'p' if it exists
+        const normalizedRec = rec.startsWith('p') ? rec.substring(1) : rec;
+        const normalizedResolved = resolved.startsWith('p') ? resolved.substring(1) : resolved;
+        
+        // Match based on normalized values (1 = 1, 2 = 2, etc)
+        if (normalizedRec === normalizedResolved) return true;
+        
+        // Numeric match for common cases
         if (rec === 'p1' && (resolved === '1' || resolved === 'p1')) return true;
-        if (rec === 'p2' && (resolved === '0' || resolved === 'p2')) return true;
-        if ((rec === 'p3' || rec === 'p4') && (resolved !== '0' && resolved !== '1' && 
-                                               resolved !== 'p1' && resolved !== 'p2')) return true;
+        if (rec === 'p2' && (resolved === '2' || resolved === '0' || resolved === 'p2')) return true;
+        if ((rec === 'p3' || rec === 'p4') && (resolved !== '0' && resolved !== '1' && resolved !== '2' && 
+                                              resolved !== 'p1' && resolved !== 'p2')) return true;
         
         return false;
     }
@@ -3652,7 +3659,7 @@ function showDetails(data, index) {
     // Generate the content
     let content = `
         <div class="alert ${alertClass} mb-4">
-            <strong>Recommendation:</strong> ${data.recommendation || 'N/A'} | 
+            <strong>Recommendation:</strong> ${extractRecommendation(data) || 'N/A'} | 
             <strong>Resolved:</strong> ${data.resolved_price_outcome || 'Unresolved'} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
@@ -5992,3 +5999,37 @@ function formatCodeBlocks(text) {
 // Apply this function in the showDetails function when displaying responses
 // Update the relevant sections with:
 // <pre class="mb-0 response-text">${formatCodeBlocks(solverResult.response)}</pre>
+
+// Add this function near other utility functions
+function extractRecommendation(item) {
+    // Check all possible paths where recommendation might be stored
+    if (item.format_version === 2 && item.result && item.result.recommendation) {
+        return item.result.recommendation;
+    } else if (item.recommendation) {
+        return item.recommendation;
+    } else if (item.proposed_price_outcome) {
+        return item.proposed_price_outcome;
+    } else if (item.solver_results && item.solver_results.length > 0) {
+        const mainResult = item.solver_results[0];
+        if (mainResult.recommendation) return mainResult.recommendation;
+        if (mainResult.solver_result && mainResult.solver_result.recommendation) 
+            return mainResult.solver_result.recommendation;
+    }
+    // Check in overseer data
+    if (item.overseer_data && item.overseer_data.recommendation) 
+        return item.overseer_data.recommendation;
+    if (item.overseer_result && item.overseer_result.recommendation) 
+        return item.overseer_result.recommendation;
+    
+    // Last resort - check if there's a journey with recommendations
+    if (item.overseer_data && item.overseer_data.recommendation_journey && 
+        item.overseer_data.recommendation_journey.length > 0) {
+        // Get the last journey entry's recommendation
+        const lastJourney = item.overseer_data.recommendation_journey[
+            item.overseer_data.recommendation_journey.length - 1];
+        if (lastJourney.perplexity_recommendation) 
+            return lastJourney.perplexity_recommendation;
+    }
+    
+    return null;
+}
