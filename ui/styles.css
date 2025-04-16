@@ -2380,23 +2380,46 @@ select[multiple] {
 /* Code output blocks styling */
 .code-output-block, 
 .code-block {
+    padding: 10px;
     background-color: #282c34;
-    border: 1px solid #3e4451;
-    border-radius: 4px;
-    padding: 15px;
-    font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    overflow-x: auto;
-    margin: 10px 0;
-    max-height: 400px;
-    overflow-y: auto;
     color: #abb2bf;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 5px 0;
+    max-height: 400px;
+    white-space: pre;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    display: block;
 }
 
-.code-block {
-    background-color: #282c34;
+.code-block.collapsed {
+    display: none;
+}
+
+.json-property-key {
+    color: #6610f2;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.json-property-key::before {
+    content: "▼";
+    display: inline-block;
+    margin-right: 5px;
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+}
+
+.json-property-key.collapsed::before {
+    transform: rotate(-90deg);
+}
+
+.json-property-key:hover {
+    background-color: rgba(13, 110, 253, 0.1);
 }
 
 /* Styles for code syntax highlighting using Prism */
@@ -2459,4 +2482,135 @@ select[multiple] {
     border-radius: 4px;
     padding: 10px 15px;
     font-size: 0.9rem;
+}
+
+/* JSON folding styles */
+.json-container {
+    font-family: monospace;
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+    background-color: #f8f9fa;
+    padding: 16px;
+    border-radius: 5px;
+    margin-top: 10px;
+    max-height: 600px;
+    overflow-y: auto;
+    line-height: 1.5;
+}
+
+.json-key {
+    color: #0d6efd;
+    cursor: pointer;
+    position: relative;
+}
+
+.json-key::before {
+    content: "▼";
+    display: inline-block;
+    margin-right: 5px;
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+}
+
+.json-key.collapsed::before {
+    transform: rotate(-90deg);
+}
+
+.json-property-key {
+    color: #6610f2;
+    cursor: pointer;
+    position: relative;
+}
+
+.json-property-key::before {
+    content: "▼";
+    display: inline-block;
+    margin-right: 5px;
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+}
+
+.json-property-key.collapsed::before {
+    transform: rotate(-90deg);
+}
+
+.json-property {
+    color: #6610f2;
+}
+
+.json-value {
+    margin-left: 20px;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    max-height: 5000px;
+    opacity: 1;
+    overflow: hidden;
+}
+
+.json-value.collapsed {
+    max-height: 0;
+    opacity: 0;
+    display: none;
+}
+
+.code-block {
+    padding: 10px;
+    background-color: #282c34;
+    color: #abb2bf;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 5px 0;
+    max-height: 400px;
+    white-space: pre;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    display: block;
+}
+
+.code-block.collapsed {
+    display: none;
+}
+
+.json-string {
+    color: #198754;
+}
+
+.json-number {
+    color: #0dcaf0;
+}
+
+.json-boolean {
+    color: #6f42c1;
+}
+
+.json-null {
+    color: #6c757d;
+}
+
+.collapsible-string {
+    color: #198754;
+    position: relative;
+}
+
+.json-string-preview {
+    display: inline-block;
+    color: #198754;
+}
+
+/* Improve general JSON display */
+.journey-step-body pre,
+.code-section pre {
+    max-height: 300px;
+    overflow: auto;
+}
+
+.json-container .json-key,
+.json-container .json-property-key {
+    transition: background-color 0.2s;
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.json-container .json-key:hover,
+.json-container .json-property-key:hover {
+    background-color: rgba(13, 110, 253, 0.1);
 } 
