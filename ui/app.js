@@ -9,6 +9,7 @@ let currentSourceFilter = 'filesystem'; // Track current source filter
 let autoScrollEnabled = true; // Auto-scroll preference
 let mongoOnlyResults = false; // Track if we should only show MongoDB results
 let disableExperimentRunner = false; // Track if experiment runner is disabled
+let singleExperiment = ''; // Track if we're in single experiment mode
 
 // Date filter variables
 let currentDateFilters = {
@@ -61,6 +62,7 @@ async function fetchServerConfig() {
             // Update global settings
             mongoOnlyResults = config.mongo_only_results === true;
             disableExperimentRunner = config.disable_experiment_runner === true;
+            singleExperiment = config.single_experiment || '';
             
             // Update UI based on configuration
             const sourceFilterGroup = document.querySelector('.source-filter-group');
@@ -73,6 +75,21 @@ async function fetchServerConfig() {
                 currentSourceFilter = 'mongodb';
                 document.getElementById('filterSourceMongoDB')?.classList.add('active');
                 document.getElementById('filterSourceFilesystem')?.classList.remove('active');
+            }
+            
+            // Update UI for single experiment mode
+            if (singleExperiment) {
+                // Hide experiment selection panel
+                const experimentListColumn = document.querySelector('.col-md-4 .card');
+                if (experimentListColumn) {
+                    experimentListColumn.style.display = 'none';
+                }
+                
+                // Make the result column full width
+                const resultColumn = document.querySelector('.col-md-8');
+                if (resultColumn) {
+                    resultColumn.className = 'col-md-12';
+                }
             }
             
             return config;
@@ -2291,8 +2308,38 @@ function initializeColumnSelector() {
 // Load data about available experiment directories
 async function loadExperimentsData() {
     try {
+        // First clear existing data
+        experimentsData = [];
+        currentData = [];
+        
+        // Different endpoint URLs for different data sources
+        const sourceUrls = {
+            filesystem: '/api/results-directories',
+            mongodb: '/api/mongodb/analytics'
+        };
+        
+        // If we're in single experiment mode, we will load just that experiment
+        if (singleExperiment) {
+            // Create a mock experiment entry for the single experiment
+            experimentsData = [{
+                directory: singleExperiment,
+                path: singleExperiment,
+                title: singleExperiment,
+                source: singleExperiment.includes('mongodb/') ? 'mongodb' : 'filesystem'
+            }];
+            
+            // Directly load the experiment data
+            const source = singleExperiment.includes('mongodb/') ? 'mongodb' : 'filesystem';
+            const directory = singleExperiment.replace('mongodb/', '');
+            loadExperimentData(directory, source);
+            return;
+        }
+        
+        // Continue with normal loading for multiple experiments
+        const url = sourceUrls[currentSourceFilter] || sourceUrls.filesystem;
+        
         // Try to fetch from the API endpoint
-        const response = await fetch('/api/results-directories');
+        const response = await fetch(url);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -2382,6 +2429,11 @@ async function loadExperimentsData() {
 function displayExperimentsTable() {
     const tableBody = document.getElementById('resultsDirectoryTableBody');
     if (!tableBody) return;
+    
+    // If in single experiment mode, don't display the table
+    if (singleExperiment) {
+        return;
+    }
     
     if (experimentsData.length === 0) {
         tableBody.innerHTML = `
@@ -3007,13 +3059,22 @@ function displayExperimentMetadata() {
         '<i class="bi bi-database-fill" title="MongoDB Data Source"></i>' : 
         '<i class="bi bi-folder-fill" title="Filesystem Data Source"></i>';
     
-    // Extract the experiment info from metadata - handle both MongoDB and filesystem structures
-    const experimentInfo = currentExperiment.metadata?.experiment || {};
+    // Look for metadata in different possible locations
+    let experimentMetadata = {};
+    
+    // Check in currentExperiment.metadata.experiment first (MongoDB format)
+    if (currentExperiment.metadata?.experiment) {
+        experimentMetadata = currentExperiment.metadata.experiment;
+    } 
+    // Then check in currentExperiment.metadata (file-based format)
+    else if (currentExperiment.metadata) {
+        experimentMetadata = currentExperiment.metadata;
+    }
     
     // Get system prompt from metadata - handle various structures
-    const systemPrompt = experimentInfo.system_prompt || 
-                       (currentExperiment.metadata?.modifications?.system_prompt) ||
-                       (currentExperiment.metadata?.experiment?.system_prompt);
+    const systemPrompt = experimentMetadata.system_prompt || 
+                       currentExperiment.metadata?.modifications?.system_prompt ||
+                       currentExperiment.metadata?.experiment?.system_prompt;
     
     // Basic metadata display
     let metadata = `

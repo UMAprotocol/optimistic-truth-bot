@@ -272,7 +272,8 @@ class CodeRunnerSolver(BaseSolver):
                 )
                 print(f"Output preview: {output_preview}")
 
-            # Store attempt information
+            # Store attempt information with the prompt that was used
+            attempt_prompt = self._get_last_code_generation_prompt(user_prompt, query_type, system_prompt)
             attempts_info.append(
                 {
                     "attempt": attempt_count,
@@ -281,6 +282,7 @@ class CodeRunnerSolver(BaseSolver):
                     "output": code_output,
                     "execution_successful": execution_successful,
                     "retry_reason": "Output analysis suggests retry needed",
+                    "prompt_used": attempt_prompt
                 }
             )
 
@@ -1288,7 +1290,8 @@ Return ONLY the Python code without explanation.
         
     def _get_last_code_generation_prompt(self, user_prompt: str, query_type: str, system_prompt: Optional[str] = None) -> str:
         """
-        Generate a simplified version of the code generation prompt for storage and debugging.
+        Generate the code generation prompt for storage and debugging.
+        Instead of using a simplified version, we'll now store the actual prompt with template code.
         
         Args:
             user_prompt: The user prompt
@@ -1296,53 +1299,41 @@ Return ONLY the Python code without explanation.
             system_prompt: Optional system prompt
             
         Returns:
-            A simplified version of the code generation prompt
+            The full code generation prompt including template code
         """
-        # Create a simplified prompt for storage
-        prompt = f"""QUERY TYPE: {query_type}
-
-USER PROMPT:
-{user_prompt}
-
-SYSTEM PROMPT:
-{system_prompt or "No specific system prompt provided"}
-
-AVAILABLE API KEYS:
-{', '.join(sorted(self.available_api_keys))}
-
-DATA SOURCES:
-"""
-        # Add data sources information if available
-        if hasattr(self, "data_sources") and self.data_sources:
-            for name, source in self.data_sources.items():
-                category = source.get("category", "Unknown")
-                subcategory = source.get("subcategory", "")
-                prompt += f"- {name} (Category: {category}"
-                if subcategory:
-                    prompt += f", Subcategory: {subcategory}"
-                prompt += ")\n"
-                
-                # Add endpoints if available
-                if "endpoints" in source:
-                    for endpoint_type, url in source["endpoints"].items():
-                        prompt += f"  * {endpoint_type}: {url}\n"
-        else:
-            prompt += "No specific data sources configured\n"
-            
-        # Add expected output format
-        prompt += """
-EXPECTED OUTPUT FORMAT:
-The code should extract information from the prompt, process it, and return a recommendation in the format:
-recommendation: p1/p2/p3/p4
-
-Where:
-- p1 = YES/TRUE/First option
-- p2 = NO/FALSE/Second option
-- p3 = 50-50 outcome
-- p4 = Too early to resolve
-"""
+        # Get template code for this query type
+        template_code = None
+        template_file = None
         
-        return prompt
+        # Find the right template based on query type
+        if query_type in self.sample_templates:
+            template_file = self.sample_templates[query_type]
+        elif query_type == "unknown" and self.sample_templates:
+            # For unknown query types, use the first available template as a generic starter
+            template_file = next(iter(self.sample_templates.values()))
+            
+        # Read template file if found
+        if template_file and template_file.exists():
+            try:
+                with open(template_file, "r") as f:
+                    template_code = f.read()
+            except Exception:
+                # Continue without a template if there's an error
+                pass
+        
+        # Generate the full prompt using the prompt generator
+        full_prompt = get_code_generation_prompt(
+            user_prompt=user_prompt,
+            query_type=query_type,
+            available_api_keys=self.available_api_keys,
+            data_sources=self.data_sources if hasattr(self, "data_sources") else None,
+            template_code=template_code,
+            attempt=1,  # Always use first attempt format for storing
+            endpoint_info_getter=self._get_endpoint_info
+        )
+        
+        # Return the full prompt
+        return full_prompt
 
     def get_name(self) -> str:
         """
