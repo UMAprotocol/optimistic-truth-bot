@@ -1788,7 +1788,10 @@ function calculateAnalytics(dataArray) {
                         total: 0,
                         correct: 0,
                         incorrect: 0,
-                        disputed: 0
+                        disputed: 0,
+                        totalIgnoringP4: 0,
+                        correctIgnoringP4: 0,
+                        incorrectIgnoringP4: 0
                     };
                 }
                 
@@ -1799,6 +1802,22 @@ function calculateAnalytics(dataArray) {
                     tagStats[tag].correct++;
                 } else if (isCorrect === false) {
                     tagStats[tag].incorrect++;
+                }
+                
+                // Calculate P4-ignoring stats
+                // Only count if either recommendation or resolution is not P4
+                const isP4Recommendation = rec === 'p4';
+                const isP4Resolution = (entry.resolved_price_outcome !== null && 
+                                       entry.resolved_price_outcome !== undefined) ?
+                                       entry.resolved_price_outcome.toString().toLowerCase() === 'p4' : false;
+                                       
+                if (!isP4Recommendation && !isP4Resolution) {
+                    tagStats[tag].totalIgnoringP4++;
+                    if (isCorrect === true) {
+                        tagStats[tag].correctIgnoringP4++;
+                    } else if (isCorrect === false) {
+                        tagStats[tag].incorrectIgnoringP4++;
+                    }
                 }
                 
                 if (entry.disputed === true || (entry.market_data && entry.market_data.disputed === true)) {
@@ -1817,6 +1836,7 @@ function calculateAnalytics(dataArray) {
     Object.keys(tagStats).forEach(tag => {
         const stats = tagStats[tag];
         stats.accuracyPercent = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
+        stats.accuracyPercentIgnoringP4 = stats.totalIgnoringP4 > 0 ? (stats.correctIgnoringP4 / stats.totalIgnoringP4) * 100 : 0;
     });
     
     return {
@@ -2321,6 +2341,37 @@ async function loadExperimentsData() {
         // If we're in single experiment mode, we will load just that experiment
         if (singleExperiment) {
             console.log('Running in SINGLE_EXPERIMENT mode for:', singleExperiment);
+            
+            // Make results section visible and add a loading indicator
+            const resultsSection = document.querySelector('.results-section');
+            if (resultsSection) {
+                // Show the results section
+                resultsSection.style.display = 'block';
+                
+                // Also show the results table card
+                const resultsTableCard = document.getElementById('resultsTableCard');
+                if (resultsTableCard) {
+                    resultsTableCard.style.display = 'block';
+                }
+                
+                // Create loading indicator in the results table body
+                const resultsTableBody = document.getElementById('resultsTableBody');
+                if (resultsTableBody) {
+                    resultsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center p-5">
+                                <div id="singleExperimentLoader">
+                                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <h4 class="mt-3">Loading Experiment Data</h4>
+                                    <p class="text-muted">${singleExperiment}</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
             
             // Always force MongoDB source when in SINGLE_EXPERIMENT mode
             const source = 'mongodb';
@@ -3396,6 +3447,12 @@ function displayExperimentMetadata() {
 
 // Display the results data in the table
 function displayResultsData() {
+    // Remove single experiment loader if it exists
+    const singleExperimentLoader = document.getElementById('singleExperimentLoader');
+    if (singleExperimentLoader) {
+        singleExperimentLoader.remove();
+    }
+    
     // Show results section and filter controls
     const resultsSection = document.querySelector('.results-section');
     if (resultsSection) {
@@ -5394,7 +5451,7 @@ function updateTagAccuracyDisplay(tagStats) {
         // Clear table
         tagAccuracyTableBody.innerHTML = `
             <tr>
-                <td colspan="5" class="text-center text-muted">No tag data available</td>
+                <td colspan="6" class="text-center text-muted">No tag data available</td>
             </tr>
         `;
         return;
@@ -5411,7 +5468,16 @@ function updateTagAccuracyDisplay(tagStats) {
     
     // Create rows for each tag
     tagAccuracyTableBody.innerHTML = sortedTags.map(tag => {
-        const stats = tagStats[tag] || { total: 0, correct: 0, incorrect: 0, accuracyPercent: 0 };
+        const stats = tagStats[tag] || { 
+            total: 0, 
+            correct: 0, 
+            incorrect: 0, 
+            accuracyPercent: 0,
+            totalIgnoringP4: 0,
+            correctIgnoringP4: 0,
+            incorrectIgnoringP4: 0,
+            accuracyPercentIgnoringP4: 0
+        };
         
         // Ensure we have valid numbers
         const total = stats.total || 0;
@@ -5421,14 +5487,23 @@ function updateTagAccuracyDisplay(tagStats) {
         // Recalculate accuracy to ensure it's correct
         const accuracyPercent = total > 0 ? (correct / total) * 100 : 0;
         
+        // Calculate P4-ignoring accuracy
+        const totalIgnoringP4 = stats.totalIgnoringP4 || 0;
+        const correctIgnoringP4 = stats.correctIgnoringP4 || 0;
+        const accuracyPercentIgnoringP4 = totalIgnoringP4 > 0 ? (correctIgnoringP4 / totalIgnoringP4) * 100 : 0;
+        
         const accuracyClass = accuracyPercent >= 80 ? 'high-accuracy' : 
                              (accuracyPercent >= 50 ? 'medium-accuracy' : 'low-accuracy');
+                             
+        const accuracyClassIgnoringP4 = accuracyPercentIgnoringP4 >= 80 ? 'high-accuracy' : 
+                                       (accuracyPercentIgnoringP4 >= 50 ? 'medium-accuracy' : 'low-accuracy');
         
         return `
             <tr>
                 <td><span class="tag-badge">${tag}</span></td>
                 <td>${total}</td>
                 <td class="accuracy-cell ${accuracyClass}">${accuracyPercent.toFixed(1)}%</td>
+                <td class="accuracy-cell ${accuracyClassIgnoringP4}">${accuracyPercentIgnoringP4.toFixed(1)}%</td>
                 <td>${correct}</td>
                 <td>${incorrect}</td>
             </tr>
