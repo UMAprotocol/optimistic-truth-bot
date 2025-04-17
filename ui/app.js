@@ -1245,6 +1245,11 @@ function appendLogsToDisplay(logsContainer, logs, startIndex) {
 
 // Load active processes from the API
 async function loadActiveProcesses() {
+    // Skip API call if experiment runner is disabled
+    if (disableExperimentRunner) {
+        return;
+    }
+    
     try {
         const response = await fetch('/api/processes');
         
@@ -1301,6 +1306,9 @@ async function loadActiveProcesses() {
             
             // Don't log as error to avoid console spam
             console.log('Process management disabled on this server');
+            
+            // Set the flag to prevent future API calls
+            disableExperimentRunner = true;
         } else {
             console.error('Failed to load processes:', response.status, response.statusText);
         }
