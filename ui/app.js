@@ -2320,17 +2320,50 @@ async function loadExperimentsData() {
         
         // If we're in single experiment mode, we will load just that experiment
         if (singleExperiment) {
+            console.log('Running in SINGLE_EXPERIMENT mode for:', singleExperiment);
+            
+            // Always force MongoDB source when in SINGLE_EXPERIMENT mode
+            const source = 'mongodb';
+            const directory = singleExperiment;
+            
             // Create a mock experiment entry for the single experiment
             experimentsData = [{
-                directory: singleExperiment,
-                path: singleExperiment,
-                title: singleExperiment,
-                source: singleExperiment.includes('mongodb/') ? 'mongodb' : 'filesystem'
+                directory: directory,
+                path: `mongodb/${directory}`,
+                title: directory,
+                source: source
             }];
             
-            // Directly load the experiment data
-            const source = singleExperiment.includes('mongodb/') ? 'mongodb' : 'filesystem';
-            const directory = singleExperiment.replace('mongodb/', '');
+            // Fetch experiment metadata from MongoDB first to get proper title and details
+            try {
+                console.log('Fetching MongoDB metadata for single experiment');
+                const metadataResponse = await fetch(`/api/mongodb/experiment/${directory}`);
+                if (metadataResponse.ok) {
+                    const metadataData = await metadataResponse.json();
+                    
+                    // Use the first item to get experiment metadata if it's an array
+                    const metadataItem = Array.isArray(metadataData) && metadataData.length > 0 
+                        ? metadataData[0] : metadataData;
+                    
+                    // Extract title and other metadata
+                    if (metadataItem && metadataItem.metadata && metadataItem.metadata.experiment) {
+                        const experimentMetadata = metadataItem.metadata.experiment;
+                        
+                        // Update the experiment entry with MongoDB data
+                        experimentsData[0].title = experimentMetadata.title || directory;
+                        experimentsData[0].goal = experimentMetadata.goal || '';
+                        experimentsData[0].timestamp = experimentMetadata.timestamp || '';
+                        experimentsData[0].metadata = metadataItem.metadata;
+                    }
+                    
+                    console.log('Updated single experiment with MongoDB metadata:', experimentsData[0]);
+                }
+            } catch(metadataError) {
+                console.warn('Error loading MongoDB metadata for single experiment:', metadataError);
+                // Continue with basic experiment data if metadata fetch fails
+            }
+            
+            // Directly load the experiment data from MongoDB
             loadExperimentData(directory, source);
             return;
         }
@@ -3059,22 +3092,24 @@ function displayExperimentMetadata() {
         '<i class="bi bi-database-fill" title="MongoDB Data Source"></i>' : 
         '<i class="bi bi-folder-fill" title="Filesystem Data Source"></i>';
     
-    // Look for metadata in different possible locations
-    let experimentMetadata = {};
+    // Get all metadata - handle both MongoDB and filesystem structures
+    // For MongoDB structure: currentExperiment.metadata.experiment
+    // For filesystem structure: currentExperiment.metadata
+    let fullMetadata = currentExperiment.metadata || {};
+    let experimentInfo = {};
     
-    // Check in currentExperiment.metadata.experiment first (MongoDB format)
-    if (currentExperiment.metadata?.experiment) {
-        experimentMetadata = currentExperiment.metadata.experiment;
-    } 
-    // Then check in currentExperiment.metadata (file-based format)
-    else if (currentExperiment.metadata) {
-        experimentMetadata = currentExperiment.metadata;
+    if (fullMetadata.experiment) {
+        // MongoDB structure
+        experimentInfo = fullMetadata.experiment || {};
+    } else {
+        // Filesystem structure
+        experimentInfo = fullMetadata;
     }
     
     // Get system prompt from metadata - handle various structures
-    const systemPrompt = experimentMetadata.system_prompt || 
-                       currentExperiment.metadata?.modifications?.system_prompt ||
-                       currentExperiment.metadata?.experiment?.system_prompt;
+    const systemPrompt = experimentInfo.system_prompt || 
+                        fullMetadata.modifications?.system_prompt || 
+                        fullMetadata.experiment?.system_prompt;
     
     // Basic metadata display
     let metadata = `
@@ -3084,7 +3119,7 @@ function displayExperimentMetadata() {
                     <strong>Title:</strong>
                 </div>
                 <div class="col-md-8">
-                    ${currentExperiment.title || currentExperiment.directory}
+                    ${currentExperiment.title || experimentInfo.title || currentExperiment.directory}
                 </div>
             </div>
             
@@ -3107,7 +3142,7 @@ function displayExperimentMetadata() {
                 </div>
             </div>
             
-            ${currentExperiment.timestamp || (experimentInfo.timestamp ? `
+            ${currentExperiment.timestamp || experimentInfo?.timestamp ? `
             <div class="row mb-3">
                 <div class="col-md-4">
                     <strong>Date:</strong>
@@ -3116,9 +3151,9 @@ function displayExperimentMetadata() {
                     ${formatDisplayDate(currentExperiment.timestamp || experimentInfo.timestamp)}
                 </div>
             </div>
-            ` : '')}
+            ` : ''}
             
-            ${currentExperiment.goal || experimentInfo.goal ? `
+            ${currentExperiment.goal || experimentInfo?.goal ? `
             <div class="row mb-3">
                 <div class="col-md-4">
                     <strong>Goal:</strong>
@@ -3128,171 +3163,127 @@ function displayExperimentMetadata() {
                 </div>
             </div>
             ` : ''}
+            
+            ${experimentInfo?.previous_experiment ? `
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>Previous Experiment:</strong>
+                </div>
+                <div class="col-md-8">
+                    ${experimentInfo.previous_experiment}
+                </div>
+            </div>
+            ` : ''}
         </div>
     `;
     
-    // Add system prompt toggle with improved styling if system prompt exists
+    // Add MongoDB details if available
+    if (isMongoDBSource && fullMetadata) {
+        if (fullMetadata.experiment_id || (fullMetadata._id && fullMetadata._id.$oid)) {
+            metadata += `<hr><h4>MongoDB Details</h4><div class="metadata-section">`;
+            
+            if (fullMetadata.experiment_id) {
+                metadata += `
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Experiment ID:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        <span class="code-font">${fullMetadata.experiment_id}</span>
+                    </div>
+                </div>`;
+            }
+            
+            if (fullMetadata._id && fullMetadata._id.$oid) {
+                metadata += `
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>MongoDB ID:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        <span class="code-font">${fullMetadata._id.$oid}</span>
+                    </div>
+                </div>`;
+            }
+            
+            metadata += `</div>`;
+        }
+    }
+    
+    // Display setup if it exists as a string
+    if (typeof experimentInfo?.setup === 'string' && experimentInfo.setup) {
+        metadata += `
+        <hr>
+        <h4>Setup</h4>
+        <div class="metadata-section">
+            <div class="row">
+                <div class="col-md-12">
+                    <p>${experimentInfo.setup}</p>
+                </div>
+            </div>
+        </div>`;
+    }
+    
+    // Display modifications if they exist
+    if (experimentInfo?.modifications && typeof experimentInfo.modifications === 'object') {
+        metadata += `
+        <hr>
+        <h4>Modifications</h4>
+        <div class="metadata-section">`;
+        
+        Object.entries(experimentInfo.modifications).forEach(([key, value]) => {
+            if (key === 'system_prompt') return; // Skip system prompt, handled separately
+            
+            metadata += `
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <strong>${formatKeyName(key)}:</strong>
+                </div>
+                <div class="col-md-8">`;
+            
+            if (typeof value === 'object' && value !== null) {
+                // For nested objects like bug_fixes
+                metadata += `<div class="nested-object">`;
+                Object.entries(value).forEach(([subKey, subValue]) => {
+                    metadata += `
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <strong>${formatKeyName(subKey)}:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            ${subValue}
+                        </div>
+                    </div>`;
+                });
+                metadata += `</div>`;
+            } else {
+                metadata += `${value}`;
+            }
+            
+            metadata += `
+                </div>
+            </div>`;
+        });
+        
+        metadata += `</div>`;
+    }
+    
+    // Add system prompt toggle if available
     if (systemPrompt) {
-        metadata += `<div class="mt-3 mb-2">
+        metadata += `
+        <hr>
+        <div class="metadata-section">
             <a href="#" id="toggleSystemPrompt" class="d-inline-flex align-items-center">
                 <strong>System Prompt</strong> <i class="bi bi-chevron-down ms-1"></i>
             </a>
         </div>`;
     }
     
-    // Show detailed metadata if available
-    if (currentExperiment.metadata) {
-        // Format and append the structured metadata
-        if (Object.keys(experimentInfo).length > 0) {
-            metadata += '<hr>';
-            metadata += '<h4>Experiment Details</h4>';
-            metadata += '<div class="metadata-section">';
-            
-            // Loop through experiment metadata
-            for (const [key, value] of Object.entries(experimentInfo)) {
-                // Skip already displayed fields and system_prompt (handled separately)
-                if (['title', 'timestamp', 'goal', 'system_prompt'].includes(key)) continue;
-                
-                if (key === 'setup' && typeof value === 'object') {
-                    // Render setup as a card with a table
-                    metadata += `
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>${formatKeyName(key)}:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-body p-0">
-                                    <table class="table table-sm mb-0">
-                                        <tbody>
-                    `;
-                    
-                    // Loop through setup properties
-                    for (const [setupKey, setupValue] of Object.entries(value)) {
-                        metadata += `
-                        <tr>
-                            <th style="width: 40%">${formatKeyName(setupKey)}</th>
-                            <td>${formatValue(setupValue)}</td>
-                        </tr>
-                        `;
-                    }
-                    
-                    metadata += `
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    `;
-                } else if (key === 'modifications' && typeof value === 'object') {
-                    // Render modifications as a card with a table
-                    metadata += `
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>${formatKeyName(key)}:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card">
-                                <div class="card-body p-0">
-                                    <table class="table table-sm mb-0">
-                                        <tbody>
-                    `;
-                    
-                    // Loop through modifications
-                    for (const [modKey, modValue] of Object.entries(value)) {
-                        // Skip system_prompt as it's handled separately
-                        if (modKey === 'system_prompt') continue;
-                        
-                        metadata += `
-                        <tr>
-                            <th style="width: 40%">${formatKeyName(modKey)}</th>
-                            <td>${formatValue(modValue)}</td>
-                        </tr>
-                        `;
-                    }
-                    
-                    metadata += `
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    `;
-                } else {
-                    // Regular fields
-                    metadata += `
-                    <div class="row mb-2">
-                        <div class="col-md-4">
-                            <strong>${formatKeyName(key)}:</strong>
-                        </div>
-                        <div class="col-md-8">
-                            ${formatValue(value)}
-                        </div>
-                    </div>
-                    `;
-                }
-            }
-            
-            metadata += '</div>';
-        }
-        
-        // Add modifications section if it exists at the root metadata level
-        if (currentExperiment.metadata.modifications && !experimentInfo.modifications) {
-            metadata += '<hr>';
-            metadata += '<h4>Modifications</h4>';
-            metadata += '<div class="metadata-section">';
-            
-            const modifications = currentExperiment.metadata.modifications;
-            for (const [key, value] of Object.entries(modifications)) {
-                // Skip system_prompt as it's handled separately
-                if (key === 'system_prompt') continue;
-                
-                metadata += `
-                <div class="row mb-2">
-                    <div class="col-md-4">
-                        <strong>${formatKeyName(key)}:</strong>
-                    </div>
-                    <div class="col-md-8">
-                        ${formatValue(value)}
-                    </div>
-                </div>
-                `;
-            }
-            
-            metadata += '</div>';
-        }
-        
-        // Add setup section if it exists at the root metadata level
-        if (currentExperiment.metadata.setup && !experimentInfo.setup) {
-            metadata += '<hr>';
-            metadata += '<h4>Setup</h4>';
-            metadata += '<div class="metadata-section">';
-            
-            const setup = currentExperiment.metadata.setup;
-            for (const [key, value] of Object.entries(setup)) {
-                metadata += `
-                <div class="row mb-2">
-                    <div class="col-md-4">
-                        <strong>${formatKeyName(key)}:</strong>
-                    </div>
-                    <div class="col-md-8">
-                        ${formatValue(value)}
-                    </div>
-                </div>
-                `;
-            }
-            
-            metadata += '</div>';
-        }
-    }
-    
     // Set the content and show the card
     metadataContent.innerHTML = metadata;
     metadataCard.style.display = 'block';
     
-    // Check if overlay container exists, create if not
+    // Create/update system prompt overlay
     let overlayContainer = document.getElementById('systemPromptOverlay');
     if (!overlayContainer && systemPrompt) {
         overlayContainer = document.createElement('div');
@@ -3369,6 +3360,13 @@ function displayExperimentMetadata() {
                     border-radius: 5px;
                     margin-top: 15px;
                     overflow-x: auto;
+                }
+                
+                .nested-object {
+                    padding: 10px;
+                    background-color: #f8f9fa;
+                    border-radius: 5px;
+                    margin-bottom: 10px;
                 }
             `;
             document.head.appendChild(styleElement);
@@ -4138,7 +4136,7 @@ function showDetails(data, index) {
                                             <i class="bi bi-arrows-expand"></i> Toggle
                                         </button>
                                     </div>
-                                    <pre class="response-text mt-2 content-collapsible collapsed" id="code-generation-prompt-${index}">${formatCodeBlocks(solverResult.code_generation_prompt || solverResult.solver_result?.code_generation_prompt || solverResult.code_runner_prompt)}</pre>
+                                    <pre class="response-text mt-2 content-collapsible" id="code-generation-prompt-${index}">${formatCodeBlocks(solverResult.code_generation_prompt || solverResult.solver_result?.code_generation_prompt || solverResult.code_runner_prompt)}</pre>
                                 </div>
                                 <script>
                                 // Mark these fields as already handled to prevent duplicate display
@@ -4341,7 +4339,7 @@ function showDetails(data, index) {
                                                 <i class="bi bi-arrows-expand"></i> Toggle
                                             </button>
                                         </div>
-                                        <pre class="response-text mt-2 content-collapsible collapsed" id="add-code-generation-prompt-${index}">${formatCodeBlocks(solverResult.code_generation_prompt || solverResult.solver_result?.code_generation_prompt || solverResult.code_runner_prompt)}</pre>
+                                        <pre class="response-text mt-2 content-collapsible" id="add-code-generation-prompt-${index}">${formatCodeBlocks(solverResult.code_generation_prompt || solverResult.solver_result?.code_generation_prompt || solverResult.code_runner_prompt)}</pre>
                                     </div>
                                     <script>
                                     // Mark these fields as already handled to prevent duplicate display

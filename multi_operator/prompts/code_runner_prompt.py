@@ -572,8 +572,34 @@ def get_code_generation_prompt(
     # Add query type specific guidance
     guidance = get_query_type_guidance(query_type, endpoint_info_getter)
     
+    # Add API keys summary section for better visibility
+    api_keys_summary = "\nAVAILABLE API KEYS SUMMARY:\n"
+    # Add all available API keys to the summary
+    for api_key_name in sorted(available_api_keys):
+        api_keys_summary += f"- {api_key_name}\n"
+    
+    # Add data sources summary if available
+    if data_sources:
+        api_keys_summary += "\nAVAILABLE DATA SOURCES:\n"
+        for source_name, source in data_sources.items():
+            name = source.get("name", source_name)
+            category = source.get("category", "Unknown")
+            api_keys_summary += f"- {name} (Category: {category})\n"
+            
+            # Add API keys for this source
+            if "api_keys" in source:
+                for api_key in source["api_keys"]:
+                    api_keys_summary += f"  * API Key: {api_key}\n"
+                    
+            # Add endpoints info
+            if "endpoints" in source:
+                for endpoint_type, url in source["endpoints"].items():
+                    api_keys_summary += f"  * {endpoint_type} endpoint: {url}\n"
+    
     # Add final instructions
-    final_instructions = """
+    final_instructions = f"""
+{api_keys_summary}
+
 IMPORTANT: Your code MUST run successfully without errors and without requiring any command-line arguments. Focus on robustness rather than features.
 
 REMEMBER: If proxy endpoints are provided, you MUST implement the fallback mechanism described earlier. This is critical for reliability and must be handled correctly.
