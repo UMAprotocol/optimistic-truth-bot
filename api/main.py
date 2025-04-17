@@ -27,6 +27,9 @@ app = FastAPI(
     title="LLM Oracle API",
     description="API for querying LLM oracle experiment outputs from MongoDB",
     version="1.0.0",
+    docs_url="/docs",          # Set custom URL for Swagger UI
+    redoc_url="/redoc",        # Set custom URL for ReDoc
+    openapi_url="/openapi.json"  # Set custom URL for OpenAPI schema
 )
 
 # Add CORS middleware
@@ -108,7 +111,7 @@ async def root():
     return {"status": "online", "message": "LLM Oracle API is running"}
 
 
-@app.get("/api/query", response_model=List[Dict[str, Any]])
+@app.get("/query", response_model=List[Dict[str, Any]])
 async def query_by_params(
     query_id: Optional[str] = Query(None, description="Query by query_id"),
     condition_id: Optional[str] = Query(None, description="Query by condition_id"),
@@ -161,7 +164,7 @@ async def query_by_params(
         client.close()
 
 
-@app.get("/api/advanced-query", response_model=List[Dict[str, Any]])
+@app.get("/advanced-query", response_model=List[Dict[str, Any]])
 async def advanced_query(
     identifier: Optional[str] = Query(None, description="Query by identifier (partial match on tags or other identifier fields)"),
     start_timestamp: Optional[int] = Query(None, description="Query by start timestamp (Unix timestamp)"),
@@ -201,7 +204,7 @@ class AdvancedQueryRequest(BaseModel):
     full: bool = True
     limit: int = 10
 
-@app.post("/api/advanced-query", response_model=List[Dict[str, Any]])
+@app.post("/advanced-query", response_model=List[Dict[str, Any]])
 async def advanced_query_post(
     query: AdvancedQueryRequest = Body(..., description="Advanced query parameters")
 ):
@@ -311,7 +314,7 @@ async def _advanced_query(
         client.close()
 
 
-@app.get("/api/experiment/{experiment_id}", response_model=List[Dict[str, Any]])
+@app.get("/experiment/{experiment_id}", response_model=List[Dict[str, Any]])
 async def get_by_experiment_id(
     experiment_id: str,
     full: bool = Query(
@@ -337,7 +340,7 @@ async def get_by_experiment_id(
         client.close()
 
 
-@app.get("/api/question/{question_id}", response_model=Dict[str, Any])
+@app.get("/question/{question_id}", response_model=Dict[str, Any])
 async def get_by_question_id(
     question_id: str,
     full: bool = Query(
