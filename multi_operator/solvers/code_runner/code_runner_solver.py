@@ -1044,119 +1044,47 @@ Reply with only the recommendation (p1, p2, p3, or p4) and nothing else.
         Returns:
             Generated code or None if generation failed
         """
-        code_gen_prompt = f"""You previously generated Python code to solve this prediction market question, but the output wasn't ideal. The code executed successfully, but the output needs improvement.
-
-Original question:
-{user_prompt}
-
+        # Create feedback-specific prompt using get_code_generation_prompt
+        # We'll set a higher attempt number to indicate this is a feedback-based retry
+        feedback_attempt = attempt + 10  # Use a higher number to distinguish feedback retries
+        
+        # First, get the standard retry prompt from the prompt module
+        code_gen_prompt = get_code_generation_prompt(
+            user_prompt=user_prompt,
+            query_type=query_type,
+            available_api_keys=self.available_api_keys,
+            data_sources=self.data_sources if hasattr(self, "data_sources") else None,
+            template_code=template_code,
+            attempt=feedback_attempt,  # Use higher attempt number
+            endpoint_info_getter=self._get_endpoint_info
+        )
+        
+        # Add specific feedback about the previous output
+        feedback_section = f"""
+FEEDBACK ON PREVIOUS EXECUTION:
 Here's the output from the previous code execution:
 ```
 {previous_output}
 ```
 
 Issues with the previous output:
-- The output doesn't clearly provide a recommendation
+- The output doesn't clearly provide a recommendation in the expected format
 - It doesn't properly extract and present the needed information
-- The format doesn't follow our expected pattern
+- Your code must return "recommendation: p1", "recommendation: p2", "recommendation: p3", or "recommendation: p4"
 
-Please provide an improved version that:
-1. DOES NOT use command-line arguments - extract all needed info from the question itself
-2. Uses python-dotenv to load environment variables (e.g., SPORTS_DATA_IO_MLB_API_KEY)
-3. Makes the code runnable with no arguments
-4. Processes the data more effectively
-5. Returns a CLEAR recommendation in the format "recommendation: p1", "recommendation: p2", "recommendation: p3", or "recommendation: p4"
-   - p1 = YES/TRUE/First option
-   - p2 = NO/FALSE/Second option
-   - p3 = 50-50 outcome
-   - p4 = Too early to resolve
-
-Make sure the output is clean and specifically includes the recommendation format.
+CRITICALLY IMPORTANT:
+1. ALWAYS use environment variables loaded with python-dotenv for all API keys
+2. Return results in a clear format with a "recommendation: pX" line
+3. Make your code robust to handle all error cases gracefully
 """
-
-        # Add query-specific advice
-        if query_type == "crypto":
-            code_gen_prompt += """
-For cryptocurrency data:
-- Clearly extract the prices and compare them if needed
-- Format the output to clearly show the price data and the recommendation
-- Handle all error cases gracefully
-"""
-        elif query_type == "sports_mlb":
-            code_gen_prompt += """
-For MLB sports data:
-- Clearly extract game results and team information
-- Make sure to handle all possible game statuses
-- Format the output to clearly show the game data and the recommendation
-- IMPORTANT: When using RESOLUTION_MAP, the keys are outcome names and values are recommendation codes:
-  ```python
-  RESOLUTION_MAP = {
-    "Blue Jays": "p1",   # Home team wins
-    "Orioles": "p2",     # Away team wins  
-    "50-50": "p3",       # Tie or undetermined
-    "Too early to resolve": "p4"  # Not enough data
-  }
-  
-  # CORRECT usage - use team/outcome names as keys:
-  if home_team_wins:
-      return "recommendation: " + RESOLUTION_MAP["Blue Jays"]   # Returns "recommendation: p1"
-  elif away_team_wins:
-      return "recommendation: " + RESOLUTION_MAP["Orioles"]     # Returns "recommendation: p2"
-  
-  # INCORRECT usage - DO NOT do this:
-  # return RESOLUTION_MAP["p1"]  # This will cause KeyError: 'p1'
-  ```
-"""
-        elif query_type == "sports_nhl":
-            code_gen_prompt += """
-For NHL hockey data:
-- Clearly extract game results and team information
-- Make sure to handle all possible game statuses including postponements
-- Format the output to clearly show the game data and the recommendation
-- CRITICALLY IMPORTANT: You MUST use team abbreviations, not full team names:
-  * Seattle Kraken = SEA
-  * Vegas Golden Knights = VGK
-  * Toronto Maple Leafs = TOR
-  * Boston Bruins = BOS
-  * And other standard NHL team abbreviations
-- IMPORTANT: When using RESOLUTION_MAP, the keys are team abbreviations (not full names) and values are recommendation codes:
-  ```python
-  # CORRECT - Use team abbreviations as keys
-  RESOLUTION_MAP = {
-      "VGK": "p1",  # Golden Knights
-      "SEA": "p2",  # Kraken
-      "50-50": "p3",
-      "Too early to resolve": "p4",
-  }
-  
-  # CORRECT usage - use team abbreviations as keys:
-  if golden_knights_win:
-      return "recommendation: " + RESOLUTION_MAP["VGK"]  # Returns "recommendation: p1"
-  elif kraken_win:
-      return "recommendation: " + RESOLUTION_MAP["SEA"]  # Returns "recommendation: p2"
-  
-  # WRONG - Do NOT use full team names as keys:
-  # RESOLUTION_MAP = {
-  #     "Golden Knights": "p1",  # Wrong! Should use "VGK"
-  #     "Kraken": "p2",          # Wrong! Should use "SEA"
-  #     "50-50": "p3",
-  #     "Too early to resolve": "p4",
-  # }
-  
-  # INCORRECT usage - DO NOT do this:
-  # return RESOLUTION_MAP["p1"]  # This will cause KeyError: 'p1'
-  ```
-"""
-
-        # Final instruction
-        code_gen_prompt += """
-IMPORTANT: Your code MUST run successfully without errors and without requiring any command-line arguments. The output MUST include a recommendation in the format "recommendation: pX" where X is 1, 2, 3, or 4.
-Return ONLY the Python code without explanation.
-"""
+        
+        # Combine standard prompt with feedback
+        final_prompt = code_gen_prompt + "\n\n" + feedback_section
 
         # Query ChatGPT for improved code generation
         try:
             raw_response = query_chatgpt(
-                prompt=code_gen_prompt,
+                prompt=final_prompt,
                 api_key=self.api_key,
                 model="gpt-4-turbo",
                 system_prompt=system_prompt,
@@ -1332,8 +1260,35 @@ Return ONLY the Python code without explanation.
             endpoint_info_getter=self._get_endpoint_info
         )
         
-        # Return the full prompt
-        return full_prompt
+        # Add a summary section specifically listing ALL API keys from config file
+        # This ensures API keys are prominently visible in the stored prompt
+        api_keys_summary = "\n\nAVAILABLE API KEYS SUMMARY:\n"
+        for api_key_name in sorted(self.available_api_keys):
+            api_keys_summary += f"- {api_key_name}\n"
+        
+        # Add data sources summary if available
+        if hasattr(self, "data_sources") and self.data_sources:
+            api_keys_summary += "\nAVAILABLE DATA SOURCES:\n"
+            for source_name, source in self.data_sources.items():
+                name = source.get("name", source_name)
+                category = source.get("category", "Unknown")
+                api_keys_summary += f"- {name} (Category: {category})\n"
+                
+                # Add API keys for this source
+                if "api_keys" in source:
+                    for api_key in source["api_keys"]:
+                        api_keys_summary += f"  * API Key: {api_key}\n"
+                        
+                # Add endpoints info
+                if "endpoints" in source:
+                    for endpoint_type, url in source["endpoints"].items():
+                        api_keys_summary += f"  * {endpoint_type} endpoint: {url}\n"
+        
+        # Combine original prompt with the API keys summary for maximum visibility
+        enhanced_prompt = full_prompt + api_keys_summary
+        
+        # Return the enhanced prompt
+        return enhanced_prompt
 
     def get_name(self) -> str:
         """
