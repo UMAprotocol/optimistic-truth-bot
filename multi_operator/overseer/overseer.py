@@ -209,6 +209,106 @@ class Overseer:
             decision["require_rerun"] = True
 
         return decision
+        
+    def generate_tweet(
+        self,
+        user_prompt: str,
+        recommendation: str,
+        market_data: Optional[Dict[str, Any]] = None,
+        tokens: Optional[list] = None,
+        model: str = "gpt-4-turbo",
+    ) -> str:
+        """
+        Generate a tweet about the market and the system's final decision.
+        
+        Args:
+            user_prompt: The original user prompt
+            recommendation: The final recommendation (p1, p2, p3, p4)
+            market_data: Optional dictionary containing market data
+            tokens: Optional list of token objects with price information
+            model: The ChatGPT model to use for generation
+            
+        Returns:
+            String containing the generated tweet
+        """
+        self.logger.info("Generating tweet for resolved query")
+        
+        # Format market price information if tokens are provided
+        market_price_info = None
+        if tokens:
+            market_price_info = format_market_price_info(tokens)
+            if self.verbose:
+                print("Market price information included in tweet generation")
+        
+        tweet_prompt = f"""You are a UMA optimistic oracle social media specialist. Your task is to create a tweet (280 characters max) about a market that has just been resolved by the UMA oracle.
+
+ORIGINAL QUERY:
+{user_prompt}
+
+ORACLE RECOMMENDATION: {recommendation}
+
+"""
+        
+        # Add market price information if available
+        if market_price_info:
+            tweet_prompt += f"""
+MARKET PRICE INFORMATION:
+{market_price_info}
+
+"""
+        
+        # Add market data if available
+        if market_data:
+            tweet_prompt += f"""
+MARKET METADATA:
+"""
+            for key, value in market_data.items():
+                if key not in ["tokens"] and value:  # Skip tokens as they're already handled
+                    tweet_prompt += f"{key}: {value}\n"
+            
+            tweet_prompt += "\n"
+            
+        tweet_prompt += """
+Based on the above information, create a tweet that:
+1. Briefly explains the market/query that was resolved
+2. States the outcome that was determined
+3. Includes relevant market data if available
+4. Uses a conversational, informative tone
+5. Includes hashtags like #UMA #OptimisticOracle and others relevant to this specific market
+
+IMPORTANT:
+- The tweet MUST be 280 characters or less
+- Focus on explaining the resolution, not on technical details about the Oracle
+- Use clear, non-technical language for a general audience
+- If the recommendation is p4, explain that the Oracle could not determine a result due to insufficient data
+
+Generate only the tweet text without any explanation or preamble.
+"""
+
+        # Query ChatGPT API
+        raw_response = query_chatgpt(
+            prompt=tweet_prompt,
+            api_key=self.api_key,
+            model=model,
+            verbose=self.verbose,
+        )
+
+        # Extract response text
+        tweet_text = raw_response.choices[0].message.content.strip()
+        
+        # Ensure the tweet is 280 characters or less
+        if len(tweet_text) > 280:
+            tweet_text = tweet_text[:277] + "..."
+            
+        if self.verbose:
+            print(f"Generated tweet ({len(tweet_text)} chars):")
+            print("-" * 40)
+            print(tweet_text)
+            print("-" * 40)
+            
+        self.logger.info(f"Generated tweet ({len(tweet_text)} chars)")
+        
+        return tweet_text
 
     def suggest_reroute(
         self,

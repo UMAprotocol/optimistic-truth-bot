@@ -807,6 +807,22 @@ SUMMARY:
                 if all_solver_results != solver_results:
                     final_result["all_solver_results"] = all_solver_results
 
+            # Generate tweet about the market and decision
+            try:
+                tweet = self.overseer.generate_tweet(
+                    user_prompt=user_prompt,
+                    recommendation=final_result.get("recommendation", "p4"),
+                    market_data=final_result.get("proposal_metadata", {}),
+                    tokens=tokens,
+                    model="gpt-4-turbo"
+                )
+                # Add the tweet to the final result
+                final_result["tweet"] = tweet
+                self.logger.info(f"Generated tweet for proposal {short_id}")
+            except Exception as e:
+                self.logger.error(f"Error generating tweet for proposal {short_id}: {e}")
+                final_result["tweet"] = ""
+            
             # Save the result
             if self.save_output:
                 output_path = self.save_result(final_result)
@@ -1514,6 +1530,10 @@ SUMMARY:
                 "attempted_solvers": result.get("attempted_solvers", []),
                 "routing_attempts": result.get("routing_attempts", 1)
             }
+            
+            # Add the tweet if available
+            if "tweet" in result and result["tweet"]:
+                clean_result["tweet"] = result["tweet"]
             
             # Set recommendation in proposed_price_outcome only at the top level
             # We want to avoid duplicating fields between sections
