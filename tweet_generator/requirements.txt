@@ -1,0 +1,10 @@
+# Core dependencies
+requests>=2.25.0
+python-dotenv>=1.0.0
+
+# Twitter API (optional, install either one based on your needs)
+# tweepy>=4.14.0           # For Twitter API v1.1
+# twitter-api-client>=0.10.0  # For Twitter API v2
+
+# Error tracking (optional)
+# sentry-sdk>=1.28.0
