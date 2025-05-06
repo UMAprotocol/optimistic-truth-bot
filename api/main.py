@@ -238,19 +238,24 @@ async def _advanced_query(
         # Build the query filter
         query_filter = {}
 
+        # Initialize $and list for combining filters
+        query_and = []
+        
         # Handle identifier search (partial match on tags or other identifier fields)
         if identifier:
-            query_filter["$or"] = [
-                {"proposal_metadata.tags": {"$regex": identifier, "$options": "i"}},
-                {"proposal_metadata.icon": {"$regex": identifier, "$options": "i"}},
-                {"tags": {"$regex": identifier, "$options": "i"}},
-                {"icon": {"$regex": identifier, "$options": "i"}},
-                {"query_id": {"$regex": identifier, "$options": "i"}},
-                {"condition_id": {"$regex": identifier, "$options": "i"}},
-                {"transaction_hash": {"$regex": identifier, "$options": "i"}},
-                {"proposal_metadata.transaction_hash": {"$regex": identifier, "$options": "i"}},
-                {"question_id": {"$regex": identifier, "$options": "i"}}
-            ]
+            query_and.append({
+                "$or": [
+                    {"proposal_metadata.tags": {"$regex": identifier, "$options": "i"}},
+                    {"proposal_metadata.icon": {"$regex": identifier, "$options": "i"}},
+                    {"tags": {"$regex": identifier, "$options": "i"}},
+                    {"icon": {"$regex": identifier, "$options": "i"}},
+                    {"query_id": {"$regex": identifier, "$options": "i"}},
+                    {"condition_id": {"$regex": identifier, "$options": "i"}},
+                    {"transaction_hash": {"$regex": identifier, "$options": "i"}},
+                    {"proposal_metadata.transaction_hash": {"$regex": identifier, "$options": "i"}},
+                    {"question_id": {"$regex": identifier, "$options": "i"}}
+                ]
+            })
 
         # Handle timestamp range
         if start_timestamp or end_timestamp:
@@ -261,35 +266,52 @@ async def _advanced_query(
                 timestamp_filter["$lte"] = end_timestamp
             
             if timestamp_filter:
-                query_filter["$or"] = [
-                    {"proposal_metadata.request_timestamp": timestamp_filter},
-                    {"request_timestamp": timestamp_filter}
-                ]
+                query_and.append({
+                    "$or": [
+                        {"proposal_metadata.request_timestamp": timestamp_filter},
+                        {"request_timestamp": timestamp_filter}
+                    ]
+                })
 
         # Handle ancillary data (partial match)
         if ancillary_data:
-            query_filter["$or"] = [
-                {"proposal_metadata.ancillary_data": {"$regex": ancillary_data, "$options": "i"}},
-                {"ancillary_data": {"$regex": ancillary_data, "$options": "i"}},
-                {"ancillary_data_hex": {"$regex": ancillary_data, "$options": "i"}}
-            ]
+            query_and.append({
+                "$or": [
+                    {"proposal_metadata.ancillary_data": {"$regex": ancillary_data, "$options": "i"}},
+                    {"ancillary_data": {"$regex": ancillary_data, "$options": "i"}},
+                    {"ancillary_data_hex": {"$regex": ancillary_data, "$options": "i"}}
+                ]
+            })
 
         # Handle tags (array contains any)
         if tags and len(tags) > 0:
-            query_filter["$or"] = [
-                {"proposal_metadata.tags": {"$in": tags}},
-                {"tags": {"$in": tags}}
-            ]
+            query_and.append({
+                "$or": [
+                    {"proposal_metadata.tags": {"$in": tags}},
+                    {"tags": {"$in": tags}}
+                ]
+            })
 
         # Handle recommendation filter
         if recommendation:
             recommendation = recommendation.lower()
-            query_filter["$or"] = [
-                {"recommendation": recommendation},
-                {"result.recommendation": recommendation},
-                {"proposed_price_outcome": recommendation},
-                {"proposal_metadata.proposed_price_outcome": recommendation}
-            ]
+            query_and.append({
+                "$or": [
+                    {"recommendation": recommendation},
+                    {"result.recommendation": recommendation},
+                    {"proposed_price_outcome": recommendation},
+                    {"proposal_metadata.proposed_price_outcome": recommendation}
+                ]
+            })
+            
+        # Combine all filters with $and if there are multiple conditions
+        if len(query_and) > 0:
+            if len(query_and) == 1:
+                # If only one filter, use it directly
+                query_filter = query_and[0]
+            else:
+                # If multiple filters, combine with $and
+                query_filter["$and"] = query_and
 
         # If no filters provided, return an error
         if not query_filter:

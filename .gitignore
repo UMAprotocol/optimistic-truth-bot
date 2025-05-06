@@ -4,3 +4,4 @@ venv
 __pycache__/
 *.log
 claude.md
+**/.claude/settings.local.json
