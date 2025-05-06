@@ -11,7 +11,7 @@ import argparse
 from datetime import datetime, timedelta
 import urllib.request
 import urllib.parse
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
 
 try:
     import tweepy
@@ -19,6 +19,13 @@ except ImportError:
     print("Tweepy library not found. Please install it: pip3 install tweepy")
     print("Live tweeting functionality will be disabled.")
     tweepy = None
+
+try:
+    from openai import OpenAI
+except ImportError:
+    print("OpenAI library not found. Please install it: pip3 install openai")
+    print("AI tweet generation will fall back to simple format.")
+    OpenAI = None
 
 HISTORY_FILE = "simple_tweet_history.json"
 API_BASE_URL = "https://api.ai.uma.xyz"
@@ -104,6 +111,70 @@ def get_recommendation_text(item: dict) -> str:
     mapping = {"p1": "No", "p2": "Yes", "p3": "Uncertain", "p4": "Cannot be determined"}
     return mapping.get(str(recommendation), "Unknown")
 
+def generate_ai_tweet(item: dict, disable_ai: bool = False) -> Optional[str]:
+    """
+    Generates a tweet using OpenAI based on the JSON data.
+    Falls back to simple format if OpenAI is not available or fails.
+    
+    Args:
+        item: The Oracle API item data
+        disable_ai: Flag to disable AI generation (from command line args)
+    """
+    if disable_ai:
+        print("AI tweet generation disabled by command line flag.")
+        return None
+        
+    if not OpenAI:
+        return None  # Fall back to simple format if OpenAI is not available
+    
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("OPENAI_API_KEY environment variable not set. Falling back to simple tweet format.")
+        return None
+        
+    try:
+        client = OpenAI(api_key=api_key)
+        
+        # Extract relevant information for the prompt
+        title = get_item_title(item)
+        recommendation = get_recommendation_text(item)
+        
+        # Create a simplified item for the prompt (to reduce token usage)
+        simplified_item = {
+            "title": title,
+            "recommendation": recommendation,
+            "question_id": item.get("question_id", ""),
+            "market_data": item.get("proposal_metadata", {}).get("market_data", {})
+        }
+        
+        # Generate the tweet using OpenAI
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful AI that creates engaging, concise tweets about prediction market outcomes. "
+                 "Keep tweets informative and under 280 characters. Include the outcome/prediction and any relevant context. "
+                 "Be conversational but professional. Mention it's from 'LLM Oracle' at the start."},
+                {"role": "user", "content": f"Create a tweet about this prediction market outcome. "
+                 f"Make it concise and engaging. The prediction was '{title}' and the answer was '{recommendation}'. "
+                 f"Here's the full JSON data for reference: {json.dumps(simplified_item)}"}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        
+        tweet_text = response.choices[0].message.content.strip()
+        
+        # Truncate if somehow still too long
+        if len(tweet_text) > 280:
+            tweet_text = tweet_text[:277] + "..."
+            
+        print(f"AI generated tweet: {tweet_text}")
+        return tweet_text
+        
+    except Exception as e:
+        print(f"Error generating AI tweet: {type(e).__name__} - {e}")
+        return None  # Fall back to simple format on error
+
 def fetch_oracle_data(start_timestamp_for_query: int) -> Tuple[Optional[list], int]:
     """Fetches data from the Oracle API using urllib. Returns (api_data, end_timestamp_of_query)."""
     current_end_timestamp = int(time.time())
@@ -182,9 +253,12 @@ def main():
     parser = argparse.ArgumentParser(description="Simple LLM Oracle Tweet Bot")
     parser.add_argument("--live-mode", action="store_true", 
                         help="Enable actual tweeting (requires Twitter API credentials as environment variables)")
+    parser.add_argument("--no-ai", action="store_true",
+                        help="Disable AI-generated tweets and use simple format instead")
     args = parser.parse_args()
 
-    print(f"--- Simple Tweet Bot Starting ({'LIVE MODE' if args.live_mode else 'DEMO MODE'}, runs continuously, Ctrl+C to stop) ---")
+    print(f"--- Simple Tweet Bot Starting ({'LIVE MODE' if args.live_mode else 'DEMO MODE'}, "
+          f"AI Tweets: {'Disabled' if args.no_ai else 'Enabled'}, runs continuously, Ctrl+C to stop) ---")
     
     twitter_client = None
     if args.live_mode:
@@ -231,9 +305,16 @@ def main():
                         continue
 
                     if item_id not in tweeted_history:
-                        title = get_item_title(item)
-                        recommendation_text = get_recommendation_text(item)
-                        tweet_text = f"LLM Oracle: {title} - Prediction: {recommendation_text}"
+                        # Try to generate AI tweet first
+                        ai_tweet_text = generate_ai_tweet(item, disable_ai=args.no_ai)
+                        
+                        # Fall back to simple format if AI generation fails
+                        if ai_tweet_text is None:
+                            title = get_item_title(item)
+                            recommendation_text = get_recommendation_text(item)
+                            tweet_text = f"LLM Oracle: {title} - Prediction: {recommendation_text}"
+                        else:
+                            tweet_text = ai_tweet_text
                         
                         processed_successfully = False
                         if args.live_mode and twitter_client:
