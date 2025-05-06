@@ -59,7 +59,8 @@ class ScheduleManager:
         self.last_check_time = 0
         self.last_tweet_time = 0
         self.daily_tweet_count = 0
-        self.tweet_history = set()
+        self.tweet_history = set()  # Set of question_ids we've tweeted about
+        self.market_history = set()  # Set of market_ids we've tweeted about (to prevent duplication)
         self.error_count = 0
         self.max_error_count = 5
         self.state_lock = threading.Lock()
@@ -154,11 +155,23 @@ class ScheduleManager:
             self.logger.info("No recent results found")
             return
         
-        # Filter for results we haven't tweeted about yet
-        new_results = [
-            result for result in results
-            if self._get_result_id(result) not in self.tweet_history
-        ]
+        # Filter for results we haven't tweeted about yet (using both question_id and market_id)
+        new_results = []
+        for result in results:
+            question_id = self._get_result_id(result)
+            market_id = self.api_client.extract_market_id(result)
+            
+            # Skip if we've already tweeted about this specific question
+            if question_id in self.tweet_history:
+                self.logger.debug(f"Skipping already tweeted question_id: {question_id}")
+                continue
+                
+            # Skip if we've already tweeted about this market
+            if market_id and market_id in self.market_history:
+                self.logger.debug(f"Skipping already tweeted market_id: {market_id}")
+                continue
+                
+            new_results.append(result)
         
         if not new_results:
             self.logger.info("No new results to tweet about")
@@ -173,7 +186,17 @@ class ScheduleManager:
             self.logger.info(f"Posted tweet: {tweet_text}")
             self.last_tweet_time = time.time()
             self.daily_tweet_count += 1
-            self.tweet_history.add(self._get_result_id(newest_result))
+            
+            # Add both question_id and market_id to history
+            question_id = self._get_result_id(newest_result)
+            self.tweet_history.add(question_id)
+            
+            # Add market_id to history if available
+            market_id = self.api_client.extract_market_id(newest_result)
+            if market_id:
+                self.market_history.add(market_id)
+                self.logger.info(f"Added market_id to history: {market_id}")
+            
             self._save_state()
         else:
             self.logger.warning("Failed to post tweet")
@@ -224,8 +247,11 @@ class ScheduleManager:
                 self.last_tweet_time = state.get("last_tweet_time", 0)
                 self.daily_tweet_count = state.get("daily_tweet_count", 0)
                 self.tweet_history = set(state.get("tweet_history", []))
+                self.market_history = set(state.get("market_history", []))
                 
-                self.logger.info(f"Loaded state: last_tweet_time={datetime.fromtimestamp(self.last_tweet_time)}, daily_count={self.daily_tweet_count}, history_size={len(self.tweet_history)}")
+                self.logger.info(f"Loaded state: last_tweet_time={datetime.fromtimestamp(self.last_tweet_time)}, "
+                                f"daily_count={self.daily_tweet_count}, question_history_size={len(self.tweet_history)}, "
+                                f"market_history_size={len(self.market_history)}")
         except Exception as e:
             self.logger.error(f"Error loading state: {e}")
     
@@ -236,7 +262,8 @@ class ScheduleManager:
                 "last_check_time": self.last_check_time,
                 "last_tweet_time": self.last_tweet_time,
                 "daily_tweet_count": self.daily_tweet_count,
-                "tweet_history": list(self.tweet_history)
+                "tweet_history": list(self.tweet_history),
+                "market_history": list(self.market_history)
             }
             
             with self.state_lock, open(self.state_file, 'w') as f:

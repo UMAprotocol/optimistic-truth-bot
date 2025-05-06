@@ -10,6 +10,7 @@ This component generates and posts tweets about LLM Oracle predictions and outco
 - Intelligent tweet content generation with hashtags
 - Caching to reduce API load
 - Robust error handling and logging
+- Market ID deduplication to prevent duplicate tweets about the same market
 - **Demo mode** - uses real data but only logs potential tweets to console (no actual posting)
 - Mock mode for testing with simulated data
 
@@ -125,6 +126,7 @@ You can configure the generator through:
 - `--no-links`: Don't include links in tweets
 - `--demo-mode`: Run in demo mode (don't actually post tweets, just log them)
 - `--test-mode`: Run in test mode with mock data
+- `--test-market-deduplication`: Test market deduplication with historical data
 
 #### Configuration File Format
 
@@ -163,6 +165,20 @@ Demo mode is perfect for testing or development without actually posting to Twit
 2. Tweets are generated with the actual content that would be posted
 3. Instead of posting to Twitter, tweets are formatted and logged to the console
 4. All generated tweets are also logged to the log file
+
+### Market Deduplication Testing
+
+You can test the market deduplication functionality with historical data:
+
+```bash
+python tweet_generator/run.py --test-market-deduplication --demo-mode
+```
+
+This will:
+1. Fetch historical results from the Oracle API
+2. Analyze the data for markets with multiple questions
+3. Simulate the tweet filtering process
+4. Log results showing which tweets would be posted and which would be skipped due to duplicate markets
 
 To enable demo mode:
 
