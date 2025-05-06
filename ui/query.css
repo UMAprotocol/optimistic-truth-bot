@@ -390,6 +390,15 @@ header .bi {
     background-color: rgba(13, 110, 253, 0.1);
 }
 
+/* Market icons in the market data section */
+.market-icon {
+    max-width: 16px;
+    max-height: 16px;
+    width: auto;
+    height: auto;
+    vertical-align: middle;
+}
+
 /* Button styles */
 .btn-outline-primary {
     color: var(--primary-color);
