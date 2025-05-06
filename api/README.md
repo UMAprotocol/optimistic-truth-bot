@@ -61,7 +61,7 @@ The API works with the following data model fields:
 
 ## API Endpoints
 
-### Base URL: `https://api.llo.uma.xyz`
+### Base URL: `https://api.ai.uma.xyz`
 
 ### Health Check
 
@@ -71,7 +71,7 @@ The API works with the following data model fields:
 
 ### Basic Query by Parameters
 
-- **GET** `/api/query`
+- **GET** `/query`
   - Query experiments by query_id, condition_id, or transaction hash
   - Parameters:
     - `query_id` (optional): Filter by query_id (exact match)
@@ -84,7 +84,7 @@ The API works with the following data model fields:
 
 ### Advanced Query
 
-- **GET** `/api/advanced-query`
+- **GET** `/advanced-query`
   - Query experiments by multiple parameters including timestamps, ancillary data, and more
   - Parameters:
     - `identifier` (optional): Filter by partial match on tags, query_id, condition_id, etc.
@@ -98,7 +98,7 @@ The API works with the following data model fields:
   - At least one filter parameter must be provided
   - Returns: Array of matching experiment outputs
 
-- **POST** `/api/advanced-query`
+- **POST** `/advanced-query`
   - Same functionality as the GET endpoint but accepts a JSON body
   - Request body example:
     ```json
@@ -119,7 +119,7 @@ The API works with the following data model fields:
 
 ### Get by Experiment ID
 
-- **GET** `/api/experiment/{experiment_id}`
+- **GET** `/experiment/{experiment_id}`
   - Get all questions for a specific experiment
   - Parameters:
     - `experiment_id` (required): The ID of the experiment (e.g., "08042025-multi-operator-with-realtime-bug-fix")
@@ -129,7 +129,7 @@ The API works with the following data model fields:
 
 ### Get by Question ID
 
-- **GET** `/api/question/{question_id}`
+- **GET** `/question/{question_id}`
   - Get a specific question by its ID
   - Parameters:
     - `question_id` (required): The ID of the question (e.g., "result_21db972a_20250408_125019")
@@ -143,19 +143,19 @@ The API works with the following data model fields:
 #### Query by query_id
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/query?query_id=0x21db972af5b6ac218f752a174751e0fb89164d2e574713d6162df5608afe87d2'
+curl 'https://api.ai.uma.xyz/query?query_id=0x21db972af5b6ac218f752a174751e0fb89164d2e574713d6162df5608afe87d2'
 ```
 
 #### Query by transaction hash
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/query?transaction_hash=0x3372c0cfb782595199564a1436d1ed1f0d5fe2df931a562752790af2c817114a'
+curl 'https://api.ai.uma.xyz/query?transaction_hash=0x3372c0cfb782595199564a1436d1ed1f0d5fe2df931a562752790af2c817114a'
 ```
 
 #### Query by condition_id with reduced output
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/query?condition_id=0x8de5bc7b33f71bbe8414d4daa1308cc19893fcf0012f41532643a2eb03ed28f4&full=false'
+curl 'https://api.ai.uma.xyz/query?condition_id=0x8de5bc7b33f71bbe8414d4daa1308cc19893fcf0012f41532643a2eb03ed28f4&full=false'
 ```
 
 ### Advanced Query Examples
@@ -163,37 +163,37 @@ curl 'https://api.llo.uma.xyz/api/query?condition_id=0x8de5bc7b33f71bbe8414d4daa
 #### Query by timestamp range
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/advanced-query?start_timestamp=1741964000&end_timestamp=1742148000'
+curl 'https://api.ai.uma.xyz/advanced-query?start_timestamp=1741964000&end_timestamp=1742148000'
 ```
 
 #### Query by tags and recommendation
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/advanced-query?tags=Crypto&tags=Bitcoin&recommendation=p1'
+curl 'https://api.ai.uma.xyz/advanced-query?tags=Crypto&tags=Bitcoin&recommendation=p1'
 ```
 
 #### Query by identifier (partial match)
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/advanced-query?identifier=Bitcoin'
+curl 'https://api.ai.uma.xyz/advanced-query?identifier=Bitcoin'
 ```
 
 #### Query by transaction hash (partial match)
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/advanced-query?identifier=0x3372c0cfb782'
+curl 'https://api.ai.uma.xyz/advanced-query?identifier=0x3372c0cfb782'
 ```
 
 #### Query by ancillary data (partial match)
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/advanced-query?ancillary_data=Sample'
+curl 'https://api.ai.uma.xyz/advanced-query?ancillary_data=Sample'
 ```
 
 #### Query with POST for large ancillary data
 
 ```bash
-curl -X POST 'https://api.llo.uma.xyz/api/advanced-query' \
+curl -X POST 'https://api.ai.uma.xyz/advanced-query' \
   -H 'Content-Type: application/json' \
   -d '{
     "start_timestamp": 1744617666,
@@ -206,13 +206,13 @@ curl -X POST 'https://api.llo.uma.xyz/api/advanced-query' \
 #### Get experiment by ID
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/experiment/08042025-multi-operator-with-realtime-bug-fix'
+curl 'https://api.ai.uma.xyz/experiment/08042025-multi-operator-with-realtime-bug-fix'
 ```
 
 #### Get question by ID
 
 ```bash
-curl 'https://api.llo.uma.xyz/api/question/result_21db972a_20250408_125019'
+curl 'https://api.ai.uma.xyz/question/result_21db972a_20250408_125019'
 ```
 
 ## Response Format
