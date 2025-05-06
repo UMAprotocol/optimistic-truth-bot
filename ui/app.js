@@ -3733,8 +3733,37 @@ function updateTableWithData(dataArray) {
             row.classList.add('table-active');
         });
         
+        // Add context menu for the row
+        row.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            
+            // Get the item data
+            const itemId = parseInt(row.getAttribute('data-item-id'));
+            const item = currentData[itemId];
+            
+            // Determine which identifier to use (prioritize query_id)
+            let queryParam = '';
+            if (item.query_id) {
+                queryParam = `query_id=${item.query_id}`;
+            } else if (item.question_id) {
+                queryParam = `question_id=${item.question_id}`;
+            } else if (item.condition_id) {
+                queryParam = `condition_id=${item.condition_id}`;
+            } else if (item.transaction_hash) {
+                queryParam = `transaction_hash=${item.transaction_hash}`;
+            }
+            
+            // Open the query page in a new tab
+            if (queryParam) {
+                window.open(`query.html?${queryParam}`, '_blank');
+            }
+        });
+        
         // Add hover cursor style to indicate clickable rows
         row.style.cursor = 'pointer';
+        
+        // Add title to indicate right-click option
+        row.setAttribute('title', 'Right-click to open in query viewer');
     });
     
     // Update the count display
@@ -3778,8 +3807,32 @@ function applyTableFilter(filter) {
 function showDetails(data, index) {
     const modalTitle = document.getElementById('detailsModalLabel');
     const modalBody = document.getElementById('detailsModalBody');
+    const queryButton = document.querySelector('.view-query-btn');
     
     if (!modalTitle || !modalBody) return;
+    
+    // Update query button
+    if (queryButton) {
+        // Determine which identifier to use (prioritize query_id)
+        let queryParam = '';
+        if (data.query_id) {
+            queryParam = `query_id=${data.query_id}`;
+        } else if (data.question_id) {
+            queryParam = `question_id=${data.question_id}`;
+        } else if (data.condition_id) {
+            queryParam = `condition_id=${data.condition_id}`;
+        } else if (data.transaction_hash) {
+            queryParam = `transaction_hash=${data.transaction_hash}`;
+        }
+        
+        // Update button
+        if (queryParam) {
+            queryButton.href = `query.html?${queryParam}`;
+            queryButton.style.display = 'inline-block';
+        } else {
+            queryButton.style.display = 'none';
+        }
+    }
     
     // Get title directly from the data using our extraction function
     const title = extractTitle(data) || 'Details';
