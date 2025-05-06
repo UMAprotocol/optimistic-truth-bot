@@ -32,6 +32,7 @@ class OracleApiClient:
         self.session = requests.Session()
         self.cache = {}
         self.cache_duration = 300  # Cache results for 5 minutes
+        self.market_id_cache = {}  # Cache for question_id -> market_id mappings
     
     def get_health(self) -> Dict[str, Any]:
         """
@@ -346,6 +347,72 @@ class OracleApiClient:
         """
         self.cache_duration = seconds
         self.logger.debug(f"Cache duration set to {seconds} seconds")
+        
+    def extract_market_id(self, result: Dict[str, Any]) -> Optional[str]:
+        """
+        Extract market ID from result data
+        
+        Args:
+            result: Oracle result data
+            
+        Returns:
+            Market ID if found, otherwise None
+        """
+        # Try to get market_id directly if available
+        if "neg_risk_market_id" in result and result["neg_risk_market_id"]:
+            return result["neg_risk_market_id"]
+            
+        # Try to get it from proposal_metadata
+        if "proposal_metadata" in result:
+            proposal_metadata = result["proposal_metadata"]
+            if "neg_risk_market_id" in proposal_metadata and proposal_metadata["neg_risk_market_id"]:
+                return proposal_metadata["neg_risk_market_id"]
+        
+        # Try to get condition_id which can be used as a fallback identifier
+        condition_id = None
+        if "condition_id" in result and result["condition_id"]:
+            condition_id = result["condition_id"]
+        elif "proposal_metadata" in result and "condition_id" in result["proposal_metadata"]:
+            condition_id = result["proposal_metadata"]["condition_id"]
+            
+        # Get question_id which we need for looking up market_id
+        question_id = self._get_question_id(result)
+        
+        # Check if we have already cached this question_id -> market_id mapping
+        if question_id and question_id in self.market_id_cache:
+            return self.market_id_cache[question_id]
+            
+        # If we have a condition_id but no market_id, we could fetch it from Polymarket API
+        # For now, we'll just use the condition_id as a fallback
+        if condition_id:
+            # Store in cache for future lookups
+            if question_id:
+                self.market_id_cache[question_id] = condition_id
+            return condition_id
+            
+        # If we can't find any market identifier, return None
+        return None
+        
+    def _get_question_id(self, result: Dict[str, Any]) -> Optional[str]:
+        """
+        Get question ID from result data
+        
+        Args:
+            result: Oracle result data
+            
+        Returns:
+            Question ID if found, otherwise None
+        """
+        # Try different ID fields in order of preference
+        for field in ["query_id", "question_id", "short_id", "question_id_short"]:
+            if field in result and result[field]:
+                return str(result[field])
+                
+        # Fallback to query_id in proposal_metadata
+        if "proposal_metadata" in result and "query_id" in result["proposal_metadata"]:
+            return str(result["proposal_metadata"]["query_id"])
+            
+        return None
 
 
 # Example usage
