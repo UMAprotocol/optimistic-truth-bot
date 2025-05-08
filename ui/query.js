@@ -123,76 +123,85 @@ function formatActionName(action) {
 function renderJourneyStepContent(step, stepIndex) {
     let content = '';
     
-    if (step.code && step.actor === 'code_runner') {
-        content += `
-            <div class="code-section">
-                <div class="mb-2">
-                    <strong>Code:</strong>
-                    <button class="btn btn-sm btn-outline-secondary toggle-code-btn" data-target="step-code-${stepIndex}">
-                        <i class="bi bi-code-slash"></i> Toggle Code
-                    </button>
-                </div>
-                <div class="code-content collapsed" id="step-code-${stepIndex}">
-                    <pre class="language-python"><code>${escapeHtml(step.code)}</code></pre>
-                </div>
-            </div>
-        `;
-    }
-    
-    if (step.prompt) {
-        content += `
-            <div class="mb-3">
-                <div>
-                    <strong>Prompt:</strong>
-                    <button class="btn btn-sm btn-outline-secondary toggle-prompt-btn" data-target="step-prompt-${stepIndex}">
-                        <i class="bi bi-chat-left-text"></i> Toggle Prompt
-                    </button>
-                </div>
-                <div class="prompt-content collapsed" id="step-prompt-${stepIndex}">
-                    <pre>${escapeHtml(step.prompt)}</pre>
-                </div>
-            </div>
-        `;
-    }
-    
-    if (step.code_output && step.actor === 'code_runner') {
-        content += `
-            <div class="mb-3">
-                <div>
-                    <strong>Code Output:</strong>
-                    <button class="btn btn-sm btn-outline-secondary toggle-output-btn" data-target="step-output-${stepIndex}">
-                        <i class="bi bi-terminal"></i> Toggle Output
-                    </button>
-                </div>
-                <div class="output-content collapsed" id="step-output-${stepIndex}">
-                    <pre>${escapeHtml(step.code_output)}</pre>
-                </div>
-            </div>
-        `;
-    }
-    
-    if (step.full_response) {
-        content += `
-            <div class="mb-3">
-                <div>
-                    <strong>Response:</strong>
-                    <button class="btn btn-sm btn-outline-secondary toggle-response-btn" data-target="step-response-${stepIndex}">
-                        <i class="bi bi-chat-right-text"></i> Toggle Response
-                    </button>
-                </div>
-                <div class="response-content collapsed" id="step-response-${stepIndex}">
-                    <pre>${escapeHtml(step.full_response)}</pre>
-                </div>
-            </div>
-        `;
-    }
-    
+    // Always show recommendation and reason first if available
     if (step.recommendation) {
-        content += `<div class="mb-2"><strong>Recommendation:</strong> ${step.recommendation}</div>`;
+        content += `<div class="mb-3"><strong>Recommendation:</strong> ${step.recommendation}</div>`;
     }
     
     if (step.reason) {
-        content += `<div class="mb-2"><strong>Reason:</strong> ${step.reason}</div>`;
+        content += `<div class="mb-3"><strong>Reason:</strong> ${step.reason}</div>`;
+    }
+    
+    // Show prompt with better formatting
+    if (step.prompt) {
+        content += `
+            <div class="mb-4">
+                <div class="mb-2">
+                    <h5 class="step-content-header">Prompt:</h5>
+                </div>
+                <div class="prompt-content-visible">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <pre class="mb-0">${escapeHtml(step.prompt)}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Show code for code_runner steps
+    if (step.code && step.actor === 'code_runner') {
+        content += `
+            <div class="mb-4">
+                <div class="mb-2">
+                    <h5 class="step-content-header">Code:</h5>
+                </div>
+                <div class="code-content-visible">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <pre class="language-python mb-0"><code>${escapeHtml(step.code)}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Show code output for code_runner steps
+    if (step.code_output && step.actor === 'code_runner') {
+        content += `
+            <div class="mb-4">
+                <div class="mb-2">
+                    <h5 class="step-content-header">Code Output:</h5>
+                </div>
+                <div class="output-content-visible">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <pre class="mb-0">${escapeHtml(step.code_output)}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Show response
+    if (step.full_response) {
+        content += `
+            <div class="mb-4">
+                <div class="mb-2">
+                    <h5 class="step-content-header">Response:</h5>
+                </div>
+                <div class="response-content-visible">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <pre class="mb-0">${escapeHtml(step.full_response)}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
     return content;
@@ -588,7 +597,7 @@ function showQueryResult(data) {
                 <div class="journey-timeline">
                     ${data.journey.map((step, stepIndex) => `
                         <div class="journey-step-card ${step.actor}-step">
-                            <div class="journey-step-header" data-step="${stepIndex}">
+                            <div class="journey-step-header">
                                 <div class="step-info">
                                     <div class="step-number">${step.step}</div>
                                     <span class="step-actor">${formatActorName(step.actor)}</span>
@@ -598,7 +607,7 @@ function showQueryResult(data) {
                                 </div>
                                 <div class="step-timestamp">${formatDate(step.timestamp)}</div>
                             </div>
-                            <div class="journey-step-body" id="journey-step-body-${stepIndex}">
+                            <div class="journey-step-body">
                                 ${renderJourneyStepContent(step, stepIndex)}
                             </div>
                         </div>
@@ -739,16 +748,9 @@ function showQueryResult(data) {
         });
     });
     
-    // Add journey step click handlers
+    // Make journey step headers just visual elements, no toggling behavior
     document.querySelectorAll('.journey-step-header').forEach(header => {
-        header.addEventListener('click', function() {
-            const stepIndex = this.getAttribute('data-step');
-            const body = document.getElementById(`journey-step-body-${stepIndex}`);
-            if (body) {
-                this.classList.toggle('active');
-                body.classList.toggle('active');
-            }
-        });
+        header.classList.add('active');
     });
     
     // Setup copy to clipboard functionality

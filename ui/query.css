@@ -186,14 +186,26 @@ header .bi {
 }
 
 .journey-step-body {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
+    padding: 1rem;
+    overflow: auto;
+    border-top: 1px solid #dee2e6;
+    background-color: #ffffff;
 }
 
-.journey-step-body.active {
-    max-height: 1000px;
-    padding: 1rem;
+/* Headers for journey step content sections */
+.step-content-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+/* Content sections in journey steps */
+.prompt-content-visible,
+.code-content-visible,
+.output-content-visible,
+.response-content-visible {
+    max-height: 400px;
     overflow: auto;
 }
 
