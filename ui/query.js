@@ -125,11 +125,11 @@ function renderJourneyStepContent(step, stepIndex) {
     
     // Always show recommendation and reason first if available
     if (step.recommendation) {
-        content += `<div class="mb-3"><strong>Recommendation:</strong> ${step.recommendation}</div>`;
+        content += `<div class="mb-3"><strong>Recommendation:</strong> ${escapeHtml(String(step.recommendation))}</div>`;
     }
     
     if (step.reason) {
-        content += `<div class="mb-3"><strong>Reason:</strong> ${step.reason}</div>`;
+        content += `<div class="mb-3"><strong>Reason:</strong> ${escapeHtml(String(step.reason))}</div>`;
     }
     
     // Show prompt with better formatting
@@ -200,6 +200,46 @@ function renderJourneyStepContent(step, stepIndex) {
                         </div>
                     </div>
                 </div>
+            </div>
+        `;
+    }
+
+    // Add any other properties not explicitly handled
+    const knownProperties = [
+        'step', 'actor', 'action', 'routing_phase', 'attempt', 'timestamp', 
+        'recommendation', 'reason', 'prompt', 'code', 'code_output', 'full_response'
+    ];
+
+    let otherPropertiesHtml = '';
+    for (const key in step) {
+        if (step.hasOwnProperty(key) && !knownProperties.includes(key)) {
+            const formattedKey = formatActorName(key); // Reuse for formatting key display
+            const value = step[key];
+
+            otherPropertiesHtml += `<div class="mb-2"><strong>${escapeHtml(formattedKey)}:</strong> `;
+
+            if (value !== null && typeof value === 'object') {
+                // For objects and arrays, display as preformatted JSON in a small card
+                otherPropertiesHtml += `
+                    <div class="card bg-light mt-1">
+                        <div class="card-body py-1 px-2">
+                            <pre class="mb-0">${escapeHtml(JSON.stringify(value, null, 2))}</pre>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // For simple values
+                otherPropertiesHtml += `${escapeHtml(String(value))}`;
+            }
+            otherPropertiesHtml += `</div>`;
+        }
+    }
+
+    if (otherPropertiesHtml) {
+        content += `
+            <div class="mt-4 pt-3 border-top">
+                <h6 class="step-content-header mb-2">Additional Details:</h6>
+                ${otherPropertiesHtml}
             </div>
         `;
     }
@@ -642,56 +682,6 @@ function showQueryResult(data) {
         `;
     }
     
-    // Add market data section for format_version 2
-    if (isFormatV2 && data.market_data) {
-        const marketData = data.market_data;
-        content += `
-            <div class="detail-section">
-                <h4 class="section-title">Market Data</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <div class="market-info">
-                            ${marketData.proposed_price !== null ? `<div class="mb-2"><strong>Proposed Price:</strong> ${marketData.proposed_price}</div>` : ''}
-                            ${marketData.resolved_price !== null ? `<div class="mb-2"><strong>Resolved Price:</strong> ${marketData.resolved_price}</div>` : ''}
-                            ${marketData.proposed_price_outcome ? `<div class="mb-2"><strong>Proposed Price Outcome:</strong> ${marketData.proposed_price_outcome}</div>` : ''}
-                            ${marketData.resolved_price_outcome ? `<div class="mb-2"><strong>Resolved Price Outcome:</strong> ${marketData.resolved_price_outcome}</div>` : ''}
-                            ${marketData.disputed !== undefined ? `<div class="mb-2"><strong>Disputed:</strong> ${marketData.disputed ? 'Yes' : 'No'}</div>` : ''}
-                            ${marketData.icon ? `<div class="mb-2"><strong>Icon:</strong> <img src="${marketData.icon}" alt="Market Icon" class="market-icon"></div>` : ''}
-                            
-                            ${marketData.tokens && marketData.tokens.length > 0 ? `
-                                <div class="mt-3">
-                                    <strong>Tokens:</strong>
-                                    <div class="table-responsive mt-2">
-                                        <table class="table table-sm table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>Outcome</th>
-                                                    <th>Price</th>
-                                                    <th>Winner</th>
-                                                    <th>Token ID</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                ${marketData.tokens.map(token => `
-                                                    <tr>
-                                                        <td>${token.outcome}</td>
-                                                        <td>${token.price}</td>
-                                                        <td>${token.winner ? 'Yes' : 'No'}</td>
-                                                        <td><small class="code-font">${token.token_id}</small></td>
-                                                    </tr>
-                                                `).join('')}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
     // Add multi-operator data section if available
     if (!isFormatV2 && (data.router_result || data.attempted_solvers)) {
         content += `
