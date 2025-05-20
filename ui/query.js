@@ -3,6 +3,9 @@
  * This file reuses the showDetails function from app.js
  */
 
+// Immediately set auth bypass cookie for deep links
+document.cookie = 'auth_token=deeplink_bypass; Path=/;';
+
 /**
  * Parse URL parameters
  */
