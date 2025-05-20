@@ -3073,7 +3073,7 @@ async function loadExperimentData(directory, source) {
                     descriptionElement.innerHTML = `
                         <div class="alert alert-info mb-4">
                             <p>
-                                <strong>Large Language Oracle (LLO)</strong> is a multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
+                                <strong>Optimistic Truth Bot (OTB)</strong> is a multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
                                 It combines search-based and code execution solvers to process proposals through multi-agent decision-making.
                                 The system monitors blockchain events, processes proposals, and submits resolution recommendations.
                                 It tracks performance against actual market outcomes for continuous improvement.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple HTTP server for the Large Language Oracle Results Analyzer
+Simple HTTP server for the Optimistic Truth Bot Results Analyzer
 Usage: python server.py
 """
 
@@ -390,7 +390,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Login - 🔮 Large Language Oracle</title>
+            <title>Login - 🔮 Optimistic Truth Bot</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
             <style>
                 body {{
@@ -428,7 +428,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         <body>
             <div class="login-container">
                 <div class="login-header">
-                    <h2>🔮 Large Language Oracle</h2>
+                    <h2>🔮 Optimistic Truth Bot</h2>
                 </div>
                 <div class="login-form">
                     <div id="errorMessage" class="error-message" style="display: none;">
@@ -1962,7 +1962,7 @@ def start_server():
             # Create and start the server
             server = socketserver.TCPServer(("", PORT), handler)
             logger.info(f"🌐 Server running at: http://localhost:{PORT}/")
-            logger.info(f"📊 🔮 Large Language Oracle Results Analyzer")
+            logger.info(f"📊 🔮 Optimistic Truth Bot Results Analyzer")
             logger.info(f"📂 Serving files from: {PARENT_DIR}")
             logger.info("🔄 Auto-reload enabled (Ctrl+C to stop)")
 
