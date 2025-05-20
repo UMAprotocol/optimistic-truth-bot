@@ -1,14 +1,14 @@
-# 🔮 Large Language Oracle (LLO)
+# 🔮 Optimistic Truth Bot
 
 <p align="center">
-  <img src="image.jpeg" alt="Large Language Oracle" width="650"/>
+  <img src="image.jpeg" alt="Optimistic Truth Bot" width="650"/>
 </p>
 
 A multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
 
 ## Table of Contents
 
-- [Large Language Oracle (LLO)](#large-language-oracle-llo)
+- [Optimistic Truth Bot](#optimistic-truth-bot)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
   - [System Architecture](#system-architecture)
@@ -35,7 +35,7 @@ A multi-agent system for resolving Polymarket prediction market proposals with h
 
 ## 📋 Overview
 
-The Large Language Oracle (LLO) is a sophisticated system designed to monitor, process, and resolve Polymarket prediction market proposals. The system combines multiple AI strategies, including search-based solvers and code execution solvers, to provide accurate resolution recommendations.
+The Optimistic Truth Bot is a sophisticated system designed to monitor, process, and resolve Polymarket prediction market proposals. The system combines multiple AI strategies, including search-based solvers and code execution solvers, to provide accurate resolution recommendations.
 
 The workflow involves:
 
@@ -47,7 +47,7 @@ The workflow involves:
 
 ## 🏗️ System Architecture
 
-The LLO system consists of several key components:
+The Optimistic Truth Bot system consists of several key components:
 
 ```mermaid
 flowchart TD
@@ -171,8 +171,8 @@ These prompt files contain multiple versions and templates that guide the behavi
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/large-language-oracle.git
-   cd large-language-oracle
+   git clone https://github.com/yourusername/optimistic-truth-bot.git
+   cd optimistic-truth-bot
    ```
 
 2. Create and activate a virtual environment:
@@ -307,14 +307,14 @@ cd api
 python main.py
 ```
 
-The API is hosted at https://api.llo.uma.xyz. You can query it using curl:
+The API is hosted at https://api.ai.uma.xyz. You can query it using curl:
 
 ```bash
 # Query by transaction hash
-curl 'https://api.llo.uma.xyz/api/query?transaction_hash=0x3372c0cfb782595199564a1436d1ed1f0d5fe2df931a562752790af2c817114a'
+curl 'https://api.ai.uma.xyz/api/query?transaction_hash=0x3372c0cfb782595199564a1436d1ed1f0d5fe2df931a562752790af2c817114a'
 
 # Advanced query by timestamp range and tags
-curl 'https://api.llo.uma.xyz/api/advanced-query?start_timestamp=1741964000&tags=Crypto'
+curl 'https://api.ai.uma.xyz/api/advanced-query?start_timestamp=1741964000&tags=Crypto'
 ```
 
 For detailed API documentation, see [API Documentation](api/README.md).
