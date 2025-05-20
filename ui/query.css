@@ -177,12 +177,16 @@ header .bi {
 
 .journey-step-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start !important;
     align-items: center;
     padding: 0.75rem 1rem;
     background-color: #f8f9fa;
     cursor: pointer;
     user-select: none;
+}
+
+.journey-step-header:hover {
+    background-color: #f1f3f5;
 }
 
 .journey-step-body {
@@ -223,11 +227,13 @@ header .bi {
     color: white;
     border-radius: 50%;
     margin-right: 10px;
+    flex-shrink: 0;
 }
 
 .step-info {
     display: flex;
     align-items: center;
+    flex: 1;
 }
 
 .step-actor, .step-action, .step-phase, .step-attempt {
@@ -240,8 +246,7 @@ header .bi {
 }
 
 .step-timestamp {
-    font-size: 0.8rem;
-    color: #6c757d;
+    display: none !important;
 }
 
 /* Actor color coding */
@@ -453,4 +458,163 @@ header .bi {
     .step-timestamp {
         margin-top: 0.5rem;
     }
+}
+
+/* Add additional styles from styles.css needed for solver cards and other modal elements */
+
+/* Solver card styling */
+.solver-card {
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.solver-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.solver-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.solver-attempt {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.solver-body {
+    padding: 1rem;
+    background-color: #ffffff;
+}
+
+.execution-successful {
+    color: #28a745;
+}
+
+.execution-failed {
+    color: #dc3545;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.source-badge {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 3px;
+}
+
+.primary-solver-badge {
+    background-color: #4e73df;
+    color: white;
+}
+
+.all-solvers-badge {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Router styling */
+.router-prompt-text, 
+.router-prompt-data, 
+.router-response {
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+}
+
+.router-reason {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Content toggle styling */
+.content-collapsible {
+    max-height: 400px;
+    overflow: auto;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 1;
+}
+
+.content-collapsible.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Override for journey step headers to make them always visible */
+.journey-step-header.active + .journey-step-body {
+    display: block;
+}
+
+/* Special styling for code runner steps */
+.code_runner-step .code-section {
+    background-color: rgba(28, 200, 138, 0.05);
+    border-radius: 5px;
+    padding: 0.5rem;
+    margin-top: 1rem;
+}
+
+/* Standalone modal styles */
+.standalone-modal {
+    display: block;
+    position: relative;
+    padding: 0;
+    background-color: transparent;
+    z-index: 1;
+}
+
+.standalone-modal .modal-dialog {
+    max-width: 100%;
+    margin: 0 auto;
+    transform: none;
+    position: relative;
+}
+
+.standalone-modal .modal-content {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: var(--border-radius-standard);
+    max-height: none;
+    overflow: visible;
+}
+
+.standalone-modal .modal-header {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem;
+}
+
+.standalone-modal .modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+}
+
+.standalone-modal .modal-body {
+    padding: 1.5rem;
+    max-height: none;
+    overflow: visible;
+}
+
+/* Fix for modal backdrop and scrolling issues */
+body.modal-open-standalone {
+    overflow: auto !important;
+    padding-right: 0 !important;
+}
+
+.modal-backdrop.standalone-backdrop {
+    display: none;
 }
