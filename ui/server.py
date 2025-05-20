@@ -83,6 +83,7 @@ AUTH_ENABLED = os.environ.get("AUTH_ENABLED", "true").lower() == "true"
 AUTH_USERNAME = os.environ.get("AUTH_USERNAME", "admin")
 AUTH_PASSWORD = os.environ.get("AUTH_PASSWORD", "password123")
 AUTH_TOKEN_SECRET = os.environ.get("AUTH_TOKEN_SECRET", "change-this-secret-key")
+ONLY_DEEPLINKS = os.environ.get("ONLY_DEEPLINKS", "false").lower() == "true"
 
 # Ensure required directories exist
 LOG_DIR.mkdir(exist_ok=True)
@@ -347,6 +348,13 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         if not AUTH_ENABLED:
             return True
 
+        # Check if ONLY_DEEPLINKS is enabled and this is a deep link request
+        if ONLY_DEEPLINKS and self.path.startswith("/query.html"):
+            logger.info(
+                "Bypassing authentication for deeplink with ONLY_DEEPLINKS=true"
+            )
+            return True
+
         # Check for auth cookie
         cookies_header = self.headers.get("Cookie", "")
         cookies = {}
@@ -542,6 +550,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         "auth_enabled": AUTH_ENABLED,
                         "disable_experiment_runner": DISABLE_EXPERIMENT_RUNNER,
                         "single_experiment": SINGLE_EXPERIMENT,
+                        "only_deeplinks": ONLY_DEEPLINKS,
                     }
 
                     self.send_response(200)

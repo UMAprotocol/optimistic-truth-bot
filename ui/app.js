@@ -2229,7 +2229,7 @@ function initializeColumnSelector() {
                 <div class="form-check">
                     <input class="form-check-input column-checkbox" type="checkbox" id="col-block_number"
                     ${columnPreferences.block_number ? 'checked' : ''} data-column="block_number">
-                    <label class="form-check-label" for="col-block_number">Block Number</label>
+                    <label class="form-check-label" for="col-block_number">Block #</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input column-checkbox" type="checkbox" id="col-proposal_bond"
@@ -2700,19 +2700,24 @@ async function loadExperimentData(directory, source) {
             currentExperiment.explicitSource = source;
         }
         
-        // Show loading spinner in experiment metadata card instead of content
+        // Show loading spinner in experiment metadata card instead of content, but only if not in SINGLE_EXPERIMENT mode
         const metadataContainer = document.getElementById('experimentMetadataCard');
         const metadataContent = document.getElementById('experimentMetadataContent');
         if (metadataContainer && metadataContent) {
-            metadataContainer.style.display = 'block';
-            metadataContent.innerHTML = `
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary mb-3" role="status">
-                        <span class="visually-hidden">Loading metadata...</span>
+            if (!singleExperiment) {
+                metadataContainer.style.display = 'block';
+                metadataContent.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading metadata...</span>
+                        </div>
+                        <p class="mt-2">Loading experiment metadata...</p>
                     </div>
-                    <p class="mt-2">Loading experiment metadata...</p>
-                </div>
-            `;
+                `;
+            } else {
+                // Hide metadata in SINGLE_EXPERIMENT mode
+                metadataContainer.style.display = 'none';
+            }
         }
         
         // Show loading spinner in analytics dashboard instead of hiding it
@@ -3058,6 +3063,32 @@ async function loadExperimentData(directory, source) {
             const analyticsDashboard = document.getElementById('analyticsDashboard');
             if (analyticsDashboard) {
                 analyticsDashboard.style.display = 'block';
+                
+                // If in SINGLE_EXPERIMENT mode, add description above analytics
+                if (singleExperiment) {
+                    // Create description element
+                    const descriptionElement = document.createElement('div');
+                    descriptionElement.id = 'systemDescription';
+                    descriptionElement.className = 'mb-4';
+                    descriptionElement.innerHTML = `
+                        <div class="alert alert-info mb-4">
+                            <p>
+                                <strong>Large Language Oracle (LLO)</strong> is a multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
+                                It combines search-based and code execution solvers to process proposals through multi-agent decision-making.
+                                The system monitors blockchain events, processes proposals, and submits resolution recommendations.
+                                It tracks performance against actual market outcomes for continuous improvement.
+                                <a href="https://github.com/UMAprotocol/large-language-oracle" target="_blank">Learn more on GitHub</a>
+                            </p>
+                        </div>
+                    `;
+                    
+                    // Insert before analytics dashboard
+                    const mainContainer = analyticsDashboard.parentNode;
+                    if (mainContainer) {
+                        mainContainer.insertBefore(descriptionElement, analyticsDashboard);
+                    }
+                }
+                
                 // Make sure the tabs are visible again
                 const analyticsTabs = document.getElementById('analyticsTabs');
                 if (analyticsTabs) {
@@ -3073,8 +3104,10 @@ async function loadExperimentData(directory, source) {
             
             document.getElementById('filterControls').style.display = 'flex';
             
-            // Display the experiment metadata properly now that data is loaded
-            displayExperimentMetadata();
+            // Display the experiment metadata properly now that data is loaded, but only if not in SINGLE_EXPERIMENT mode
+            if (!singleExperiment) {
+                displayExperimentMetadata();
+            }
             
             // Populate the table with data
             displayResultsData();
@@ -3082,7 +3115,7 @@ async function loadExperimentData(directory, source) {
             // Apply the current filter
             applyTableFilter(currentFilter);
             
-            // ADDED: Initialize charts AFTER the analytics tabs are shown
+            // Initialize charts AFTER the analytics tabs are shown
             initializeCharts();
             
             // Calculate and display analytics
@@ -3095,6 +3128,13 @@ async function loadExperimentData(directory, source) {
         } else {
             // Keep analytics, filter, and tag filter hidden when there's no data
             document.getElementById('analyticsDashboard').style.display = 'none';
+            
+            // Remove system description if it exists
+            const descriptionElement = document.getElementById('systemDescription');
+            if (descriptionElement) {
+                descriptionElement.remove();
+            }
+            
             document.getElementById('filterControls').style.display = 'none';
             const tagFilterCard = document.getElementById('tagFilterCard');
             if (tagFilterCard) {
@@ -3113,14 +3153,23 @@ async function loadExperimentData(directory, source) {
         
         // Keep analytics, filter, and tag filter hidden on error
         document.getElementById('analyticsDashboard').style.display = 'none';
+        
+        // Remove system description if it exists
+        const descriptionElement = document.getElementById('systemDescription');
+        if (descriptionElement) {
+            descriptionElement.remove();
+        }
+        
         document.getElementById('filterControls').style.display = 'none';
         const tagFilterCard = document.getElementById('tagFilterCard');
         if (tagFilterCard) {
             tagFilterCard.style.display = 'none';
         }
         
-        // Still display experiment metadata even on error
-        displayExperimentMetadata();
+        // Display experiment metadata even on error, but only if not in SINGLE_EXPERIMENT mode
+        if (!singleExperiment) {
+            displayExperimentMetadata();
+        }
         
         document.getElementById('resultsTableBody').innerHTML = `
             <tr>
@@ -3140,6 +3189,12 @@ function displayExperimentMetadata() {
     const metadataContent = document.getElementById('experimentMetadataContent');
     
     if (!metadataCard || !metadataContent) return;
+    
+    // Don't show metadata in SINGLE_EXPERIMENT mode
+    if (singleExperiment) {
+        metadataCard.style.display = 'none';
+        return;
+    }
     
     // Determine data source - use explicit source if available, otherwise infer
     const isMongoDBSource = currentExperiment.explicitSource === 'mongodb' || 
@@ -3170,7 +3225,7 @@ function displayExperimentMetadata() {
                         fullMetadata.modifications?.system_prompt || 
                         fullMetadata.experiment?.system_prompt;
     
-    // Basic metadata display
+    // Basic metadata display (without description)
     let metadata = `
         <div class="metadata-section">
             <div class="row mb-3">
@@ -4002,7 +4057,6 @@ function showDetails(data, index) {
                                     ${step.routing_phase ? `<span class="step-phase">Phase ${step.routing_phase}</span>` : ''}
                                     ${step.attempt ? `<span class="step-attempt">Attempt ${step.attempt}</span>` : ''}
                                 </div>
-                                <div class="step-timestamp">${formatDate(step.timestamp)}</div>
                             </div>
                             <div class="journey-step-body" id="journey-step-body-${stepIndex}">
                                 ${renderJourneyStepContent(step, stepIndex)}
@@ -6874,3 +6928,6 @@ function addJsonDataSection(content, data) {
         </div>
     `;
 }
+
+// Expose showDetails to make it accessible from query.js
+window.showDetails = showDetails;
