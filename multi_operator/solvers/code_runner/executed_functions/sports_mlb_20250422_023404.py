@@ -1,0 +1,75 @@
+import os
+import requests
+from dotenv import load_dotenv
+from datetime import datetime
+import logging
+
+# Load API key from .env file
+load_dotenv()
+MLB_API_KEY = os.getenv("SPORTS_DATA_IO_MLB_API_KEY")
+
+# Constants for resolution mapping
+RESOLUTION_MAP = {
+    "TOR": "p2",  # Toronto Blue Jays win
+    "HOU": "p1",  # Houston Astros win
+    "50-50": "p3",  # Game canceled or unresolved
+    "Too early to resolve": "p4",  # Data not available or game not completed
+}
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fetch_game_data():
+    """
+    Fetches game data for the specified MLB game between Toronto Blue Jays and Houston Astros.
+    """
+    date = "2025-04-21"
+    team1 = "TOR"  # Toronto Blue Jays
+    team2 = "HOU"  # Houston Astros
+    url = f"https://api.sportsdata.io/v3/mlb/scores/json/GamesByDate/{date}?key={MLB_API_KEY}"
+
+    try:
+        response = requests.get(url, timeout=10)
+        games = response.json()
+        for game in games:
+            if game['HomeTeam'] == team1 and game['AwayTeam'] == team2 or game['HomeTeam'] == team2 and game['AwayTeam'] == team1:
+                return game
+        return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"API request failed: {e}")
+        return None
+
+def determine_resolution(game):
+    """
+    Determines the resolution based on the game's status and outcome.
+    """
+    if not game:
+        return "p4"  # No data available
+
+    if game['Status'] == "Final":
+        if game['HomeTeamRuns'] > game['AwayTeamRuns']:
+            winner = game['HomeTeam']
+        else:
+            winner = game['AwayTeam']
+
+        if winner == "TOR":
+            return "p2"  # Toronto Blue Jays win
+        elif winner == "HOU":
+            return "p1"  # Houston Astros win
+    elif game['Status'] == "Canceled":
+        return "p3"  # Game canceled
+    elif game['Status'] == "Postponed":
+        return "p4"  # Game postponed, resolution pending
+
+    return "p4"  # Default to unresolved
+
+def main():
+    """
+    Main function to determine the outcome of the MLB game.
+    """
+    game_data = fetch_game_data()
+    resolution = determine_resolution(game_data)
+    print(f"recommendation: {resolution}")
+
+if __name__ == "__main__":
+    main()

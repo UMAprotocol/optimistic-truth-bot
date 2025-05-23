@@ -1,0 +1,75 @@
+import os
+import requests
+from dotenv import load_dotenv
+import logging
+
+# Load environment variables
+load_dotenv()
+NBA_API_KEY = os.getenv("SPORTS_DATA_IO_NBA_API_KEY")
+
+# Constants
+RESOLUTION_MAP = {
+    "DET": "p2",  # Detroit Pistons
+    "NYK": "p1",  # New York Knicks
+    "50-50": "p3",
+    "Too early to resolve": "p4",
+}
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+def fetch_nba_game_data(game_date, home_team, away_team):
+    """
+    Fetches NBA game data for the specified date and teams.
+    """
+    url = f"https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/{game_date}?key={NBA_API_KEY}"
+    try:
+        response = requests.get(url, timeout=10)
+        games = response.json()
+        for game in games:
+            if game['HomeTeam'] == home_team and game['AwayTeam'] == away_team:
+                return game
+        return None
+    except requests.RequestException as e:
+        logger.error(f"Error fetching NBA game data: {e}")
+        return None
+
+def resolve_market(game_data):
+    """
+    Resolves the market based on the game data.
+    """
+    if not game_data:
+        return "recommendation: " + RESOLUTION_MAP["Too early to resolve"]
+    
+    if game_data['Status'] == "Final":
+        home_score = game_data['HomeTeamScore']
+        away_score = game_data['AwayTeamScore']
+        if home_score > away_score:
+            return "recommendation: " + RESOLUTION_MAP[game_data['HomeTeam']]
+        elif away_score > home_score:
+            return "recommendation: " + RESOLUTION_MAP[game_data['AwayTeam']]
+    elif game_data['Status'] == "Canceled":
+        return "recommendation: " + RESOLUTION_MAP["50-50"]
+    elif game_data['Status'] == "Postponed":
+        return "recommendation: " + RESOLUTION_MAP["Too early to resolve"]
+
+    return "recommendation: " + RESOLUTION_MAP["Too early to resolve"]
+
+def main():
+    """
+    Main function to determine the outcome of the Pistons vs. Knicks game.
+    """
+    game_date = "2025-04-19"
+    home_team = "NYK"  # New York Knicks
+    away_team = "DET"  # Detroit Pistons
+    game_data = fetch_nba_game_data(game_date, home_team, away_team)
+    result = resolve_market(game_data)
+    print(result)
+
+if __name__ == "__main__":
+    main()
