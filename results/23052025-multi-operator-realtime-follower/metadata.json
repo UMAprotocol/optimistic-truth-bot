@@ -1,0 +1,11 @@
+{
+  "experiment": {
+    "timestamp": "23-05-2025 13:41",
+    "title": "Long-Running Real-Time Test",
+    "goal": "Executing a sustained real-time test to evaluate system stability, performance, and resilience over an extended period.",
+    "previous_experiment": "",
+    "modifications": {},
+    "system_prompt": "",
+    "setup": ""
+  }
+}
