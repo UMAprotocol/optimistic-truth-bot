@@ -286,8 +286,12 @@ def main():
                                 processed_successfully = True
                             except tweepy.errors.TweepyException as e:
                                 print(f"Error posting tweet for ID {item_id}: {e}")
+                                print("Marking as processed to move forward with newer predictions.")
+                                processed_successfully = True  # Mark as processed even on failure
                             except Exception as e:
                                 print(f"An unexpected error occurred during tweeting for ID {item_id}: {e}")
+                                print("Marking as processed to move forward with newer predictions.")
+                                processed_successfully = True  # Mark as processed even on failure
                         else:
                             # Demo mode or client failed
                             print("\n============================================================")
