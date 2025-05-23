@@ -69,6 +69,34 @@
         "Did the Maple Leafs win yesterday?",
         "What was the score of the Rangers vs Bruins game?"
       ]
+    },
+    {
+      "name": "Sports Data IO - CFB",
+      "category": "sports",
+      "subcategory": "college football",
+      "api_keys": ["SPORTS_DATA_IO_CFB_API_KEY"],
+      "endpoints": {
+        "primary": "https://api.sportsdata.io/v3/cfb"
+      },
+      "description": "College Football (NCAA) scores, statistics, and game data",
+      "example_queries": [
+        "What was the score of the Alabama game last Saturday?",
+        "Did Ohio State cover the spread in their last game?"
+      ]
+    },
+    {
+      "name": "Sports Data IO - CBB",
+      "category": "sports",
+      "subcategory": "college basketball",
+      "api_keys": ["SPORTS_DATA_IO_CBB_API_KEY"],
+      "endpoints": {
+        "primary": "https://api.sportsdata.io/v3/cbb"
+      },
+      "description": "College Basketball (NCAA) scores, statistics, and game data",
+      "example_queries": [
+        "What was Duke's score in their last game?",
+        "Who won the Kansas vs Kentucky game yesterday?"
+      ]
     }
   ]
 }

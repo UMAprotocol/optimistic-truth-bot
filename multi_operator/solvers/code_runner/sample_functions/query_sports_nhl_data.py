@@ -1,152 +1,113 @@
-import os
-import requests
-from dotenv import load_dotenv
-import logging
-import re
+"""
+NHL resolver for Avalanche-Stars (23-Apr-2025, 9:30 PM ET)
 
-# Load API key from .env file
+p1 = Colorado Avalanche
+p2 = Dallas Stars
+p3 = 50-50  (canceled/tie)
+p4 = Too-early / in-progress
+"""
+import os, time, logging, re, requests
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+# ─────────────── configuration ───────────────
 load_dotenv()
 API_KEY = os.getenv("SPORTS_DATA_IO_NHL_API_KEY")
-
 if not API_KEY:
-    raise ValueError(
-        "SPORTS_DATA_IO_NHL_API_KEY not found in environment variables. "
-        "Please add it to your .env file."
-    )
+    raise ValueError("Missing SPORTS_DATA_IO_NHL_API_KEY")
+HEADERS = {"Ocp-Apim-Subscription-Key": API_KEY}
 
-# Constants - RESOLUTION MAPPING using internal abbreviations
-RESOLUTION_MAP = {
-    "VGK": "p1",  # Golden Knights
-    "SEA": "p2",  # Kraken
-    "50-50": "p3",
-    "Too early to resolve": "p4",
-}
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler()])
+logging.getLogger().addFilter(lambda r: setattr(
+    r, "msg", re.sub(re.escape(API_KEY), "******", r.getMessage())) or True)
+log = logging.getLogger(__name__)
 
-# Sensitive data patterns to mask in logs
-SENSITIVE_PATTERNS = [
-    re.compile(r"SPORTS_DATA_IO_NHL_API_KEY\s*=\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
-    re.compile(r"api_key\s*=\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
-    re.compile(r"key\s*=\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
-    re.compile(r"Authorization\s*:\s*['\"]?[\w-]+['\"]?", re.IGNORECASE),
-    # Add more patterns as needed
-]
+# ─────────────── HTTP helper ───────────────
+def _get(url, tag, retries=3, backoff=1.5):
+    for i in range(retries):
+        log.debug(f"[{tag}] → {url}")
+        r = requests.get(url, headers=HEADERS, timeout=10)
+        log.debug(f"[{tag}] ← {r.status_code} {r.reason}")
+        if r.ok:
+            log.debug(f"[{tag}] payload length: {len(r.json())}")
+            return r.json()
+        if r.status_code in (401, 403):
+            log.error(f"[{tag}] blocked — not in plan"); return None
+        if r.status_code == 404:
+            log.warning(f"[{tag}] 404 — not found"); return []
+        if r.status_code == 429:
+            wait = backoff * 2**i
+            log.warning(f"[{tag}] 429 — back-off {wait:.1f}s")
+            time.sleep(wait); continue
+        r.raise_for_status()
+    return None
 
-class SensitiveDataFilter(logging.Filter):
-    def filter(self, record):
-        original_msg = record.getMessage()
-        masked_msg = original_msg
-        for pattern in SENSITIVE_PATTERNS:
-            masked_msg = pattern.sub("******", masked_msg)
-        record.msg = masked_msg
-        return True
+# ─────────────── helpers ───────────────
+def team_keys():
+    t = _get("https://api.sportsdata.io/v3/nhl/scores/json/Teams", "Teams")
+    return {f"{x['City']} {x['Name']}": x['Key'] for x in t}
 
-# Configure logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+def fuzzy(name, table):
+    name = name.strip().lower()
+    return next((k for f,k in table.items() if name in f.lower()), name)
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
+def season_year(d: datetime.date):
+    return d.year - 1 if d.month < 7 else d.year    # Playoffs spill into spring
 
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
+def final_score(game):
+    """Return (away, home) as ints, using Periods fallback if top-level zeros."""
+    a, h = game.get('AwayTeamScore'), game.get('HomeTeamScore')
+    if (a or h):         # not both zero / None
+        return a, h
+    last_a = last_h = 0
+    for p in game.get('Periods', []):
+        for sp in p.get('ScoringPlays', []):
+            last_a, last_h = sp['AwayTeamScore'], sp['HomeTeamScore']
+    return last_a, last_h
 
-console_handler.addFilter(SensitiveDataFilter())
+def locate(date_str, k1, k2):
+    base = datetime.strptime(date_str, "%Y-%m-%d").date()
+    # 1️⃣ Finals slice on local date and +1 day (UTC shift)
+    for ds in (base, base + timedelta(days=1)):
+        url = f"https://api.sportsdata.io/v3/nhl/scores/json/GamesByDateFinal/{ds}"
+        for g in _get(url, f"GamesByDateFinal/{ds}"):
+            if {g['HomeTeam'], g['AwayTeam']} == {k1, k2}:
+                log.info("Found FINAL boxscore"); return g, "final"
+    # 2️⃣ Playoff schedule
+    post = f"{season_year(base)}POST"
+    for g in _get(f"https://api.sportsdata.io/v3/nhl/scores/json/Games/{post}",
+                  f"Games/{post}"):
+        if g['HomeTeam'] in {k1,k2} and g['AwayTeam'] in {k1,k2}:
+            return g, "scheduled"
+    # 3️⃣ Regular schedule
+    reg = str(season_year(base))
+    for g in _get(f"https://api.sportsdata.io/v3/nhl/scores/json/Games/{reg}",
+                  f"Games/{reg}"):
+        if g['HomeTeam'] in {k1,k2} and g['AwayTeam'] in {k1,k2}:
+            return g, "scheduled"
+    return None, None
 
-logger.addHandler(console_handler)
+def outcome(g, feed, k1, k2):
+    if not g or feed == "scheduled":      return "p4"
+    if g['Status'] in {"Postponed","Canceled"}: return "p3"
+    if g['Status'] not in {"Final","F/OT","F/SO"}: return "p4"
+    a, h = final_score(g)
+    if a == h:                            return "p3"
+    winner = g['HomeTeam'] if h > a else g['AwayTeam']
+    return "p1" if winner == k1 else "p2"
 
-def get_team_abbreviation_map():
-    url = f"https://api.sportsdata.io/v3/nhl/scores/json/teams?key={API_KEY}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        teams = response.json()
-        # Build mapping from full team name to API abbreviation
-        return {f"{team['City']} {team['Name']}": team['Key'] for team in teams}
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Failed to fetch team abbreviations: {e}")
-        return {}
-
-def fetch_game_data(date, team1_name, team2_name, team_abbreviation_map):
-    url = f"https://api.sportsdata.io/v3/nhl/stats/json/BoxScoresFinal/{date}?key={API_KEY}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        games = response.json()
-
-        team1_api = team_abbreviation_map.get(team1_name)
-        team2_api = team_abbreviation_map.get(team2_name)
-
-        if not team1_api or not team2_api:
-            logger.warning(f"Abbreviations not found for teams: {team1_name}, {team2_name}")
-            return None
-
-        for game_data in games:
-            game_info = game_data.get("Game", {})
-            home_team = game_info.get("HomeTeam")
-            away_team = game_info.get("AwayTeam")
-
-            logger.debug(f"Checking game: {home_team} vs {away_team}")
-
-            if {home_team, away_team} == {team1_api, team2_api}:
-                game_data["team1"] = team1_api
-                game_data["team2"] = team2_api
-                return game_data
-
-        logger.warning(f"No matching game found for teams: {team1_name} and {team2_name}")
-        return None
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Request failed: {e}")
-        return None
-
-def determine_resolution(game):
-    if not game:
-        return RESOLUTION_MAP["Too early to resolve"]
-
-    game_info = game.get("Game", {})
-    status = game_info.get("Status")
-    home_score = game_info.get("HomeTeamScore")
-    away_score = game_info.get("AwayTeamScore")
-    home_team = game_info.get("HomeTeam")
-    away_team = game_info.get("AwayTeam")
-
-    team1 = game.get("team1")
-    team2 = game.get("team2")
-
-    logger.debug(f"Game status: {status}")
-    logger.debug(f"Scores - Home: {home_score}, Away: {away_score}")
-
-    if status in ["Scheduled", "Delayed", "InProgress", "Suspended"]:
-        return RESOLUTION_MAP["Too early to resolve"]
-    elif status in ["Postponed", "Canceled"]:
-        return RESOLUTION_MAP["50-50"]
-    elif status in ["Final", "F/OT", "F/SO"]:
-        if home_score == away_score:
-            return RESOLUTION_MAP["50-50"]
-        winning_team = home_team if home_score > away_score else away_team
-        if winning_team == team1:
-            return RESOLUTION_MAP["VGK"]
-        elif winning_team == team2:
-            return RESOLUTION_MAP["SEA"]
-        else:
-            return RESOLUTION_MAP["50-50"]
-
-    return RESOLUTION_MAP["Too early to resolve"]
-
-def main():
-    date = "2025-04-10"
-    team1_name = "Vegas Golden Knights"
-    team2_name = "Seattle Kraken"
-
-    team_abbreviation_map = get_team_abbreviation_map()
-    if not team_abbreviation_map:
-        print("Failed to retrieve team abbreviations.")
-        return
-
-    game = fetch_game_data(date, team1_name, team2_name, team_abbreviation_map)
-    resolution = determine_resolution(game)
-
-    print(f"recommendation: {resolution}")
-
+# ─────────────── main ───────────────
 if __name__ == "__main__":
-    main()
+    DATE   = "2025-04-23"
+    TEAM1  = "Colorado Avalanche"   # p1
+    TEAM2  = "Dallas Stars"         # p2
+
+    table = team_keys()
+    k1, k2 = fuzzy(TEAM1, table), fuzzy(TEAM2, table)
+    log.info(f"Searching with keys: {k1} vs {k2}")
+
+    game, feed = locate(DATE, k1, k2)
+    print("recommendation:", outcome(game, feed, k1, k2))

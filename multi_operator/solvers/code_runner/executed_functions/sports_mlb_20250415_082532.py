@@ -7,6 +7,7 @@ import logging
 # Load API key from .env file
 load_dotenv()
 API_KEY = os.getenv("SPORTS_DATA_IO_MLB_API_KEY")
+print(API_KEY)
 
 # Check if API key is available
 if not API_KEY:
@@ -45,7 +46,7 @@ def fetch_game_data(date):
     Returns:
         Game data dictionary or None if not found
     """
-    url = f"https://api.sportsdata.io/v3/mlb/scores/json/GamesByDate/{date}?key={API_KEY}"
+    url = f"https://api.sportsdata.io/v3/mlb/scores/json/GamesByDateFinal/{date}?key={API_KEY}"
     try:
         response = requests.get(url)
         response.raise_for_status()
