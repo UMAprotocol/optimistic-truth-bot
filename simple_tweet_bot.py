@@ -13,6 +13,9 @@ import urllib.request
 import urllib.parse
 from typing import Optional, Tuple, Dict, Any
 import random
+from dotenv import load_dotenv
+
+load_dotenv()
 
 try:
     import tweepy
@@ -25,7 +28,7 @@ HISTORY_FILE = "simple_tweet_history.json"
 API_BASE_URL = "https://api.ai.uma.xyz"
 API_ENDPOINT = "/advanced-query"
 CHECK_INTERVAL_SECONDS = 60
-DEFAULT_LOOKBACK_DAYS = 30
+DEFAULT_LOOKBACK_DAYS = 1
 
 def load_history() -> Tuple[set, int]:
     """Loads tweeted item IDs and the next start timestamp from the history file."""
@@ -66,7 +69,7 @@ def save_history(history_set: set, new_next_start_timestamp: int):
 def get_item_id(item: dict) -> Optional[str]:
     """Extracts a unique ID from an API result item."""
     if not isinstance(item, dict): return None
-    for key in ["question_id", "query_id", "short_id"]:
+    for key in ["query_id"]:
         if item.get(key):
             return str(item[key])
     print(f"Warning: Could not find a primary ID for item: {str(item)[:200]}...")
@@ -239,6 +242,12 @@ def main():
                 print(f"API data is not a list as expected. Type: {type(api_data)}. Content: {str(api_data)[:500]}...")
             else:
                 print(f"Fetched {len(api_data)} items from the API this cycle.")
+                # if api_data: # Log the first item for debugging
+                #     try:
+                #         print(f"DEBUG: First item from API response: {json.dumps(api_data[0], indent=2)}")
+                #     except Exception as e:
+                #         print(f"DEBUG: Could not serialize first item for logging: {e}")
+
                 new_items_processed_this_cycle = 0
 
                 for i, item in enumerate(api_data):
@@ -268,9 +277,20 @@ def main():
                             print(f"  Sports event selected for posting (random 50% filter): {item_id}")
                         
                         title = get_item_title(item)
-                        recommendation_text = get_recommendation_text(item)
+                        
+                        resolved_price_outcome_code = item.get("resolved_price_outcome")
+                        proposed_price_outcome_code = item.get("proposed_price_outcome")
+
+                        # Convert outcome codes to text using the existing helper.
+                        # We pass a dictionary with the "recommendation" key to match the helper's expectation.
+                        resolved_outcome_str = get_recommendation_text({"recommendation": resolved_price_outcome_code}) if resolved_price_outcome_code else "N/A"
+                        proposed_outcome_str = get_recommendation_text({"recommendation": proposed_price_outcome_code}) if proposed_price_outcome_code else "N/A"
+                        
                         query_link = get_item_query_link(item)
-                        tweet_text = f"LLM Oracle: {title} - Outcome: {recommendation_text}."
+                        
+                        # Construct the tweet text with proposed and resolved outcomes
+                        tweet_text = f"LLM Oracle: {title} - Proposed: {proposed_outcome_str}, Resolved: {resolved_outcome_str}."
+                        
                         if query_link:
                             tweet_text += f" More info: {query_link}"
                         # Ensure it's not too long
