@@ -13,6 +13,9 @@ import urllib.request
 import urllib.parse
 from typing import Optional, Tuple, Dict, Any
 import random
+from dotenv import load_dotenv
+
+load_dotenv()
 
 try:
     import tweepy
@@ -239,11 +242,11 @@ def main():
                 print(f"API data is not a list as expected. Type: {type(api_data)}. Content: {str(api_data)[:500]}...")
             else:
                 print(f"Fetched {len(api_data)} items from the API this cycle.")
-                if api_data: # Log the first item for debugging
-                    try:
-                        print(f"DEBUG: First item from API response: {json.dumps(api_data[0], indent=2)}")
-                    except Exception as e:
-                        print(f"DEBUG: Could not serialize first item for logging: {e}")
+                # if api_data: # Log the first item for debugging
+                #     try:
+                #         print(f"DEBUG: First item from API response: {json.dumps(api_data[0], indent=2)}")
+                #     except Exception as e:
+                #         print(f"DEBUG: Could not serialize first item for logging: {e}")
 
                 new_items_processed_this_cycle = 0
 
