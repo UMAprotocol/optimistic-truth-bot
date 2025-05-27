@@ -8,7 +8,7 @@ let currentSearch = ''; // Track current search term
 let currentSourceFilter = 'filesystem'; // Track current source filter
 let autoScrollEnabled = true; // Auto-scroll preference
 let mongoOnlyResults = false; // Track if we should only show MongoDB results
-let disableExperimentRunner = false; // Track if experiment runner is disabled
+let disableExperimentRunner = true; // Track if experiment runner is disabled (DISABLED BY DEFAULT NOW)
 let singleExperiment = ''; // Track if we're in single experiment mode
 
 // Date filter variables
@@ -412,8 +412,8 @@ function initializeExperimentRunner() {
     // Initialize process list
     loadActiveProcesses();
     
-    // Set up polling for process updates - but at a slower rate since logs are handled separately
-    setInterval(loadActiveProcesses, 1000); // Once per second is enough for the list
+    // Polling for process updates disabled to prevent login redirects
+    // setInterval(loadActiveProcesses, 1000); // Once per second is enough for the list
 }
 
 // Load command history from storage

@@ -72,7 +72,7 @@ MONGODB_OUTPUTS_COLLECTION = f"{MONGODB_COLLECTION}_outputs"
 
 # Experiment runner configuration
 DISABLE_EXPERIMENT_RUNNER = (
-    os.environ.get("DISABLE_EXPERIMENT_RUNNER", "false").lower() == "true"
+    True  # Always disable experiment runner to prevent login redirects
 )
 
 # Single experiment configuration
