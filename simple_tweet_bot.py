@@ -114,8 +114,25 @@ def get_item_query_link(item: dict) -> str:
     if item_id:
         # Assuming the frontend URL structure based on API_BASE_URL
         # API_BASE_URL is "https://api.ai.uma.xyz", so frontend might be "https://ai.uma.xyz"
-        return f"https://ai.uma.xyz/query/{item_id}"
+        return f"https://ai.uma.xyz/query.html?query_id={item_id}"
     return ""
+
+def has_tags(item: dict) -> bool:
+    """Checks if an item has any tags in either proposal_metadata or market_data."""
+    if not isinstance(item, dict):
+        return False
+    
+    # Check tags in proposal_metadata
+    proposal_tags = item.get("proposal_metadata", {}).get("tags", [])
+    if isinstance(proposal_tags, list) and proposal_tags:
+        return True
+        
+    # Check tags in market_data
+    market_tags = item.get("market_data", {}).get("tags", [])
+    if isinstance(market_tags, list) and market_tags:
+        return True
+        
+    return False
 
 def is_sports_event(item: dict) -> bool:
     """Checks if an event has sports-related tags."""
@@ -269,6 +286,11 @@ def main():
                         continue
 
                     if item_id not in tweeted_history:
+                        # Skip items with no tags
+                        if not has_tags(item):
+                            print(f"  Skipping item with no tags: {item_id}")
+                            continue
+                            
                         # Check if it's a sports event and randomly decide whether to post
                         if is_sports_event(item):
                             if random.random() > 0.5:  # 50% chance to skip
@@ -289,10 +311,10 @@ def main():
                         query_link = get_item_query_link(item)
                         
                         # Construct the tweet text with proposed and resolved outcomes
-                        tweet_text = f"LLM Oracle: {title} - Proposed: {proposed_outcome_str}, Resolved: {resolved_outcome_str}."
+                        tweet_text = f"Market: {title}\n\nProposed Answer: {proposed_outcome_str}\nAI Answer: {resolved_outcome_str}"
                         
                         if query_link:
-                            tweet_text += f" More info: {query_link}"
+                            tweet_text += f"\n\nLink: {query_link}"
                         # Ensure it's not too long
                         if len(tweet_text) > 280:
                              tweet_text = tweet_text[:277] + "..."
