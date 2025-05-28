@@ -170,7 +170,7 @@
     ],
     "routing_attempts": 1
   },
-  "proposed_price_outcome": "p1",
+  "proposed_price_outcome": "p2",
   "overseer_data": {
     "attempts": 1,
     "market_price_info": "The market data shows a price of 0.615 for 'No', indicating a leaning towards 'No' but not a strong sentiment. The solver's recommendation of 'No' aligns with this market sentiment.",
@@ -186,5 +186,6 @@
       }
     ],
     "journey_ref": true
-  }
+  },
+  "disputed": false
 }
