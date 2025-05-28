@@ -116,9 +116,149 @@ function displayQueryResult(data) {
         if (backdrop) {
             backdrop.classList.add('standalone-backdrop');
         }
+        
+        // Set up toggle buttons for collapsible content
+        setupToggleButtons();
+        
+        // Fix the Full JSON Data section
+        fixFullJsonDataSection(data);
     } else {
         showError('Error: showDetails function not available');
     }
+}
+
+/**
+ * Fix the Full JSON Data section to properly display the complete JSON
+ */
+function fixFullJsonDataSection(data) {
+    // Find the Full JSON Data section
+    const fullJsonSection = document.querySelector('#detailsModalBody .detail-section:last-child');
+    if (!fullJsonSection || !fullJsonSection.textContent.includes('Full JSON Data')) {
+        return;
+    }
+    
+    // Find the pre element containing the JSON
+    const preElement = fullJsonSection.querySelector('.card-body pre');
+    if (!preElement) {
+        return;
+    }
+    
+    // Format the data object as a JSON string with proper indentation
+    const formattedJson = JSON.stringify(data, null, 2);
+    
+    // Just set the text content directly without any syntax highlighting
+    preElement.textContent = formattedJson;
+    
+    // Add some basic styling to make it readable
+    preElement.style.fontFamily = 'monospace';
+    preElement.style.whiteSpace = 'pre-wrap';
+    preElement.style.wordBreak = 'break-word';
+    preElement.style.maxHeight = '500px';
+    preElement.style.overflow = 'auto';
+    preElement.style.padding = '10px';
+    preElement.style.backgroundColor = '#f8f9fa';
+}
+
+/**
+ * Set up the toggle buttons for expandable content sections
+ * This replicates the functionality from the modal shown event in app.js
+ */
+function setupToggleButtons() {
+    const modalBody = document.getElementById('detailsModalBody');
+    if (!modalBody) return;
+    
+    // Apply syntax highlighting to all code blocks
+    if (window.Prism) {
+        Prism.highlightAllUnder(modalBody);
+    }
+    
+    // Set up toggle buttons for collapsible content
+    document.querySelectorAll('#detailsModalBody .toggle-content-btn').forEach(btn => {
+        // Remove any existing event listeners to prevent duplicates
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        // Add the event listener to the new button
+        newBtn.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const targetId = this.getAttribute('data-target');
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.classList.toggle('collapsed');
+                
+                // If this is a code section, also toggle the Prism highlighting
+                if (targetElement.querySelector('code') && window.Prism) {
+                    Prism.highlightElement(targetElement.querySelector('code'));
+                }
+            }
+        });
+    });
+    
+    // Set up JSON property toggle buttons
+    document.querySelectorAll('#detailsModalBody .json-property-key').forEach(key => {
+        key.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Toggle the collapsed class on the key
+            this.classList.toggle('collapsed');
+            
+            // Find the next sibling which should be the JSON value to toggle
+            const valueElement = this.nextElementSibling;
+            if (valueElement && valueElement.classList.contains('json-value')) {
+                valueElement.classList.toggle('collapsed');
+            }
+        });
+    });
+    
+    // Find and process all journey steps - especially code_runner steps
+    const steps = document.querySelectorAll('#detailsModalBody .journey-step');
+    steps.forEach((step, stepIndex) => {
+        // Check if this is a code runner step by looking at the step content
+        if (step.textContent.toLowerCase().includes('code_runner') || 
+            step.querySelector('[data-actor="code_runner"]')) {
+            
+            // Find all code blocks and ensure they are visible
+            const codeBlocks = step.querySelectorAll('.code-block, .code-content, .content-collapsible');
+            codeBlocks.forEach((block, i) => {
+                // Make sure each code element has an ID
+                if (!block.id) {
+                    block.id = `code-runner-step-${stepIndex}-code-${i}`;
+                }
+                
+                // Remove the collapsed class to make code visible
+                block.classList.remove('collapsed');
+                
+                // If this block contains Python code, highlight it
+                if (block.querySelector('code.language-python') && window.Prism) {
+                    Prism.highlightElement(block.querySelector('code.language-python'));
+                }
+            });
+            
+            // Also make sure any code field is properly displayed
+            const codeField = step.querySelector('[data-field="code"]');
+            if (codeField) {
+                codeField.classList.remove('collapsed');
+                if (codeField.nextElementSibling) {
+                    codeField.nextElementSibling.classList.remove('collapsed');
+                }
+            }
+            
+            // Find any buttons that might control visibility of code sections
+            const toggleButtons = step.querySelectorAll('.toggle-content-btn');
+            toggleButtons.forEach(btn => {
+                const targetId = btn.getAttribute('data-target');
+                if (targetId && targetId.includes('code')) {
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        targetEl.classList.remove('collapsed');
+                    }
+                }
+            });
+        }
+    });
 }
 
 /**
