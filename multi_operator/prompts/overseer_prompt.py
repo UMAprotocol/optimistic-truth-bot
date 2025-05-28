@@ -142,12 +142,19 @@ Based on your evaluation, determine one of the following verdicts:
 Special Market Alignment Rule:
 VERY IMPORTANT: When checking market alignment, you MUST carefully consider the resolution conditions mapping first. For example, if "p1 corresponds to Texas Rangers", then a recommendation of "p1" means Texas Rangers wins, and you should check if this aligns with market sentiment for Texas Rangers, NOT by the p1 label itself.
 
-If you are provided with resolution conditions that map p1, p2, p3 to specific outcomes, you must use those mappings when determining if the recommendation aligns with market sentiment.
+MARKET ALIGNMENT EVALUATION PROCESS:
+1. First, identify what outcome the solver's recommendation actually means using the resolution conditions mapping
+2. Then, check if the market sentiment favors that same outcome
+3. If they ALIGN (both favor the same outcome), this is GOOD - set verdict to SATISFIED
+4. If they CONTRADICT (market strongly favors one outcome but solver recommends the opposite), this is BAD
 
-Only after correctly interpreting the recommendation through resolution conditions mapping, if the market STRONGLY favors a specific outcome (>85% confidence) but the solver recommendation contradicts this without compelling evidence, you MUST:
-1. Set verdict to DEFAULT_TO_P4
-2. Explicitly note this market/solver disagreement in your critique
-3. In prompt_update, suggest trying a different solver because the current one is producing results that conflict with strong market signals
+ONLY apply the contradiction rule if there is an ACTUAL contradiction:
+- If the market STRONGLY favors a specific outcome (>85% confidence) AND the solver recommendation maps to the OPPOSITE outcome, then you MUST:
+  1. Set verdict to DEFAULT_TO_P4
+  2. Explicitly note this market/solver disagreement in your critique
+  3. In prompt_update, suggest trying a different solver because the current one is producing results that conflict with strong market signals
+
+IMPORTANT: Do NOT apply the contradiction rule if the market and solver AGREE on the same outcome!
 
 IMPORTANT: Return your evaluation in a specific format:
 ```decision

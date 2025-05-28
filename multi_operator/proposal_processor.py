@@ -763,8 +763,25 @@ SUMMARY:
                 if all_solver_results != solver_results:
                     final_result["all_solver_results"] = all_solver_results
             else:
-                # Just use the single solver result as before
-                solver_result = solver_results[0] if solver_results else None
+                # Find the last result where the overseer was satisfied, or fall back to the last result
+                solver_result = None
+                
+                # First, try to find the last result where overseer was satisfied
+                for result in reversed(solver_results):
+                    overseer_result = result.get("overseer_result", {})
+                    overseer_decision = overseer_result.get("decision", {})
+                    verdict = overseer_decision.get("verdict", "").upper()
+                    
+                    if verdict == "SATISFIED":
+                        solver_result = result
+                        self.logger.info(f"Using last satisfied result from attempt {result.get('attempt', 'unknown')}")
+                        break
+                
+                # If no satisfied result found, use the last result overall
+                if not solver_result and solver_results:
+                    solver_result = solver_results[-1]
+                    self.logger.info(f"No satisfied result found, using last result from attempt {solver_result.get('attempt', 'unknown')}")
+                
                 if not solver_result:
                     self.logger.error(f"No solver result for proposal: {short_id}")
                     return None
