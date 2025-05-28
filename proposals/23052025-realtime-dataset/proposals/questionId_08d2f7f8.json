@@ -1,0 +1,24 @@
+[
+  {
+    "query_id": "0x08d2f7f851c5742631ef57b5a783068ee6c6b568c73fa33fc8aea8a813b49d05",
+    "transaction_hash": "0x0fc7be18ca5ed867a3b25cb7058b022c90837576bd376beddb77e2415568e50f",
+    "block_number": 72057444,
+    "request_transaction_block_time": 1748408391,
+    "ancillary_data": "q: title: The city that hosted the 2008 Olympic Games was Beijing., description: The 2008 Olympic https://en.wikipedia.org/wiki/2008_Summer_Olympics.",
+    "ancillary_data_hex": "0x713a207469746c653a205468652063697479207468617420686f73746564207468652032303038204f6c796d7069632047616d657320776173204265696a696e672e2c206465736372697074696f6e3a205468652032303038204f6c796d7069632068747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f323030385f53756d6d65725f4f6c796d706963732e207265735f646174613a2070313a20302c2070323a20312c2070333a20302e352c696e697469616c697a65723a34613134336166636236663338613863623264323333353638373931663535333636306161646134",
+    "resolution_conditions": "res_data:p1: 0, p2: 1, p3: 0.5,initializer:4a143afcb6f38a8cb2d233568791f553660aada4",
+    "proposed_price": 1000000000000000000,
+    "proposed_price_outcome": "p2",
+    "resolved_price": null,
+    "resolved_price_outcome": null,
+    "request_timestamp": 1748408077,
+    "expiration_timestamp": 1748415591,
+    "creator": "0x6A9D222616C90FcA5754cd1333cFD9b7fb6a4F74",
+    "proposer": "0x4a143AFCB6F38A8cb2d233568791f553660AadA4",
+    "bond_currency": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    "proposal_bond": 0,
+    "reward_amount": 0,
+    "updates": [],
+    "condition_id": "0x276e07865e02135d5af30192b8b5eceef4f7e52a69a1038a8b51783cf0ad97f6"
+  }
+]
