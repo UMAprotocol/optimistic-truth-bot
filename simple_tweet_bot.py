@@ -27,8 +27,8 @@ except ImportError:
 HISTORY_FILE = "simple_tweet_history.json"
 API_BASE_URL = "https://api.ai.uma.xyz"
 API_ENDPOINT = "/advanced-query"
-CHECK_INTERVAL_SECONDS = 60
-DEFAULT_LOOKBACK_DAYS = 1
+CHECK_INTERVAL_SECONDS = 300
+DEFAULT_LOOKBACK_DAYS = 1/12
 
 def load_history() -> Tuple[set, int]:
     """Loads tweeted item IDs and the next start timestamp from the history file."""
@@ -152,11 +152,14 @@ def is_sports_event(item: dict) -> bool:
 
 def fetch_oracle_data(start_timestamp_for_query: int) -> Tuple[Optional[list], int]:
     """Fetches data from the Oracle API using urllib. Returns (api_data, end_timestamp_of_query)."""
-    current_end_timestamp = int(time.time())
+    current_unix = int(time.time())
+    
+    # Always look back 2 hours from current time
+    two_hours_ago = current_unix - (36 * 60 * 60)  # 24 hours in seconds
     
     params_dict = {
-        "start_timestamp": start_timestamp_for_query,
-        "end_timestamp": current_end_timestamp,
+        "start_timestamp": two_hours_ago,
+        "end_timestamp": current_unix,
         "limit": 100,
         "full": "true" 
     }
@@ -165,6 +168,7 @@ def fetch_oracle_data(start_timestamp_for_query: int) -> Tuple[Optional[list], i
     full_url = f"{API_BASE_URL}{API_ENDPOINT}?{query_string}"
     
     print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Fetching data from: {full_url}")
+    print(f"Query window: {datetime.fromtimestamp(two_hours_ago)} to {datetime.fromtimestamp(current_unix)}")
     
     try:
         req = urllib.request.Request(full_url)
@@ -177,16 +181,16 @@ def fetch_oracle_data(start_timestamp_for_query: int) -> Tuple[Optional[list], i
                     print(f"Error response body: {error_body[:500]}...")
                 except Exception as read_err:
                     print(f"Could not read error response body: {read_err}")
-                return None, current_end_timestamp
+                return None, current_unix
             
             response_data_bytes = response.read()
             response_data_str = response_data_bytes.decode('utf-8')
             print(f"API Response status: {response.getcode()}, Data length: {len(response_data_bytes)} bytes")
-            return json.loads(response_data_str), current_end_timestamp
+            return json.loads(response_data_str), current_unix
             
     except Exception as e: 
         print(f"An error occurred during API fetch: {type(e).__name__} - {e}")
-        return None, current_end_timestamp
+        return None, current_unix
 
 def create_tweepy_client():
     """Creates and authenticates a Tweepy API v2 client using environment variables."""
@@ -259,11 +263,11 @@ def main():
                 print(f"API data is not a list as expected. Type: {type(api_data)}. Content: {str(api_data)[:500]}...")
             else:
                 print(f"Fetched {len(api_data)} items from the API this cycle.")
-                # if api_data: # Log the first item for debugging
-                #     try:
-                #         print(f"DEBUG: First item from API response: {json.dumps(api_data[0], indent=2)}")
-                #     except Exception as e:
-                #         print(f"DEBUG: Could not serialize first item for logging: {e}")
+                if api_data: # Log the first item for debugging
+                    try:
+                        print(f"DEBUG: First item from API response: {json.dumps(api_data[0], indent=2)}")
+                    except Exception as e:
+                        print(f"DEBUG: Could not serialize first item for logging: {e}")
 
                 new_items_processed_this_cycle = 0
 
