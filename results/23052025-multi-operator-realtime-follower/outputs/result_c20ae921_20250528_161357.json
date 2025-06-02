@@ -4,8 +4,8 @@
   "question_id_short": "c20ae921",
   "timestamp": 1748448837.6286182,
   "format_version": 2,
-  "resolved_price": null,
-  "resolved_price_outcome": null,
+  "resolved_price": 0,
+  "resolved_price_outcome": "p1",
   "proposed_price": 0,
   "metadata": {
     "processed_file": "questionId_c20ae921.json",

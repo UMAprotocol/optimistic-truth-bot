@@ -4,8 +4,8 @@
   "question_id_short": "5dae6b9e",
   "timestamp": 1748253348.7111707,
   "format_version": 2,
-  "resolved_price": null,
-  "resolved_price_outcome": null,
+  "resolved_price": 500000000000000000,
+  "resolved_price_outcome": "p3",
   "proposed_price": 1000000000000000000,
   "metadata": {
     "processed_file": "questionId_5dae6b9e.json",
