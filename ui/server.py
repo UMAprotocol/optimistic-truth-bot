@@ -1401,6 +1401,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                                                     f"Metadata timestamp format in {full_path}: {timestamp} (type: {type(timestamp).__name__})"
                                                 )
 
+                                        # Add filename to the content so the UI can extract run numbers
+                                        if isinstance(content, dict):
+                                            content["filename"] = safe_filename
                                         result["files"][safe_filename] = content
                                         logger.debug(
                                             f"Successfully loaded file: {safe_filename}"

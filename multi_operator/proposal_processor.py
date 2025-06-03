@@ -826,7 +826,14 @@ SUMMARY:
 
             # Save the result
             if self.save_output:
-                output_path = self.save_result(final_result)
+                # Check if this is a retry and determine run number
+                is_retry = proposal_info.get("is_retry", False)
+                run_number = None
+                if is_retry:
+                    run_number = self.get_next_run_number(short_id)
+                    self.logger.info(f"Retry detected for {short_id}, using run number: {run_number}")
+                
+                output_path = self.save_result(final_result, run_number)
                 if output_path and self.verbose:
                     self.logger.info(f"Result successfully saved to {output_path}")
 
@@ -1004,7 +1011,29 @@ SUMMARY:
         self.logger.info("Proposal processor stopped")
         print("\033[1m\033[32m✅ Shutdown complete\033[0m")
 
-    def save_result(self, result):
+    def get_next_run_number(self, short_id):
+        """Determine the next run number for a given short_id by checking existing files."""
+        max_run_number = 1
+        
+        # Scan output directory for existing files with this short_id
+        for filename in os.listdir(self.output_dir):
+            if filename.startswith(f"result_{short_id}_") and filename.endswith(".json"):
+                # Check if this is a retry file (contains _run-N)
+                if "_run-" in filename:
+                    # Extract run number from filename like result_e5373cc5_20250603_143022_run-2.json
+                    run_part = filename.split("_run-")[-1].replace(".json", "")
+                    try:
+                        run_number = int(run_part)
+                        max_run_number = max(max_run_number, run_number)
+                    except ValueError:
+                        continue
+                else:
+                    # This is a base file (run 1), so max should be at least 1
+                    max_run_number = max(max_run_number, 1)
+        
+        return max_run_number + 1
+
+    def save_result(self, result, run_number=None):
         """Save the result to a file."""
         try:
             query_id = result.get("query_id", "")
@@ -1013,7 +1042,13 @@ SUMMARY:
             # Create the output file name
             timestamp = int(time.time())
             formatted_time = time.strftime("%Y%m%d_%H%M%S", time.localtime(timestamp))
-            output_file = f"result_{short_id}_{formatted_time}.json"
+            
+            # Add run number suffix if this is a retry (run_number > 1)
+            if run_number and run_number > 1:
+                output_file = f"result_{short_id}_{formatted_time}_run-{run_number}.json"
+            else:
+                output_file = f"result_{short_id}_{formatted_time}.json"
+            
             output_path = os.path.join(self.output_dir, output_file)
 
             # Create a simplified, journey-focused result
@@ -1026,6 +1061,7 @@ SUMMARY:
             clean_result["query_id"] = query_id
             clean_result["short_id"] = short_id
             clean_result["question_id_short"] = short_id  # For backward compatibility
+            clean_result["run_iteration"] = run_number if run_number else 1  # Track which run this is
             clean_result["timestamp"] = time.time()
             clean_result["format_version"] = 2  # Indicate this is the new journey-focused format
             

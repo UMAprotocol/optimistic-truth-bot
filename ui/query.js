@@ -63,8 +63,21 @@ async function fetchQueryData() {
         
         // Handle different response formats
         if (Array.isArray(data) && data.length > 0) {
-            // For query endpoint, it returns an array
-            displayQueryResult(data[0]);
+            // For query endpoint, it returns an array - handle multiple runs using the deduplication logic from app.js
+            if (data.length > 1) {
+                // Use the same deduplication logic as the main app
+                const deduplicatedData = window.deduplicateByQueryId ? window.deduplicateByQueryId(data) : [data[0]];
+                
+                if (deduplicatedData.length > 0) {
+                    const result = deduplicatedData[0]; // Should be only one result after deduplication by query_id
+                    displayQueryResult(result);
+                } else {
+                    displayQueryResult(data[0]);
+                }
+            } else {
+                // Single result
+                displayQueryResult(data[0]);
+            }
         } else if (data && typeof data === 'object') {
             // For question endpoint, it returns a single object
             displayQueryResult(data);

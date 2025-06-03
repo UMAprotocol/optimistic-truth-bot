@@ -2903,9 +2903,8 @@ async function loadExperimentData(directory, source) {
                                         if (batchData.files) {
                                             Object.entries(batchData.files).forEach(([filename, jsonData]) => {
                                                 if (jsonData && typeof jsonData === 'object') {
-                                                    // Check for duplicate data by using ID or content hash
-                                                    const dataId = jsonData.query_id || jsonData.id || 
-                                                                jsonData._id || JSON.stringify(jsonData);
+                                                    // Create a unique ID that includes filename for different runs of the same query
+                                                    const dataId = `${jsonData.query_id || jsonData.id || jsonData._id}_${filename}_${jsonData.timestamp || jsonData.unix_timestamp || ''}`;
                                                     
                                                     // Only add if not already added
                                                     if (!loadedDataIds.has(dataId)) {
@@ -3012,9 +3011,8 @@ async function loadExperimentData(directory, source) {
                                         if (fileResponse.ok) {
                                             const jsonData = await fileResponse.json();
                                             if (jsonData && typeof jsonData === 'object') {
-                                                // Check for duplicate data by using ID or content hash
-                                                const dataId = jsonData.query_id || jsonData.id || 
-                                                              jsonData._id || JSON.stringify(jsonData);
+                                                // Create a unique ID that includes filename for different runs of the same query
+                                                const dataId = `${jsonData.query_id || jsonData.id || jsonData._id}_${filename}_${jsonData.timestamp || jsonData.unix_timestamp || ''}`;
                                                 
                                                 // Only add if not already added
                                                 if (!loadedIds.has(dataId)) {
@@ -3605,6 +3603,124 @@ function updateTableHeader() {
     thead.innerHTML = headerRow;
 }
 
+// Helper function to extract run number from filename or item
+function extractRunNumber(item, allRunsForSameQuery = null) {
+    // First check if run_iteration is available in the data
+    if (item.run_iteration && item.run_iteration > 1) {
+        return item.run_iteration;
+    }
+    
+    // If not, try to extract from filename if available
+    const filename = item.filename || item.file_name || item.output_file || '';
+    if (filename.includes('_run-')) {
+        const runMatch = filename.match(/_run-(\d+)/);
+        if (runMatch) {
+            return parseInt(runMatch[1]);
+        }
+    }
+    
+    // Check metadata for filename
+    if (item.metadata && item.metadata.filename) {
+        const metaFilename = item.metadata.filename;
+        if (metaFilename.includes('_run-')) {
+            const runMatch = metaFilename.match(/_run-(\d+)/);
+            if (runMatch) {
+                return parseInt(runMatch[1]);
+            }
+        }
+    }
+    
+    // If we have access to all runs for the same query, calculate run number based on chronological order
+    if (allRunsForSameQuery && allRunsForSameQuery.length > 1) {
+        // Sort all runs by timestamp
+        const sortedByTime = [...allRunsForSameQuery].sort((a, b) => {
+            const aTime = a.timestamp || a.unix_timestamp || 0;
+            const bTime = b.timestamp || b.unix_timestamp || 0;
+            return aTime - bTime;
+        });
+        
+        // Find the index of this item in the sorted array + 1 for 1-based run numbers
+        const index = sortedByTime.findIndex(run => 
+            run.timestamp === item.timestamp && 
+            run.query_id === item.query_id
+        );
+        if (index !== -1) {
+            return index + 1;
+        }
+    }
+    
+    // Default to 1 (first run)
+    return 1;
+}
+
+// Deduplicate data by query_id, keeping only the latest run for table display
+function deduplicateByQueryId(dataArray) {
+    // First pass: group by query_id
+    const queryGroups = new Map();
+    
+    dataArray.forEach(item => {
+        // Extract query_id from various possible fields
+        const queryId = item.query_id || item.question_id || item._id || item.short_id || item.question_id_short;
+        if (!queryId) return;
+        
+        const key = queryId.toString();
+        
+        if (!queryGroups.has(key)) {
+            queryGroups.set(key, []);
+        }
+        queryGroups.get(key).push(item);
+    });
+    
+    // Second pass: process each group to determine run numbers and find latest
+    return Array.from(queryGroups.values()).map(group => {
+        // Calculate run numbers for all items in this group
+        group.forEach(item => {
+            const runNumber = extractRunNumber(item, group);
+            item._calculatedRunNumber = runNumber;
+        });
+        
+        // Sort all runs by calculated run number and timestamp
+        const sortedRuns = group.sort((a, b) => {
+            const aRun = a._calculatedRunNumber;
+            const bRun = b._calculatedRunNumber;
+            if (aRun !== bRun) return aRun - bRun;
+            return (a.timestamp || a.unix_timestamp || 0) - (b.timestamp || b.unix_timestamp || 0);
+        });
+        
+        // Find the latest run (highest run number, then latest timestamp)
+        const latestRun = sortedRuns.reduce((latest, current) => {
+            const latestRunNum = latest._calculatedRunNumber;
+            const currentRunNum = current._calculatedRunNumber;
+            const latestTimestamp = latest.timestamp || latest.unix_timestamp || 0;
+            const currentTimestamp = current.timestamp || current.unix_timestamp || 0;
+            
+            if (currentRunNum > latestRunNum || 
+                (currentRunNum === latestRunNum && currentTimestamp > latestTimestamp)) {
+                return current;
+            }
+            return latest;
+        });
+        
+        // Log multi-run cases for debugging
+        if (group.length > 1) {
+            console.log('Multi-run query found:', {
+                query_id: latestRun.query_id?.slice(0, 10) + '...',
+                total_runs: group.length,
+                latest_run: latestRun._calculatedRunNumber,
+                latest_recommendation: latestRun.proposed_price_outcome || latestRun.result?.recommendation,
+                filenames: sortedRuns.map(r => r.filename || r.file_name || 'unknown')
+            });
+        }
+        
+        // Create the result item based on the latest run
+        const item = { ...latestRun };
+        item._allRuns = sortedRuns; // Store all runs for this query_id
+        item._runCount = sortedRuns.length; // Add run count for display
+        
+        return item;
+    });
+}
+
 // Update the table with the provided data
 function updateTableWithData(dataArray) {
     const tableBody = document.getElementById('resultsTableBody');
@@ -3624,8 +3740,11 @@ function updateTableWithData(dataArray) {
     // Update table header based on column preferences
     updateTableHeader();
     
+    // Group data by query_id and keep only the latest run for table display
+    const deduplicatedData = deduplicateByQueryId(dataArray);
+    
     // Sort the data based on current sort settings
-    const sortedData = sortData([...dataArray], currentSort.column, currentSort.direction);
+    const sortedData = sortData([...deduplicatedData], currentSort.column, currentSort.direction);
     
     // Pagination handling
     const itemsPerPage = 100;
@@ -3682,10 +3801,33 @@ function updateTableWithData(dataArray) {
                        (item.query_id ? item.query_id.substring(0, 10) : 
                        (item._id ? item._id.toString().substring(0, 10) : 'N/A'));
         
-        // Use standardized recommendation field, with fallbacks
-        const recommendation = item.format_version === 2 
-                              ? (item.result?.recommendation || item.recommendation || item.proposed_price_outcome || 'N/A')
-                              : (item.recommendation || item.proposed_price_outcome || 'N/A');
+        // Use standardized recommendation field from the most recent run, with fallbacks
+        // Since this item is from deduplicated data, it should already be the latest run
+        let recommendation = 'N/A';
+        if (item._allRuns && item._allRuns.length > 0) {
+            // Find the most recent run and get its recommendation using the same logic
+            const latestRun = item._allRuns.reduce((latest, current) => {
+                const latestRunIteration = extractRunNumber(latest);
+                const currentRunIteration = extractRunNumber(current);
+                const latestTimestamp = latest.timestamp || latest.unix_timestamp || 0;
+                const currentTimestamp = current.timestamp || current.unix_timestamp || 0;
+                
+                if (currentRunIteration > latestRunIteration ||
+                    (currentRunIteration === latestRunIteration && currentTimestamp > latestTimestamp)) {
+                    return current;
+                }
+                return latest;
+            });
+            
+            recommendation = latestRun.format_version === 2 
+                            ? (latestRun.result?.recommendation || latestRun.recommendation || latestRun.proposed_price_outcome || 'N/A')
+                            : (latestRun.recommendation || latestRun.proposed_price_outcome || 'N/A');
+        } else {
+            // Fallback to current item if no _allRuns data
+            recommendation = item.format_version === 2 
+                            ? (item.result?.recommendation || item.recommendation || item.proposed_price_outcome || 'N/A')
+                            : (item.recommendation || item.proposed_price_outcome || 'N/A');
+        }
         
         // Use standardized resolution field
         const resolution = item.resolved_price_outcome !== undefined && 
@@ -3733,13 +3875,12 @@ function updateTableWithData(dataArray) {
             ? item.tags.map(tag => `<span class="tag-badge small">${tag}</span>`).join(' ')
             : 'None';
         
-        // Store the original data index as a data attribute for the full dataset
-        // This ensures we have the correct index when clicking a row
-        const originalDataIndex = dataArray === currentData ? 
-            currentData.indexOf(item) : currentData.indexOf(item);
+        // Store the index in the deduplicated array for click handling
+        // We'll pass the item data directly rather than relying on currentData lookup
+        const deduplicatedDataIndex = index;
         
         // Build the row based on selected columns
-        let row = `<tr class="result-row ${recommendation?.toLowerCase() === 'p4' || recommendation?.toLowerCase() === 'p3' ? 'table-warning' : ''}" data-item-id="${originalDataIndex}">`;
+        let row = `<tr class="result-row ${recommendation?.toLowerCase() === 'p4' || recommendation?.toLowerCase() === 'p3' ? 'table-warning' : ''}" data-item-index="${deduplicatedDataIndex}">`;
         
         // Add icon as the first cell if available
         // For format_version 2, check proposal_metadata.icon
@@ -3779,13 +3920,16 @@ function updateTableWithData(dataArray) {
     // Add click event to rows
     document.querySelectorAll('.result-row').forEach(row => {
         row.addEventListener('click', () => {
-            // Use the data item ID to get the correct data item from currentData
-            const itemId = parseInt(row.getAttribute('data-item-id'));
-            showDetails(currentData[itemId], itemId);
-            
-            // Add selected class to the clicked row
-            document.querySelectorAll('.result-row').forEach(r => r.classList.remove('table-active'));
-            row.classList.add('table-active');
+            // Use the data item index to get the correct data item from the current page
+            const itemIndex = parseInt(row.getAttribute('data-item-index'));
+            const item = currentPageItems[itemIndex];
+            if (item) {
+                showDetails(item, itemIndex);
+                
+                // Add selected class to the clicked row
+                document.querySelectorAll('.result-row').forEach(r => r.classList.remove('table-active'));
+                row.classList.add('table-active');
+            }
         });
         
         // Add context menu for the row
@@ -3793,8 +3937,8 @@ function updateTableWithData(dataArray) {
             e.preventDefault();
             
             // Get the item data
-            const itemId = parseInt(row.getAttribute('data-item-id'));
-            const item = currentData[itemId];
+            const itemIndex = parseInt(row.getAttribute('data-item-index'));
+            const item = currentPageItems[itemIndex];
             
             // Determine which identifier to use (prioritize query_id)
             let queryParam = '';
@@ -3948,14 +4092,19 @@ function showDetails(data, index) {
         : (data.resolved_price_outcome || data.resolved_price || 
            data.proposal_metadata?.resolved_price_outcome || data.proposal_metadata?.resolved_price || 'Unresolved');
     
-    // Generate the content
+    // Get run count information
+    const runCount = data._runCount || 1;
+    const allRuns = data._allRuns || [data];
+    
+    // Generate the content with run count in status bar
     let content = `
         <div class="alert ${alertClass} mb-4">
             <strong>Recommendation:</strong> ${recommendation} | 
             <strong>Resolved:</strong> ${data.resolved_price_outcome || 'Unresolved'} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
-            <strong>Correct:</strong> ${correctnessText}
+            <strong>Correct:</strong> ${correctnessText} | 
+            <strong>Runs Executed:</strong> ${runCount}
         </div>
     `;
     
@@ -4041,11 +4190,93 @@ function showDetails(data, index) {
         </div>
     `;
     
-    // For format_version 2, add journey section
+    // For format_version 2, add journey section with run tabs
     if (isFormatV2 && data.journey && Array.isArray(data.journey) && data.journey.length > 0) {
         content += `
             <div class="detail-section">
                 <h4 class="section-title">Journey</h4>
+        `;
+        
+        // Add run tabs if there are multiple runs
+        if (runCount > 1) {
+            content += `
+                <ul class="nav nav-tabs run-tabs mb-3" id="runTabs" role="tablist">
+            `;
+            
+            // Sort runs by run_iteration and timestamp
+            const sortedRuns = allRuns.sort((a, b) => {
+                const aRun = extractRunNumber(a);
+                const bRun = extractRunNumber(b);
+                if (aRun !== bRun) return aRun - bRun;
+                return (a.timestamp || 0) - (b.timestamp || 0);
+            });
+            
+            sortedRuns.forEach((run, index) => {
+                const runIteration = extractRunNumber(run);
+                const isActive = index === sortedRuns.length - 1; // Auto-select the most recent run (last in sorted array)
+                const runTimestamp = formatDate(run.timestamp || run.unix_timestamp || 0);
+                const proposal = run.proposed_price_outcome || run.result?.recommendation || 'N/A';
+                
+                content += `
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link ${isActive ? 'active' : ''}" 
+                                id="run-${runIteration}-tab" 
+                                data-bs-toggle="tab" 
+                                data-bs-target="#run-${runIteration}-content" 
+                                type="button" 
+                                role="tab" 
+                                aria-controls="run-${runIteration}-content" 
+                                aria-selected="${isActive}">
+                            Run ${runIteration} → ${proposal}
+                            <small class="d-block text-muted">${runTimestamp}</small>
+                        </button>
+                    </li>
+                `;
+            });
+            
+            content += `
+                </ul>
+                <div class="tab-content run-tab-content" id="runTabContent">
+            `;
+            
+            // Add content for each run
+            sortedRuns.forEach((run, index) => {
+                const runIteration = extractRunNumber(run);
+                const isActive = index === sortedRuns.length - 1; // Auto-select the most recent run
+                
+                content += `
+                    <div class="tab-pane fade ${isActive ? 'show active' : ''}" 
+                         id="run-${runIteration}-content" 
+                         role="tabpanel" 
+                         aria-labelledby="run-${runIteration}-tab">
+                        <div class="journey-timeline">
+                            ${run.journey ? run.journey.map((step, stepIndex) => `
+                                <div class="journey-step-card ${step.actor}-step">
+                                    <div class="journey-step-header" data-step="${stepIndex}">
+                                        <div class="step-info">
+                                            <div class="step-number">${step.step}</div>
+                                            <span class="step-actor">${formatActorName(step.actor)}</span>
+                                            <span class="step-action">${formatActionName(step.action)}</span>
+                                            ${step.routing_phase ? `<span class="step-phase">Phase ${step.routing_phase}</span>` : ''}
+                                            ${step.attempt ? `<span class="step-attempt">Attempt ${step.attempt}</span>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="journey-step-body" id="journey-step-body-${runIteration}-${stepIndex}">
+                                        ${renderJourneyStepContent(step, `${runIteration}-${stepIndex}`)}
+                                    </div>
+                                </div>
+                            `).join('') : '<p class="text-muted">No journey data available for this run.</p>'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content += `
+                </div>
+            `;
+        } else {
+            // Single run - show journey directly
+            content += `
                 <div class="journey-timeline">
                     ${data.journey.map((step, stepIndex) => `
                         <div class="journey-step-card ${step.actor}-step">
@@ -4064,6 +4295,10 @@ function showDetails(data, index) {
                         </div>
                     `).join('')}
                 </div>
+            `;
+        }
+        
+        content += `
             </div>
         `;
     }
@@ -6929,5 +7164,7 @@ function addJsonDataSection(content, data) {
     `;
 }
 
-// Expose showDetails to make it accessible from query.js
+// Expose functions to make them accessible from query.js
 window.showDetails = showDetails;
+window.deduplicateByQueryId = deduplicateByQueryId;
+window.extractRunNumber = extractRunNumber;

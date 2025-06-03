@@ -2623,4 +2623,46 @@ select[multiple] {
 .json-container .json-key:hover,
 .json-container .json-property-key:hover {
     background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Run tabs styling */
+.run-tabs .nav-link {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    color: #495057;
+    padding: 0.75rem 1rem;
+    margin-right: 0.25rem;
+    border-radius: 0.375rem 0.375rem 0 0;
+    transition: all 0.2s ease;
+}
+
+.run-tabs .nav-link:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    color: #495057;
+}
+
+.run-tabs .nav-link.active {
+    background-color: white;
+    border-color: #dee2e6;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.run-tabs .nav-link small {
+    font-size: 0.75rem;
+    font-weight: normal;
+    opacity: 0.7;
+}
+
+.run-tab-content {
+    border: 1px solid #dee2e6;
+    border-radius: 0 0.375rem 0.375rem 0.375rem;
+    background-color: white;
+    padding: 1rem;
+}
+
+.run-tab-content .tab-pane {
+    min-height: 200px;
 } 

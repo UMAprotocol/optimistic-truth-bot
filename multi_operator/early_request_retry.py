@@ -25,6 +25,7 @@ from multi_operator.proposal_processor import MultiOperatorProcessor
 from multi_operator.common import (
     setup_logging,
     get_question_id_short,
+    get_query_id_from_proposal,
 )
 
 # Parse command line arguments
@@ -100,6 +101,47 @@ def get_processor():
 def get_current_timestamp():
     """Returns the current Unix timestamp as an integer."""
     return int(time.time())
+
+
+def find_latest_output_file(short_id, output_dir):
+    """Find the most recent output file for a given short_id, including retry files."""
+    latest_file = None
+    latest_timestamp = 0
+    latest_run_number = 0
+    
+    try:
+        # Scan the output directory for files matching this short_id
+        for filename in os.listdir(output_dir):
+            if filename.startswith(f"result_{short_id}_") and filename.endswith(".json"):
+                file_path = os.path.join(output_dir, filename)
+                
+                # Extract timestamp from filename (result_shortid_YYYYMMDD_HHMMSS[_run-N].json)
+                parts = filename.replace(".json", "").split("_")
+                if len(parts) >= 4:  # result, shortid, date, time [, run-N]
+                    try:
+                        # Combine date and time parts
+                        date_time_str = f"{parts[2]}_{parts[3]}"
+                        timestamp = int(time.mktime(time.strptime(date_time_str, "%Y%m%d_%H%M%S")))
+                        
+                        # Check if this is a retry file
+                        run_number = 1
+                        if len(parts) >= 5 and parts[4].startswith("run-"):
+                            run_number = int(parts[4].split("-")[1])
+                        
+                        # Find the file with the latest timestamp, and within same timestamp, highest run number
+                        if (timestamp > latest_timestamp or 
+                            (timestamp == latest_timestamp and run_number > latest_run_number)):
+                            latest_file = file_path
+                            latest_timestamp = timestamp
+                            latest_run_number = run_number
+                            
+                    except (ValueError, IndexError):
+                        continue
+                        
+    except OSError as e:
+        logger.warning(f"Error scanning directory {output_dir}: {e}")
+    
+    return latest_file
 
 
 def is_p4_recommendation(output_file_path):
@@ -243,19 +285,22 @@ def process_output_file(file_path):
                 logger.error(f"Failed to recover data from corrupt JSON: {str(recovery_error)}")
                 return
         
-        # Extract query_id
+        # Extract query_id (full length) and short_id
         query_id = output_data.get("query_id", "")
-        if not query_id:
-            # Try using short_id if available
-            short_id = output_data.get("short_id") or output_data.get("question_id_short", "")
-            if short_id:
-                query_id = short_id  # Use short_id as fallback
-            else:
-                logger.warning(f"No query_id found in {file_path}")
-                return
+        short_id = output_data.get("short_id") or output_data.get("question_id_short", "")
         
-        # Get short_id for more readable logs
-        short_id = get_question_id_short(query_id)
+        # If no full query_id but we have short_id, that's still usable for file processing
+        # but we should prefer the full query_id when available
+        if not query_id and not short_id:
+            logger.warning(f"No query_id or short_id found in {file_path}")
+            return
+        
+        # If we only have short_id, derive it properly, but keep the original query_id if available
+        if not short_id and query_id:
+            short_id = get_question_id_short(query_id)
+        elif not query_id and short_id:
+            # We have short_id but no full query_id - this is acceptable
+            logger.debug(f"Only short_id available for {file_path}: {short_id}")
         
         # Check if this is a P4 recommendation that hasn't expired
         # Look in multiple places for the recommendation due to changes in output format
@@ -276,8 +321,20 @@ def process_output_file(file_path):
         if recommendation == "p4" and is_not_expired(output_data):
             logger.info(f"Found P4 recommendation that hasn't expired: {short_id}")
             
-            # Add to watched requests if not already there
+            # Add to watched requests if not already there, or if this is a newer file
+            should_add_or_update = False
             if short_id not in watched_requests:
+                should_add_or_update = True
+            else:
+                # Check if this file is newer than the currently tracked one
+                current_tracked_file = watched_requests[short_id]["output_file_path"]
+                output_dir = os.path.dirname(file_path)
+                latest_file = find_latest_output_file(short_id, output_dir)
+                if latest_file == file_path and latest_file != current_tracked_file:
+                    logger.info(f"Found newer file for {short_id}, updating tracked file: {os.path.basename(file_path)}")
+                    should_add_or_update = True
+            
+            if should_add_or_update:
                 # Get expiration timestamp
                 expiration = None
                 if "proposal_metadata" in output_data:
@@ -367,6 +424,7 @@ def process_output_file(file_path):
                 watched_requests[short_id] = {
                     "output_file_path": file_path,
                     "proposal_file_path": original_file_path, 
+                    "query_id": query_id,  # Store the full query_id
                     "expiration": expiration,
                     "last_retry": current_time,  # Use current time instead of file timestamp
                     "user_prompt": output_data.get("user_prompt", ""),
@@ -407,11 +465,15 @@ def retry_request(short_id, info):
         proc = get_processor()
         
         # Create proposal_info dictionary for processing
+        # Use the full query_id from the proposal data if available, otherwise fallback to stored query_id
+        full_query_id = get_query_id_from_proposal(proposal_data) or info.get("query_id", short_id)
+        
         proposal_info = {
             "file_path": Path(info["proposal_file_path"]),
             "proposal_data": proposal_data,
-            "query_id": short_id,  # Using short_id as query_id since we use it as the key
+            "query_id": full_query_id,  # Use full query_id, not short_id
             "short_id": short_id,
+            "is_retry": True,  # Flag to indicate this is a retry operation
         }
         
         # Process the proposal with the processor
@@ -533,6 +595,27 @@ def check_watched_requests():
         # Check if it's time to retry (check_interval seconds since last retry)
         time_since_last_retry = current_timestamp - info["last_retry"]
         if time_since_last_retry >= args.check_interval:
+            # Before retrying, check the latest output file to see if it still has P4
+            output_dir = os.path.dirname(info["output_file_path"])
+            latest_file = find_latest_output_file(short_id, output_dir)
+            
+            if latest_file and latest_file != info["output_file_path"]:
+                # We found a newer file, check if it still has P4
+                if not is_p4_recommendation(latest_file):
+                    logger.info(f"Latest file for {short_id} no longer has P4 recommendation, removing from watch list")
+                    to_remove.append(short_id)
+                    continue
+                else:
+                    # Update the tracked file to the latest one
+                    info["output_file_path"] = latest_file
+                    logger.info(f"Updated tracked file for {short_id} to latest: {os.path.basename(latest_file)}")
+            
+            # Check if the current tracked file still has P4
+            if not is_p4_recommendation(info["output_file_path"]):
+                logger.info(f"Current tracked file for {short_id} no longer has P4 recommendation, removing from watch list")
+                to_remove.append(short_id)
+                continue
+            
             time_since_str = f"{time_since_last_retry // 60} minutes, {time_since_last_retry % 60} seconds"
             logger.info(f"Retrying query {short_id} after {time_since_str} (minimum interval: {args.check_interval} seconds)")
             
