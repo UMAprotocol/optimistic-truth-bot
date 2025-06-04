@@ -3605,32 +3605,38 @@ function updateTableHeader() {
 
 // Helper function to extract run number from filename or item
 function extractRunNumber(item, allRunsForSameQuery = null) {
-    // First check if run_iteration is available in the data
-    if (item.run_iteration !== undefined && item.run_iteration !== null) {
-        return item.run_iteration;
-    }
+    let runNumber = null;
+    let extractionMethod = 'default';
     
-    // If not, try to extract from filename if available
+    // First prioritize extracting from filename as it's the source of truth
     const filename = item.filename || item.file_name || item.output_file || '';
     if (filename.includes('_run-')) {
         const runMatch = filename.match(/_run-(\d+)/);
         if (runMatch) {
-            return parseInt(runMatch[1]);
+            runNumber = parseInt(runMatch[1]);
+            extractionMethod = 'filename';
         }
     }
     
-    // Check metadata for filename
-    if (item.metadata && item.metadata.filename) {
+    // Check metadata for filename if not found yet
+    if (runNumber === null && item.metadata && item.metadata.filename) {
         const metaFilename = item.metadata.filename;
         if (metaFilename.includes('_run-')) {
             const runMatch = metaFilename.match(/_run-(\d+)/);
             if (runMatch) {
-                return parseInt(runMatch[1]);
+                runNumber = parseInt(runMatch[1]);
+                extractionMethod = 'metadata_filename';
             }
         }
     }
     
-    // If we have access to all runs for the same query, calculate run number based on chronological order
+    // If no filename pattern found, try to use stored run_iteration but validate it
+    if (runNumber === null && item.run_iteration !== undefined && item.run_iteration !== null) {
+        runNumber = item.run_iteration;
+        extractionMethod = 'stored_run_iteration';
+    }
+    
+    // If we have access to all runs, calculate based on chronological order and validate
     if (allRunsForSameQuery && allRunsForSameQuery.length > 1) {
         // Sort all runs by timestamp
         const sortedByTime = [...allRunsForSameQuery].sort((a, b) => {
@@ -3645,12 +3651,31 @@ function extractRunNumber(item, allRunsForSameQuery = null) {
             run.query_id === item.query_id
         );
         if (index !== -1) {
-            return index + 1;
+            const chronologicalRunNumber = index + 1;
+            
+            // If we have a run number from filename/metadata, validate it matches chronological order
+            if (runNumber !== null && runNumber !== chronologicalRunNumber) {
+                console.warn(`Run number mismatch for ${item.query_id}: ${extractionMethod} says ${runNumber}, chronological order says ${chronologicalRunNumber}. Using chronological.`);
+            }
+            
+            // Always prioritize chronological order when we have multiple runs to ensure consistency
+            runNumber = chronologicalRunNumber;
+            extractionMethod = 'chronological';
         }
     }
     
-    // Default to 1 (first run)
-    return 1;
+    // Default to 1 (first run) if nothing else worked
+    if (runNumber === null) {
+        runNumber = 1;
+        extractionMethod = 'default';
+    }
+    
+    // Debug logging for troubleshooting
+    if (item.filename && (item.filename.includes('_run-') || item.run_iteration)) {
+        console.debug(`Run number extraction for ${item.query_id}: ${runNumber} (method: ${extractionMethod}, filename: ${filename}, stored: ${item.run_iteration})`);
+    }
+    
+    return runNumber;
 }
 
 // Deduplicate data by query_id, keeping only the latest run for table display
@@ -3678,6 +3703,18 @@ function deduplicateByQueryId(dataArray) {
             const runNumber = extractRunNumber(item, group);
             item._calculatedRunNumber = runNumber;
         });
+        
+        // Log debugging information for groups with multiple runs
+        if (group.length > 1) {
+            console.log(`Deduplication group with ${group.length} runs:`, 
+                group.map(item => ({
+                    filename: item.filename || 'N/A',
+                    stored_run_iteration: item.run_iteration || 'none',
+                    calculated_run_number: item._calculatedRunNumber,
+                    timestamp: item.timestamp
+                }))
+            );
+        }
         
         // Sort all runs by calculated run number and timestamp
         const sortedRuns = group.sort((a, b) => {
@@ -3807,8 +3844,8 @@ function updateTableWithData(dataArray) {
         if (item._allRuns && item._allRuns.length > 0) {
             // Find the most recent run and get its recommendation using the same logic
             const latestRun = item._allRuns.reduce((latest, current) => {
-                const latestRunIteration = extractRunNumber(latest);
-                const currentRunIteration = extractRunNumber(current);
+                const latestRunIteration = extractRunNumber(latest, item._allRuns);
+                const currentRunIteration = extractRunNumber(current, item._allRuns);
                 const latestTimestamp = latest.timestamp || latest.unix_timestamp || 0;
                 const currentTimestamp = current.timestamp || current.unix_timestamp || 0;
                 
@@ -4212,14 +4249,14 @@ function showDetails(data, index) {
             
             // Sort runs by run_iteration and timestamp
             const sortedRuns = allRuns.sort((a, b) => {
-                const aRun = extractRunNumber(a);
-                const bRun = extractRunNumber(b);
+                const aRun = extractRunNumber(a, allRuns);
+                const bRun = extractRunNumber(b, allRuns);
                 if (aRun !== bRun) return aRun - bRun;
                 return (a.timestamp || 0) - (b.timestamp || 0);
             });
             
             sortedRuns.forEach((run, index) => {
-                const runIteration = extractRunNumber(run);
+                const runIteration = extractRunNumber(run, allRuns);
                 const isActive = index === sortedRuns.length - 1; // Auto-select the most recent run (last in sorted array)
                 const runTimestamp = formatDate(run.timestamp || run.unix_timestamp || 0);
                 // Get the actual recommendation for this specific run
@@ -4251,7 +4288,7 @@ function showDetails(data, index) {
             
             // Add content for each run
             sortedRuns.forEach((run, index) => {
-                const runIteration = extractRunNumber(run);
+                const runIteration = extractRunNumber(run, allRuns);
                 const isActive = index === sortedRuns.length - 1; // Auto-select the most recent run
                 
                 content += `

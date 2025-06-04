@@ -53,12 +53,12 @@ function addRunTabsManually(modalBody, data) {
     `;
     
     allRuns.forEach((run, index) => {
-        const runIteration = run.run_iteration || run._calculatedRunNumber || (index + 1);
+        const runIteration = window.extractRunNumber ? window.extractRunNumber(run, allRuns) : (run.run_iteration || run._calculatedRunNumber || (index + 1));
         const isActive = index === allRuns.length - 1; // Auto-select the most recent run
         const proposal = run.proposed_price_outcome || run.result?.recommendation || 'N/A';
         const runTimestamp = formatDate(run.timestamp || run.unix_timestamp || 0);
         
-        console.log(`Creating tab for run ${runIteration}:`, { runIteration, proposal, timestamp: run.timestamp, run_iteration: run.run_iteration });
+        console.log(`Creating tab for run ${runIteration}:`, { runIteration, proposal, timestamp: run.timestamp, run_iteration: run.run_iteration, filename: run.filename });
         
         tabsHTML += `
             <li class="nav-item" role="presentation">
@@ -83,10 +83,10 @@ function addRunTabsManually(modalBody, data) {
     `;
     
     allRuns.forEach((run, index) => {
-        const runIteration = run.run_iteration || run._calculatedRunNumber || (index + 1);
+        const runIteration = window.extractRunNumber ? window.extractRunNumber(run, allRuns) : (run.run_iteration || run._calculatedRunNumber || (index + 1));
         const isActive = index === allRuns.length - 1;
         
-        console.log(`Creating content for run ${runIteration}:`, { runIteration, proposal: run.proposed_price_outcome, run_iteration: run.run_iteration });
+        console.log(`Creating content for run ${runIteration}:`, { runIteration, proposal: run.proposed_price_outcome, run_iteration: run.run_iteration, filename: run.filename });
         
         // Get the actual recommendation for this specific run
         const runRecommendation = run.format_version === 2 
@@ -527,6 +527,14 @@ async function fetchQueryData() {
                     _runCount: deduplicatedData[0]?._runCount,
                     _allRuns: deduplicatedData[0]?._allRuns?.length
                 });
+                
+                // Debug filename and run iteration information
+                console.log('Run details from API:', data.map(item => ({
+                    filename: item.filename,
+                    run_iteration: item.run_iteration,
+                    timestamp: item.timestamp,
+                    query_id: item.query_id?.substring(0, 10) + '...'
+                })));
                 
                 if (deduplicatedData.length > 0) {
                     const result = deduplicatedData[0]; // Should be only one result after deduplication by query_id
