@@ -194,9 +194,11 @@ def process_output_file(file_path, db, collection_name):
         # Ensure experiment metadata exists
         ensure_experiment_metadata(db, collection_name, experiment_id, experiment_dir)
 
-        # Add experiment_id, question_id, and last updated time
+        # Add experiment_id, question_id, filename (as unique ID), and last updated time
+        filename = file_path.name  # Use filename as unique identifier
         data["experiment_id"] = experiment_id
         data["question_id"] = question_id
+        data["filename"] = filename  # This becomes our unique identifier
         data["last_updated"] = timestamp
         data["last_updated_timestamp"] = int(time.time())
         data["source_file"] = str(file_path)
@@ -204,9 +206,9 @@ def process_output_file(file_path, db, collection_name):
         # Store the output in the outputs collection
         outputs_collection = db[f"{collection_name}_outputs"]
         
-        # Check if document already exists and if it's different
+        # Check if document already exists using filename as unique identifier
         existing_doc = outputs_collection.find_one(
-            {"experiment_id": experiment_id, "question_id": question_id}
+            {"experiment_id": experiment_id, "filename": filename}
         )
         
         # If document exists, compare for changes
@@ -220,18 +222,18 @@ def process_output_file(file_path, db, collection_name):
             # Only update if content has changed
             if existing_copy != new_copy:
                 result = outputs_collection.update_one(
-                    {"experiment_id": experiment_id, "question_id": question_id},
+                    {"experiment_id": experiment_id, "filename": filename},
                     {"$set": data}
                 )
-                logger.info(f"Updated output {question_id} for experiment {experiment_id} (file: {timestamp})")
+                logger.info(f"Updated output {question_id} for experiment {experiment_id} (file: {filename})")
                 return True
             else:
-                logger.info(f"Skipping update for {question_id} - content unchanged (file: {timestamp})")
+                logger.info(f"Skipping update for {question_id} - content unchanged (file: {filename})")
                 return False
         else:
             # Document doesn't exist, insert it
             result = outputs_collection.insert_one(data)
-            logger.info(f"Created new output {question_id} for experiment {experiment_id} (file: {timestamp})")
+            logger.info(f"Created new output {question_id} for experiment {experiment_id} (file: {filename})")
             return True
 
     except json.JSONDecodeError:
