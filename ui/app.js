@@ -3606,7 +3606,7 @@ function updateTableHeader() {
 // Helper function to extract run number from filename or item
 function extractRunNumber(item, allRunsForSameQuery = null) {
     // First check if run_iteration is available in the data
-    if (item.run_iteration && item.run_iteration > 1) {
+    if (item.run_iteration !== undefined && item.run_iteration !== null) {
         return item.run_iteration;
     }
     
