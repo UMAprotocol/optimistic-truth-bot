@@ -794,8 +794,10 @@ def main():
     # Initial scan of the output directory
     scan_output_directory(OUTPUTS_DIR)
     
-    # Also scan results directories
-    scan_results_directories()
+    # Only scan results directories if no specific output-dir was provided
+    if not args.output_dir:
+        # Also scan results directories
+        scan_results_directories()
     
     # Set up the file system observer
     observer = Observer()
@@ -804,15 +806,17 @@ def main():
     observer.schedule(OutputFileHandler(), str(OUTPUTS_DIR), recursive=False)
     logger.info(f"Watching output directory: {OUTPUTS_DIR}")
     
-    # Watch the results directory experiment outputs
-    results_dir = Path(__file__).parent.parent / "results"
-    if results_dir.exists():
-        for exp_dir in results_dir.iterdir():
-            if exp_dir.is_dir() and not exp_dir.name.startswith('.'):
-                outputs_dir = exp_dir / "outputs"
-                if outputs_dir.exists() and outputs_dir.is_dir():
-                    observer.schedule(OutputFileHandler(), str(outputs_dir), recursive=False)
-                    logger.info(f"Watching output directory: {outputs_dir}")
+    # Only watch results directory experiment outputs if no specific output-dir was provided
+    if not args.output_dir:
+        # Watch the results directory experiment outputs
+        results_dir = Path(__file__).parent.parent / "results"
+        if results_dir.exists():
+            for exp_dir in results_dir.iterdir():
+                if exp_dir.is_dir() and not exp_dir.name.startswith('.'):
+                    outputs_dir = exp_dir / "outputs"
+                    if outputs_dir.exists() and outputs_dir.is_dir():
+                        observer.schedule(OutputFileHandler(), str(outputs_dir), recursive=False)
+                        logger.info(f"Watching output directory: {outputs_dir}")
     
     observer.start()
     logger.info("File system observers started")
