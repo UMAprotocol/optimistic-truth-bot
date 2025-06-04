@@ -600,19 +600,27 @@ def check_watched_requests():
             latest_file = find_latest_output_file(short_id, output_dir)
             
             if latest_file and latest_file != info["output_file_path"]:
-                # We found a newer file, check if it still has P4
-                if not is_p4_recommendation(latest_file):
-                    logger.info(f"Latest file for {short_id} no longer has P4 recommendation, removing from watch list")
-                    to_remove.append(short_id)
-                    continue
+                # We found a newer file, check if it's a retry file (has _run- in name)
+                if "_run-" in os.path.basename(latest_file):
+                    # This is a retry file, check if it still has P4
+                    if not is_p4_recommendation(latest_file):
+                        logger.info(f"Latest retry file for {short_id} no longer has P4 recommendation, removing from watch list")
+                        to_remove.append(short_id)
+                        continue
+                    else:
+                        # Update the tracked file to the latest retry file
+                        info["output_file_path"] = latest_file
+                        logger.info(f"Updated tracked file for {short_id} to latest retry: {os.path.basename(latest_file)}")
                 else:
-                    # Update the tracked file to the latest one
+                    # This is not a retry file, just an updated original file
+                    # Don't remove from watch list yet - we still want to retry to create proper retry files
+                    logger.info(f"Found updated original file for {short_id}: {os.path.basename(latest_file)}, will still attempt retry")
                     info["output_file_path"] = latest_file
-                    logger.info(f"Updated tracked file for {short_id} to latest: {os.path.basename(latest_file)}")
             
-            # Check if the current tracked file still has P4
-            if not is_p4_recommendation(info["output_file_path"]):
-                logger.info(f"Current tracked file for {short_id} no longer has P4 recommendation, removing from watch list")
+            # Only check if the current tracked file still has P4 if it's a retry file
+            # For original files, we want to attempt retries even if they've been updated
+            if "_run-" in os.path.basename(info["output_file_path"]) and not is_p4_recommendation(info["output_file_path"]):
+                logger.info(f"Current tracked retry file for {short_id} no longer has P4 recommendation, removing from watch list")
                 to_remove.append(short_id)
                 continue
             
@@ -707,12 +715,20 @@ class OutputFileHandler(FileSystemEventHandler):
                                 data = json.load(f)
                                 recommendation = data.get("recommendation", "").lower()
                                 
+                                # Only remove from watch list if this is a retry file (has _run- in name)
+                                # For original files, we still want to create proper retry files
                                 if recommendation != "p4":
-                                    logger.info(f"Recommendation changed for {short_id}, removing from watch list")
-                                    if short_id in watched_requests:  # Double check before deletion
-                                        del watched_requests[short_id]
+                                    file_name = os.path.basename(event.src_path)
+                                    if "_run-" in file_name:
+                                        logger.info(f"Retry file recommendation changed for {short_id}, removing from watch list")
+                                        if short_id in watched_requests:  # Double check before deletion
+                                            del watched_requests[short_id]
+                                            if args.verbose:
+                                                print(f"✅ Retry file recommendation changed for {short_id}, removed from watch list")
+                                    else:
+                                        logger.info(f"Original file recommendation changed for {short_id}, but keeping in watch list to create retry files")
                                         if args.verbose:
-                                            print(f"✅ Recommendation changed for {short_id}, removed from watch list")
+                                            print(f"📝 Original file updated for {short_id}, will still create retry files")
                         except json.JSONDecodeError as e:
                             logger.error(f"JSON corruption detected in modified file for {short_id}: {str(e)}")
                             # Don't remove from watch list in case of corruption - will be fixed on next retry
