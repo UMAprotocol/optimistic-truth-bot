@@ -88,7 +88,12 @@ function addRunTabsManually(modalBody, data) {
         
         console.log(`Creating content for run ${runIteration}:`, { runIteration, proposal: run.proposed_price_outcome, run_iteration: run.run_iteration });
         
-        // Create journey content for each run
+        // Get the actual recommendation for this specific run
+        const runRecommendation = run.format_version === 2 
+            ? (run.result?.recommendation || run.proposed_price_outcome || 'N/A')
+            : (run.proposed_price_outcome || run.recommendation || 'N/A');
+        
+        // Create journey content for each run  
         const journeyContent = run.journey ? run.journey.map((step, stepIndex) => `
             <div class="journey-step-card ${step.actor}-step">
                 <div class="journey-step-header" data-step="${stepIndex}">
@@ -102,7 +107,7 @@ function addRunTabsManually(modalBody, data) {
                 </div>
                 <div class="journey-step-body">
                     <p>Journey step ${stepIndex + 1} for Run ${runIteration}</p>
-                    <p>Recommendation: <strong>${run.proposed_price_outcome || 'N/A'}</strong></p>
+                    <p>Recommendation: <strong>${runRecommendation}</strong></p>
                     <p>Timestamp: <em>${formatDate(run.timestamp)}</em></p>
                 </div>
             </div>
@@ -110,13 +115,81 @@ function addRunTabsManually(modalBody, data) {
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Run ${runIteration} Details</h5>
-                    <p class="card-text">Recommendation: <strong>${run.proposed_price_outcome || 'N/A'}</strong></p>
+                    <p class="card-text">Recommendation: <strong>${runRecommendation}</strong></p>
                     <p class="card-text">Timestamp: <em>${formatDate(run.timestamp)}</em></p>
                     <p class="card-text">Filename: <code>${run.filename || 'N/A'}</code></p>
                     <p class="text-muted">No detailed journey data available for this run.</p>
                 </div>
             </div>
         `;
+        
+        // Add run-specific overseer data if available
+        const overseerContent = (run.overseer_data || run.overseer_result) ? `
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Run ${runIteration} Overseer Data</h6>
+                </div>
+                <div class="card-body">
+                    ${(run.overseer_data || run.overseer_result).recommendation_journey && (run.overseer_data || run.overseer_result).recommendation_journey.length > 0 ? `
+                        <div class="mt-2">
+                            <strong>Recommendation Journey:</strong>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Attempt</th>
+                                            <th>Recommendation</th>
+                                            <th>Satisfaction</th>
+                                            <th>Critique (Preview)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${(run.overseer_data || run.overseer_result).recommendation_journey.map((journey, jIdx) => `
+                                            <tr>
+                                                <td>${journey.attempt}</td>
+                                                <td>${journey.perplexity_recommendation || journey.code_runner_recommendation || 'N/A'}</td>
+                                                <td>${journey.overseer_satisfaction_level || 'N/A'}</td>
+                                                <td>${journey.critique ? journey.critique.substring(0, 100) + (journey.critique.length > 100 ? '...' : '') : 'N/A'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${(run.overseer_data || run.overseer_result).market_price_info ? `
+                        <div class="mt-2">
+                            <strong>Market Price Info:</strong>
+                            <div class="small text-muted">${(run.overseer_data || run.overseer_result).market_price_info}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        ` : '';
+        
+        // Add run-specific result section if available
+        const runResultSection = run.result ? `
+            <div class="detail-section mt-4">
+                <h5 class="section-title">Run ${runIteration} Result</h5>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="result-info">
+                            <div class="mb-2"><strong>Recommendation:</strong> ${run.result.recommendation || 'N/A'}</div>
+                            ${run.result.reason ? `<div class="mb-2"><strong>Reason:</strong> ${run.result.reason}</div>` : ''}
+                            ${run.result.market_alignment ? `<div class="mb-2"><strong>Market Alignment:</strong> ${run.result.market_alignment}</div>` : ''}
+                            ${run.result.attempted_solvers && run.result.attempted_solvers.length > 0 ? `
+                                <div class="mb-2">
+                                    <strong>Attempted Solvers:</strong>
+                                    ${run.result.attempted_solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${run.result.routing_attempts ? `<div class="mb-2"><strong>Routing Attempts:</strong> ${run.result.routing_attempts}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ` : '';
         
         tabsHTML += `
             <div class="tab-pane fade ${isActive ? 'show active' : ''}" 
@@ -126,6 +199,8 @@ function addRunTabsManually(modalBody, data) {
                 <div class="journey-timeline">
                     ${journeyContent}
                 </div>
+                ${overseerContent}
+                ${runResultSection}
             </div>
         `;
     });
@@ -576,44 +651,11 @@ function displayQueryResult(data) {
         // Set up toggle buttons for collapsible content
         setupToggleButtons();
         
-        // Fix the Full JSON Data section
-        fixFullJsonDataSection(data);
     } else {
         showError('Error: showDetails function not available');
     }
 }
 
-/**
- * Fix the Full JSON Data section to properly display the complete JSON
- */
-function fixFullJsonDataSection(data) {
-    // Find the Full JSON Data section
-    const fullJsonSection = document.querySelector('#detailsModalBody .detail-section:last-child');
-    if (!fullJsonSection || !fullJsonSection.textContent.includes('Full JSON Data')) {
-        return;
-    }
-    
-    // Find the pre element containing the JSON
-    const preElement = fullJsonSection.querySelector('.card-body pre');
-    if (!preElement) {
-        return;
-    }
-    
-    // Format the data object as a JSON string with proper indentation
-    const formattedJson = JSON.stringify(data, null, 2);
-    
-    // Just set the text content directly without any syntax highlighting
-    preElement.textContent = formattedJson;
-    
-    // Add some basic styling to make it readable
-    preElement.style.fontFamily = 'monospace';
-    preElement.style.whiteSpace = 'pre-wrap';
-    preElement.style.wordBreak = 'break-word';
-    preElement.style.maxHeight = '500px';
-    preElement.style.overflow = 'auto';
-    preElement.style.padding = '10px';
-    preElement.style.backgroundColor = '#f8f9fa';
-}
 
 /**
  * Set up the toggle buttons for expandable content sections

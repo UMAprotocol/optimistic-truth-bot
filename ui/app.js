@@ -4096,10 +4096,17 @@ function showDetails(data, index) {
     const runCount = data._runCount || 1;
     const allRuns = data._allRuns || [data];
     
+    // For multi-run scenarios, show latest run's recommendation in status bar
+    // but note that each tab will show its own run's data
+    const displayRecommendation = runCount > 1 ? 
+        (allRuns[allRuns.length - 1]?.result?.recommendation || 
+         allRuns[allRuns.length - 1]?.proposed_price_outcome || 
+         recommendation) : recommendation;
+    
     // Generate the content with run count in status bar
     let content = `
         <div class="alert ${alertClass} mb-4">
-            <strong>Recommendation:</strong> ${recommendation} | 
+            <strong>Recommendation:</strong> ${displayRecommendation} | 
             <strong>Resolved:</strong> ${data.resolved_price_outcome || 'Unresolved'} | 
             <strong>Proposed:</strong> ${proposedPrice} | 
             <strong>Disputed:</strong> ${isDisputed ? 'Yes' : 'No'} | 
@@ -4129,7 +4136,7 @@ function showDetails(data, index) {
     const request_time = data.proposal_metadata?.request_transaction_block_time || 0;
     const expiration_time = data.proposal_metadata?.expiration_timestamp || 0;
     const end_date = data.end_date_iso || data.proposal_metadata?.end_date_iso || (data.market_data ? data.market_data.end_date_iso : 'N/A');
-    const game_start_time = data.game_start_time || data.proposal_metadata?.game_start_time || (data.market_data ? data.market_data.game_start_time : 'N/A');
+    const game_start_time = data.game_start_time || data.proposal_metadata?.game_start_time || (data.market_data ? data.market_data.game_start_time : null);
     
     content += `
         <div class="detail-section">
@@ -4178,7 +4185,7 @@ function showDetails(data, index) {
                             <th>End Date</th>
                             <td>${end_date}</td>
                         </tr>
-                        ${game_start_time !== 'N/A' ? `
+                        ${game_start_time && game_start_time !== 'N/A' ? `
                         <tr>
                             <th>Game Start Time</th>
                             <td>${game_start_time}</td>
@@ -4215,7 +4222,10 @@ function showDetails(data, index) {
                 const runIteration = extractRunNumber(run);
                 const isActive = index === sortedRuns.length - 1; // Auto-select the most recent run (last in sorted array)
                 const runTimestamp = formatDate(run.timestamp || run.unix_timestamp || 0);
-                const proposal = run.proposed_price_outcome || run.result?.recommendation || 'N/A';
+                // Get the actual recommendation for this specific run
+                const proposal = run.format_version === 2 
+                    ? (run.result?.recommendation || run.proposed_price_outcome || 'N/A')
+                    : (run.proposed_price_outcome || run.recommendation || 'N/A');
                 
                 content += `
                     <li class="nav-item" role="presentation">
@@ -4267,6 +4277,90 @@ function showDetails(data, index) {
                                 </div>
                             `).join('') : '<p class="text-muted">No journey data available for this run.</p>'}
                         </div>
+                        
+                        ${run.result ? `
+                            <div class="detail-section mt-4">
+                                <h4 class="section-title">Run ${runIteration} Result</h4>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="result-info">
+                                            <div class="mb-2"><strong>Recommendation:</strong> ${run.result.recommendation || 'N/A'}</div>
+                                            ${run.result.reason ? `<div class="mb-2"><strong>Reason:</strong> ${run.result.reason}</div>` : ''}
+                                            ${run.result.market_alignment ? `<div class="mb-2"><strong>Market Alignment:</strong> ${run.result.market_alignment}</div>` : ''}
+                                            ${run.result.attempted_solvers && run.result.attempted_solvers.length > 0 ? `
+                                                <div class="mb-2">
+                                                    <strong>Attempted Solvers:</strong>
+                                                    ${run.result.attempted_solvers.map(solver => `<span class="tag-badge">${solver}</span>`).join('')}
+                                                </div>
+                                            ` : ''}
+                                            ${run.result.routing_attempts ? `<div class="mb-2"><strong>Routing Attempts:</strong> ${run.result.routing_attempts}</div>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        
+                        ${run.overseer_data || run.overseer_result ? `
+                            <div class="detail-section mt-4">
+                                <h4 class="section-title">Run ${runIteration} Overseer Data</h4>
+                                <div class="card">
+                                    <div class="card-body overseer-data">
+                                        ${(run.overseer_data || run.overseer_result).attempts ? `<div><strong>Attempts:</strong> ${(run.overseer_data || run.overseer_result).attempts}</div>` : ''}
+                                        ${(run.overseer_data || run.overseer_result).market_price_info ? `
+                                            <div class="mt-2">
+                                                <strong>Market Price Info:</strong> 
+                                                <div class="market-price-info">${(run.overseer_data || run.overseer_result).market_price_info}</div>
+                                            </div>
+                                        ` : ''}
+                                        
+                                        ${(run.overseer_data || run.overseer_result).recommendation_journey && (run.overseer_data || run.overseer_result).recommendation_journey.length > 0 ? `
+                                            <div class="mt-3">
+                                                <strong>Recommendation Journey:</strong>
+                                                <div class="recommendation-journey mt-2">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-striped">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Attempt</th>
+                                                                    <th>Recommendation</th>
+                                                                    <th>Satisfaction</th>
+                                                                    <th style="min-width: 200px; width: 40%;">Critique</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                ${(run.overseer_data || run.overseer_result).recommendation_journey.map((journey, jIdx) => `
+                                                                    <tr>
+                                                                        <td>${journey.attempt}</td>
+                                                                        <td>${journey.perplexity_recommendation || journey.code_runner_recommendation || 'N/A'}</td>
+                                                                        <td>${formatSatisfactionLevel(journey.overseer_satisfaction_level)}</td>
+                                                                        <td class="critique-cell">
+                                                                            <div class="critique-preview" id="critique-preview-${runIteration}-${jIdx}">
+                                                                                ${journey.critique ? journey.critique.substring(0, 120) + (journey.critique.length > 120 ? '...' : '') : 'N/A'}
+                                                                            </div>
+                                                                            <div class="critique-full content-collapsible collapsed" id="critique-full-${runIteration}-${jIdx}">
+                                                                                ${journey.critique || 'N/A'}
+                                                                            </div>
+                                                                            ${journey.critique && journey.critique.length > 120 ? `
+                                                                                <button class="btn btn-sm btn-link toggle-critique-btn" 
+                                                                                    data-preview="critique-preview-${runIteration}-${jIdx}" 
+                                                                                    data-target="critique-full-${runIteration}-${jIdx}">
+                                                                                    Show more
+                                                                                </button>
+                                                                            ` : ''}
+                                                                        </td>
+                                                                    </tr>
+                                                                `).join('')}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             });
@@ -4303,8 +4397,9 @@ function showDetails(data, index) {
         `;
     }
     
-    // Add result section for format_version 2
-    if (isFormatV2 && data.result) {
+    // Add result section for format_version 2 (only for single runs)
+    // For multi-run scenarios, results are shown within each tab
+    if (isFormatV2 && data.result && runCount === 1) {
         content += `
             <div class="detail-section">
                 <h4 class="section-title">Result</h4>
@@ -4897,10 +4992,10 @@ function showDetails(data, index) {
     }
     
     // Add overseer section for both old and new file structures
-    // Get overseer data from both potential locations 
+    // Only show for single runs, as multi-runs have per-tab overseer data
     const overseerData = data.overseer_data || data.overseer_result || null;
     
-    if (overseerData) {
+    if (overseerData && runCount === 1) {
         content += `
             <div class="detail-section">
                 <h4 class="section-title">Overseer Data</h4>
@@ -5244,13 +5339,6 @@ function showDetails(data, index) {
                                 </tr>
                             ` : ''}
                         </table>
-                        <div class="p-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <strong>Full Metadata:</strong>
-                                <button class="btn btn-sm btn-outline-secondary toggle-metadata-btn">Toggle Full View</button>
-                            </div>
-                            <pre class="mb-0 json-data" style="display: none;">${JSON.stringify(data.proposal_metadata, null, 2)}</pre>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -5354,24 +5442,6 @@ function showDetails(data, index) {
         });
     });
     
-    // Add toggle functionality for metadata JSON
-    document.querySelectorAll('.toggle-metadata-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Find the closest pre element that contains the JSON data
-            // For both v1 and v2 data structures
-            const jsonData = this.closest('.p-3').querySelector('.json-data');
-            
-            if (jsonData) {
-                if (jsonData.style.display === 'none') {
-                    jsonData.style.display = 'block';
-                    this.textContent = 'Hide Full View';
-                } else {
-                    jsonData.style.display = 'none';
-                    this.textContent = 'Toggle Full View';
-                }
-            }
-        });
-    });
     
     // Show the modal
     modal.show();
@@ -5400,24 +5470,6 @@ function showDetails(data, index) {
         });
     });
     
-    // Add toggle functionality for metadata JSON
-    document.querySelectorAll('.toggle-metadata-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Find the closest pre element that contains the JSON data
-            // For both v1 and v2 data structures
-            const jsonData = this.closest('.p-3').querySelector('.json-data');
-            
-            if (jsonData) {
-                if (jsonData.style.display === 'none') {
-                    jsonData.style.display = 'block';
-                    this.textContent = 'Hide Full View';
-                } else {
-                    jsonData.style.display = 'none';
-                    this.textContent = 'Toggle Full View';
-                }
-            }
-        });
-    });
     
     // Add toggle functionality for journey steps
     document.querySelectorAll('.journey-step-header').forEach(header => {
@@ -5449,6 +5501,23 @@ function showDetails(data, index) {
                     this.textContent = 'Show more';
                 } else {
                     this.textContent = 'Show less';
+                }
+            }
+        });
+    });
+    
+    // Add toggle functionality for Full JSON Data
+    document.querySelectorAll('.toggle-json-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const container = this.closest('.detail-section').querySelector('.json-data-container');
+            
+            if (container) {
+                if (container.style.display === 'none') {
+                    container.style.display = 'block';
+                    this.innerHTML = '<i class="bi bi-arrows-collapse"></i> Hide';
+                } else {
+                    container.style.display = 'none';
+                    this.innerHTML = '<i class="bi bi-arrows-expand"></i> Toggle';
                 }
             }
         });
@@ -7154,10 +7223,15 @@ function addJsonDataSection(content, data) {
     
     return content + `
         <div class="detail-section">
-            <h4 class="section-title">Full JSON Data</h4>
-            <div class="card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="section-title mb-0">Full JSON Data</h4>
+                <button class="btn btn-sm btn-outline-secondary toggle-json-btn">
+                    <i class="bi bi-arrows-expand"></i> Toggle
+                </button>
+            </div>
+            <div class="card json-data-container" style="display: none;">
                 <div class="card-body">
-                    <div class="json-container">${renderFoldableJSON(data)}</div>
+                    <pre class="mb-0" style="max-height: 600px; overflow: auto; font-family: monospace; font-size: 12px; line-height: 1.2; white-space: pre-wrap; word-break: break-word;">${JSON.stringify(data, null, 2)}</pre>
                 </div>
             </div>
         </div>

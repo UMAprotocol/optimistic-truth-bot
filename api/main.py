@@ -121,6 +121,9 @@ async def query_by_params(
     full: bool = Query(
         True, description="Return full JSON if true, reduced version if false"
     ),
+    all_runs: bool = Query(
+        False, description="Return all runs if true, latest run only if false"
+    ),
     limit: int = Query(10, description="Maximum number of results to return"),
 ):
     """Query experiments by query_id, condition_id, or transaction_hash"""
@@ -148,8 +151,23 @@ async def query_by_params(
                 detail="At least one query parameter (query_id, condition_id, transaction_hash) is required",
             )
 
-        # Execute the query
-        results = list(collection.find(query_filter).limit(limit))
+        if all_runs:
+            # Return all runs (original behavior)
+            results = list(collection.find(query_filter).limit(limit))
+        else:
+            # Execute the query and get only the latest run per query_id
+            # Use aggregation to get the most recent document for each query_id
+            pipeline = [
+                {"$match": query_filter},
+                {"$sort": {"last_updated_timestamp": -1}},  # Sort by timestamp descending
+                {"$group": {
+                    "_id": "$query_id",  # Group by query_id
+                    "latest_doc": {"$first": "$$ROOT"}  # Take the first (most recent) document
+                }},
+                {"$replaceRoot": {"newRoot": "$latest_doc"}},  # Replace the grouped structure with the document
+                {"$limit": limit}
+            ]
+            results = list(collection.aggregate(pipeline))
 
         if not results:
             return []
@@ -320,8 +338,19 @@ async def _advanced_query(
                 detail="At least one query parameter is required"
             )
 
-        # Execute the query
-        results = list(collection.find(query_filter).limit(limit))
+        # Execute the query and get only the latest run per query_id
+        # Use aggregation to get the most recent document for each query_id
+        pipeline = [
+            {"$match": query_filter},
+            {"$sort": {"last_updated_timestamp": -1}},  # Sort by timestamp descending
+            {"$group": {
+                "_id": "$query_id",  # Group by query_id
+                "latest_doc": {"$first": "$$ROOT"}  # Take the first (most recent) document
+            }},
+            {"$replaceRoot": {"newRoot": "$latest_doc"}},  # Replace the grouped structure with the document
+            {"$limit": limit}
+        ]
+        results = list(collection.aggregate(pipeline))
 
         if not results:
             return []
@@ -373,7 +402,11 @@ async def get_by_question_id(
     client, collection = get_outputs_collection()
 
     try:
-        result = collection.find_one({"question_id": question_id})
+        # Get the latest run for this question_id
+        result = collection.find_one(
+            {"question_id": question_id},
+            sort=[("last_updated_timestamp", -1)]  # Get the most recent one
+        )
 
         if not result:
             raise HTTPException(
