@@ -4,8 +4,8 @@
   "question_id_short": "417fb4f5",
   "timestamp": 1748952930.999664,
   "format_version": 2,
-  "resolved_price": null,
-  "resolved_price_outcome": null,
+  "resolved_price": 1000000000000000000,
+  "resolved_price_outcome": "p2",
   "proposed_price": 1000000000000000000,
   "metadata": {
     "processed_file": "questionId_417fb4f5.json",
@@ -179,7 +179,7 @@
     ],
     "routing_attempts": 1
   },
-  "proposed_price_outcome": "p4",
+  "proposed_price_outcome": "p2",
   "overseer_data": {
     "attempts": 1,
     "market_price_info": "The recommendation aligns with the market data, which strongly favors an 'Up' outcome, corresponding to p4 in the resolution conditions. This is consistent with the solver's recommendation of p4.",
@@ -196,5 +196,6 @@
       }
     ],
     "journey_ref": true
-  }
+  },
+  "disputed": false
 }
