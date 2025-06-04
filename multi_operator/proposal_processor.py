@@ -727,6 +727,14 @@ SUMMARY:
                 # Prepare final result
                 overseer_decision = overseer_result["decision"]
 
+                # CRITICAL FIX: For multiple solvers, also ensure we respect satisfied recommendations
+                final_recommendation = combined_recommendation
+                if overseer_decision.get("verdict") == "DEFAULT_TO_P4":
+                    final_recommendation = "p4"
+                elif overseer_decision.get("verdict") == "SATISFIED":
+                    # If satisfied, use the combined recommendation
+                    final_recommendation = combined_recommendation
+
                 final_result = {
                     "query_id": query_id,
                     "short_id": short_id,
@@ -735,10 +743,8 @@ SUMMARY:
                     "router_result": route_result,
                     "solver_results": solver_results,
                     "overseer_result": overseer_result,
-                    # Get the recommendation based on verdict
-                    "recommendation": combined_recommendation if overseer_decision.get("verdict") == "SATISFIED" else 
-                                     "p4" if overseer_decision.get("verdict") == "DEFAULT_TO_P4" else 
-                                     combined_recommendation,
+                    # Use the fixed recommendation logic
+                    "recommendation": final_recommendation,
                     "reason": overseer_decision.get(
                         "reason", "Evaluated by overseer from multiple solver results"
                     ),
@@ -765,6 +771,7 @@ SUMMARY:
             else:
                 # Find the last result where the overseer was satisfied, or fall back to the last result
                 solver_result = None
+                satisfied_recommendation = None
                 
                 # First, try to find the last result where overseer was satisfied
                 for result in reversed(solver_results):
@@ -774,7 +781,8 @@ SUMMARY:
                     
                     if verdict == "SATISFIED":
                         solver_result = result
-                        self.logger.info(f"Using last satisfied result from attempt {result.get('attempt', 'unknown')}")
+                        satisfied_recommendation = result.get("recommendation", "p4")
+                        self.logger.info(f"Using last satisfied result from attempt {result.get('attempt', 'unknown')} with recommendation {satisfied_recommendation}")
                         break
                 
                 # If no satisfied result found, use the last result overall
@@ -790,6 +798,16 @@ SUMMARY:
                 overseer_result = solver_result.get("overseer_result", {})
                 overseer_decision = overseer_result.get("decision", {})
 
+                # CRITICAL FIX: Always use the satisfied recommendation if we found one
+                final_recommendation = satisfied_recommendation if satisfied_recommendation else solver_result.get("recommendation", "p4")
+                
+                # Only override the satisfied recommendation if the overseer explicitly defaulted to p4
+                if overseer_decision.get("verdict") == "DEFAULT_TO_P4":
+                    final_recommendation = "p4"
+                elif overseer_decision.get("verdict") == "SATISFIED" and satisfied_recommendation:
+                    # Ensure we use the satisfied recommendation, not any other logic
+                    final_recommendation = satisfied_recommendation
+
                 final_result = {
                     "query_id": query_id,
                     "short_id": short_id,
@@ -798,10 +816,8 @@ SUMMARY:
                     "router_result": route_result,
                     "solver_results": solver_results,
                     "overseer_result": overseer_result,
-                    # Get the recommendation based on verdict
-                    "recommendation": solver_result.get("recommendation", "p4") if overseer_decision.get("verdict") == "SATISFIED" else 
-                                     "p4" if overseer_decision.get("verdict") == "DEFAULT_TO_P4" else 
-                                     solver_result.get("recommendation", "p4"),
+                    # Use the fixed recommendation logic
+                    "recommendation": final_recommendation,
                     "reason": overseer_decision.get("reason", "Evaluated by overseer"),
                     "market_alignment": overseer_decision.get(
                         "market_alignment", "No market alignment information provided"
@@ -1602,15 +1618,12 @@ SUMMARY:
                     "routing_attempt": overseer_entry.get("routing_phase", 1)
                 }
                 
-                # Add solver-specific recommendation
+                # Add solver-specific recommendation - only add the field for the actual solver used
                 if solver_type == "perplexity":
                     compatible_entry["perplexity_recommendation"] = solver_entry.get("recommendation", "")
                 elif solver_type == "code_runner":
                     compatible_entry["code_runner_recommendation"] = solver_entry.get("recommendation", "")
-                    # For backward compatibility, also add as perplexity_recommendation
-                    compatible_entry["perplexity_recommendation"] = solver_entry.get("recommendation", "")
-                else:
-                    compatible_entry["perplexity_recommendation"] = solver_entry.get("recommendation", "")
+                # No fallback - only add the field for the solver that was actually used
                 
                 # Add system prompt if available
                 if "system_prompt_before" in overseer_entry:
