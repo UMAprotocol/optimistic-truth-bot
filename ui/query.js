@@ -487,10 +487,15 @@ async function fetchQueryData() {
         return;
     }
     
-    // Add full=true parameter if not already included
+    // Add full=true and all_runs=true parameters if not already included
     if (!apiUrl.includes('full=')) {
         apiUrl += apiUrl.includes('?') ? '&full=true' : '?full=true';
     }
+    if (!apiUrl.includes('all_runs=')) {
+        apiUrl += '&all_runs=true';
+    }
+    
+    console.log('Final API URL:', apiUrl);
     
     try {
         const response = await fetch(apiUrl);
@@ -501,12 +506,27 @@ async function fetchQueryData() {
         
         const data = await response.json();
         
+        console.log('API Response received:', {
+            isArray: Array.isArray(data),
+            length: Array.isArray(data) ? data.length : 'N/A',
+            dataType: typeof data,
+            hasRunIteration: Array.isArray(data) ? data.map(item => item.run_iteration || 'none') : 'N/A'
+        });
+        
         // Handle different response formats
         if (Array.isArray(data) && data.length > 0) {
             // For query endpoint, it returns an array - handle multiple runs using the deduplication logic from app.js
             if (data.length > 1) {
+                console.log('Multiple runs received from API, processing with deduplication...');
                 // Use the same deduplication logic as the main app
                 const deduplicatedData = window.deduplicateByQueryId ? window.deduplicateByQueryId(data) : [data[0]];
+                
+                console.log('API Deduplication result:', {
+                    originalCount: data.length,
+                    deduplicatedCount: deduplicatedData.length,
+                    _runCount: deduplicatedData[0]?._runCount,
+                    _allRuns: deduplicatedData[0]?._allRuns?.length
+                });
                 
                 if (deduplicatedData.length > 0) {
                     const result = deduplicatedData[0]; // Should be only one result after deduplication by query_id
@@ -515,10 +535,12 @@ async function fetchQueryData() {
                     displayQueryResult(data[0]);
                 }
             } else {
+                console.log('Single run received from API');
                 // Single result
                 displayQueryResult(data[0]);
             }
         } else if (data && typeof data === 'object') {
+            console.log('Single object received from API (question endpoint)');
             // For question endpoint, it returns a single object
             displayQueryResult(data);
         } else {
