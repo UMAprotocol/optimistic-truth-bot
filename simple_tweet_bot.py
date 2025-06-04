@@ -304,8 +304,13 @@ def main():
                         
                         title = get_item_title(item)
                         
-                        resolved_price_outcome_code = item.get("resolved_price_outcome")
+                        resolved_price_outcome_code = item.get("result", {}).get("recommendation")
                         proposed_price_outcome_code = item.get("proposed_price_outcome")
+
+                        # Skip items with uncertain or cannot be determined recommendations (case insensitive)
+                        if resolved_price_outcome_code and resolved_price_outcome_code.lower() in ["p3", "p4"]:
+                            print(f"  Skipping item with uncertain/cannot be determined recommendation ({resolved_price_outcome_code}): {item_id}")
+                            continue
 
                         # Convert outcome codes to text using the existing helper.
                         # We pass a dictionary with the "recommendation" key to match the helper's expectation.
