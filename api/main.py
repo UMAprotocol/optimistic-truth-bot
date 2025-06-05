@@ -76,12 +76,80 @@ def get_outputs_collection():
         raise HTTPException(status_code=500, detail="Database collection access error")
 
 
+# Helper function to parse resolution conditions and extract result mapping
+def parse_result_mapping(resolution_conditions: str) -> Dict[str, str]:
+    """Parse resolution_conditions to extract P1-P4 outcome mappings"""
+    if not resolution_conditions:
+        return {}
+    
+    result_mapping = {}
+    
+    # Handle the minimal format case
+    if resolution_conditions.strip() == "x":
+        return {}
+    
+    try:
+        # Look for the "Where pX corresponds to Y" pattern
+        # Pattern matches: "Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50"
+        corresponds_pattern = r'Where\s+(p[1-4])\s+corresponds\s+to\s+([^,]+?)(?:,\s+(p[1-4])\s+(?:corresponds\s+)?to\s+([^,]+?))?(?:,\s+(p[1-4])\s+(?:corresponds\s+)?to\s+([^,]+?))?(?:,\s+(p[1-4])\s+(?:corresponds\s+)?to\s+([^,.]+?))?'
+        
+        match = re.search(corresponds_pattern, resolution_conditions, re.IGNORECASE)
+        
+        if match:
+            groups = match.groups()
+            # Process groups in pairs (pX, outcome)
+            for i in range(0, len(groups), 2):
+                if groups[i] and groups[i + 1]:
+                    px = groups[i].lower()
+                    outcome = groups[i + 1].strip()
+                    result_mapping[px] = outcome
+        
+        # Add default values for standard outcomes if not found
+        if not result_mapping:
+            # Try a simpler pattern to catch variations
+            simple_pattern = r'p1.*?([A-Za-z]+).*?p2.*?([A-Za-z]+)'
+            simple_match = re.search(simple_pattern, resolution_conditions)
+            if simple_match:
+                result_mapping["p1"] = simple_match.group(1).strip()
+                result_mapping["p2"] = simple_match.group(2).strip()
+        
+        # Always add p3 and p4 defaults if not present
+        if "p3" not in result_mapping:
+            result_mapping["p3"] = "unknown"
+        
+        # Check if it's an early expiration case (contains p4 and earlyExpiration)
+        if "earlyExpiration:1" in resolution_conditions or "p4:" in resolution_conditions:
+            if "p4" not in result_mapping:
+                result_mapping["p4"] = "early request"
+                
+    except Exception as e:
+        logger.warning(f"Error parsing resolution conditions: {e}")
+        # Return default structure on error
+        result_mapping = {
+            "p1": "unknown",
+            "p2": "unknown", 
+            "p3": "unknown"
+        }
+    
+    return result_mapping
+
+
 # Helper function to format response
 def format_response(doc: Dict[str, Any], full: bool = True) -> Dict[str, Any]:
     """Format the MongoDB document for API response"""
+    
+    # Extract resolution conditions for result mapping
+    resolution_conditions = (
+        doc.get("proposal_metadata", {}).get("resolution_conditions") or
+        doc.get("resolution_conditions", "")
+    )
+    
+    # Parse result mapping from resolution conditions
+    result_mapping = parse_result_mapping(resolution_conditions)
+    
     if not full:
         # Return reduced version with essential fields
-        return {
+        response = {
             "_id": str(doc.get("_id")),
             "experiment_id": doc.get("experiment_id"),
             "question_id": doc.get("question_id"),
@@ -97,11 +165,15 @@ def format_response(doc: Dict[str, Any], full: bool = True) -> Dict[str, Any]:
                 else None
             ),
             "tags": doc.get("tags", []),
+            "resultMapping": result_mapping
         }
+        return response
     else:
         # Return full version with all fields
         # Convert ObjectId to string for JSON serialization
         doc["_id"] = str(doc.get("_id"))
+        # Add result mapping to full response
+        doc["resultMapping"] = result_mapping
         return doc
 
 

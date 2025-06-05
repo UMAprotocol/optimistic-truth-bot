@@ -10,6 +10,10 @@ import json
 from dotenv import load_dotenv
 from pprint import pprint
 
+# Import the parse_result_mapping function to test it directly
+sys.path.append(os.path.dirname(__file__))
+from main import parse_result_mapping
+
 # Load environment variables
 load_dotenv()
 
