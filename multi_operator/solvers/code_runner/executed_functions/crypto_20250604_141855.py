@@ -1,6 +1,6 @@
 import requests
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 import pytz
 from dotenv import load_dotenv
 import os
@@ -20,69 +20,82 @@ console_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)
 
-def get_btc_price_change(date_str, hour, minute, timezone_str):
-    """
-    Fetches the percentage change for the BTC/USDT pair on Binance for a specific 1-hour candle.
+# API endpoints
+PROXY_URL = "https://minimal-ubuntu-production.up.railway.app/binance-proxy"
+PRIMARY_URL = "https://api.binance.com/api/v3"
 
-    Args:
-        date_str: Date in YYYY-MM-DD format
-        hour: Hour in 24-hour format
-        minute: Minute
-        timezone_str: Timezone string
-
-    Returns:
-        Percentage change as float
+def fetch_price(symbol, start_time, end_time):
     """
-    logger.info(f"Fetching BTC/USDT price change for {date_str} at {hour}:{minute} {timezone_str}")
-    
-    # Convert the target time to UTC timestamp
-    tz = pytz.timezone(timezone_str)
-    time_str = f"{hour:02d}:{minute:02d}:00"
-    target_time_local = tz.localize(
-        datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
-    )
-    target_time_utc = target_time_local.astimezone(timezone.utc)
-    start_time_ms = int(target_time_utc.timestamp() * 1000)
-    
-    # Binance API endpoint
-    api_url = "https://api.binance.com/api/v3/klines"
+    Fetches the close price of a cryptocurrency from Binance using a proxy and primary endpoint.
+    """
     params = {
-        "symbol": "BTCUSDT",
-        "interval": "1h",
+        "symbol": symbol,
+        "interval": "1m",
         "limit": 1,
-        "startTime": start_time_ms,
-        "endTime": start_time_ms + 3600000  # plus 1 hour
+        "startTime": start_time,
+        "endTime": end_time
     }
-
+    
     try:
-        response = requests.get(api_url, params=params)
+        # Try proxy endpoint first
+        response = requests.get(PROXY_URL, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
-        
         if data:
-            open_price = float(data[0][1])
-            close_price = float(data[0][4])
-            price_change_percent = ((close_price - open_price) / open_price) * 100
-            logger.info(f"Open price: {open_price}, Close price: {close_price}, Change: {price_change_percent}%")
-            return price_change_percent
-    except requests.exceptions.RequestException as e:
-        logger.error(f"API request failed: {e}")
-        raise
+            return float(data[0][4])
+    except Exception as e:
+        logger.warning(f"Proxy endpoint failed: {e}, falling back to primary endpoint")
+        # Fall back to primary endpoint if proxy fails
+        try:
+            response = requests.get(f"{PRIMARY_URL}/klines", params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            if data:
+                return float(data[0][4])
+        except Exception as e:
+            logger.error(f"Primary endpoint also failed: {e}")
+            raise
+
+def convert_to_utc_timestamp(date_str, timezone_str):
+    """
+    Converts a date string with timezone to a UTC timestamp in milliseconds.
+    """
+    tz = pytz.timezone(timezone_str)
+    naive_datetime = datetime.strptime(date_str, "%Y-%m-%d %H:%M")
+    local_datetime = tz.localize(naive_datetime)
+    utc_datetime = local_datetime.astimezone(pytz.utc)
+    return int(utc_datetime.timestamp() * 1000)
 
 def main():
     """
-    Main function to determine if the BTC/USDT price went up or down on June 4, 2025 at 6 AM ET.
+    Main function to determine if Bitcoin dominance went up or down in May 2025.
     """
     try:
-        price_change = get_btc_price_change("2025-06-04", 6, 0, "US/Eastern")
-        if price_change >= 0:
+        # Define the symbol and timezone
+        symbol = "BTC.D"
+        timezone_str = "US/Eastern"
+        
+        # Convert dates to UTC timestamps
+        start_time = convert_to_utc_timestamp("2025-05-01 00:00", timezone_str)
+        end_time = convert_to_utc_timestamp("2025-05-31 23:59", timezone_str)
+        
+        # Fetch prices
+        start_price = fetch_price(symbol, start_time, start_time + 60000)  # 1 minute range
+        end_price = fetch_price(symbol, end_time, end_time + 60000)
+        
+        # Determine the resolution
+        if start_price < end_price:
             recommendation = "p2"  # Up
-        else:
+        elif start_price > end_price:
             recommendation = "p1"  # Down
+        else:
+            recommendation = "p3"  # 50-50
+        
         print(f"recommendation: {recommendation}")
+        
     except Exception as e:
-        logger.error(f"Error determining price change: {e}")
-        print("recommendation: p3")  # Unknown/50-50 if error occurs
+        logger.error(f"An error occurred: {e}")
+        print("recommendation: p4")  # Unable to resolve
 
 if __name__ == "__main__":
     main()

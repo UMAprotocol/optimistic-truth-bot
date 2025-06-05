@@ -5,8 +5,8 @@
   "run_iteration": 2,
   "timestamp": 1749039559.348047,
   "format_version": 2,
-  "resolved_price": null,
-  "resolved_price_outcome": null,
+  "resolved_price": 0,
+  "resolved_price_outcome": "p1",
   "proposed_price": 0,
   "metadata": {
     "processed_file": "questionId_cda1363b.json",
@@ -196,5 +196,6 @@
       }
     ],
     "journey_ref": true
-  }
+  },
+  "disputed": false
 }

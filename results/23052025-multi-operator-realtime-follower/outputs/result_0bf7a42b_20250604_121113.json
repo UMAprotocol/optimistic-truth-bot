@@ -5,8 +5,8 @@
   "run_iteration": 1,
   "timestamp": 1749039073.2167373,
   "format_version": 2,
-  "resolved_price": null,
-  "resolved_price_outcome": null,
+  "resolved_price": -57896044618658097711785492504343953926634992332820282019728792003956564819968,
+  "resolved_price_outcome": "p4",
   "proposed_price": 1000000000000000000,
   "metadata": {
     "processed_file": "questionId_0bf7a42b.json",
