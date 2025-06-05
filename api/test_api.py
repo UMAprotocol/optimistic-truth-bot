@@ -181,7 +181,58 @@ def test_advanced_query(
         return False
 
 
+def test_result_mapping_parser():
+    """Test the parse_result_mapping function with various input formats"""
+    print("\n=== Testing Result Mapping Parser ===")
+    
+    test_cases = [
+        {
+            "name": "Standard Yes/No format",
+            "input": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50.",
+            "expected": {"p1": "No", "p2": "Yes", "p3": "unknown/50-50"}
+        },
+        {
+            "name": "Crypto Up/Down format", 
+            "input": "res_data:p1: 0, p2: 1, p3: 0.5. Where p1 corresponds to Down, p2 to Up, p3 to unknown/50-50.",
+            "expected": {"p1": "Down", "p2": "Up", "p3": "unknown/50-50"}
+        },
+        {
+            "name": "Early expiration with p4",
+            "input": "res_data:p1: 0, p2: 1, p3: 0.5, p4:-57896044618658097711785492504343953926634992332820282019728792003956564819968, earlyExpiration:1 Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50, p4 corresponds to early request. ,initializer:09ef7dfd804df62b76f710ef1447180aaf69e04d",
+            "expected": {"p1": "No", "p2": "Yes", "p3": "unknown/50-50", "p4": "early request"}
+        },
+        {
+            "name": "Minimal format",
+            "input": "x",
+            "expected": {}
+        },
+        {
+            "name": "Empty input",
+            "input": "",
+            "expected": {}
+        }
+    ]
+    
+    all_passed = True
+    for test_case in test_cases:
+        result = parse_result_mapping(test_case["input"])
+        passed = result == test_case["expected"]
+        all_passed = all_passed and passed
+        
+        print(f"\nTest: {test_case['name']}")
+        print(f"Input: {test_case['input'][:100]}{'...' if len(test_case['input']) > 100 else ''}")
+        print(f"Expected: {test_case['expected']}")
+        print(f"Got: {result}")
+        print(f"Status: {'PASS' if passed else 'FAIL'}")
+    
+    print(f"\nOverall result mapping parser test: {'PASS' if all_passed else 'FAIL'}")
+    return all_passed
+
+
 def main():
+    # Test the result mapping parser first (doesn't require API to be running)
+    test_result_mapping_parser()
+    
     # Test health endpoint
     if not test_api_health():
         print("Health check failed. Make sure the API is running.")

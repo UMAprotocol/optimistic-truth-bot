@@ -89,32 +89,42 @@ def parse_result_mapping(resolution_conditions: str) -> Dict[str, str]:
         return {}
     
     try:
-        # Look for the "Where pX corresponds to Y" pattern
-        # Pattern matches: "Where p1 corresponds to No, p2 to Yes, p3 to unknown/50-50"
-        corresponds_pattern = r'Where\s+(p[1-4])\s+corresponds\s+to\s+([^,]+?)(?:,\s+(p[1-4])\s+(?:corresponds\s+)?to\s+([^,]+?))?(?:,\s+(p[1-4])\s+(?:corresponds\s+)?to\s+([^,]+?))?(?:,\s+(p[1-4])\s+(?:corresponds\s+)?to\s+([^,.]+?))?'
+        # Extract the "Where" section which contains the mappings
+        where_section = re.search(r'Where\s+(.+)', resolution_conditions, re.IGNORECASE)
+        if where_section:
+            where_text = where_section.group(1)
+            
+            # Look for individual p1, p2, etc. assignments with more specific patterns
+            individual_patterns = [
+                (r'p1\s+corresponds\s+to\s+([^,]+?)(?=\s*,\s*p[2-4]|\s*\.|$)', 'p1'),
+                (r'p2\s+(?:corresponds\s+)?to\s+([^,]+?)(?=\s*,\s*p[3-4]|\s*\.|$)', 'p2'),
+                (r'p3\s+(?:corresponds\s+)?to\s+([^,]+?)(?=\s*,\s*p4|\s*\.|$)', 'p3'),
+                (r'p4\s+(?:corresponds\s+)?to\s+([^,\.]+?)(?=\s*[,\.]|$)', 'p4')
+            ]
+            
+            for pattern, px in individual_patterns:
+                match = re.search(pattern, where_text, re.IGNORECASE)
+                if match:
+                    result_mapping[px] = match.group(1).strip()
         
-        match = re.search(corresponds_pattern, resolution_conditions, re.IGNORECASE)
-        
-        if match:
-            groups = match.groups()
-            # Process groups in pairs (pX, outcome)
-            for i in range(0, len(groups), 2):
-                if groups[i] and groups[i + 1]:
-                    px = groups[i].lower()
-                    outcome = groups[i + 1].strip()
-                    result_mapping[px] = outcome
-        
-        # Add default values for standard outcomes if not found
+        # If still no matches, try simpler fallback patterns
         if not result_mapping:
-            # Try a simpler pattern to catch variations
-            simple_pattern = r'p1.*?([A-Za-z]+).*?p2.*?([A-Za-z]+)'
-            simple_match = re.search(simple_pattern, resolution_conditions)
-            if simple_match:
-                result_mapping["p1"] = simple_match.group(1).strip()
-                result_mapping["p2"] = simple_match.group(2).strip()
+            # Look for p1/p2 without the "Where" context
+            simple_patterns = [
+                (r'p1[^p]*?([A-Za-z][A-Za-z/\-0-9]*)', 'p1'),
+                (r'p2[^p]*?([A-Za-z][A-Za-z/\-0-9]*)', 'p2')
+            ]
+            
+            for pattern, px in simple_patterns:
+                match = re.search(pattern, resolution_conditions, re.IGNORECASE)
+                if match:
+                    candidate = match.group(1).strip()
+                    # Only use if it looks like a valid outcome
+                    if len(candidate) >= 2 and candidate not in ['0', '1', '0.5']:
+                        result_mapping[px] = candidate
         
-        # Always add p3 and p4 defaults if not present
-        if "p3" not in result_mapping:
+        # Always add p3 default if not present (but don't overwrite if found)
+        if "p3" not in result_mapping and result_mapping:
             result_mapping["p3"] = "unknown"
         
         # Check if it's an early expiration case (contains p4 and earlyExpiration)

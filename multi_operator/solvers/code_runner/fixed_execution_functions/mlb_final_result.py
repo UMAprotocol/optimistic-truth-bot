@@ -1,32 +1,31 @@
+#!/usr/bin/env python3
+"""
+MLB Game Result Resolver
+
+Usage:
+    python mlb_final_result.py --teamA "Detroit Tigers" --teamB "Chicago White Sox" --gameDate "2025-06-04"
+
+Returns:
+    "Winner: {team_name}" for a win
+    "Result: 50-50" for canceled games
+    "Status: PENDING" for unresolved games
+"""
+
 import os
-import requests
+import sys
+import json
 import time
 import logging
-import re
-import json
+import argparse
+import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler()],
+    level=logging.INFO, format="%(message)s", handlers=[logging.StreamHandler()]
 )
 log = logging.getLogger(__name__)
-
-# Load environment variables
-load_dotenv()
-API_KEY = os.getenv("SPORTS_DATA_IO_MLB_API_KEY")
-if not API_KEY:
-    raise ValueError("Missing SPORTS_DATA_IO_MLB_API_KEY")
-HEADERS = {"Ocp-Apim-Subscription-Key": API_KEY}
-
-# Configure logging filter to hide API key
-logging.getLogger().addFilter(
-    lambda r: setattr(r, "msg", re.sub(re.escape(API_KEY), "******", r.getMessage()))
-    or True
-)
 
 # MLB Team mapping data
 MLB_TEAMS = {
@@ -224,107 +223,122 @@ for full_name, team_data in MLB_TEAMS.items():
     TEAM_NAME_TO_CODE[team_data["name"]] = team_data["code"]
     TEAM_NAME_TO_CODE[team_data["abbreviation"]] = team_data["code"]
 
-# Constants
-DATE = "2025-06-04"
-TEAM1 = "Detroit Tigers"
-TEAM2 = "Chicago White Sox"
-TEAM1_CODE = TEAM_NAME_TO_CODE.get(TEAM1)
-TEAM2_CODE = TEAM_NAME_TO_CODE.get(TEAM2)
 
-if not TEAM1_CODE or not TEAM2_CODE:
-    raise ValueError(f"Could not find team codes for {TEAM1} and/or {TEAM2}")
-
-RESOLUTION_MAP = {
-    TEAM1_CODE: "p2",  # Detroit Tigers win
-    TEAM2_CODE: "p1",  # Chicago White Sox win
-    "50-50": "p3",  # Game canceled or tie
-    "Too early to resolve": "p4",  # Not enough data or game not completed
-}
+def get_team_code(team_name):
+    """Convert team name to API code, trying various formats."""
+    code = TEAM_NAME_TO_CODE.get(team_name)
+    if not code:
+        raise ValueError(f"Unknown team: {team_name}")
+    return code
 
 
-def _get(url, tag, retries=3, backoff=1.5):
+def get_team_full_name(team_code):
+    """Convert team code to full name."""
+    name = TEAM_CODE_TO_FULL.get(team_code)
+    if not name:
+        raise ValueError(f"Unknown team code: {team_code}")
+    return name
+
+
+def api_get(url, retries=3, backoff=1.5):
+    """Make API request with retries and error handling."""
+    headers = {"Ocp-Apim-Subscription-Key": os.getenv("SPORTS_DATA_IO_MLB_API_KEY")}
+
     for i in range(retries):
-        log.debug(f"[{tag}] → {url}")
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        log.debug(f"[{tag}] ← {r.status_code} {r.reason}")
-        if r.ok:
-            data = r.json()
-            log.debug(f"[{tag}] payload length: {len(data)}")
-            log.debug(f"[{tag}] full response: {json.dumps(data, indent=2)}")
-            return data
-        if r.status_code in (401, 403):
-            log.error(f"[{tag}] blocked — not in plan")
-            log.error(f"[{tag}] error response: {r.text}")
-            return None
-        if r.status_code == 404:
-            log.warning(f"[{tag}] 404 — not found")
-            log.warning(f"[{tag}] error response: {r.text}")
-            return []
-        if r.status_code == 429:
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            if i == retries - 1:  # Last retry
+                log.error(f"API request failed: {e}")
+                return None
             wait = backoff * 2**i
-            log.warning(f"[{tag}] 429 — back-off {wait:.1f}s")
-            log.warning(f"[{tag}] error response: {r.text}")
             time.sleep(wait)
-            continue
-        log.error(f"[{tag}] unexpected error response: {r.text}")
-        r.raise_for_status()
     return None
 
 
-def find_game(date, team1_code, team2_code):
+def find_game(date, team_a_code, team_b_code):
+    """Find game between two teams on a specific date."""
     formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d")
     url = f"https://api.sportsdata.io/v3/mlb/scores/json/GamesByDateFinal/{formatted_date}"
-    games = _get(url, "GamesByDateFinal")
-    log.debug(f"find_game: got games response: {json.dumps(games, indent=2)}")
-    if games is None:
-        log.warning("find_game: no games data returned")
-        return None, "Too early to resolve"
 
-    team_codes = {team1_code, team2_code}
+    games = api_get(url)
+    if not games:
+        return None
+
+    team_codes = {team_a_code, team_b_code}
     for game in games:
         game_teams = {game["HomeTeam"], game["AwayTeam"]}
-        log.debug(f"find_game: checking game teams {game_teams} against {team_codes}")
         if game_teams == team_codes:
-            log.info(f"find_game: found matching game with status {game['Status']}")
-            return game, game["Status"]
-    log.warning(f"find_game: no matching game found for {team1_code} vs {team2_code}")
-    return None, "Too early to resolve"
+            return game
+
+    return None
 
 
-def resolve_market(game, status):
-    log.debug(
-        f"resolve_market: processing game {json.dumps(game, indent=2)} with status {status}"
-    )
-    if status in ["Final"]:
-        home_team = game["HomeTeam"]
-        away_team = game["AwayTeam"]
-        home_runs = game["HomeTeamRuns"]
-        away_runs = game["AwayTeamRuns"]
-        log.info(
-            f"resolve_market: final score - {home_team}: {home_runs}, {away_team}: {away_runs}"
-        )
+def determine_winner(game):
+    """Determine the winner of a game based on its data."""
+    if not game:
+        return "Status: PENDING", "Game not found"
 
-        winning_team = away_team if away_runs > home_runs else home_team
-        log.info(f"resolve_market: winning team is {winning_team}")
+    if game["Status"] != "Final":
+        if game["Status"] in ["Canceled", "Postponed"]:
+            return "Result: 50-50", f"Game was {game['Status'].lower()}"
+        return "Status: PENDING", f"Game status is {game['Status']}"
 
-        return RESOLUTION_MAP[winning_team]
-    elif status in ["Canceled", "Postponed"]:
-        log.info(f"resolve_market: game {status}")
-        return RESOLUTION_MAP["50-50"]
-    log.info("resolve_market: game not in final state")
-    return RESOLUTION_MAP["Too early to resolve"]
+    away_team = get_team_full_name(game["AwayTeam"])
+    home_team = get_team_full_name(game["HomeTeam"])
+    away_runs = game["AwayTeamRuns"]
+    home_runs = game["HomeTeamRuns"]
 
-
-# Main execution
-if __name__ == "__main__":
-    log.info(
-        f"Starting resolution for {TEAM1}({TEAM1_CODE}) vs {TEAM2}({TEAM2_CODE}) on {DATE}"
-    )
-    game, status = find_game(DATE, TEAM1_CODE, TEAM2_CODE)
-    log.debug(f"Main: got game={json.dumps(game, indent=2)}, status={status}")
-    if game and status:
-        recommendation = resolve_market(game, status)
+    if away_runs > home_runs:
+        return f"Winner: {away_team}", f"{away_team} won {away_runs}-{home_runs}"
+    elif home_runs > away_runs:
+        return f"Winner: {home_team}", f"{home_team} won {home_runs}-{away_runs}"
     else:
-        recommendation = RESOLUTION_MAP["Too early to resolve"]
-    log.info(f"Final recommendation: {recommendation}")
-    print(f"recommendation: {recommendation}")
+        return "Status: PENDING", "Game tied or in extra innings"
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Get MLB game result")
+    parser.add_argument("--teamA", required=True, help="First team name")
+    parser.add_argument("--teamB", required=True, help="Second team name")
+    parser.add_argument("--gameDate", required=True, help="Game date (YYYY-MM-DD)")
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Show detailed output"
+    )
+    args = parser.parse_args()
+
+    # Set logging level based on verbose flag
+    log.setLevel(logging.DEBUG if args.verbose else logging.INFO)
+
+    # Load environment variables
+    load_dotenv()
+    if not os.getenv("SPORTS_DATA_IO_MLB_API_KEY"):
+        log.error("Missing SPORTS_DATA_IO_MLB_API_KEY environment variable")
+        sys.exit(1)
+
+    try:
+        # Convert team names to codes
+        team_a_code = get_team_code(args.teamA)
+        team_b_code = get_team_code(args.teamB)
+
+        # Find and process the game
+        game = find_game(args.gameDate, team_a_code, team_b_code)
+        result, details = determine_winner(game)
+
+        # Output
+        if args.verbose:
+            log.info(details)
+        print(result)
+
+    except ValueError as e:
+        log.error(str(e))
+        sys.exit(1)
+    except Exception as e:
+        log.error(f"Unexpected error: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
