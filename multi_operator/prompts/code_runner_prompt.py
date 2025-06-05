@@ -13,6 +13,7 @@ def get_first_attempt_prompt(
     available_api_keys: Set[str],
     data_sources: Optional[Dict[str, Any]] = None,
     template_code: Optional[str] = None,
+    fixed_functions_config: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate the prompt for the first code generation attempt.
@@ -23,6 +24,7 @@ def get_first_attempt_prompt(
         available_api_keys: Set of available API keys
         data_sources: Optional dictionary of data sources
         template_code: Optional template code to use as reference
+        fixed_functions_config: Optional configuration for fixed execution functions
 
     Returns:
         The prompt for code generation
@@ -34,7 +36,50 @@ def get_first_attempt_prompt(
 
 Please write Python code that will gather the necessary data to answer this question definitively.
 
-IMPORTANT REQUIREMENTS:
+PREFERRED APPROACH - FIXED EXECUTION FUNCTIONS:
+Before writing custom code, consider if this query can be solved using one of our pre-built, reliable fixed execution functions. These functions are battle-tested and should be preferred whenever possible:"""
+
+    # Add fixed execution functions information
+    if fixed_functions_config:
+        code_gen_prompt += "\n\nAVAILABLE FIXED EXECUTION FUNCTIONS:\n"
+        for func_name, func_info in fixed_functions_config.items():
+            code_gen_prompt += f"\n{func_name}:\n"
+            code_gen_prompt += f"  - Description: {func_info.get('description', 'No description')}\n"
+            code_gen_prompt += f"  - Usage: {func_info.get('usage', 'No usage info')}\n"
+            code_gen_prompt += f"  - Use cases:\n"
+            for use_case in func_info.get('use_cases', []):
+                code_gen_prompt += f"    * {use_case}\n"
+        
+        code_gen_prompt += "\nIf your query matches any of the above use cases, you should call the appropriate fixed function directly using subprocess rather than writing custom API code.\n"
+        code_gen_prompt += "\nExample of calling a fixed function:\n"
+        code_gen_prompt += """```python
+import subprocess
+import os
+
+# Example: Using binance_price_query fixed function
+def query_crypto_price(symbol, timestamp, timezone="US/Eastern"):
+    try:
+        result = subprocess.run([
+            "python", "binance_price_query.py",
+            "--symbol", symbol,
+            "--timestamp", timestamp, 
+            "--timezone", timezone,
+            "--interval", "1h"
+        ], capture_output=True, text=True, cwd="multi_operator/solvers/code_runner/fixed_execution_functions")
+        
+        if result.returncode == 0:
+            return result.stdout.strip()
+        else:
+            print(f"Fixed function failed: {result.stderr}")
+            return None
+    except Exception as e:
+        print(f"Error calling fixed function: {e}")
+        return None
+```
+
+ONLY use custom code generation if none of the fixed execution functions can solve your query.
+
+IMPORTANT REQUIREMENTS FOR CUSTOM CODE:
 1. DO NOT use command-line arguments. Extract all necessary information from the question itself.
 2. Load environment variables from .env files using the python-dotenv package.
 3. For API keys, use the following environment variables:
@@ -217,6 +262,7 @@ def get_retry_prompt(
     attempt: int,
     data_sources: Optional[Dict[str, Any]] = None,
     template_code: Optional[str] = None,
+    fixed_functions_config: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate the prompt for subsequent code generation attempts.
@@ -228,6 +274,7 @@ def get_retry_prompt(
         attempt: Current attempt number
         data_sources: Optional dictionary of data sources
         template_code: Optional template code to use as reference
+        fixed_functions_config: Optional configuration for fixed execution functions
 
     Returns:
         The prompt for code generation
@@ -248,10 +295,29 @@ Previous code had the following issues:
   * Incorrect use of RESOLUTION_MAP (using "p1" as a key instead of as a value)
   * KeyError exceptions when accessing dictionaries
   * Not implementing fallback mechanism for proxy endpoints
+  * Not leveraging available fixed execution functions
 
+FIRST - CHECK FIXED EXECUTION FUNCTIONS:
+Before writing custom code again, reconsider using our pre-built fixed execution functions:"""
+
+    # Add fixed execution functions information for retry
+    if fixed_functions_config:
+        code_gen_prompt += "\n\nAVAILABLE FIXED EXECUTION FUNCTIONS:\n"
+        for func_name, func_info in fixed_functions_config.items():
+            code_gen_prompt += f"\n{func_name}:\n"
+            code_gen_prompt += f"  - Description: {func_info.get('description', 'No description')}\n"
+            code_gen_prompt += f"  - Usage: {func_info.get('usage', 'No usage info')}\n"
+            code_gen_prompt += f"  - Use cases:\n"
+            for use_case in func_info.get('use_cases', []):
+                code_gen_prompt += f"    * {use_case}\n"
+        
+        code_gen_prompt += "\nThese functions are more reliable than custom code. Use them if possible!\n"
+    
+    code_gen_prompt += """
 Please provide a new, corrected version that:
-1. DOES NOT use command-line arguments - extract all needed info from the question itself
-2. Uses python-dotenv to load environment variables 
+1. FIRST considers using fixed execution functions via subprocess calls
+2. DOES NOT use command-line arguments - extract all needed info from the question itself
+3. Uses python-dotenv to load environment variables 
 """
     # Add information about all available API keys
     for api_key_name in sorted(available_api_keys):
@@ -543,6 +609,7 @@ def get_code_generation_prompt(
     template_code: Optional[str] = None,
     attempt: int = 1,
     endpoint_info_getter=None,
+    fixed_functions_config: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate the complete code generation prompt.
@@ -555,6 +622,7 @@ def get_code_generation_prompt(
         template_code: Optional template code to use as reference
         attempt: Current attempt number
         endpoint_info_getter: Optional function to get endpoint information
+        fixed_functions_config: Optional configuration for fixed execution functions
 
     Returns:
         The complete prompt for code generation
@@ -562,11 +630,11 @@ def get_code_generation_prompt(
     # Make sure we always have template code, even for retry attempts
     if attempt == 1:
         base_prompt = get_first_attempt_prompt(
-            user_prompt, query_type, available_api_keys, data_sources, template_code
+            user_prompt, query_type, available_api_keys, data_sources, template_code, fixed_functions_config
         )
     else:
         base_prompt = get_retry_prompt(
-            user_prompt, query_type, available_api_keys, attempt, data_sources, template_code
+            user_prompt, query_type, available_api_keys, attempt, data_sources, template_code, fixed_functions_config
         )
     
     # Add query type specific guidance

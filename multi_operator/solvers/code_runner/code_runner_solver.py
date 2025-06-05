@@ -41,7 +41,7 @@ class CodeRunnerSolver(BaseSolver):
             verbose: Whether to print verbose output
             max_retries: Maximum number of retries for code generation and execution
             additional_api_keys: Dictionary of additional API keys to make available to generated code
-            config_file: Path to a configuration file that contains API keys
+            config_file: Path to a configuration file that contains API keys and fixed functions config
         """
         super().__init__(api_key, verbose)
         self.logger = logging.getLogger("code_runner_solver")
@@ -58,12 +58,24 @@ class CodeRunnerSolver(BaseSolver):
             "multi_operator/solvers/code_runner/sample_functions"
         )
         
+        # Fixed execution functions directory for preferred execution paths
+        self.fixed_functions_dir = Path(
+            "multi_operator/solvers/code_runner/fixed_execution_functions"
+        )
+        
         # Discover available sample function templates dynamically
         self.sample_templates = self._discover_sample_templates()
         if self.verbose:
             self.logger.info(f"Discovered {len(self.sample_templates)} sample templates")
             for query_type, template_file in self.sample_templates.items():
                 self.logger.info(f"  - {query_type}: {template_file.name}")
+        
+        # Discover available fixed execution functions
+        self.fixed_functions = self._discover_fixed_functions()
+        if self.verbose:
+            self.logger.info(f"Discovered {len(self.fixed_functions)} fixed execution functions")
+            for func_name, func_info in self.fixed_functions.items():
+                self.logger.info(f"  - {func_name}: {func_info['file']}")
 
         # Set up available API keys
         self.available_api_keys = set()
@@ -71,7 +83,7 @@ class CodeRunnerSolver(BaseSolver):
         # Add default API keys
         self.available_api_keys.add("SPORTS_DATA_IO_MLB_API_KEY")
 
-        # Load API keys from config file if provided
+        # Load API keys and fixed functions from config file if provided
         if config_file:
             self._load_api_keys_from_config(config_file)
 
@@ -110,12 +122,24 @@ class CodeRunnerSolver(BaseSolver):
                 # Initialize data sources dictionary if not already present
                 if not hasattr(self, "data_sources"):
                     self.data_sources = {}
+                
+                # Initialize fixed functions config if not already present
+                if not hasattr(self, "fixed_functions_config"):
+                    self.fixed_functions_config = {}
 
                 # Handle different JSON structures
                 if isinstance(config_data, list):
                     # Legacy format: A simple list of API key names
                     self.available_api_keys.update(config_data)
                 elif isinstance(config_data, dict):
+                    # Handle fixed execution functions configuration
+                    if "fixed_execution_functions" in config_data and isinstance(config_data["fixed_execution_functions"], list):
+                        for func in config_data["fixed_execution_functions"]:
+                            if "name" in func:
+                                func_name = func["name"]
+                                self.fixed_functions_config[func_name] = func
+                                if self.verbose:
+                                    self.logger.info(f"Loaded fixed function config: {func_name}")
                     # Handle new structured format with data_sources
                     if "data_sources" in config_data and isinstance(config_data["data_sources"], list):
                         for source in config_data["data_sources"]:
@@ -242,10 +266,16 @@ class CodeRunnerSolver(BaseSolver):
         query_type = self.determine_query_type(user_prompt)
         self.logger.info(f"Determined query type: {query_type}")
 
-        # Generate and execute code
-        code_file_path, code, code_output, execution_successful = (
-            self.generate_and_execute_code(user_prompt, query_type, system_prompt)
-        )
+        # First try to use fixed execution functions
+        fixed_result = self.try_fixed_execution_functions(user_prompt, query_type)
+        if fixed_result:
+            code_file_path, code, code_output, execution_successful, execution_command = fixed_result
+        else:
+            # Fall back to generating and executing code
+            code_file_path, code, code_output, execution_successful = (
+                self.generate_and_execute_code(user_prompt, query_type, system_prompt)
+            )
+            execution_command = None
 
         # Track attempts to analyze and improve code
         attempt_count = 1
@@ -342,6 +372,7 @@ class CodeRunnerSolver(BaseSolver):
             "execution_successful": execution_successful,
             "attempts": attempt_count,
             "attempts_info": attempts_info,
+            "execution_command": execution_command,
         }
 
         # Create a copy of the prompt for debugging and transparency
@@ -355,6 +386,7 @@ class CodeRunnerSolver(BaseSolver):
             "code": code,
             "code_output": code_output,
             "code_generation_prompt": generation_prompt,
+            "execution_command": execution_command,
             "response_metadata": response_metadata,
         }
 
@@ -624,7 +656,8 @@ Reply with ONLY ONE of: "crypto", "sports_mlb", "sports_nhl", or "unknown".
             data_sources=self.data_sources if hasattr(self, "data_sources") else None,
             template_code=template_code,
             attempt=attempt,
-            endpoint_info_getter=self._get_endpoint_info
+            endpoint_info_getter=self._get_endpoint_info,
+            fixed_functions_config=self.fixed_functions_config if hasattr(self, "fixed_functions_config") else None
         )
 
         # Query ChatGPT for code generation
@@ -966,7 +999,8 @@ Reply with only the recommendation (p1, p2, p3, or p4) and nothing else.
             data_sources=self.data_sources if hasattr(self, "data_sources") else None,
             template_code=template_code,
             attempt=attempt,
-            endpoint_info_getter=self._get_endpoint_info
+            endpoint_info_getter=self._get_endpoint_info,
+            fixed_functions_config=self.fixed_functions_config if hasattr(self, "fixed_functions_config") else None
         )
 
         # Query ChatGPT for improved code generation
@@ -1056,7 +1090,8 @@ Reply with only the recommendation (p1, p2, p3, or p4) and nothing else.
             data_sources=self.data_sources if hasattr(self, "data_sources") else None,
             template_code=template_code,
             attempt=feedback_attempt,  # Use higher attempt number
-            endpoint_info_getter=self._get_endpoint_info
+            endpoint_info_getter=self._get_endpoint_info,
+            fixed_functions_config=self.fixed_functions_config if hasattr(self, "fixed_functions_config") else None
         )
         
         # Add specific feedback about the previous output
@@ -1179,6 +1214,338 @@ CRITICALLY IMPORTANT:
         templates.update(fallbacks)
         
         return templates
+    
+    def _discover_fixed_functions(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Dynamically discover all available fixed execution functions.
+        
+        This method scans the fixed_execution_functions directory for Python files
+        and maps them to their corresponding function names.
+        
+        Returns:
+            Dictionary mapping function names to function metadata
+        """
+        functions = {}
+        
+        # Check if directory exists
+        if not self.fixed_functions_dir.exists():
+            self.logger.warning(f"Fixed functions directory not found: {self.fixed_functions_dir}")
+            return functions
+            
+        # Look for all Python files in the directory
+        for file_path in self.fixed_functions_dir.glob("*.py"):
+            # Extract function name from the filename
+            func_name = file_path.stem
+            
+            # Create basic function info
+            functions[func_name] = {
+                "file": file_path.name,
+                "path": file_path,
+                "name": func_name
+            }
+            
+            self.logger.info(f"Discovered fixed function '{func_name}': {file_path.name}")
+        
+        return functions
+    
+    def try_fixed_execution_functions(self, user_prompt: str, query_type: str) -> Optional[Tuple[Path, str, str, bool, str]]:
+        """
+        Try to resolve the user prompt using fixed execution functions.
+        
+        Args:
+            user_prompt: The user prompt to resolve
+            query_type: Type of query ('crypto', 'sports_mlb', etc.)
+            
+        Returns:
+            Tuple containing (code_file_path, code, output, success, execution_command) or None if no match
+        """
+        # Analyze the prompt to determine which fixed function to use
+        function_match = self._match_prompt_to_fixed_function(user_prompt, query_type)
+        
+        if not function_match:
+            self.logger.info("No matching fixed execution function found")
+            return None
+            
+        function_name = function_match["function"]
+        execution_command = function_match["command"]
+        
+        self.logger.info(f"Using fixed execution function: {function_name}")
+        self.logger.info(f"Execution command: {execution_command}")
+        
+        # Execute the fixed function
+        try:
+            import subprocess
+            import tempfile
+            from datetime import datetime
+            
+            # Change to the fixed functions directory for execution
+            result = subprocess.run(
+                execution_command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=60,
+                cwd=str(self.fixed_functions_dir)
+            )
+            
+            if result.returncode == 0:
+                output = result.stdout.strip()
+                
+                # Create a "code file" entry for consistency - this represents the fixed function used
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                code_file_path = self.executed_functions_dir / f"fixed_{function_name}_{timestamp}.py"
+                
+                # Write a reference file that shows what fixed function was used
+                with open(code_file_path, "w") as f:
+                    f.write(f"#!/usr/bin/env python3\n")
+                    f.write(f'"""\nFixed execution function reference: {function_name}\n"""\n')
+                    f.write(f"# This file is a reference to show that the fixed function {function_name} was used\n")
+                    f.write(f"# Execution command: {execution_command}\n")
+                    f.write(f"# Original prompt: {user_prompt}\n")
+                    f.write(f"\nprint('{output}')\n")
+                
+                self.logger.info(f"Fixed function executed successfully: {output}")
+                return code_file_path, f"# Fixed function: {function_name}", output, True, execution_command
+            else:
+                self.logger.warning(f"Fixed function execution failed: {result.stderr}")
+                return None
+                
+        except Exception as e:
+            self.logger.error(f"Error executing fixed function {function_name}: {e}")
+            return None
+    
+    def _match_prompt_to_fixed_function(self, user_prompt: str, query_type: str) -> Optional[Dict[str, str]]:
+        """
+        Analyze the user prompt and determine which fixed execution function to use.
+        
+        Args:
+            user_prompt: The user prompt to analyze
+            query_type: Type of query ('crypto', 'sports_mlb', etc.)
+            
+        Returns:
+            Dictionary with function name and command, or None if no match
+        """
+        prompt_lower = user_prompt.lower()
+        
+        # Extract key information patterns
+        import re
+        
+        # Pattern to match dates
+        date_patterns = [
+            r"(\d{4}-\d{2}-\d{2})",  # YYYY-MM-DD
+            r"(\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4})",  # MM/DD/YYYY or similar
+            r"(yesterday|today|tomorrow)",
+            r"(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}",
+            r"(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}"
+        ]
+        
+        # Pattern to match times
+        time_patterns = [
+            r"(\d{1,2}:\d{2}(?::\d{2})?(?:\s*(?:am|pm|AM|PM))?)",
+            r"(\d{1,2}\s*(?:am|pm|AM|PM))",
+            r"(noon|midnight)"
+        ]
+        
+        # Try crypto-related fixed functions
+        if query_type == "crypto" or any(kw in prompt_lower for kw in ["bitcoin", "btc", "ethereum", "eth", "price", "crypto"]):
+            
+            # Check for up/down questions
+            if any(phrase in prompt_lower for phrase in ["up or down", "increase", "decrease", "higher", "lower", "went up", "went down"]):
+                # Try to extract trading pair, timestamp, and timezone
+                pair_match = self._extract_crypto_pair(user_prompt)
+                timestamp_match = self._extract_timestamp(user_prompt)
+                timezone_match = self._extract_timezone(user_prompt)
+                
+                if pair_match and timestamp_match:
+                    return {
+                        "function": "binance_price_up_down",
+                        "command": f"python binance_price_up_down.py --pair \"{pair_match}\" --timestamp \"{timestamp_match}\" --timezone \"{timezone_match}\""
+                    }
+            
+            # Check for specific price queries
+            elif any(phrase in prompt_lower for phrase in ["price", "cost", "worth", "value"]):
+                pair_match = self._extract_crypto_pair(user_prompt)
+                timestamp_match = self._extract_timestamp(user_prompt)
+                timezone_match = self._extract_timezone(user_prompt)
+                
+                if pair_match and timestamp_match:
+                    return {
+                        "function": "binance_price_query", 
+                        "command": f"python binance_price_query.py --symbol \"{pair_match}\" --timestamp \"{timestamp_match}\" --timezone \"{timezone_match}\" --interval \"1h\""
+                    }
+        
+        # Try MLB-related fixed functions
+        elif query_type == "sports_mlb" or any(kw in prompt_lower for kw in ["baseball", "mlb", "game", "team", "won", "lost"]):
+            team_matches = self._extract_mlb_teams(user_prompt)
+            date_match = self._extract_date(user_prompt)
+            
+            if len(team_matches) >= 2 and date_match:
+                return {
+                    "function": "mlb_final_result",
+                    "command": f"python mlb_final_result.py --teamA \"{team_matches[0]}\" --teamB \"{team_matches[1]}\" --gameDate \"{date_match}\""
+                }
+        
+        return None
+    
+    def _extract_crypto_pair(self, prompt: str) -> str:
+        """Extract cryptocurrency trading pair from prompt."""
+        prompt_upper = prompt.upper()
+        
+        # Common crypto pairs
+        common_pairs = ["BTCUSDT", "ETHUSDT", "ADAUSDT", "DOTUSDT", "LINKUSDT", "LTCUSDT"]
+        
+        for pair in common_pairs:
+            if pair in prompt_upper:
+                return pair
+        
+        # Check for individual crypto mentions
+        if "BITCOIN" in prompt_upper or "BTC" in prompt_upper:
+            return "BTCUSDT"
+        elif "ETHEREUM" in prompt_upper or "ETH" in prompt_upper:
+            return "ETHUSDT"
+            
+        # Default fallback
+        return "BTCUSDT"
+    
+    def _extract_timestamp(self, prompt: str) -> str:
+        """Extract timestamp from prompt."""
+        import re
+        from datetime import datetime, timedelta
+        
+        # Look for explicit timestamps
+        timestamp_patterns = [
+            r"(\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}(?::\d{2})?)",
+            r"(\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\s+\d{1,2}:\d{2}(?::\d{2})?)"
+        ]
+        
+        for pattern in timestamp_patterns:
+            match = re.search(pattern, prompt)
+            if match:
+                return match.group(1)
+        
+        # Look for date + time separately
+        date_match = self._extract_date(prompt)
+        time_match = self._extract_time(prompt)
+        
+        if date_match and time_match:
+            return f"{date_match} {time_match}"
+        elif date_match:
+            return f"{date_match} 00:00:00"
+        
+        # Default to current timestamp if nothing found
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    def _extract_date(self, prompt: str) -> str:
+        """Extract date from prompt."""
+        import re
+        from datetime import datetime, timedelta
+        
+        # Look for YYYY-MM-DD format
+        date_match = re.search(r"(\d{4}-\d{2}-\d{2})", prompt)
+        if date_match:
+            return date_match.group(1)
+        
+        # Look for relative dates
+        if "yesterday" in prompt.lower():
+            return (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        elif "today" in prompt.lower():
+            return datetime.now().strftime("%Y-%m-%d")
+        
+        # Default to today
+        return datetime.now().strftime("%Y-%m-%d")
+    
+    def _extract_time(self, prompt: str) -> str:
+        """Extract time from prompt."""
+        import re
+        
+        # Look for HH:MM format
+        time_match = re.search(r"(\d{1,2}:\d{2}(?::\d{2})?)", prompt)
+        if time_match:
+            return time_match.group(1)
+        
+        # Look for hour + AM/PM
+        am_pm_match = re.search(r"(\d{1,2})\s*(am|pm|AM|PM)", prompt)
+        if am_pm_match:
+            hour = am_pm_match.group(1)
+            period = am_pm_match.group(2).upper()
+            return f"{hour}:00:00 {period}"
+        
+        return "00:00:00"
+    
+    def _extract_timezone(self, prompt: str) -> str:
+        """Extract timezone from prompt."""
+        prompt_upper = prompt.upper()
+        
+        if "ET" in prompt_upper or "EASTERN" in prompt_upper:
+            return "US/Eastern"
+        elif "PT" in prompt_upper or "PACIFIC" in prompt_upper:
+            return "US/Pacific"
+        elif "UTC" in prompt_upper or "GMT" in prompt_upper:
+            return "UTC"
+        
+        # Default to Eastern
+        return "US/Eastern"
+    
+    def _extract_mlb_teams(self, prompt: str) -> List[str]:
+        """Extract MLB team names from prompt."""
+        # Common MLB team names and variations
+        mlb_teams = [
+            "New York Yankees", "Yankees", "NYY",
+            "Boston Red Sox", "Red Sox", "BOS", 
+            "Toronto Blue Jays", "Blue Jays", "TOR",
+            "Baltimore Orioles", "Orioles", "BAL",
+            "Tampa Bay Rays", "Rays", "TB",
+            "Chicago White Sox", "White Sox", "CHW",
+            "Cleveland Indians", "Indians", "CLE",
+            "Detroit Tigers", "Tigers", "DET",
+            "Kansas City Royals", "Royals", "KC",
+            "Minnesota Twins", "Twins", "MIN",
+            "Houston Astros", "Astros", "HOU",
+            "Los Angeles Angels", "Angels", "LAA",
+            "Oakland Athletics", "Athletics", "OAK",
+            "Seattle Mariners", "Mariners", "SEA",
+            "Texas Rangers", "Rangers", "TEX",
+            "Atlanta Braves", "Braves", "ATL",
+            "Miami Marlins", "Marlins", "MIA",
+            "New York Mets", "Mets", "NYM",
+            "Philadelphia Phillies", "Phillies", "PHI",
+            "Washington Nationals", "Nationals", "WSH",
+            "Chicago Cubs", "Cubs", "CHC",
+            "Cincinnati Reds", "Reds", "CIN",
+            "Milwaukee Brewers", "Brewers", "MIL",
+            "Pittsburgh Pirates", "Pirates", "PIT",
+            "St. Louis Cardinals", "Cardinals", "STL",
+            "Arizona Diamondbacks", "Diamondbacks", "ARI",
+            "Colorado Rockies", "Rockies", "COL",
+            "Los Angeles Dodgers", "Dodgers", "LAD",
+            "San Diego Padres", "Padres", "SD",
+            "San Francisco Giants", "Giants", "SF"
+        ]
+        
+        found_teams = []
+        prompt_lower = prompt.lower()
+        
+        for team in mlb_teams:
+            if team.lower() in prompt_lower:
+                # Use full team names for consistency
+                if "yankees" in team.lower():
+                    found_teams.append("New York Yankees")
+                elif "red sox" in team.lower():
+                    found_teams.append("Boston Red Sox")
+                elif "blue jays" in team.lower():
+                    found_teams.append("Toronto Blue Jays")
+                elif "white sox" in team.lower():
+                    found_teams.append("Chicago White Sox")
+                elif "tigers" in team.lower():
+                    found_teams.append("Detroit Tigers")
+                # Add more mappings as needed
+                else:
+                    found_teams.append(team)
+                
+                if len(found_teams) >= 2:
+                    break
+        
+        return found_teams[:2]  # Return max 2 teams
             
     def _get_endpoint_info(self, category: str, endpoint_type: str) -> str:
         """
@@ -1257,7 +1624,8 @@ CRITICALLY IMPORTANT:
             data_sources=self.data_sources if hasattr(self, "data_sources") else None,
             template_code=template_code,
             attempt=1,  # Always use first attempt format for storing
-            endpoint_info_getter=self._get_endpoint_info
+            endpoint_info_getter=self._get_endpoint_info,
+            fixed_functions_config=self.fixed_functions_config if hasattr(self, "fixed_functions_config") else None
         )
         
         # Add a summary section specifically listing ALL API keys from config file

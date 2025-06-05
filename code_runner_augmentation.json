@@ -1,4 +1,39 @@
 {
+  "fixed_execution_functions": [
+    {
+      "name": "binance_price_query",
+      "file": "binance_price_query.py",
+      "description": "Retrieves the exact closing price for a cryptocurrency trading pair on Binance at a specific timestamp and timezone. Supports various candle intervals (1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d). Returns the precise price value for the specified time period.",
+      "usage": "python binance_price_query.py --symbol \"BTCUSDT\" --timestamp \"2025-06-05 05:00:00\" --timezone \"US/Eastern\" --interval \"1h\"",
+      "use_cases": [
+        "What was the price of BTC at 3 PM ET on June 5th?",
+        "Get the exact Ethereum price at market open",
+        "Historical price lookup for any Binance trading pair"
+      ]
+    },
+    {
+      "name": "binance_price_up_down",
+      "file": "binance_price_up_down.py", 
+      "description": "Determines whether a cryptocurrency's price went up or down over a 1-hour period on Binance. Compares opening and closing prices for the specified hour and returns 'Winner: Up' if price increased/stayed same, 'Winner: Down' if decreased, or 'Status: PENDING' if data unavailable.",
+      "usage": "python binance_price_up_down.py --pair \"BTCUSDT\" --timestamp \"2025-06-05 05:00:00\" --timezone \"US/Eastern\"",
+      "use_cases": [
+        "Did Bitcoin price go up or down in the hour starting at 2 PM?",
+        "Determine price direction for any crypto pair over 1-hour windows",
+        "Binary up/down resolution for prediction markets"
+      ]
+    },
+    {
+      "name": "mlb_final_result",
+      "file": "mlb_final_result.py",
+      "description": "Retrieves the final result of an MLB game between two specified teams on a given date. Returns 'Winner: {team_name}' for completed games, 'Result: 50-50' for canceled/postponed games, or 'Status: PENDING' for games not yet completed. Supports all 30 MLB teams with comprehensive name mapping.",
+      "usage": "python mlb_final_result.py --teamA \"Detroit Tigers\" --teamB \"Chicago White Sox\" --gameDate \"2025-06-04\"",
+      "use_cases": [
+        "Who won the Yankees vs Red Sox game on June 4th?", 
+        "Get final score and winner for any MLB matchup",
+        "Handle postponed/canceled game scenarios"
+      ]
+    }
+  ],
   "data_sources": [
     {
       "name": "Binance",
