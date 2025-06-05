@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.collection import Collection
 import logging
+import re
 
 # Configure logging
 logging.basicConfig(
