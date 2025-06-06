@@ -102,11 +102,22 @@ def get_item_title(item: dict) -> str:
     return f"Prediction {item_id_for_fallback}" if item_id_for_fallback else "Unknown Prediction"
 
 def get_recommendation_text(item: dict) -> str:
-    """Converts recommendation code to text."""
+    """Converts recommendation code to text using resultMapping if available."""
     if not isinstance(item, dict): return "Unknown"
     recommendation = item.get("recommendation")
-    mapping = {"p1": "No", "p2": "Yes", "p3": "Uncertain", "p4": "Cannot be determined"}
-    return mapping.get(str(recommendation), "Unknown")
+    
+    # Always return "Too Early" for p4
+    if str(recommendation).lower() == "p4":
+        return "Too Early"
+    
+    # Get the result mapping if available
+    result_mapping = item.get("resultMapping", {})
+    if result_mapping and recommendation in result_mapping:
+        return result_mapping[recommendation]
+    
+    # Fallback mapping for p1-p3 if resultMapping is not available
+    fallback_mapping = {"p1": "p1", "p2": "p2", "p3": "Uncertain"}
+    return fallback_mapping.get(str(recommendation), "Unknown")
 
 def get_item_query_link(item: dict) -> str:
     """Constructs a URL to the query page for the given item."""
@@ -313,8 +324,8 @@ def main():
                             continue
 
                         # Convert outcome codes to text using the existing helper.
-                        # We pass a dictionary with the "recommendation" key to match the helper's expectation.
-                        resolved_outcome_str = get_recommendation_text({"recommendation": resolved_price_outcome_code}) if resolved_price_outcome_code else "N/A"
+                        # We pass the entire item to get access to resultMapping
+                        resolved_outcome_str = get_recommendation_text(item.get("result", {})) if resolved_price_outcome_code else "N/A"
                         proposed_outcome_str = get_recommendation_text({"recommendation": proposed_price_outcome_code}) if proposed_price_outcome_code else "N/A"
                         
                         query_link = get_item_query_link(item)
