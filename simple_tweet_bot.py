@@ -101,18 +101,28 @@ def get_item_title(item: dict) -> str:
     item_id_for_fallback = get_item_id(item)
     return f"Prediction {item_id_for_fallback}" if item_id_for_fallback else "Unknown Prediction"
 
-def get_recommendation_text(item: dict) -> str:
-    """Converts recommendation code to text using resultMapping if available."""
+def get_recommendation_text(item: dict, recommendation_type: str = "resolved") -> str:
+    """Converts recommendation code to text using resultMapping if available.
+    Args:
+        item: The full item dictionary
+        recommendation_type: Either "resolved" or "proposed" to specify which outcome to get
+    """
     if not isinstance(item, dict): return "Unknown"
-    recommendation = item.get("recommendation")
     
-    # Always return "Too Early" for p4
-    if str(recommendation).lower() == "p4":
-        return "Too Early"
+    # Get recommendation based on type
+    if recommendation_type == "resolved":
+        recommendation = item.get("result", {}).get("recommendation")
+    else:  # proposed
+        recommendation = item.get("proposed_price_outcome")
     
     # Get the result mapping if available
     result_mapping = item.get("resultMapping", {})
+    
+    print(f"Result mapping: {result_mapping}")
+    print(f"Recommendation ({recommendation_type}): {recommendation}")
+    
     if result_mapping and recommendation in result_mapping:
+        print(f"Text: {result_mapping[recommendation]}")
         return result_mapping[recommendation]
     
     # Fallback mapping for p1-p3 if resultMapping is not available
@@ -324,9 +334,9 @@ def main():
                             continue
 
                         # Convert outcome codes to text using the existing helper.
-                        # We pass the entire item to get access to resultMapping
-                        resolved_outcome_str = get_recommendation_text(item.get("result", {})) if resolved_price_outcome_code else "N/A"
-                        proposed_outcome_str = get_recommendation_text({"recommendation": proposed_price_outcome_code}) if proposed_price_outcome_code else "N/A"
+                        # Pass the entire item to get access to resultMapping
+                        resolved_outcome_str = get_recommendation_text(item, "resolved") if resolved_price_outcome_code else "N/A"
+                        proposed_outcome_str = get_recommendation_text(item, "proposed") if proposed_price_outcome_code else "N/A"
                         
                         query_link = get_item_query_link(item)
                         
