@@ -5,8 +5,8 @@
   "run_iteration": 1,
   "timestamp": 1749120221.3666263,
   "format_version": 2,
-  "resolved_price": null,
-  "resolved_price_outcome": null,
+  "resolved_price": 0,
+  "resolved_price_outcome": "p1",
   "proposed_price": 0,
   "metadata": {
     "processed_file": "questionId_be1a9d06.json",
