@@ -224,7 +224,7 @@
     ],
     "routing_attempts": 1
   },
-  "proposed_price_outcome": "p4",
+  "proposed_price_outcome": "p2",
   "overseer_data": {
     "attempts": 2,
     "market_price_info": "The market strongly favors a 'Yes' outcome with 98.8% confidence, which aligns with the second solver's recommendation (p2) but contradicts the first solver's recommendation (p1). This discrepancy necessitates a reevaluation to ensure alignment with market sentiment and query conditions.",
@@ -250,5 +250,6 @@
       }
     ],
     "journey_ref": true
-  }
+  },
+  "disputed": false
 }
