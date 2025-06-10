@@ -6328,7 +6328,7 @@ function createPagination(currentPage, totalPages, tableId) {
     // Add ellipsis if needed at the beginning
     if (startPage > 1) {
         paginationHTML += `
-            <li class="page-item ${startPage === 1 ? 'active' : ''}">
+            <li class="page-item ${1 === currentPage ? 'active' : ''}">
                 <a class="page-link" href="#" data-page="1">1</a>
             </li>
         `;
@@ -6343,13 +6343,11 @@ function createPagination(currentPage, totalPages, tableId) {
     
     // Add page numbers
     for (let i = startPage; i <= endPage; i++) {
-        if (i !== 1 && i !== totalPages) { // Skip first and last page as they're handled separately
-            paginationHTML += `
-                <li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" data-page="${i}">${i}</a>
-                </li>
-            `;
-        }
+        paginationHTML += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>
+        `;
     }
     
     // Add ellipsis if needed at the end
@@ -6362,7 +6360,7 @@ function createPagination(currentPage, totalPages, tableId) {
             `;
         }
         paginationHTML += `
-            <li class="page-item ${endPage === totalPages ? 'active' : ''}">
+            <li class="page-item ${totalPages === currentPage ? 'active' : ''}">
                 <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
             </li>
         `;

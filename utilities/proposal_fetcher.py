@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import os, time, json, argparse, sys, codecs
 import requests
 from pathlib import Path
+from functools import wraps
 
 print(
     "⛓️ Starting UMA Proposal Fetcher - Listening for blockchain events and processing proposals 🔍 📡"
@@ -29,8 +30,51 @@ from common import (
 
 logger = setup_logging("proposal_fetcher", "logs/proposal_fetcher.log")
 POLL_INTERVAL_SECONDS = 30
+DEFAULT_RPC_RETRY_DELAY = 60  # 1 minute default retry delay
 # Default proposals directory can be overridden with command line argument
 DEFAULT_PROPOSALS_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / "proposals"
+
+
+def retry_on_rpc_error(retry_delay=DEFAULT_RPC_RETRY_DELAY, max_retries=None):
+    """Decorator to retry functions on RPC errors with configurable delay."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            retry_count = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    error_str = str(e).lower()
+                    # Check for various RPC error patterns
+                    rpc_errors = [
+                        'service temporarily unavailable',
+                        'service unavailable',
+                        'too many requests',
+                        'rate limit',
+                        'timeout',
+                        'connection error',
+                        'bad gateway',
+                        'internal server error',
+                        'gateway timeout'
+                    ]
+                    
+                    is_rpc_error = any(err in error_str for err in rpc_errors)
+                    
+                    if is_rpc_error:
+                        retry_count += 1
+                        if max_retries and retry_count > max_retries:
+                            logger.error(f"Max retries ({max_retries}) exceeded for {func.__name__}. Final error: {e}")
+                            raise
+                        
+                        logger.warning(f"RPC error in {func.__name__}: {e}")
+                        logger.info(f"Retrying in {retry_delay} seconds... (attempt {retry_count})")
+                        time.sleep(retry_delay)
+                    else:
+                        # Non-RPC error, re-raise immediately
+                        raise
+        return wrapper
+    return decorator
 
 
 def clean_text(text):
@@ -90,13 +134,21 @@ def process_ancillary_data(data):
         return data_hex, data_hex, "x"
 
 
-def query_adapter_for_question(w3, adapter_address, question_id):
+def query_adapter_for_question(w3, adapter_address, question_id, retry_delay=DEFAULT_RPC_RETRY_DELAY):
     adapter_contract = w3.eth.contract(
         address=adapter_address, abi=load_abi("UmaCtfAdapter.json")
     )
 
+    @retry_on_rpc_error(retry_delay)
+    def _call_questions():
+        return adapter_contract.functions.questions(question_id).call()
+    
+    @retry_on_rpc_error(retry_delay)
+    def _get_updates(question_id, creator):
+        return adapter_contract.functions.getUpdates(question_id, creator).call()
+
     try:
-        question_data = adapter_contract.functions.questions(question_id).call()
+        question_data = _call_questions()
 
         timestamp, reward, proposal_bond = (
             question_data[0],
@@ -118,7 +170,7 @@ def query_adapter_for_question(w3, adapter_address, question_id):
         )
 
         try:
-            updates = adapter_contract.functions.getUpdates(question_id, creator).call()
+            updates = _get_updates(question_id, creator)
             string_updates = []
             for update in updates:
                 try:
@@ -148,7 +200,36 @@ def query_adapter_for_question(w3, adapter_address, question_id):
         return {"found": False, "error": str(e)}
 
 
-def listen_for_propose_price_events(start_block=None, proposals_dir=None):
+def get_current_block_number(w3, retry_delay=DEFAULT_RPC_RETRY_DELAY):
+    """Get current block number with retry logic."""
+    @retry_on_rpc_error(retry_delay)
+    def _get_block():
+        return w3.eth.block_number
+    return _get_block()
+
+
+def get_propose_price_events(contract, from_block, to_block, retry_delay=DEFAULT_RPC_RETRY_DELAY):
+    """Get ProposePrice events with retry logic."""
+    @retry_on_rpc_error(retry_delay)
+    def _get_events():
+        return contract.events.ProposePrice.get_logs(
+            from_block=from_block, to_block=to_block
+        )
+    return _get_events()
+
+
+def get_block_timestamp(w3, block_number, retry_delay=DEFAULT_RPC_RETRY_DELAY):
+    """Get block timestamp with retry logic."""
+    @retry_on_rpc_error(retry_delay)
+    def _get_timestamp():
+        block_data = w3.provider.make_request(
+            "eth_getBlockByNumber", [hex(block_number), False]
+        )
+        return int(block_data["result"]["timestamp"], 16)
+    return _get_timestamp()
+
+
+def listen_for_propose_price_events(start_block=None, proposals_dir=None, rpc_retry_delay=DEFAULT_RPC_RETRY_DELAY):
     load_dotenv()
     w3 = Web3(Web3.HTTPProvider(os.getenv("POLYGON_RPC_URL")))
     # Remove middleware injection as it's not available
@@ -161,24 +242,24 @@ def listen_for_propose_price_events(start_block=None, proposals_dir=None):
     oov2_contract = w3.eth.contract(
         address=OptimisticOracleV2, abi=load_abi("OptimisticOracleV2.json")
     )
-    current_block = w3.eth.block_number
+    
+    current_block = get_current_block_number(w3, rpc_retry_delay)
     latest_block = start_block if start_block is not None else current_block
 
     logger.info(f"Starting from block {latest_block} (current: {current_block})")
+    logger.info(f"RPC retry delay set to {rpc_retry_delay} seconds")
     os.makedirs(proposals_dir, exist_ok=True)
 
     try:
         while True:
-            current_block = w3.eth.block_number
+            current_block = get_current_block_number(w3, rpc_retry_delay)
 
             if current_block <= latest_block:
                 time.sleep(POLL_INTERVAL_SECONDS)
                 continue
 
             logger.info(f"Checking blocks {latest_block} to {current_block}...")
-            events = oov2_contract.events.ProposePrice.get_logs(
-                from_block=latest_block, to_block=current_block
-            )
+            events = get_propose_price_events(oov2_contract, latest_block, current_block, rpc_retry_delay)
 
             if not events:
                 logger.info(
@@ -213,7 +294,7 @@ def listen_for_propose_price_events(start_block=None, proposals_dir=None):
                 logger.info(f"QuestionID: {question_id}")
 
                 adapter_result = query_adapter_for_question(
-                    w3, UmaCtfAdapter, question_id
+                    w3, UmaCtfAdapter, question_id, rpc_retry_delay
                 )
 
                 if adapter_result.get(
@@ -224,11 +305,7 @@ def listen_for_propose_price_events(start_block=None, proposals_dir=None):
 
                 # Get block timestamp using a direct RPC call instead of middleware
                 try:
-                    # Use a direct RPC call to get the block
-                    block_data = w3.provider.make_request(
-                        "eth_getBlockByNumber", [hex(event.blockNumber), False]
-                    )
-                    block_timestamp = int(block_data["result"]["timestamp"], 16)
+                    block_timestamp = get_block_timestamp(w3, event.blockNumber, rpc_retry_delay)
                 except Exception as e:
                     logger.warning(
                         f"Error getting block timestamp: {e}, using current time instead"
@@ -372,7 +449,13 @@ if __name__ == "__main__":
         type=str,
         help="Directory to save proposal JSON files (default: proposal_replayer/proposals)",
     )
+    parser.add_argument(
+        "--rpc-retry-delay",
+        type=int,
+        default=DEFAULT_RPC_RETRY_DELAY,
+        help=f"Delay in seconds between RPC retry attempts (default: {DEFAULT_RPC_RETRY_DELAY})",
+    )
     args = parser.parse_args()
 
     logger.info("Starting ProposePrice event subscriber...")
-    listen_for_propose_price_events(args.start_block, args.proposals_dir)
+    listen_for_propose_price_events(args.start_block, args.proposals_dir, args.rpc_retry_delay)
