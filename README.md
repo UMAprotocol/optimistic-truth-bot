@@ -4,7 +4,7 @@
   <img src="image.jpeg" alt="Optimistic Truth Bot" width="650"/>
 </p>
 
-A multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
+Multi-agent system for resolving Polymarket prediction market proposals with high accuracy using LLMs.
 
 ## Table of Contents
 
