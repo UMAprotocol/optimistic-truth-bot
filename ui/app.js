@@ -10,6 +10,7 @@ let autoScrollEnabled = true; // Auto-scroll preference
 let mongoOnlyResults = false; // Track if we should only show MongoDB results
 let disableExperimentRunner = true; // Track if experiment runner is disabled (DISABLED BY DEFAULT NOW)
 let singleExperiment = ''; // Track if we're in single experiment mode
+let fastLoad = false; // Track if fast load mode is enabled (disables analytics, enables pagination)
 
 // Date filter variables
 let currentDateFilters = {
@@ -51,51 +52,113 @@ let currentSort = {
     direction: 'desc'    // Default direction is descending (newest first)
 };
 
+// Pagination state variables for fast load mode
+let currentPageNumber = 1;
+let totalPages = 1;
+let totalItems = 0;
+let pageSize = 50;
+
 // Function to fetch server configuration
 async function fetchServerConfig() {
     try {
-        const response = await fetch('/api/config');
+        console.log('Fetching server config from /api/config...');
+        
+        // Add a timeout to the fetch
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            console.error('Config fetch timeout after 10 seconds');
+            controller.abort();
+        }, 10000);
+        
+        const response = await fetch('/api/config', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        console.log('Config response status:', response.status, response.statusText);
+        
         if (response.ok) {
-            const config = await response.json();
-            console.log('Server config:', config);
+            console.log('Parsing JSON response...');
+            let config;
+            try {
+                const responseText = await response.text();
+                console.log('Raw response text:', responseText.substring(0, 200) + '...');
+                config = JSON.parse(responseText);
+                console.log('Server config received:', config);
+            } catch (jsonError) {
+                console.error('Error parsing config JSON:', jsonError);
+                console.error('Failed to parse response as JSON');
+                throw new Error(`Failed to parse config JSON: ${jsonError.message}`);
+            }
             
-            // Update global settings
-            mongoOnlyResults = config.mongo_only_results === true;
-            disableExperimentRunner = config.disable_experiment_runner === true;
-            singleExperiment = config.single_experiment || '';
+            try {
+                // Update global settings
+                mongoOnlyResults = config.mongo_only_results === true;
+                disableExperimentRunner = config.disable_experiment_runner === true;
+                singleExperiment = config.single_experiment || '';
+                fastLoad = config.fast_load === true;
+                
+                console.log('Updated global settings:', {
+                    mongoOnlyResults,
+                    disableExperimentRunner,
+                    singleExperiment,
+                    fastLoad
+                });
+                
+                console.log('Starting UI updates...');
             
             // Update UI based on configuration
-            const sourceFilterGroup = document.querySelector('.source-filter-group');
-            if (sourceFilterGroup) {
-                sourceFilterGroup.style.display = mongoOnlyResults ? 'none' : 'block';
-            }
-            
-            // If mongo_only_results is true, force MongoDB source filter
-            if (mongoOnlyResults) {
-                currentSourceFilter = 'mongodb';
-                document.getElementById('filterSourceMongoDB')?.classList.add('active');
-                document.getElementById('filterSourceFilesystem')?.classList.remove('active');
-            }
-            
-            // Update UI for single experiment mode
-            if (singleExperiment) {
-                // Hide experiment selection panel
-                const experimentListColumn = document.querySelector('.col-md-4 .card');
-                if (experimentListColumn) {
-                    experimentListColumn.style.display = 'none';
+            try {
+                const sourceFilterGroup = document.querySelector('.source-filter-group');
+                if (sourceFilterGroup) {
+                    sourceFilterGroup.style.display = mongoOnlyResults ? 'none' : 'block';
+                    console.log('Updated source filter group visibility');
                 }
                 
-                // Make the result column full width
-                const resultColumn = document.querySelector('.col-md-8');
-                if (resultColumn) {
-                    resultColumn.className = 'col-md-12';
+                // If mongo_only_results is true, force MongoDB source filter
+                if (mongoOnlyResults) {
+                    currentSourceFilter = 'mongodb';
+                    document.getElementById('filterSourceMongoDB')?.classList.add('active');
+                    document.getElementById('filterSourceFilesystem')?.classList.remove('active');
+                    console.log('Updated source filter to MongoDB');
                 }
+                
+                // Update UI for single experiment mode
+                if (singleExperiment) {
+                    console.log('Updating UI for single experiment mode:', singleExperiment);
+                    
+                    // Hide experiment selection panel
+                    const experimentListColumn = document.querySelector('.col-md-4 .card');
+                    if (experimentListColumn) {
+                        experimentListColumn.style.display = 'none';
+                        console.log('Hidden experiment list column');
+                    }
+                    
+                    // Make the result column full width
+                    const resultColumn = document.querySelector('.col-md-8');
+                    if (resultColumn) {
+                        resultColumn.className = 'col-md-12';
+                        console.log('Made result column full width');
+                    }
+                }
+                
+                console.log('UI updates completed successfully');
+            } catch (uiError) {
+                console.error('Error updating UI:', uiError);
+                // Continue despite UI errors
             }
             
+            console.log('About to return config');
             return config;
+            
+            } catch (configProcessError) {
+                console.error('Error processing config:', configProcessError);
+                console.error('Config processing error stack:', configProcessError.stack);
+                return null;
+            }
+        } else {
+            console.error('Config API response not ok:', response.status, response.statusText);
         }
     } catch (error) {
         console.error('Error fetching server config:', error);
+        console.error('Error stack:', error.stack);
     }
     
     return null;
@@ -111,6 +174,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Fetch server configuration first
     fetchServerConfig().then((config) => {
+        console.log('Server config loaded successfully:', config);
+        console.log('Current settings:', {
+            mongoOnlyResults,
+            disableExperimentRunner,
+            singleExperiment,
+            currentSourceFilter
+        });
+        
         // Hide experiment runner tab if disabled
         if (disableExperimentRunner) {
             const experimentTab = document.getElementById('experiment-tab');
@@ -127,6 +198,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Then load experiments directory data
+        console.log('About to call loadExperimentsData...');
+        loadExperimentsData();
+    }).catch((error) => {
+        console.error('Error in fetchServerConfig:', error);
+        // Try to load experiments anyway
+        console.log('Attempting to load experiments despite config error...');
         loadExperimentsData();
     });
 
@@ -2336,6 +2413,22 @@ function initializeColumnSelector() {
 // Load data about available experiment directories
 async function loadExperimentsData() {
     try {
+        console.log('Starting loadExperimentsData...');
+        
+        // Show loading indicator in experiments list
+        const experimentsList = document.getElementById('experimentsList');
+        if (experimentsList) {
+            experimentsList.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading experiments...</span>
+                    </div>
+                    <p class="mt-2">Loading experiments directory...</p>
+                    <p class="small text-muted" id="loadingStatus">Checking data sources...</p>
+                </div>
+            `;
+        }
+        
         // First clear existing data
         experimentsData = [];
         currentData = [];
@@ -2346,9 +2439,19 @@ async function loadExperimentsData() {
             mongodb: '/api/mongodb/analytics'
         };
         
+        // Helper function to update loading status
+        function updateLoadingStatus(message) {
+            const statusElement = document.getElementById('loadingStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+            console.log(`Loading status: ${message}`);
+        }
+        
         // If we're in single experiment mode, we will load just that experiment
         if (singleExperiment) {
             console.log('Running in SINGLE_EXPERIMENT mode for:', singleExperiment);
+            updateLoadingStatus(`Loading single experiment: ${singleExperiment}`);
             
             // Make results section visible and add a loading indicator
             const resultsSection = document.querySelector('.results-section');
@@ -2396,6 +2499,7 @@ async function loadExperimentsData() {
             // Fetch experiment metadata from MongoDB first to get proper title and details
             try {
                 console.log('Fetching MongoDB metadata for single experiment');
+                updateLoadingStatus('Fetching experiment metadata...');
                 const metadataResponse = await fetch(`/api/mongodb/experiment/${directory}`);
                 if (metadataResponse.ok) {
                     const metadataData = await metadataResponse.json();
@@ -2423,21 +2527,35 @@ async function loadExperimentsData() {
             }
             
             // Directly load the experiment data from MongoDB
+            updateLoadingStatus('Starting experiment data load...');
             loadExperimentData(directory, source);
             return;
         }
         
         // Continue with normal loading for multiple experiments
+        updateLoadingStatus('Determining data source...');
+        console.log('Current source filter:', currentSourceFilter);
+        console.log('Mongo only results:', mongoOnlyResults);
+        
         const url = sourceUrls[currentSourceFilter] || sourceUrls.filesystem;
+        console.log('Using API URL:', url);
+        
+        updateLoadingStatus('Fetching experiments directory...');
         
         // Try to fetch from the API endpoint
+        console.log('Making fetch request to:', url);
         const response = await fetch(url);
+        console.log('Response received:', response.status, response.statusText);
         
         if (!response.ok) {
+            console.error('API request failed:', response.status, response.statusText);
+            updateLoadingStatus(`API request failed: ${response.status}`);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
+        updateLoadingStatus('Processing response data...');
         const responseData = await response.json();
+        console.log('Response data received:', responseData);
         
         // Check if we have a mongo_only_results flag in the response
         mongoOnlyResults = responseData.mongo_only_results === true;
@@ -2502,8 +2620,21 @@ async function loadExperimentsData() {
         displayExperimentsTable();
     } catch (error) {
         console.error('Error loading experiments data:', error);
+        console.error('Error stack:', error.stack);
         
-        // Show error in the table
+        // Show error in the experiments list loading area
+        const experimentsList = document.getElementById('experimentsList');
+        if (experimentsList) {
+            experimentsList.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5>Error Loading Experiments</h5>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p class="small mb-0">Check the console for more details</p>
+                </div>
+            `;
+        }
+        
+        // Also show error in the table if it exists
         const tableBody = document.getElementById('resultsDirectoryTableBody');
         if (tableBody) {
             tableBody.innerHTML = `
@@ -2683,6 +2814,209 @@ function displayExperimentsTable() {
     }
 }
 
+// Load MongoDB experiment data with pagination and field optimization
+async function loadMongoDataWithPagination(experimentId, initialPageSize = 50, pageNumber = 1) {
+    console.log(`Starting ${fastLoad ? 'fast' : 'full'} paginated load for experiment: ${experimentId}`);
+    const allData = [];
+    let page = fastLoad ? pageNumber : 1;
+    let hasMoreData = true;
+    let startTime = Date.now();
+    
+    try {
+        while (hasMoreData) {
+            console.log(`Fetching page ${page} for experiment ${experimentId}`);
+            
+            // Update status indicator
+            document.getElementById('resultsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="12" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h4 class="mb-4">${fastLoad ? 'Fast Loading' : 'Loading MongoDB Experiment Data'}</h4>
+                        <p class="mb-2"><strong>Status:</strong> Fetching page ${page}...</p>
+                        <p class="mb-2"><strong>Experiment:</strong> ${experimentId}</p>
+                        ${fastLoad ? 
+                            `<p class="mb-0"><strong>Mode:</strong> Fast load (page ${page})</p>` :
+                            `<p class="mb-0"><strong>Loaded so far:</strong> ${allData.length} items</p>`
+                        }
+                        <p class="small text-muted mt-2">Elapsed time: ${Math.round((Date.now() - startTime) / 1000)}s</p>
+                    </td>
+                </tr>
+            `;
+            
+            try {
+                const url = `/api/mongodb/experiment-summary/${experimentId}?page=${page}&limit=${initialPageSize}&sort=${currentSort.column}&direction=${currentSort.direction}`;
+                console.log(`Making request to: ${url}`);
+                
+                // Add retry logic with exponential backoff for better reliability
+                let retries = 0;
+                const maxRetries = 3;
+                let response;
+                
+                while (retries <= maxRetries) {
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+                        
+                        response = await fetch(url, {
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+                        
+                        console.log(`Response status: ${response.status} ${response.statusText}`);
+                        
+                        if (response.ok) {
+                            break; // Success, exit retry loop
+                        } else {
+                            throw new Error(`Server responded with ${response.status}`);
+                        }
+                    } catch (error) {
+                        retries++;
+                        if (retries > maxRetries) {
+                            throw error; // Re-throw the last error if all retries failed
+                        }
+                        
+                        // Exponential backoff: wait 1s, 2s, 4s
+                        const backoffDelay = Math.pow(2, retries - 1) * 1000;
+                        console.warn(`Request failed (attempt ${retries}/${maxRetries}), retrying in ${backoffDelay}ms...`, error.message);
+                        await new Promise(resolve => setTimeout(resolve, backoffDelay));
+                    }
+                }
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Server response error: ${response.status} - ${errorText}`);
+                    throw new Error(`Server responded with ${response.status}: ${errorText}`);
+                }
+                
+                const result = await response.json();
+                console.log(`Page ${page} result:`, {
+                    hasData: !!result.data,
+                    dataLength: result.data?.length || 0,
+                    pagination: result.pagination,
+                    totalItems: result.pagination?.total
+                });
+                
+                if (result.data && Array.isArray(result.data)) {
+                    // Add the data to our collection
+                    allData.push(...result.data);
+                    
+                    // Update loading progress
+                    const loadedCount = allData.length;
+                    const totalCount = result.pagination.total;
+                    const percentComplete = Math.min(100, Math.round((loadedCount / totalCount) * 100));
+                    
+                    // Update progress indicator (skip in fast load mode since we only load one page)
+                    if (!fastLoad) {
+                        document.getElementById('resultsTableBody').innerHTML = `
+                            <tr>
+                                <td colspan="12" class="text-center py-5">
+                                    <h4 class="mb-4">Loading MongoDB Experiment Data</h4>
+                                    <div class="progress mb-3" style="height: 25px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" style="width: ${percentComplete}%" 
+                                             aria-valuenow="${percentComplete}" aria-valuemin="0" aria-valuemax="100">
+                                            ${percentComplete}%
+                                        </div>
+                                    </div>
+                                    <p class="mb-0">Loaded ${loadedCount} of ${totalCount} items (Page ${page}/${result.pagination.pages})</p>
+                                    <p class="small text-muted">Optimized loading: Table data only. Full details load when clicking rows.</p>
+                                    <p class="small text-muted">Elapsed time: ${Math.round((Date.now() - startTime) / 1000)}s</p>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    // Store pagination info for fast load mode
+                    if (fastLoad) {
+                        totalPages = result.pagination.pages;
+                        totalItems = result.pagination.total;
+                        currentPageNumber = page;
+                    }
+                    
+                    // Check if we have more data to load
+                    if (fastLoad) {
+                        // In fast load mode, only load one page
+                        hasMoreData = false;
+                        console.log(`Fast load: Loaded page ${page} (${result.data.length} items)`);
+                    } else {
+                        // In normal mode, load all pages
+                        hasMoreData = page < result.pagination.pages;
+                        page++;
+                        
+                        console.log(`Loaded page ${page - 1}: ${result.data.length} items (Total: ${loadedCount}/${totalCount})`);
+                        
+                        // Add a small delay to prevent overwhelming the server
+                        // With optimized field loading, we can use shorter delays
+                        if (hasMoreData) {
+                            const delay = totalCount > 2000 ? 100 : 50; // Reduced delays due to optimized data loading
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                    }
+                } else {
+                    console.log(`No data in result for page ${page}:`, result);
+                    hasMoreData = false;
+                }
+            } catch (pageError) {
+                console.error(`Error loading page ${page}:`, pageError);
+                
+                // Show error in UI
+                document.getElementById('resultsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="12" class="text-center py-5">
+                            <div class="alert alert-warning">
+                                <h5>Error Loading Page ${page}</h5>
+                                <p>Error: ${pageError.message}</p>
+                                <p class="mb-0">Loaded ${allData.length} items so far. Trying to continue...</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                
+                // If we have some data, continue with what we have
+                if (allData.length > 0) {
+                    console.warn(`Continuing with ${allData.length} items loaded so far`);
+                    break;
+                } else {
+                    throw pageError;
+                }
+            }
+        }
+        
+        const loadTime = Math.round((Date.now() - startTime) / 1000);
+        if (fastLoad) {
+            console.log(`Completed fast page load: ${allData.length} items (page ${currentPageNumber}/${totalPages}) in ${loadTime}s`);
+            console.log(`Fast load performance: ~${Math.round(allData.length / loadTime)} items/second`);
+            // Update pagination UI
+            updatePaginationControls();
+        } else {
+            console.log(`Completed full optimized load: ${allData.length} total items in ${loadTime}s`);
+            console.log(`Performance: ~${Math.round(allData.length / loadTime)} items/second (table display data only)`);
+        }
+        return allData;
+        
+    } catch (error) {
+        console.error('Fatal error in loadMongoDataWithPagination:', error);
+        
+        // Show error in UI
+        document.getElementById('resultsTableBody').innerHTML = `
+            <tr>
+                <td colspan="12" class="text-center py-5">
+                    <div class="alert alert-danger">
+                        <h5>Failed to Load Experiment Data</h5>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Experiment:</strong> ${experimentId}</p>
+                        <p class="mb-0">Please check the console for more details or try refreshing the page.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        throw error;
+    }
+}
+
 // Load data for a specific experiment
 async function loadExperimentData(directory, source) {
     try {
@@ -2720,9 +3054,9 @@ async function loadExperimentData(directory, source) {
             }
         }
         
-        // Show loading spinner in analytics dashboard instead of hiding it
+        // Show loading spinner in analytics dashboard instead of hiding it (unless in fast load mode)
         const analyticsDashboard = document.getElementById('analyticsDashboard');
-        if (analyticsDashboard) {
+        if (analyticsDashboard && !fastLoad) {
             analyticsDashboard.style.display = 'block';
             const analyticsTabs = document.getElementById('analyticsTabs');
             const analyticsTabContent = document.getElementById('analyticsTabContent');
@@ -2748,6 +3082,9 @@ async function loadExperimentData(directory, source) {
                     </div>
                 `;
             }
+        } else if (analyticsDashboard && fastLoad) {
+            // Keep analytics hidden in fast load mode during loading
+            analyticsDashboard.style.display = 'none';
         }
         
         document.getElementById('filterControls').style.display = 'none';
@@ -2793,22 +3130,51 @@ async function loadExperimentData(directory, source) {
                 // Extract experiment ID from the path
                 const experimentId = directory;
                 
-                // Fetch data from MongoDB API
-                const response = await fetch(`/api/mongodb/experiment/${experimentId}`);
+                console.log(`Loading MongoDB experiment: ${experimentId}`);
                 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch MongoDB data: ${response.status}`);
-                }
-                
-                const jsonData = await response.json();
-                
-                if (Array.isArray(jsonData)) {
-                    currentData = jsonData;
-                    console.log(`Successfully loaded ${currentData.length} result items from MongoDB`);
-                } else {
-                    // Convert single object to array if necessary
-                    currentData = [jsonData];
-                    console.log(`Loaded single result from MongoDB`);
+                // Try the new paginated API first
+                try {
+                    currentData = await loadMongoDataWithPagination(experimentId, pageSize, currentPageNumber);
+                    
+                    if (currentData.length === 0) {
+                        console.warn('No data returned from paginated API, trying fallback...');
+                        throw new Error('No data returned from paginated API');
+                    }
+                    
+                    console.log(`Successfully loaded ${currentData.length} result items from MongoDB (paginated)`);
+                } catch (paginationError) {
+                    console.warn('Paginated API failed, falling back to original API:', paginationError.message);
+                    
+                    // Fallback to original API
+                    document.getElementById('resultsTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="12" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <h4 class="mb-4">Fallback: Loading Full Dataset</h4>
+                                <p class="mb-2">Paginated loading failed, using original method...</p>
+                                <p class="small text-muted">This may take longer as it loads all data at once</p>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    const response = await fetch(`/api/mongodb/experiment/${experimentId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Fallback API also failed: ${response.status}`);
+                    }
+                    
+                    const jsonData = await response.json();
+                    
+                    if (Array.isArray(jsonData)) {
+                        currentData = jsonData;
+                        console.log(`Successfully loaded ${currentData.length} result items from MongoDB (fallback)`);
+                    } else {
+                        // Convert single object to array if necessary
+                        currentData = [jsonData];
+                        console.log(`Loaded single result from MongoDB (fallback)`);
+                    }
                 }
                 
                 if (currentData.length === 0) {
@@ -2816,7 +3182,21 @@ async function loadExperimentData(directory, source) {
                 }
             } catch (error) {
                 console.error('Error loading MongoDB data:', error);
-                // Handle display of error below
+                
+                // Show error in table
+                document.getElementById('resultsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="12" class="text-center py-5">
+                            <div class="alert alert-danger">
+                                <h5>Failed to Load MongoDB Data</h5>
+                                <p><strong>Experiment:</strong> ${directory}</p>
+                                <p><strong>Error:</strong> ${error.message}</p>
+                                <p class="mb-0">Please check the console for more details or try refreshing the page.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                
                 throw error;
             }
         } else {
@@ -3057,33 +3437,52 @@ async function loadExperimentData(directory, source) {
         
         // Display results if we have data
         if (currentData.length > 0) {
-            // Now show all the sections since data is loaded
+            // Now show all the sections since data is loaded (except analytics in fast load mode)
             const analyticsDashboard = document.getElementById('analyticsDashboard');
             if (analyticsDashboard) {
-                analyticsDashboard.style.display = 'block';
+                if (fastLoad) {
+                    // Hide analytics dashboard in fast load mode
+                    analyticsDashboard.style.display = 'none';
+                    console.log('Analytics disabled in fast load mode');
+                } else {
+                    analyticsDashboard.style.display = 'block';
+                }
                 
-                // If in SINGLE_EXPERIMENT mode, add description above analytics
+                // If in SINGLE_EXPERIMENT mode, add description at the top
                 if (singleExperiment) {
-                    // Create description element
-                    const descriptionElement = document.createElement('div');
-                    descriptionElement.id = 'systemDescription';
-                    descriptionElement.className = 'mb-4';
-                    descriptionElement.innerHTML = `
-                        <div class="alert alert-info mb-4">
-                            <p>
-                                <strong>Optimistic Truth Bot (OTB)</strong> is a multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
-                                It combines search-based and code execution solvers to process proposals through multi-agent decision-making.
-                                The system monitors blockchain events, processes proposals, and submits resolution recommendations.
-                                It tracks performance against actual market outcomes for continuous improvement.
-                                <a href="https://github.com/UMAprotocol/large-language-oracle" target="_blank">Learn more on GitHub</a>
-                            </p>
-                        </div>
-                    `;
-                    
-                    // Insert before analytics dashboard
-                    const mainContainer = analyticsDashboard.parentNode;
-                    if (mainContainer) {
-                        mainContainer.insertBefore(descriptionElement, analyticsDashboard);
+                    // Check if description element already exists to prevent duplicates
+                    if (!document.getElementById('systemDescription')) {
+                        // Create description element
+                        const descriptionElement = document.createElement('div');
+                        descriptionElement.id = 'systemDescription';
+                        descriptionElement.className = 'mb-4';
+                        descriptionElement.innerHTML = `
+                            <div class="alert alert-info mb-4">
+                                <p>
+                                    <strong>Optimistic Truth Bot (OTB)</strong> is a multi-agent system for resolving Polymarket prediction market proposals with high accuracy using large language models.
+                                    It combines search-based and code execution solvers to process proposals through multi-agent decision-making.
+                                    The system monitors blockchain events, processes proposals, and submits resolution recommendations.
+                                    It tracks performance against actual market outcomes for continuous improvement.
+                                    <a href="https://github.com/UMAprotocol/large-language-oracle" target="_blank">Learn more on GitHub</a>
+                                </p>
+                            </div>
+                        `;
+                        
+                        // Insert before analytics dashboard or results table (depending on fast load mode)
+                        if (fastLoad) {
+                            // In fast load mode, insert before results table since analytics is hidden
+                            const resultsTableCard = document.getElementById('resultsTableCard');
+                            const mainContainer = resultsTableCard?.parentNode;
+                            if (mainContainer && resultsTableCard) {
+                                mainContainer.insertBefore(descriptionElement, resultsTableCard);
+                            }
+                        } else {
+                            // In normal mode, insert before analytics dashboard
+                            const mainContainer = analyticsDashboard.parentNode;
+                            if (mainContainer) {
+                                mainContainer.insertBefore(descriptionElement, analyticsDashboard);
+                            }
+                        }
                     }
                 }
                 
@@ -3100,7 +3499,16 @@ async function loadExperimentData(directory, source) {
                 }
             }
             
-            document.getElementById('filterControls').style.display = 'flex';
+            // Show filter controls only if not in fast load mode
+            const filterControls = document.getElementById('filterControls');
+            if (filterControls) {
+                if (fastLoad) {
+                    filterControls.style.display = 'none';
+                    console.log('Filter controls hidden in fast load mode');
+                } else {
+                    filterControls.style.display = 'flex';
+                }
+            }
             
             // Display the experiment metadata properly now that data is loaded, but only if not in SINGLE_EXPERIMENT mode
             if (!singleExperiment) {
@@ -3113,12 +3521,17 @@ async function loadExperimentData(directory, source) {
             // Apply the current filter
             applyTableFilter(currentFilter);
             
-            // Initialize charts AFTER the analytics tabs are shown
-            initializeCharts();
-            
-            // Calculate and display analytics
-            const analytics = calculateAnalytics(currentData);
-            updateAnalyticsDisplay(analytics);
+            // Initialize analytics only if not in fast load mode
+            if (!fastLoad) {
+                // Initialize charts AFTER the analytics tabs are shown
+                initializeCharts();
+                
+                // Calculate and display analytics
+                const analytics = calculateAnalytics(currentData);
+                updateAnalyticsDisplay(analytics);
+            } else {
+                console.log('Skipping analytics initialization in fast load mode');
+            }
             
             // Trigger custom event to setup tag filter
             const dataLoadedEvent = new CustomEvent('dataLoaded');
@@ -4046,6 +4459,251 @@ function showDetails(data, index) {
     const queryButton = document.querySelector('.view-query-btn');
     
     if (!modalTitle || !modalBody) return;
+
+    // Check if we need to load full document details (including journey data)
+    const needsFullDetails = !data.journey && currentExperiment && 
+                            (currentExperiment.source === 'mongodb' || 
+                             currentExperiment.explicitSource === 'mongodb' || 
+                             currentExperiment.path?.startsWith('mongodb/'));
+    
+    if (needsFullDetails) {
+        // Show loading state in modal
+        modalTitle.textContent = 'Loading Details...';
+        modalBody.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading detailed data...</span>
+                </div>
+                <p class="mt-2">Loading journey and detailed information...</p>
+                <p class="small text-muted">This may take a moment for experiments with extensive data</p>
+            </div>
+        `;
+        
+        // Show the modal
+        modal.show();
+        
+        // Load full details asynchronously
+        loadFullDocumentDetails(data, index);
+        return;
+    }
+
+    // Continue with normal modal display if we already have the journey data
+    renderModalContent(data, index);
+}
+
+// Load full document details including journey data from MongoDB
+async function loadFullDocumentDetails(summaryData, index) {
+    const startTime = performance.now();
+    const debugInfo = {
+        experimentId: null,
+        queryId: null,
+        requestUrl: null,
+        responseStatus: null,
+        responseHeaders: {},
+        errorType: null,
+        errorDetails: null,
+        elapsedTime: null
+    };
+    
+    try {
+        const experimentId = currentExperiment.directory;
+        const queryId = summaryData.query_id;
+        
+        debugInfo.experimentId = experimentId;
+        debugInfo.queryId = queryId;
+        
+        if (!queryId) {
+            debugInfo.errorType = 'ValidationError';
+            debugInfo.errorDetails = 'Missing query_id in document data';
+            throw new Error('No query_id found for this document');
+        }
+        
+        if (!experimentId) {
+            debugInfo.errorType = 'ValidationError';
+            debugInfo.errorDetails = 'No current experiment selected';
+            throw new Error('No experiment selected');
+        }
+        
+        // Construct request URL
+        const requestUrl = `/api/mongodb/document/${experimentId}/${queryId}`;
+        debugInfo.requestUrl = requestUrl;
+        
+        console.log('[LoadFullDocumentDetails] Starting request:', {
+            url: requestUrl,
+            experimentId,
+            queryId,
+            documentIndex: index
+        });
+        
+        // Fetch full document details
+        const response = await fetch(requestUrl);
+        
+        debugInfo.responseStatus = response.status;
+        debugInfo.responseHeaders = {
+            contentType: response.headers.get('content-type'),
+            contentLength: response.headers.get('content-length'),
+            server: response.headers.get('server')
+        };
+        
+        if (!response.ok) {
+            debugInfo.errorType = 'HTTPError';
+            let errorDetails = `HTTP ${response.status} ${response.statusText}`;
+            
+            // Try to get error message from response body
+            try {
+                const errorData = await response.text();
+                if (errorData) {
+                    try {
+                        const jsonError = JSON.parse(errorData);
+                        errorDetails += ` - ${jsonError.error || jsonError.message || errorData}`;
+                    } catch {
+                        errorDetails += ` - ${errorData.substring(0, 200)}`;
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not parse error response:', e);
+            }
+            
+            debugInfo.errorDetails = errorDetails;
+            throw new Error(errorDetails);
+        }
+        
+        // Parse response
+        let fullData;
+        try {
+            fullData = await response.json();
+        } catch (parseError) {
+            debugInfo.errorType = 'ParseError';
+            debugInfo.errorDetails = `Failed to parse JSON response: ${parseError.message}`;
+            throw new Error(`Invalid JSON response: ${parseError.message}`);
+        }
+        
+        // Validate response data
+        if (!fullData || typeof fullData !== 'object') {
+            debugInfo.errorType = 'DataError';
+            debugInfo.errorDetails = 'Response is not a valid object';
+            throw new Error('Invalid response data structure');
+        }
+        
+        debugInfo.elapsedTime = performance.now() - startTime;
+        
+        console.log('[LoadFullDocumentDetails] Success:', {
+            elapsedTime: `${debugInfo.elapsedTime.toFixed(2)}ms`,
+            dataKeys: Object.keys(fullData),
+            hasJourney: !!fullData.journey,
+            journeySteps: fullData.journey?.length || 0
+        });
+        
+        // Merge the full data with summary data to preserve any UI enhancements
+        const mergedData = { ...summaryData, ...fullData };
+        
+        // Fix journey data propagation for multi-run scenarios
+        if (mergedData._allRuns && mergedData.journey) {
+            // If we have multiple runs but journey data is at the top level,
+            // we need to decide how to distribute it
+            console.log('[LoadFullDocumentDetails] Propagating journey data to all runs');
+            
+            // For now, give all runs access to the same journey data
+            // This assumes the journey represents the overall process for this query
+            mergedData._allRuns = mergedData._allRuns.map(run => ({
+                ...run,
+                journey: mergedData.journey
+            }));
+        }
+        
+        // Render the modal with complete data
+        renderModalContent(mergedData, index);
+        
+    } catch (error) {
+        debugInfo.elapsedTime = performance.now() - startTime;
+        
+        // Enhanced error logging
+        console.error('[LoadFullDocumentDetails] Error:', {
+            error: error.message,
+            stack: error.stack,
+            debugInfo,
+            summaryData
+        });
+        
+        // Show detailed error in modal
+        const modalTitle = document.getElementById('detailsModalLabel');
+        const modalBody = document.getElementById('detailsModalBody');
+        
+        if (modalTitle) modalTitle.textContent = 'Error Loading Details';
+        if (modalBody) {
+            // Determine error category for user-friendly message
+            let userMessage = 'An unexpected error occurred';
+            let technicalDetails = error.message;
+            
+            if (debugInfo.errorType === 'ValidationError') {
+                userMessage = 'Invalid document data';
+            } else if (debugInfo.errorType === 'HTTPError') {
+                if (debugInfo.responseStatus === 404) {
+                    userMessage = 'Document not found in database';
+                } else if (debugInfo.responseStatus >= 500) {
+                    userMessage = 'Server error occurred';
+                } else if (debugInfo.responseStatus === 401 || debugInfo.responseStatus === 403) {
+                    userMessage = 'Access denied';
+                } else {
+                    userMessage = 'Failed to retrieve document';
+                }
+            } else if (debugInfo.errorType === 'ParseError') {
+                userMessage = 'Invalid response from server';
+            } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                userMessage = 'Network connection error';
+                debugInfo.errorType = 'NetworkError';
+            }
+            
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5>Error Loading Detailed Information</h5>
+                    <p class="mb-2">${userMessage}</p>
+                    <details class="mt-3">
+                        <summary class="cursor-pointer text-muted">Technical Details</summary>
+                        <div class="mt-2 small">
+                            <p><strong>Error:</strong> ${technicalDetails}</p>
+                            ${debugInfo.requestUrl ? `<p><strong>Request URL:</strong> ${debugInfo.requestUrl}</p>` : ''}
+                            ${debugInfo.responseStatus ? `<p><strong>Response Status:</strong> ${debugInfo.responseStatus}</p>` : ''}
+                            ${debugInfo.experimentId ? `<p><strong>Experiment ID:</strong> ${debugInfo.experimentId}</p>` : ''}
+                            ${debugInfo.queryId ? `<p><strong>Query ID:</strong> ${debugInfo.queryId}</p>` : ''}
+                            <p><strong>Time Elapsed:</strong> ${debugInfo.elapsedTime?.toFixed(2) || 'N/A'}ms</p>
+                        </div>
+                    </details>
+                    <hr>
+                    <p class="mb-0 text-muted">Showing available summary data instead.</p>
+                </div>
+            `;
+            
+            // Add some CSS for the details element if not already present
+            if (!document.getElementById('debugDetailsStyle')) {
+                const style = document.createElement('style');
+                style.id = 'debugDetailsStyle';
+                style.textContent = `
+                    details summary {
+                        cursor: pointer;
+                        user-select: none;
+                    }
+                    details summary:hover {
+                        text-decoration: underline;
+                    }
+                    details[open] summary {
+                        margin-bottom: 0.5rem;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Fallback to showing summary data without journey
+            setTimeout(() => renderModalContent(summaryData, index), 2000);
+        }
+    }
+}
+
+// Render modal content with the provided data
+function renderModalContent(data, index) {
+    const modalTitle = document.getElementById('detailsModalLabel');
+    const modalBody = document.getElementById('detailsModalBody');
+    const queryButton = document.querySelector('.view-query-btn');
     
     // Update query button
     if (queryButton) {
@@ -6559,45 +7217,53 @@ function initializeSortableHeaders() {
         // Add the indicator to the header
         header.appendChild(sortIndicator);
         
-        // Make header sortable
-        header.classList.add('sortable');
-        header.style.cursor = 'pointer';
         
-        // Add click handler
-        header.addEventListener('click', () => {
-            // Toggle direction if same column, otherwise set to desc
-            if (columnName === currentSort.column) {
-                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSort.column = columnName;
-                currentSort.direction = 'desc'; // Default to descending for new columns
-            }
-            
-            // Update all indicators
-            document.querySelectorAll('#resultsTable th .sort-indicator').forEach((indicator) => {
-                const parentHeader = indicator.closest('th');
-                
-                // Get column name from parent header classes
-                let parentColumnName = null;
-                for (const className of parentHeader.classList) {
-                    if (columnClassMap[className]) {
-                        parentColumnName = columnClassMap[className];
-                        break;
-                    }
-                }
-                
-                if (parentColumnName === currentSort.column) {
-                    indicator.innerHTML = currentSort.direction === 'asc' ? '&#9650;' : '&#9660;';
-                    indicator.style.opacity = '1';
+        // Add click handler only if not in fast load mode
+        if (!fastLoad) {
+            header.addEventListener('click', () => {
+                // Toggle direction if same column, otherwise set to desc
+                if (columnName === currentSort.column) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
                 } else {
-                    indicator.innerHTML = '&#8645;';
-                    indicator.style.opacity = '0.3';
+                    currentSort.column = columnName;
+                    currentSort.direction = 'desc'; // Default to descending for new columns
                 }
+                
+                // Update all indicators
+                document.querySelectorAll('#resultsTable th .sort-indicator').forEach((indicator) => {
+                    const parentHeader = indicator.closest('th');
+                    
+                    // Get column name from parent header classes
+                    let parentColumnName = null;
+                    for (const className of parentHeader.classList) {
+                        if (columnClassMap[className]) {
+                            parentColumnName = columnClassMap[className];
+                            break;
+                        }
+                    }
+                    
+                    if (parentColumnName === currentSort.column) {
+                        indicator.innerHTML = currentSort.direction === 'asc' ? '&#9650;' : '&#9660;';
+                        indicator.style.opacity = '1';
+                    } else {
+                        indicator.innerHTML = '&#8645;';
+                        indicator.style.opacity = '0.3';
+                    }
+                });
+                
+                // Update the table with sorted data (normal mode only)
+                updateTableWithData(currentData);
             });
             
-            // Update the table with sorted data
-            updateTableWithData(currentData);
-        });
+            // Make header sortable
+            header.classList.add('sortable');
+            header.style.cursor = 'pointer';
+        } else {
+            // In fast mode, disable sorting
+            header.style.cursor = 'not-allowed';
+            header.style.opacity = '0.6';
+            header.title = 'Sorting disabled in Fast Mode';
+        }
     });
 }
 
@@ -7273,7 +7939,138 @@ function addJsonDataSection(content, data) {
     `;
 }
 
-// Expose functions to make them accessible from query.js
+// Pagination functions for fast load mode
+function updatePaginationControls() {
+    const paginationControls = document.getElementById('paginationControls');
+    const currentPageSpan = document.getElementById('currentPageSpan');
+    const totalPagesSpan = document.getElementById('totalPagesSpan');
+    const pageItemCount = document.getElementById('pageItemCount');
+    const paginationList = document.getElementById('paginationList');
+    
+    if (fastLoad && paginationControls) {
+        // Show pagination controls in fast load mode
+        paginationControls.style.display = 'block';
+        
+        // Update pagination info
+        if (currentPageSpan) currentPageSpan.textContent = currentPageNumber;
+        if (totalPagesSpan) totalPagesSpan.textContent = totalPages;
+        
+        // Calculate item range for current page
+        const startItem = (currentPageNumber - 1) * pageSize + 1;
+        const endItem = Math.min(currentPageNumber * pageSize, totalItems);
+        
+        if (pageItemCount) {
+            pageItemCount.textContent = `${startItem}-${endItem} of ${totalItems}`;
+        }
+        
+        // Generate numbered pagination buttons
+        if (paginationList) {
+            generatePaginationButtons(paginationList);
+        }
+    } else if (paginationControls) {
+        // Hide pagination controls in normal mode
+        paginationControls.style.display = 'none';
+    }
+}
+
+function generatePaginationButtons(paginationList) {
+    paginationList.innerHTML = '';
+    
+    // Previous button
+    const prevItem = document.createElement('li');
+    prevItem.className = `page-item ${currentPageNumber <= 1 ? 'disabled' : ''}`;
+    prevItem.innerHTML = `
+        <button class="page-link" onclick="goToPage(${currentPageNumber - 1})" ${currentPageNumber <= 1 ? 'disabled' : ''}>
+            <i class="bi bi-chevron-left"></i>
+        </button>
+    `;
+    paginationList.appendChild(prevItem);
+    
+    // Calculate page range to show (show max 7 page numbers)
+    const maxVisible = 7;
+    let startPage = Math.max(1, currentPageNumber - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    // Adjust start page if we're near the end
+    if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    // First page + ellipsis if needed
+    if (startPage > 1) {
+        const firstItem = document.createElement('li');
+        firstItem.className = 'page-item';
+        firstItem.innerHTML = `<button class="page-link" onclick="goToPage(1)">1</button>`;
+        paginationList.appendChild(firstItem);
+        
+        if (startPage > 2) {
+            const ellipsisItem = document.createElement('li');
+            ellipsisItem.className = 'page-item disabled';
+            ellipsisItem.innerHTML = `<span class="page-link">...</span>`;
+            paginationList.appendChild(ellipsisItem);
+        }
+    }
+    
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+        const pageItem = document.createElement('li');
+        pageItem.className = `page-item ${i === currentPageNumber ? 'active' : ''}`;
+        pageItem.innerHTML = `<button class="page-link" onclick="goToPage(${i})">${i}</button>`;
+        paginationList.appendChild(pageItem);
+    }
+    
+    // Ellipsis + last page if needed
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsisItem = document.createElement('li');
+            ellipsisItem.className = 'page-item disabled';
+            ellipsisItem.innerHTML = `<span class="page-link">...</span>`;
+            paginationList.appendChild(ellipsisItem);
+        }
+        
+        const lastItem = document.createElement('li');
+        lastItem.className = 'page-item';
+        lastItem.innerHTML = `<button class="page-link" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+        paginationList.appendChild(lastItem);
+    }
+    
+    // Next button
+    const nextItem = document.createElement('li');
+    nextItem.className = `page-item ${currentPageNumber >= totalPages ? 'disabled' : ''}`;
+    nextItem.innerHTML = `
+        <button class="page-link" onclick="goToPage(${currentPageNumber + 1})" ${currentPageNumber >= totalPages ? 'disabled' : ''}>
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    `;
+    paginationList.appendChild(nextItem);
+}
+
+function goToPage(pageNumber) {
+    if (pageNumber >= 1 && pageNumber <= totalPages && pageNumber !== currentPageNumber) {
+        currentPageNumber = pageNumber;
+        reloadCurrentExperimentPage();
+    }
+}
+
+function goToPreviousPage() {
+    goToPage(currentPageNumber - 1);
+}
+
+function goToNextPage() {
+    goToPage(currentPageNumber + 1);
+}
+
+function reloadCurrentExperimentPage() {
+    if (currentExperiment) {
+        console.log(`Loading page ${currentPageNumber} for experiment: ${currentExperiment.directory}`);
+        loadExperimentData(currentExperiment.directory, currentExperiment.source || currentExperiment.explicitSource);
+    }
+}
+
+// Expose functions to make them accessible from query.js and HTML onclick handlers
 window.showDetails = showDetails;
 window.deduplicateByQueryId = deduplicateByQueryId;
 window.extractRunNumber = extractRunNumber;
+window.goToPreviousPage = goToPreviousPage;
+window.goToNextPage = goToNextPage;
+window.goToPage = goToPage;

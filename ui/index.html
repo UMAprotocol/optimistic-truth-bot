@@ -259,6 +259,28 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <!-- Pagination Controls (shown only in fast load mode) -->
+                            <div class="border-top p-3" id="paginationControls" style="display: none;">
+                                <nav aria-label="Results pagination">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="pagination-info">
+                                            <small class="text-muted">
+                                                Showing <span id="pageItemCount">1-50 of 0</span> items
+                                                (Page <span id="currentPageSpan">1</span> of <span id="totalPagesSpan">1</span>)
+                                            </small>
+                                        </div>
+                                        <ul class="pagination pagination-sm mb-0" id="paginationList">
+                                            <!-- Pagination buttons will be generated here -->
+                                        </ul>
+                                        <div class="fast-load-indicator">
+                                            <small class="text-muted" 
+                                                   title="Fast Mode - Disabled features: Analytics dashboard, Result filters (All/Disputed/Correct/Incorrect), Column sorting, Search functionality. Only pagination and detail view are available.">
+                                                <i class="bi bi-lightning-charge text-warning"></i> Fast Mode
+                                            </small>
+                                        </div>
+                                    </div>
+                                </nav>
+                            </div>
                         </div>
                     </div>
                 </div>

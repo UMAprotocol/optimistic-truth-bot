@@ -78,6 +78,9 @@ DISABLE_EXPERIMENT_RUNNER = (
 # Single experiment configuration
 SINGLE_EXPERIMENT = os.environ.get("SINGLE_EXPERIMENT", "")
 
+# Fast load configuration - when enabled, disables analytics for faster page loading
+FAST_LOAD = os.environ.get("FAST_LOAD", "false").lower() == "true"
+
 # Authentication settings - Change these!
 AUTH_ENABLED = os.environ.get("AUTH_ENABLED", "true").lower() == "true"
 AUTH_USERNAME = os.environ.get("AUTH_USERNAME", "admin")
@@ -113,6 +116,8 @@ def get_mongodb_connection():
     if mongodb_client is None:
         try:
             logger.info(f"Connecting to MongoDB at {MONGO_URI}")
+            logger.info(f"MongoDB timeout settings: serverSelection=5000ms, connect=5000ms, socket=10000ms")
+            
             # Set a shorter client timeout to avoid application hanging
             mongodb_client = MongoClient(
                 MONGO_URI,
@@ -120,12 +125,15 @@ def get_mongodb_connection():
                 connectTimeoutMS=5000,
                 socketTimeoutMS=10000,
             )
+            
+            logger.info("Testing MongoDB connection with server_info()...")
             # Verify connection by querying server info
             mongodb_client.server_info()  # This will raise an exception if connection fails
             mongodb_db = mongodb_client[MONGODB_DB]
-            logger.info(f"Connected to MongoDB, database: {MONGODB_DB}")
+            logger.info(f"Successfully connected to MongoDB, database: {MONGODB_DB}")
         except Exception as e:
             logger.error(f"Error connecting to MongoDB: {e}")
+            logger.error(f"MongoDB URI (masked): {MONGO_URI[:20]}...")
             mongodb_client = None
             mongodb_db = None
 
@@ -291,6 +299,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET, POST")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+        # Remove keep-alive headers that might be causing issues
+        self.send_header("Connection", "close")
         super().end_headers()
 
     def log_message(self, format, *args):
@@ -486,8 +496,12 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests."""
         try:
+            # Debug logging for all requests
+            logger.info(f"Handling GET request: {self.path}")
+            
             # First handle the login page specially to avoid redirect loops
             if self.path == "/login":
+                logger.info("Serving login page")
                 self.serve_login_page()
                 return
 
@@ -543,6 +557,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
             # API endpoints
             if self.path == "/api/config":
+                logger.info("Processing /api/config request")
+                logger.info(f"SINGLE_EXPERIMENT value: '{SINGLE_EXPERIMENT}'")
+                logger.info(f"MONGO_ONLY_RESULTS value: {MONGO_ONLY_RESULTS}")
                 try:
                     config = {
                         "mongo_only_results": MONGO_ONLY_RESULTS,
@@ -551,12 +568,21 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         "disable_experiment_runner": DISABLE_EXPERIMENT_RUNNER,
                         "single_experiment": SINGLE_EXPERIMENT,
                         "only_deeplinks": ONLY_DEEPLINKS,
+                        "fast_load": FAST_LOAD,
                     }
+                    logger.info(f"Config being sent: {config}")
 
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
-                    self.wfile.write(json.dumps(config).encode())
+                    try:
+                        json_response = json.dumps(config)
+                        logger.info(f"Config JSON response size: {len(json_response)} characters")
+                        self.wfile.write(json_response.encode())
+                        self.wfile.flush()  # Ensure data is sent
+                        logger.info("Config response sent successfully")
+                    except Exception as write_error:
+                        logger.error(f"Error writing config response: {write_error}")
                     return
                 except Exception as e:
                     self.send_response(500)
@@ -794,8 +820,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps({"error": str(e)}).encode())
                     return
 
-            # MongoDB API endpoint for analytics
+            # MongoDB API endpoint for analytics (experiments list)
             elif self.path == "/api/mongodb/analytics":
+                logger.info("Processing /api/mongodb/analytics request")
                 if not self.is_authenticated():
                     self.send_response(401)
                     self.send_header("Content-Type", "application/json")
@@ -872,6 +899,274 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps({"error": str(e)}).encode())
                     return
 
+            # MongoDB API endpoint for paginated experiment data (optimized for table display)
+            elif self.path.startswith("/api/mongodb/experiment-summary/"):
+                if not self.is_authenticated():
+                    self.send_response(401)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                    return
+
+                try:
+                    # Extract experiment ID from the URL (excluding query parameters)
+                    parsed_url = urllib.parse.urlparse(self.path)
+                    experiment_id = parsed_url.path.split("/")[-1]
+                    logger.info(f"Processing experiment-summary request for: {experiment_id}")
+                    
+                    params = urllib.parse.parse_qs(parsed_url.query)
+                    
+                    # Parse pagination parameters
+                    page = int(params.get("page", ["1"])[0])
+                    limit = min(int(params.get("limit", ["200"])[0]), 1000)  # Increased max since we're only loading essential fields
+                    skip = (page - 1) * limit
+                    
+                    # Parse sorting parameters
+                    sort_field = params.get("sort", ["timestamp"])[0]
+                    sort_direction = params.get("direction", ["desc"])[0]
+                    
+                    # Map frontend sort fields to database fields
+                    sort_field_mapping = {
+                        "timestamp": "timestamp",
+                        "proposal_timestamp": "proposal_timestamp", 
+                        "id": "query_id",
+                        "title": "ancillary_data",  # Since title is extracted from ancillary_data
+                        "recommendation": "recommendation",
+                        "resolution": "resolved_price_outcome",
+                        "disputed": "disputed",
+                        "correct": "resolved_price_outcome",  # Correctness is calculated, so sort by resolution
+                        "block_number": "proposal_metadata.block_number",
+                        "proposal_bond": "proposal_metadata.proposal_bond",
+                        "expiration_timestamp": "proposal_metadata.expiration_timestamp",
+                        "request_transaction_block_time": "proposal_metadata.request_transaction_block_time"
+                    }
+                    
+                    # Get the actual database field name
+                    db_sort_field = sort_field_mapping.get(sort_field, "timestamp")
+                    sort_direction_int = -1 if sort_direction == "desc" else 1
+                    
+                    logger.info(f"Pagination: page={page}, limit={limit}, skip={skip}")
+                    logger.info(f"Sorting: field={sort_field} -> {db_sort_field}, direction={sort_direction} ({sort_direction_int})")
+
+                    db = get_mongodb_connection()
+                    logger.info(f"MongoDB connection obtained: {db is not None}")
+                    if db is None:
+                        self.send_response(500)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "MongoDB connection failed"}).encode()
+                        )
+                        return
+
+                    outputs_collection = db[MONGODB_OUTPUTS_COLLECTION]
+                    logger.info(f"Using collection: {MONGODB_OUTPUTS_COLLECTION}")
+
+                    # Define essential fields to include for table display (excluding large fields like journey)
+                    # This dramatically reduces data transfer by only loading what's needed for table rows
+                    include_fields = {
+                        "_id": 0,  # Always exclude MongoDB _id
+                        # Core identification fields
+                        "experiment_id": 1,
+                        "query_id": 1,
+                        "question_id_short": 1,
+                        # Timestamps 
+                        "timestamp": 1,
+                        "unix_timestamp": 1,
+                        "proposal_timestamp": 1,
+                        # Core result fields
+                        "resolved_price_outcome": 1,
+                        "disputed": 1,
+                        "recommendation": 1,
+                        "proposed_price_outcome": 1,
+                        "format_version": 1,
+                        # Title extraction fields
+                        "ancillary_data": 1,
+                        "user_prompt": 1,
+                        "title": 1,
+                        # Multiple runs handling
+                        "_allRuns": 1,
+                        # Icon and visual elements
+                        "icon": 1,
+                        # Tags for filtering
+                        "tags": 1,
+                        # Essential result/recommendation fields
+                        "result.recommendation": 1,
+                        "result.confidence": 1,
+                        "result.reasoning": 1,
+                        # Router decision (optional column)
+                        "router_decision.solver": 1,
+                        # Proposal metadata (essential fields for table display and modal fallback)
+                        "proposal_metadata.ancillary_data": 1,
+                        "proposal_metadata.expiration_timestamp": 1,
+                        "proposal_metadata.request_transaction_block_time": 1,
+                        "proposal_metadata.block_number": 1,
+                        "proposal_metadata.proposal_bond": 1,
+                        "proposal_metadata.icon": 1,
+                        "proposal_metadata.request_transaction_hash": 1,
+                        "proposal_metadata.polymarket_question_id": 1,
+                        "proposal_metadata.polymarket_market_slug": 1,
+                        "proposal_metadata.currency": 1,
+                        "proposal_metadata.reward": 1,
+                        # Include market data for better fallback display
+                        "market_data": 1,
+                        # Include basic confidence and reasoning without full journey
+                        "confidence": 1,
+                        "reasoning": 1,
+                    }
+                    logger.info("Defined optimized field inclusions for table display")
+
+                    # Get total count
+                    logger.info(f"Counting documents for experiment_id: {experiment_id}")
+                    total_count = outputs_collection.count_documents(
+                        {"experiment_id": experiment_id}
+                    )
+                    logger.info(f"Total document count: {total_count}")
+
+                    # Get paginated outputs for this experiment (only essential fields for table display)
+                    logger.info(f"Querying documents with skip={skip}, limit={limit}")
+                    outputs = list(
+                        outputs_collection.find(
+                            {"experiment_id": experiment_id}, 
+                            include_fields
+                        ).skip(skip).limit(limit).sort(db_sort_field, sort_direction_int)
+                    )
+                    logger.info(f"Retrieved {len(outputs)} documents")
+
+                    # Return paginated response
+                    logger.info("Preparing response data...")
+                    response_data = {
+                        "data": outputs,
+                        "pagination": {
+                            "page": page,
+                            "limit": limit,
+                            "total": total_count,
+                            "pages": (total_count + limit - 1) // limit
+                        },
+                        "optimized": True,  # Flag to indicate this is optimized table data
+                        "fields_included": "table_display_only"  # Indicate what fields are included
+                    }
+                    logger.info(f"Response data prepared: {len(outputs)} items, {total_count} total (optimized for table display)")
+
+                    logger.info("Sending HTTP response headers...")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    logger.info("Response headers sent, writing body...")
+                    try:
+                        json_data = json.dumps(response_data)
+                        # Calculate data size reduction - estimate full document would be ~10x larger
+                        estimated_full_size = len(json_data) * 10
+                        logger.info(f"Optimized JSON size: {len(json_data)} characters (~{len(json_data)//1024}KB)")
+                        logger.info(f"Estimated savings: ~{(estimated_full_size - len(json_data))//1024}KB per page")
+                        self.wfile.write(json_data.encode())
+                        logger.info("Optimized response sent successfully")
+                    except (BrokenPipeError, ConnectionResetError):
+                        logger.warning("Client disconnected during response write")
+                        return
+                    except Exception as write_error:
+                        logger.error(f"Error writing response: {write_error}")
+                        return
+                    return
+
+                except Exception as e:
+                    logger.error(f"Error fetching paginated experiment from MongoDB: {e}")
+                    try:
+                        self.send_response(500)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    except (BrokenPipeError, ConnectionResetError):
+                        logger.warning("Client disconnected during error response")
+                    return
+
+            # MongoDB API endpoint for a specific document with full details (including journey)
+            elif self.path.startswith("/api/mongodb/document/"):
+                if not self.is_authenticated():
+                    self.send_response(401)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Unauthorized"}).encode())
+                    return
+
+                try:
+                    # Extract experiment ID and document query_id from the URL
+                    path_parts = self.path.split("/")
+                    experiment_id = path_parts[-2]
+                    query_id = path_parts[-1]
+                    
+                    db = get_mongodb_connection()
+                    if db is None:
+                        self.send_response(500)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({"error": "MongoDB connection failed"}).encode()
+                        )
+                        return
+
+                    outputs_collection = db[MONGODB_OUTPUTS_COLLECTION]
+
+                    # Find the specific document with full details (including journey)
+                    logger.info(f"Searching for document with experiment_id='{experiment_id}', query_id='{query_id}'")
+                    document = outputs_collection.find_one({
+                        "experiment_id": experiment_id,
+                        "query_id": query_id
+                    }, {"_id": 0})
+
+                    if not document:
+                        # Try to find documents with this experiment_id to see what query_ids exist
+                        sample_docs = list(outputs_collection.find(
+                            {"experiment_id": experiment_id}, 
+                            {"query_id": 1, "_id": 0}
+                        ).limit(5))
+                        
+                        available_query_ids = [doc.get("query_id", "missing") for doc in sample_docs]
+                        logger.warning(f"Document not found. Available query_ids in experiment: {available_query_ids}")
+                        
+                        self.send_response(404)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(
+                            json.dumps({
+                                "error": "Document not found",
+                                "requested_query_id": query_id,
+                                "experiment_id": experiment_id,
+                                "available_sample_query_ids": available_query_ids
+                            }).encode()
+                        )
+                        return
+
+                    # Log document structure for debugging
+                    doc_keys = list(document.keys()) if document else []
+                    has_journey = "journey" in document if document else False
+                    journey_length = len(document.get("journey", [])) if document and "journey" in document else 0
+                    has_market_data = "market_data" in document if document else False
+                    
+                    logger.info(f"Document found: {len(doc_keys)} fields, journey={has_journey}({journey_length} steps), market_data={has_market_data}")
+                    
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    try:
+                        self.wfile.write(json.dumps(document).encode())
+                        logger.info("Document response sent successfully")
+                    except (BrokenPipeError, ConnectionResetError):
+                        logger.warning("Client disconnected during document response write")
+                        return
+                    return
+
+                except Exception as e:
+                    logger.error(f"Error fetching document from MongoDB: {e}")
+                    try:
+                        self.send_response(500)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"error": str(e)}).encode())
+                    except (BrokenPipeError, ConnectionResetError):
+                        logger.warning("Client disconnected during document error response")
+                    return
+
             # MongoDB API endpoint for a specific experiment
             elif self.path.startswith("/api/mongodb/experiment/"):
                 if not self.is_authenticated():
@@ -906,11 +1201,13 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                         {"experiment_id": experiment_id}, {"_id": 0}
                     )
 
-                    # Get all outputs for this experiment
+                    # Get all outputs for this experiment, but limit to prevent overwhelming response
+                    # The fallback API should only be used when pagination fails, so limit results
+                    max_fallback_results = 1000  # Limit to prevent connection issues
                     outputs = list(
                         outputs_collection.find(
                             {"experiment_id": experiment_id}, {"_id": 0}
-                        )
+                        ).limit(max_fallback_results)
                     )
 
                     # Process results to handle the new structure
@@ -953,7 +1250,17 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
                     self.end_headers()
-                    self.wfile.write(json.dumps(processed_results).encode())
+                    try:
+                        # For large datasets, try to write the response in chunks to prevent broken pipe
+                        json_data = json.dumps(processed_results)
+                        self.wfile.write(json_data.encode())
+                        self.wfile.flush()  # Ensure data is sent
+                    except (BrokenPipeError, ConnectionResetError):
+                        logger.warning("Client disconnected during large response write")
+                        return
+                    except Exception as write_error:
+                        logger.error(f"Error writing large response: {write_error}")
+                        return
                     return
 
                 except Exception as e:
@@ -1020,6 +1327,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
             # API endpoint for results directories (both filesystem and MongoDB)
             elif self.path == "/api/results-directories":
+                logger.info("Processing /api/results-directories request")
                 try:
                     results = []
 
@@ -1080,7 +1388,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     # Then try to get results from MongoDB
                     mongo_error_info = None
                     try:
+                        logger.info("Attempting MongoDB connection...")
                         db = get_mongodb_connection()
+                        logger.info(f"MongoDB connection result: {db is not None}")
                         if db is not None:
                             collection = db[MONGODB_COLLECTION]
                             outputs_collection = db[MONGODB_OUTPUTS_COLLECTION]
@@ -1516,12 +1826,18 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             # If not API request, handle as normal file request
             return super().do_GET()
 
+        except (BrokenPipeError, ConnectionResetError):
+            logger.warning("Client disconnected during request handling")
+            return
         except Exception as e:
             logger.error(f"Error handling GET request: {e}")
-            self.send_response(500)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode())
+            try:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            except (BrokenPipeError, ConnectionResetError):
+                logger.warning("Client disconnected during error response")
             return
 
     def do_POST(self):
