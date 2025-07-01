@@ -2496,34 +2496,39 @@ async function loadExperimentsData() {
                 source: source
             }];
             
-            // Fetch experiment metadata from MongoDB first to get proper title and details
-            try {
-                console.log('Fetching MongoDB metadata for single experiment');
-                updateLoadingStatus('Fetching experiment metadata...');
-                const metadataResponse = await fetch(`/api/mongodb/experiment/${directory}`);
-                if (metadataResponse.ok) {
-                    const metadataData = await metadataResponse.json();
-                    
-                    // Use the first item to get experiment metadata if it's an array
-                    const metadataItem = Array.isArray(metadataData) && metadataData.length > 0 
-                        ? metadataData[0] : metadataData;
-                    
-                    // Extract title and other metadata
-                    if (metadataItem && metadataItem.metadata && metadataItem.metadata.experiment) {
-                        const experimentMetadata = metadataItem.metadata.experiment;
+            // In fast load mode, skip the heavy metadata fetch for faster initial loading
+            if (!fastLoad) {
+                // Fetch experiment metadata from MongoDB first to get proper title and details (normal mode only)
+                try {
+                    console.log('Fetching MongoDB metadata for single experiment');
+                    updateLoadingStatus('Fetching experiment metadata...');
+                    const metadataResponse = await fetch(`/api/mongodb/experiment/${directory}`);
+                    if (metadataResponse.ok) {
+                        const metadataData = await metadataResponse.json();
                         
-                        // Update the experiment entry with MongoDB data
-                        experimentsData[0].title = experimentMetadata.title || directory;
-                        experimentsData[0].goal = experimentMetadata.goal || '';
-                        experimentsData[0].timestamp = experimentMetadata.timestamp || '';
-                        experimentsData[0].metadata = metadataItem.metadata;
+                        // Use the first item to get experiment metadata if it's an array
+                        const metadataItem = Array.isArray(metadataData) && metadataData.length > 0 
+                            ? metadataData[0] : metadataData;
+                        
+                        // Extract title and other metadata
+                        if (metadataItem && metadataItem.metadata && metadataItem.metadata.experiment) {
+                            const experimentMetadata = metadataItem.metadata.experiment;
+                            
+                            // Update the experiment entry with MongoDB data
+                            experimentsData[0].title = experimentMetadata.title || directory;
+                            experimentsData[0].goal = experimentMetadata.goal || '';
+                            experimentsData[0].timestamp = experimentMetadata.timestamp || '';
+                            experimentsData[0].metadata = metadataItem.metadata;
+                        }
+                        
+                        console.log('Updated single experiment with MongoDB metadata:', experimentsData[0]);
                     }
-                    
-                    console.log('Updated single experiment with MongoDB metadata:', experimentsData[0]);
+                } catch(metadataError) {
+                    console.warn('Error loading MongoDB metadata for single experiment:', metadataError);
+                    // Continue with basic experiment data if metadata fetch fails
                 }
-            } catch(metadataError) {
-                console.warn('Error loading MongoDB metadata for single experiment:', metadataError);
-                // Continue with basic experiment data if metadata fetch fails
+            } else {
+                console.log('Fast load mode: Skipping heavy metadata fetch for faster initial loading');
             }
             
             // Directly load the experiment data from MongoDB
